@@ -20,12 +20,14 @@ interface Example {
 /**
  * One scripted demonstration per protocol. The treatment, metric and
  * direction are the script's choices, not a model's. For the four redesigned
- * protocols the minimum effect and the seed count are the pilot's
+ * protocols and the three ECHO ones the minimum effect and the seed count are the pilot's
  * (docs/benchmarks/fly-pilots/<protocol>.json, `sized`): the seed count is
  * the smallest that passes G3, G4 and the sign test with margin under the
  * pilot's outcomes, and the minimum effect the pilot's mean paired difference
  * less 1.645 standard errors at that seed count, rounded down (or the host's
- * minimum effect for the metric, if larger). Pilots run on
+ * minimum effect for the metric, if larger). A pilot that finds no seed count
+ * with that margin leaves its demonstration under-powered, at the host's
+ * largest seed count and the host's minimum effect. Pilots run on
  * the public pilot seeds, which the host never draws for an archived run, and
  * fly.test.ts checks these numbers against the pilot files. Light preference
  * and controller comparison were not redesigned; their thresholds are still
@@ -118,6 +120,51 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
       "[scripted] Configuration B (phototaxisGain 1.5, avoidTtcS 0.3) lowers the mean distance to the light.",
     competing:
       "[scripted] Steering gain matters less than how often the fly flies, which both configurations share.",
+  },
+  // Project ECHO: each a lesion of the self-model against the full one. The
+  // treatment, metric and direction were fixed before any held-out run; the
+  // pilots size the seed count and minimum effect.
+  echo_impairment: {
+    treatment: { kind: "echo_impairment", variant: "reactive" },
+    metric: "impaired_path_error",
+    direction: "increase",
+    minimumEffect: 0.19, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
+    seedCount: 9, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_impairment.json
+    question:
+      "[scripted] ECHO-01: does the fly's self-model let it walk where it intends after an impairment it is never told about?",
+    hypothesis:
+      "[scripted] Without its self-model, the fly's walking strays further from its intended path after a hidden impairment, from held-out conditions, than with it.",
+    competing:
+      "[scripted] The reduced-order controller's own feedback (turning back from edges, its tether) keeps its path as close to its intentions as a self-model would.",
+  },
+  echo_attribution: {
+    treatment: { kind: "echo_attribution", variant: "motion_gated" },
+    metric: "attribution_accuracy",
+    direction: "decrease",
+    minimumEffect: 0.34, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    seedCount: 10, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    question:
+      "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
+    hypothesis:
+      "[scripted] A motion-gated rule (a change met while moving is its own, one met standing is the world's) explains fewer hidden held-out changes correctly than the full self-model.",
+    competing:
+      "[scripted] Whether the fly was moving when a change began is all the evidence there is, so the rule does as well as the self-model.",
+  },
+  echo_retention: {
+    treatment: { kind: "echo_retention", variant: "memory_reset" },
+    metric: "reexposure_latency_s",
+    direction: "increase",
+    // UNDER-POWERED: its pilot found no seed count that passes with 0.9
+    // probability, so it runs at the host's largest seed count and the host's
+    // minimum effect, and is expected to come out inconclusive or failed.
+    minimumEffect: 4, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
+    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
+    question:
+      "[scripted] ECHO-03: does what the fly learned about an earlier impairment let it recognize the same impairment sooner when it returns?",
+    hypothesis:
+      "[scripted] A self-model reset to an innate one before a remembered held-out impairment returns takes longer to conclude that it changed itself than one with its memory intact.",
+    competing:
+      "[scripted] Learning an impairment from scratch is as fast as recognizing it, so memory does not shorten the time to conclude.",
   },
 };
 

@@ -59,6 +59,28 @@ The film is an illustrated interpretation of simulated behavior. Its garden inse
 uses the deployed renderer and a recorded observation. The live garden runs a
 separate server-side simulation; it is distinct from the research fly in 3D Bethesda.
 
+### Project ECHO: a fly that models itself
+
+Project ECHO gives the digital fly a computational model of its own
+sensorimotor capabilities. The fly predicts what its own movements will do,
+notices when the prediction fails, asks whether its body, its surroundings or
+its senses changed (and stops or starts walking to find out when it cannot
+tell), revises its model, compensates, acts cautiously while unsure, and keeps
+episodic memories of what it concluded. It never sees its true position, its
+heading or the perturbations the experimenter hides from it.
+
+Three R.A.I.N. experiments test it on held-out conditions against ablations
+and simpler baselines. With a hidden impairment, removing the self-model
+raised path error from **0.036 to 0.399** (supported, 9 of 9 seeds). Telling
+its own changes from external ones was far better than a motion-gated rule
+(**0.89 vs 0.57** correct) but short of the pre-set minimum effect
+(inconclusive), and overconfident on held-out causes. Memory shortened
+re-identification of a returning impairment by under a second (inconclusive,
+under-powered by design). This is functional self-modelling in a reduced-order
+simulator, not consciousness. Read the
+[architecture, protocols, results and failures](docs/PROJECT_ECHO.md) and the
+[evaluation report](docs/benchmarks/fly-echo/README.md).
+
 **Start here:** [Explore](#explore) · [Run locally](#run-locally) ·
 [Research loop](#how-the-research-loop-works) · [Recorded results](#recorded-results) ·
 [Validation](#validation) · [Documentation](#documentation)
@@ -263,6 +285,7 @@ its exact design, producing revision, authorship, measurements, and limitations.
 | [Live Gemma experiment](docs/rea-research/evaluations/gemma-live/README.md)                               | An operator-approved, two-arm oscillator run replayed and entered the registry with an **inconclusive** verdict because analytic accuracy guards failed. | A completed live-model workflow that preserved an insufficient-evidence result.                                             |
 | [Noeterra memory experiment](docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/report.md) | Withholding agents' memory of past treatment reduced mean wars declared from **6.50 to 2.83** over 40 seasons across six matched seeds.                  | Behavior of rule-based simulator agents under a scripted design and authorization; no inference about historical societies. |
 | [Digital-fly experiments](docs/benchmarks/fly-behavior/README.md)                                         | The archive retains scripted demonstrations with supported and inconclusive outcomes, compiler refusals, and earlier exploratory records.                | Controller behavior under specified arena protocols; no neural or biological validation.                                    |
+| [Project ECHO](docs/PROJECT_ECHO.md)                                                                      | ECHO-01 supported (path error **0.036 → 0.399** without the self-model); ECHO-02 and ECHO-03 inconclusive by their frozen criteria.                      | A functional self-model's value in a reduced-order simulator; not motor-control validation, not awareness.                  |
 
 The compiler comparison's Wilson 95% intervals are `[0, 0.324]` and `[0.676, 1]`.
 Its deliberately related fixtures do not establish representative sampling. Archived
@@ -326,7 +349,7 @@ See [validation](docs/VALIDATION.md) and the
 | Navigate the app                  | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md)                                                                                                    |
 | Work in the lab                   | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                        |
 | Study research over multiple runs | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                          |
-| Explore the other simulations     | [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md), [digital fly](docs/DIGITAL_FLY.md)                                                                        |
+| Explore the other simulations     | [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md), [digital fly](docs/DIGITAL_FLY.md), [Project ECHO](docs/PROJECT_ECHO.md)                                  |
 | Run or evaluate a deployment      | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md) |
 
 <details>

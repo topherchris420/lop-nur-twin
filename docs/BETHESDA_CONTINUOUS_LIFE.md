@@ -84,9 +84,20 @@ introduced in public beta in October 2026, can host long-running workers,
 but Daemons do not yet include persistent filesystem storage. A database
 and explicit recovery protocol are mandatory.
 
+## Project ECHO's experimental checkpoint
+
+With `--controller echo` the headless fly runs [Project ECHO](PROJECT_ECHO.md)'s
+self-model, and `HeadlessBethesdaLife.selfModelCheckpoint()` returns an
+`echo-checkpoint/v1`: the self-model's whole state, sealed, refused on any
+version, variant or byte mismatch. It is labelled experimental and is **not**
+the durable recovery criterion 2 asks for: it holds no city, body, controller
+state or random stream, so restored into another process it would give a
+different fly this one's self-model. Nothing here makes the fly persist.
+
 ## Verification of foundation
 
 ```sh
 npm run bethesda:life:smoke
+node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100 --controller echo
 npx vitest run src/bethesda/life/headless.test.ts
 ```

@@ -57,10 +57,22 @@ export const FLY_PILOT_SEEDS_USED = 32;
 export const FLY_PILOT_POWER = 0.9;
 /** Confidence of the one-sided bounds the sizing puts on pilot proportions. */
 const CONFIDENCE = 0.95;
-/** Metrics the v3 redesign added: their host minimum effects come from the pilots. */
+/** Metrics the v3 redesign and Project ECHO added: their host minimum effects come from the pilots. */
 export const FLY_PILOT_SIZED_METRICS: readonly FlyMetricId[] = [
   "near_miss_fraction",
   "escape_ttc_s",
+  "impaired_path_error",
+  "late_path_error",
+  "baseline_path_error",
+  "detection_latency_s",
+  "identification_error",
+  "attribution_accuracy",
+  "false_self_attribution",
+  "attribution_brier",
+  "attribution_path_error",
+  "reexposure_path_error",
+  "reexposure_latency_s",
+  "unfamiliar_path_error",
 ];
 
 /** The doses a pilot runs against the control, the demonstration's among them. */
@@ -79,6 +91,16 @@ export const FLY_PILOT_SERIES: Partial<Record<FlyProtocolId, FlyTreatment[]>> = 
     noise,
   })),
   adaptation: [5, 10, 20, 40].map((isi_s) => ({ kind: "adaptation" as const, isi_s })),
+  // ECHO: the full self-model is the control; each dose removes one mechanism.
+  echo_impairment: (
+    ["reactive", "no_learning", "no_uncertainty", "no_memory"] as const
+  ).map((variant) => ({ kind: "echo_impairment" as const, variant })),
+  echo_attribution: (
+    ["naive_self", "motion_gated", "no_uncertainty", "no_memory"] as const
+  ).map((variant) => ({ kind: "echo_attribution" as const, variant })),
+  echo_retention: (["memory_reset", "no_memory", "no_learning", "reactive"] as const).map(
+    (variant) => ({ kind: "echo_retention" as const, variant }),
+  ),
 };
 
 /** What a pilot runs, recorded in full so that it can be re-run exactly. */
@@ -357,8 +379,15 @@ export function sizeFlyDesign(
 
 /** The host minimum effect a null arm implies for `metric`. */
 function floorFor(metric: FlyMetricId, nullMetric: FlyPilotMetric): FlyPilotFloor {
-  // Escapes are decided on sensory samples, so a timing is resolved to one sample period.
-  const resolution = metric === "escape_ttc_s" ? PARAMS.sensePeriodMs.value / 1000 : 0;
+  // Escapes are decided on sensory samples, so a timing is resolved to one
+  // sample period; the self-model notices and concludes at decisions, so its
+  // latencies resolve to one decision period.
+  const resolution =
+    metric === "escape_ttc_s"
+      ? PARAMS.sensePeriodMs.value / 1000
+      : metric.endsWith("latency_s")
+        ? PARAMS.decisionPeriodMs.value / 1000
+        : 0;
   const bound = (2 * (nullMetric.sd_difference ?? 0)) / Math.sqrt(FLY_SEED_COUNT.min);
   const larger = Math.max(resolution, bound);
   return {
@@ -670,9 +699,9 @@ eight 32-bit seeds per digest), a null arm (the control again on the next
 ${FLY_PILOT_SEEDS_USED} pilot seeds, paired in order: the same code and arm with every random
 stream independent, the apparatus's draws included, so an upper bound on what
 trajectory divergence alone can produce), and what the pilot sized. The scripted demonstrations of the four redesigned
-protocols (\`src/rain/scientific/flyExample.ts\`) take their seed counts and
+protocols and the three Project ECHO ones (\`src/rain/scientific/flyExample.ts\`) take their seed counts and
 minimum effects from \`sized\`, and the host's minimum effects for the metrics
-the redesign added (FLY_METRICS) come from \`floors\`;
+the redesign and ECHO added (FLY_METRICS) come from \`floors\`;
 \`src/rain/scientific/fly.test.ts\` checks both against these files.
 
 ## What each pilot ran on
@@ -694,9 +723,10 @@ sized; any difference fails the check.
 ${sizedRows.join("\n")}
 
 - **Seed count**: the smallest of ${FLY_SEED_COUNT.min}-${FLY_SEED_COUNT.max} whose chance of passing G3, G4 (at least ${FLY_MIN_UNTIED_PAIRS} untied seeds) and the exact sign test at alpha ${FLY_ALPHA} is at least ${FLY_PILOT_POWER}. The share of seeds in the expected direction is its one-sided 95% lower bound from the pilot, the rest is split between the opposite direction and no information in the pilot's proportions (each counted once more), and the chance that the control sits at a bound in every seed uses the one-sided 95% upper bound.
+- **No seed count**: when no seed count in the host's range reaches that chance, the pilot sizes nothing, and its demonstration runs under-powered, at the host's largest seed count (${FLY_SEED_COUNT.max}) and the host's minimum effect; it is expected to come out inconclusive or failed.
 - **Minimum effect**: the pilot's mean paired difference less 1.645 standard errors (of the pilot and of an experiment at that seed count), rounded down to two significant figures: an effect the size of the pilot's clears it with about 95% probability. A design may not go below the host's minimum effect for the metric, so it uses the larger of the two. The S1 probability is the chance that an experiment at that seed count clears the design's minimum effect if the effect is the pilot's.
 
-## Host minimum effects for the metrics the redesign added
+## Host minimum effects for the metrics the redesign and Project ECHO added
 
 | metric | pilot | resolution | divergence bound | floor | in force |
 | :--- | :--- | ---: | ---: | ---: | ---: |

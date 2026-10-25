@@ -666,8 +666,84 @@ export const FLY_PILOT_SEED_COUNT = 64;
  * them as evidence.
  */
 export const FLY_LEGACY_RECORD = "rain-fly-record/v1" as const;
-export const FLY_BLOCKS = ["clutter", "light", "escape", "repeat"] as const;
+export const FLY_BLOCKS = [
+  "clutter",
+  "light",
+  "escape",
+  "repeat",
+  "impairment",
+  "attribution",
+  "retention",
+] as const;
 export type FlyBlockId = (typeof FLY_BLOCKS)[number];
+
+/**
+ * Project ECHO (docs/PROJECT_ECHO.md): the fly with a computational
+ * self-model (src/bethesda/fly/echo/), its ablations and simpler baselines.
+ * The names are the self-model's own (ECHO_VARIANTS, which a test holds this
+ * list to); the contract keeps its own copy so the lab's bundle does not take
+ * the self-model in.
+ */
+export const FLY_ECHO_VARIANTS = [
+  "full",
+  "reactive",
+  "no_learning",
+  "no_memory",
+  "no_uncertainty",
+  "naive_self",
+  "motion_gated",
+] as const;
+export type FlyEchoVariant = (typeof FLY_ECHO_VARIANTS)[number];
+/** What a hidden condition stands for, as the experimenter scores the fly's explanation. */
+export type FlyEchoCause =
+  "self" | "external" | "sensor" | "self+external" | "environment";
+export type FlyEchoEffectField =
+  | "speedGain"
+  | "turnGain"
+  | "turnBias"
+  | "drift"
+  | "spin"
+  | "flowNoise"
+  | "flowBias"
+  | "obstacle";
+export interface FlyEchoEffect {
+  field: FlyEchoEffectField;
+  /** Bands a magnitude is drawn from, uniformly over their total length. */
+  bands: [number, number][];
+  /** A bias, spin or direction takes a random sign or direction. */
+  signed: boolean;
+}
+export interface FlyEchoCondition {
+  id: string;
+  cause: FlyEchoCause;
+  effects: FlyEchoEffect[];
+}
+/** An ECHO block's apparatus, copied whole into a plan: the hidden conditions and the schedule's timing. */
+export interface FlyEchoApparatus {
+  schedule: "impairment" | "attribution" | "retention";
+  /** Which condition set: registered experiments run the held-out evaluation set only. */
+  conditions: "development" | "evaluation";
+  condition_set: FlyEchoCondition[];
+  /** Impairment: the range of the hidden onset (s). */
+  onset_s: [number, number];
+  /** Attribution: each episode's nominal onset (s), its jitter and its length. */
+  onsets_s: number[];
+  jitter_s: number;
+  episode_s: [number, number];
+  /** Attribution: the chance the last episode lasts to the end of the run. */
+  persistent_last: number;
+  /** Retention: phase starts (s): A, nominal, B, nominal, A again, nominal, C. */
+  phases_s: number[];
+  /** Path error is measured over windows of this many seconds of steady walking. */
+  window_s: number;
+  /** Retention: a change met again, or met for the first time, is scored over this long (s). */
+  reexposure_s: number;
+}
+/** The controller an ECHO arm runs, and (retention) when its self-model is reset to an innate one. */
+export interface FlyEchoArm {
+  variant: FlyEchoVariant;
+  reset_s: number | null;
+}
 
 /** The host's decision rule: an exact one-sided sign test on untied matched seeds. */
 export const FLY_ALPHA = 0.05;
@@ -910,6 +986,256 @@ export const FLY_METRICS = [
     minimum_effect: null,
     description: "mean angular size of the repeated stimulus at the escape decision",
   },
+  // Project ECHO. Path error: over 1 s windows of steady walking, the distance
+  // between where the fly ended and where an unimpaired body following its own
+  // intentions from the same start would have, over that intended path's
+  // length. The primary metrics' host minimum effects are the pilots' floors
+  // (docs/benchmarks/fly-pilots/echo_*.json): large, because each seed draws
+  // its own hidden condition, so seeds differ widely.
+  {
+    id: "impaired_path_error",
+    block: "impairment",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.09,
+    description:
+      "mean path error of steady walking from the hidden impairment's onset to the end of the run",
+  },
+  {
+    id: "late_path_error",
+    block: "impairment",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.2,
+    description: "mean path error of steady walking over the run's last 40 s",
+  },
+  {
+    id: "baseline_path_error",
+    block: "impairment",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.006,
+    description: "mean path error of steady walking before the hidden impairment",
+  },
+  {
+    id: "detection_latency_s",
+    block: "impairment",
+    unit: "s",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 3,
+    description:
+      "time from the hidden impairment's onset to the fly's first noticing that its predictions fail (undefined without a self-model or if never noticed)",
+  },
+  {
+    id: "attribution_latency_s",
+    block: "impairment",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "time from the onset to the fly's first concluding that it changed itself (undefined without one)",
+  },
+  {
+    id: "identification_error",
+    block: "impairment",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.008,
+    description:
+      "relative error of the fly's final beliefs about the impaired gains and biases against the hidden values (undefined without a self-model)",
+  },
+  {
+    id: "false_alarms_per_min",
+    block: "impairment",
+    unit: "1/min",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "conclusions other than 'nothing changed' before the onset, per minute",
+  },
+  {
+    id: "impaired_walked_m",
+    block: "impairment",
+    unit: "m",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "distance walked after the onset",
+  },
+  {
+    id: "coverage_90",
+    block: "impairment",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "share of observed self-motion components inside the fly's own predicted central 90% interval (0.9 is calibrated)",
+  },
+  {
+    id: "attribution_accuracy",
+    block: "attribution",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.2,
+    description:
+      "fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out",
+  },
+  {
+    id: "false_self_attribution",
+    block: "attribution",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.07,
+    description:
+      "fraction of external changes (a push, a turning surface) the fly blamed on its own body",
+  },
+  {
+    id: "attribution_brier",
+    block: "attribution",
+    unit: "score",
+    primary: true,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: 0.2,
+    description:
+      "mean Brier score of the fly's confidence in each explanation it concluded (0 is perfect)",
+  },
+  {
+    id: "attribution_path_error",
+    block: "attribution",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.09,
+    description: "mean path error of steady walking over the whole run",
+  },
+  {
+    id: "missed_changes",
+    block: "attribution",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "hidden changes the fly never asked about within 6 s",
+  },
+  {
+    id: "misleading_sense_blamed_self",
+    block: "attribution",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "fraction of misleading-sense onsets (a motion read that is not there, which no sense here can tell from a push) the fly blamed on its body",
+  },
+  {
+    id: "attribution_coverage_90",
+    block: "attribution",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: 1,
+    minimum_effect: null,
+    description:
+      "share of observed self-motion components inside the fly's predicted central 90% interval",
+  },
+  {
+    id: "reexposure_path_error",
+    block: "retention",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.1,
+    description:
+      "mean path error over the first 10 s after a self-change met before comes back",
+  },
+  {
+    id: "reexposure_latency_s",
+    block: "retention",
+    unit: "s",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 4,
+    description:
+      "time from that return to the fly's concluding that it changed itself (undefined without one)",
+  },
+  {
+    id: "first_exposure_path_error",
+    block: "retention",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "mean path error over the first 10 s of that change's first appearance",
+  },
+  {
+    id: "first_exposure_latency_s",
+    block: "retention",
+    unit: "s",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "time from its first appearance to the fly's concluding it changed itself",
+  },
+  {
+    id: "unfamiliar_path_error",
+    block: "retention",
+    unit: "fraction",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 0.2,
+    description: "mean path error over the first 10 s of an unfamiliar combined change",
+  },
+  {
+    id: "recalls",
+    block: "retention",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description: "inquiries concluded by recalling a remembered episode",
+  },
+  {
+    id: "false_recalls",
+    block: "retention",
+    unit: "count",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "recalls concluded during the unfamiliar change, which no episode matches",
+  },
 ] as const;
 export type FlyMetricId = (typeof FLY_METRICS)[number]["id"];
 
@@ -974,6 +1300,39 @@ export const FLY_PROTOCOLS = [
     baseline: "a first controller configuration on the same seeds",
     caveat: null,
   },
+  {
+    id: "echo_impairment",
+    title: "ECHO-01: recognizing a bodily impairment",
+    blocks: ["impairment"],
+    independent:
+      "the self-model removed or ablated (no self-model, learning disabled, uncertainty estimation disabled, or episodic memory disabled)",
+    baseline:
+      "the full self-model on the same seeds, under the same hidden impairments drawn from the held-out evaluation conditions",
+    caveat:
+      "Compensation is of abstract movement gains in the reduced-order simulator, not validated motor control; a strong impairment cannot be fully compensated within the body's 4 cm/s. Identification (the identification error) is measured apart from compensation (the path errors).",
+  },
+  {
+    id: "echo_attribution",
+    title: "ECHO-02: self versus external causation",
+    blocks: ["attribution"],
+    independent:
+      "a simpler explanation rule (self only, or motion-gated), uncertainty estimation disabled, or episodic memory disabled",
+    baseline:
+      "the full self-model on the same seeds, under the same hidden changes to its body, its surroundings and its sense",
+    caveat:
+      "A sense that reads a motion that is not there cannot be told from a push by any sense this fly has; it is measured apart and left out of the accuracy.",
+  },
+  {
+    id: "echo_retention",
+    title: "ECHO-03: learning retained through time",
+    blocks: ["retention"],
+    independent:
+      "the self-model reset to an innate one before a change comes back, episodic memory disabled, learning disabled, or no self-model",
+    baseline:
+      "the full self-model with its memory intact, on the same seeds and schedule",
+    caveat:
+      "Retained learning is measured, not identity: a reset self-model in the same body is still the same simulated fly, and a restored checkpoint is the self-model alone (docs/PROJECT_ECHO.md).",
+  },
 ] as const satisfies readonly {
   id: string;
   title: string;
@@ -1001,6 +1360,18 @@ export type FlyTreatment =
       kind: "controller_comparison";
       baseline: FlyControllerConfig;
       treatment: FlyControllerConfig;
+    }
+  | {
+      kind: "echo_impairment";
+      variant: "reactive" | "no_learning" | "no_uncertainty" | "no_memory";
+    }
+  | {
+      kind: "echo_attribution";
+      variant: "naive_self" | "motion_gated" | "no_uncertainty" | "no_memory";
+    }
+  | {
+      kind: "echo_retention";
+      variant: "memory_reset" | "no_memory" | "no_learning" | "reactive";
     };
 
 export interface FlyDesign {
@@ -1058,6 +1429,8 @@ export interface FlyBlockSpec {
     /** The approach's l/v (ms) unless an arm sets its own: radius over speed. */
     l_over_v_ms: number;
   } | null;
+  /** ECHO blocks only: the hidden conditions and their schedule. */
+  echo?: FlyEchoApparatus;
 }
 export interface FlyArm {
   id: "control" | "treatment";
@@ -1069,6 +1442,8 @@ export interface FlyArm {
   l_over_v_ms: number;
   /** Repeat block: interval between scheduled presentation onsets (s). */
   isi_s: number;
+  /** ECHO protocols only: the controller this arm runs. */
+  echo?: FlyEchoArm;
 }
 export interface FlyExperiment {
   schema: typeof FLY_EXPERIMENT;
@@ -1217,6 +1592,27 @@ export const FLY_DESIGN_SCHEMA = closed({
           kind: { const: "controller_comparison", type: "string" },
           baseline: flyConfig,
           treatment: flyConfig,
+        }),
+        closed({
+          kind: { const: "echo_impairment", type: "string" },
+          variant: {
+            type: "string",
+            enum: ["reactive", "no_learning", "no_uncertainty", "no_memory"],
+          },
+        }),
+        closed({
+          kind: { const: "echo_attribution", type: "string" },
+          variant: {
+            type: "string",
+            enum: ["naive_self", "motion_gated", "no_uncertainty", "no_memory"],
+          },
+        }),
+        closed({
+          kind: { const: "echo_retention", type: "string" },
+          variant: {
+            type: "string",
+            enum: ["memory_reset", "no_memory", "no_learning", "reactive"],
+          },
         }),
       ],
     },

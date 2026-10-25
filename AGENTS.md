@@ -664,6 +664,58 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
     `FLY_METRICS` traces to a file in `docs/benchmarks/fly-pilots/`, and
     `fly.test.ts` checks it.
 
+### Project ECHO (`src/bethesda/fly/echo/`)
+
+The fly's computational self-model, its ablations and their three R.A.I.N.
+protocols. Read `docs/PROJECT_ECHO.md` first. Outside `echo/` it adds the
+body's opt-in hooks (`fly/perturbation.ts`, `fly/selfMotion.ts`), the rig
+`src/rain/scientific/flyEcho.ts` and its report `flyEchoReport.ts`,
+`scripts/echo-develop.ts`, `scripts/echo-evaluate.ts`,
+`docs/benchmarks/fly-echo/`, the panel's `fly/SelfModelPanel.tsx`, the
+`controller` option of `CityFly` and `HeadlessBethesdaLife`, and the
+`echo_*` protocols, metrics and blocks of the fly backend. The rule it exists
+to keep: **the fly may know only what it can sense; the experimenter knows the
+cause.**
+
+- **One door in.** The self-model reads `SelfModelView` (`echo/view.ts`) and
+  nothing else: never the body's position, velocity or heading, the world,
+  the landing sites or a perturbation. `echo.test.ts` scans the modules and
+  scrambles every privileged field of recorded inputs; both must keep
+  passing. A new input is a field of the view that the fly could sense.
+- **Perturbations are the experimenter's.** They are applied by the body and
+  the self-motion sense, labelled with a cause for scoring, and never handed
+  to a decision maker. The hooks are opt-in, so the default fly stays byte
+  for byte what it was: `npm run rain:fly -- --pilot --check` must keep
+  reproducing every kept pilot.
+- **Development and evaluation never mix.** The self-model is tuned on
+  `ECHO_DEVELOPMENT_CONDITIONS`, the open arena and the development seeds only
+  (`scripts/echo-develop.ts`). Registered blocks run
+  `ECHO_EVALUATION_CONDITIONS` in the held-out arena, whose bands exclude the
+  development values (a test checks). A change made after seeing a held-out
+  result is disclosed in `docs/PROJECT_ECHO.md` and the evaluation is run
+  again; never tune silently on held-out data.
+- **Every number is a model choice, and versioned.** `ECHO_PARAMS` are fixed
+  `model` values. Changing one, or anything the self-model does, bumps
+  `ECHO_VERSION`; then rerun the pilots, the evaluation report
+  (`node scripts/run-ts.mjs scripts/echo-evaluate.ts` from a clean commit;
+  `--check` reproduces it) and the demonstrations, and commit what they write.
+  Never edit `docs/benchmarks/fly-echo/` by hand.
+- **One gate, still.** ECHO is a `FlyNeuralAdapter` over the reduced-order
+  controller; every command it gives passes `validateCommand`, and the
+  `reactive` variant must run step for step as the reduced-order controller.
+- **A restored self-model is not the same fly.** A checkpoint
+  (`echo-checkpoint/v1`) holds the self-model only; restore refuses another
+  version, variant or byte, and every replacement is recorded in the
+  adapter's state. Choosing ECHO in the city places a new fly. Never present
+  either as the same persistent individual.
+- **The panel reads; the fly decides.** `SelfModelPanel.tsx` reads the
+  adapter's state and calls nothing that changes it, and keeps the fly's
+  estimates apart from ground truth only researchers see.
+- **Functional words only.** Say the fly maintains and updates a model of its
+  own sensorimotor capabilities. Never write, generate or display a
+  first-person claim of awareness, and never present a result as evidence of
+  consciousness.
+
 ### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 
 A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives meet

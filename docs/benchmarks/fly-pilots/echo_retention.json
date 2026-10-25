@@ -1,0 +1,2969 @@
+{
+  "schema": "rain-fly-pilot/v1",
+  "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
+  "protocol": "echo_retention",
+  "fly_version": "digital-fly/7",
+  "fly": "digital-fly/7 reduced-order-fsm/v1",
+  "fly_sha256": "1f4bac8d974fedb2d431462a95342952bf56997aeb848b7346ba385c9020961f",
+  "fly_source_sha256": "f24877bd26d4eaf17828aa623e4c6676e23c1f751cb1f58379fb909a38939c14",
+  "engine": "node 22.22.0 (V8 12.4.254.21-node.33)",
+  "code": {
+    "commit": "737b9148ea27de52866f996feaef625a59123c15",
+    "dirty": false
+  },
+  "definition": {
+    "protocol": "echo_retention",
+    "demonstration": {
+      "treatment": {
+        "kind": "echo_retention",
+        "variant": "memory_reset"
+      },
+      "metric": "reexposure_latency_s",
+      "direction": "increase"
+    },
+    "blocks": [
+      {
+        "id": "retention",
+        "arena": {
+          "size": [
+            3,
+            2.5,
+            3
+          ],
+          "ambient": 0.6,
+          "pillars": [
+            {
+              "x": -0.75,
+              "z": -0.75,
+              "r": 0.05
+            },
+            {
+              "x": -0.75,
+              "z": 0.75,
+              "r": 0.05
+            },
+            {
+              "x": 0.75,
+              "z": -0.75,
+              "r": 0.05
+            },
+            {
+              "x": 0.75,
+              "z": 0.75,
+              "r": 0.05
+            }
+          ]
+        },
+        "fixed_config": {
+          "takeoffHz": 0,
+          "groomHz": 0,
+          "walkStartHz": 1,
+          "walkStopHz": 0.1
+        },
+        "start_half_width_m": 0.4,
+        "tick_s": 0.05,
+        "duration_s": 245,
+        "trials": 1,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": null,
+        "echo": {
+          "schedule": "retention",
+          "conditions": "evaluation",
+          "condition_set": [
+            {
+              "id": "speed_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.35,
+                      0.45
+                    ],
+                    [
+                      0.65,
+                      0.75
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "turn_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "turnGain",
+                  "bands": [
+                    [
+                      0.35,
+                      0.5
+                    ],
+                    [
+                      0.7,
+                      0.8
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "turn_bias",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "turnBias",
+                  "bands": [
+                    [
+                      0.4,
+                      0.6
+                    ],
+                    [
+                      1,
+                      1.4
+                    ]
+                  ],
+                  "signed": true
+                }
+              ]
+            },
+            {
+              "id": "speed_and_turn_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.45,
+                      0.7
+                    ]
+                  ],
+                  "signed": false
+                },
+                {
+                  "field": "turnGain",
+                  "bands": [
+                    [
+                      0.5,
+                      0.8
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "speed_gain_and_turn_bias",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.45,
+                      0.7
+                    ]
+                  ],
+                  "signed": false
+                },
+                {
+                  "field": "turnBias",
+                  "bands": [
+                    [
+                      0.5,
+                      1.2
+                    ]
+                  ],
+                  "signed": true
+                }
+              ]
+            }
+          ],
+          "onset_s": [
+            30,
+            40
+          ],
+          "onsets_s": [
+            20,
+            55,
+            90,
+            125
+          ],
+          "jitter_s": 3,
+          "episode_s": [
+            15,
+            22
+          ],
+          "persistent_last": 0.5,
+          "phases_s": [
+            25,
+            65,
+            90,
+            125,
+            150,
+            185,
+            210
+          ],
+          "window_s": 1,
+          "reexposure_s": 10
+        }
+      }
+    ],
+    "control": {
+      "config": {},
+      "noise": 0,
+      "light_intensity": 2,
+      "l_over_v_ms": 40,
+      "isi_s": 90,
+      "echo": {
+        "variant": "full",
+        "reset_s": null
+      },
+      "id": "control"
+    },
+    "doses": [
+      {
+        "treatment": {
+          "kind": "echo_retention",
+          "variant": "memory_reset"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "full",
+            "reset_s": 145
+          },
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "echo_retention",
+          "variant": "no_memory"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "no_memory",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "echo_retention",
+          "variant": "no_learning"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "no_learning",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "echo_retention",
+          "variant": "reactive"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "reactive",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      }
+    ],
+    "seeds": [
+      1250699102,
+      1587739442,
+      2658312056,
+      3199705756,
+      162094665,
+      4278750438,
+      3635782303,
+      2460133421,
+      2871360669,
+      3107702767,
+      2144531015,
+      548865697,
+      4221970428,
+      2671053968,
+      3682526939,
+      1508309798,
+      3602842389,
+      2945248724,
+      3245830047,
+      4077872909,
+      792557650,
+      3431649965,
+      1106352229,
+      1065338367,
+      3197863881,
+      4273701671,
+      3580466435,
+      1701112925,
+      2957129322,
+      4023885916,
+      1678647756,
+      1516296522
+    ],
+    "null_seeds": [
+      1389853239,
+      3817225699,
+      3921015553,
+      340036684,
+      73397429,
+      3964186322,
+      2077844650,
+      1800957549,
+      1043787298,
+      1024682578,
+      2688939661,
+      3190625804,
+      388700234,
+      3959280679,
+      1269043350,
+      4016638675,
+      1988085456,
+      164549902,
+      536081231,
+      4074758372,
+      808908111,
+      1172435952,
+      1553893803,
+      3361379865,
+      1123745285,
+      4261818673,
+      472226864,
+      707999433,
+      2655811014,
+      101944684,
+      3593148740,
+      2873974990
+    ]
+  },
+  "control": {
+    "label": "the full ECHO self-model with its memory intact, on the same schedule",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1250699102,
+        "metrics": {
+          "reexposure_path_error": 0.39280591190059433,
+          "reexposure_latency_s": 1.3499999999999943,
+          "first_exposure_path_error": 0.23304286801330906,
+          "first_exposure_latency_s": 2.1999999999999993,
+          "unfamiliar_path_error": 0.21100873633257852,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1587739442,
+        "metrics": {
+          "reexposure_path_error": 0.02719735159792909,
+          "reexposure_latency_s": 3.3499999999999943,
+          "first_exposure_path_error": 0.018050765423382253,
+          "first_exposure_latency_s": 3.3000000000000007,
+          "unfamiliar_path_error": 0.24257063002767654,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2658312056,
+        "metrics": {
+          "reexposure_path_error": 0.16674109209131702,
+          "reexposure_latency_s": 1.8499999999999943,
+          "first_exposure_path_error": 0.07308730145886616,
+          "first_exposure_latency_s": 2.6000000000000014,
+          "unfamiliar_path_error": 0.4635965567203777,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3199705756,
+        "metrics": {
+          "reexposure_path_error": 0.07635900901955492,
+          "reexposure_latency_s": 2.25,
+          "first_exposure_path_error": 0.057283001553470506,
+          "first_exposure_latency_s": 2.6000000000000014,
+          "unfamiliar_path_error": 0.24831054403884778,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 162094665,
+        "metrics": {
+          "reexposure_path_error": 0.03184618289366556,
+          "reexposure_latency_s": 1.5500000000000114,
+          "first_exposure_path_error": 0.04783347886816985,
+          "first_exposure_latency_s": 5.449999999999999,
+          "unfamiliar_path_error": 0.08940666354027658,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 4278750438,
+        "metrics": {
+          "reexposure_path_error": 0.11676430705652631,
+          "reexposure_latency_s": 5.349999999999994,
+          "first_exposure_path_error": 0.012427388598113154,
+          "first_exposure_latency_s": 2.1000000000000014,
+          "unfamiliar_path_error": 0.05968415552675959,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3635782303,
+        "metrics": {
+          "reexposure_path_error": 0.03536778702388957,
+          "reexposure_latency_s": 1.75,
+          "first_exposure_path_error": 0.02758412151702694,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.2288425536513066,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2460133421,
+        "metrics": {
+          "reexposure_path_error": 0.016146973857801387,
+          "reexposure_latency_s": 2.1500000000000057,
+          "first_exposure_path_error": 0.053068319135300634,
+          "first_exposure_latency_s": 4.899999999999999,
+          "unfamiliar_path_error": 0.18510624351946306,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2871360669,
+        "metrics": {
+          "reexposure_path_error": 0.037510192608557105,
+          "reexposure_latency_s": 2.0999999999999943,
+          "first_exposure_path_error": 0.03111076504067916,
+          "first_exposure_latency_s": 5.800000000000001,
+          "unfamiliar_path_error": 0.10563517379938625,
+          "recalls": 2,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3107702767,
+        "metrics": {
+          "reexposure_path_error": 0.08208887249116548,
+          "reexposure_latency_s": 15.449999999999989,
+          "first_exposure_path_error": 0.02492541598189549,
+          "first_exposure_latency_s": 5.550000000000001,
+          "unfamiliar_path_error": 0.21937572755179197,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2144531015,
+        "metrics": {
+          "reexposure_path_error": 0.09939192022138733,
+          "reexposure_latency_s": 1.9000000000000057,
+          "first_exposure_path_error": 0.08195346990561277,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.20352728006493417,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 548865697,
+        "metrics": {
+          "reexposure_path_error": 0.030444618894884194,
+          "reexposure_latency_s": 8.349999999999994,
+          "first_exposure_path_error": 0.05376235425217658,
+          "first_exposure_latency_s": 9.649999999999999,
+          "unfamiliar_path_error": 0.2770738842753757,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 4221970428,
+        "metrics": {
+          "reexposure_path_error": 0.0331604851893096,
+          "reexposure_latency_s": 1.8499999999999943,
+          "first_exposure_path_error": 0.10276992901004957,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.4026474773960163,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2671053968,
+        "metrics": {
+          "reexposure_path_error": 0.13650170762119251,
+          "reexposure_latency_s": 4.25,
+          "first_exposure_path_error": 0.0383864866506355,
+          "first_exposure_latency_s": 2.0500000000000007,
+          "unfamiliar_path_error": 0.07497591998409613,
+          "recalls": 2,
+          "false_recalls": 1
+        }
+      },
+      {
+        "seed": 3682526939,
+        "metrics": {
+          "reexposure_path_error": 0.04557099472936027,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.12975517182635674,
+          "first_exposure_latency_s": 6.699999999999999,
+          "unfamiliar_path_error": 0.02756018189673644,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1508309798,
+        "metrics": {
+          "reexposure_path_error": 0.040078579632476595,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.1422126733679102,
+          "first_exposure_latency_s": 1.9499999999999993,
+          "unfamiliar_path_error": 0.11960057788502951,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3602842389,
+        "metrics": {
+          "reexposure_path_error": 0.010122017241721598,
+          "reexposure_latency_s": 1.8499999999999943,
+          "first_exposure_path_error": 0.0395442618786446,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.092262875010103,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2945248724,
+        "metrics": {
+          "reexposure_path_error": 0.07457871309806167,
+          "reexposure_latency_s": 1.6500000000000057,
+          "first_exposure_path_error": 0.0937097012336923,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.12682316289212023,
+          "recalls": 2,
+          "false_recalls": 1
+        }
+      },
+      {
+        "seed": 3245830047,
+        "metrics": {
+          "reexposure_path_error": 0.08858374448365378,
+          "reexposure_latency_s": 2.0999999999999943,
+          "first_exposure_path_error": 0.08248695675934595,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.09340903547918801,
+          "recalls": 2,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 4077872909,
+        "metrics": {
+          "reexposure_path_error": 0.046304093230947016,
+          "reexposure_latency_s": 3.5,
+          "first_exposure_path_error": 0.03701495171214033,
+          "first_exposure_latency_s": 12.649999999999999,
+          "unfamiliar_path_error": 0.03873986076685834,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 792557650,
+        "metrics": {
+          "reexposure_path_error": 0.011303363496263241,
+          "reexposure_latency_s": 3.25,
+          "first_exposure_path_error": 0.02884701459402818,
+          "first_exposure_latency_s": 3.6999999999999993,
+          "unfamiliar_path_error": 0.05121935018160209,
+          "recalls": 2,
+          "false_recalls": 1
+        }
+      },
+      {
+        "seed": 3431649965,
+        "metrics": {
+          "reexposure_path_error": 0.02297864584089523,
+          "reexposure_latency_s": 1.0999999999999943,
+          "first_exposure_path_error": 0.03241836398328962,
+          "first_exposure_latency_s": 1.8500000000000014,
+          "unfamiliar_path_error": 0.3954903547085814,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1106352229,
+        "metrics": {
+          "reexposure_path_error": 0.016748595251313832,
+          "reexposure_latency_s": 14.849999999999994,
+          "first_exposure_path_error": 0.024988057862248426,
+          "first_exposure_latency_s": 4.75,
+          "unfamiliar_path_error": 0.3961207346782656,
+          "recalls": 2,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1065338367,
+        "metrics": {
+          "reexposure_path_error": 0.016202680003680414,
+          "reexposure_latency_s": 1.1999999999999886,
+          "first_exposure_path_error": 0.08001468463545701,
+          "first_exposure_latency_s": 5.050000000000001,
+          "unfamiliar_path_error": 0.019195092162764615,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3197863881,
+        "metrics": {
+          "reexposure_path_error": 0.02480240078721744,
+          "reexposure_latency_s": 1.9000000000000057,
+          "first_exposure_path_error": 0.04575810081717715,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.09716087643685578,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 4273701671,
+        "metrics": {
+          "reexposure_path_error": 0.01754162121164631,
+          "reexposure_latency_s": 6.900000000000006,
+          "first_exposure_path_error": 0.02502455460314141,
+          "first_exposure_latency_s": 2.1000000000000014,
+          "unfamiliar_path_error": 0.12333825404436127,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3580466435,
+        "metrics": {
+          "reexposure_path_error": 0.02448999966882017,
+          "reexposure_latency_s": 4,
+          "first_exposure_path_error": 0.013778885935233092,
+          "first_exposure_latency_s": 2.8000000000000007,
+          "unfamiliar_path_error": 0.03350146360825616,
+          "recalls": 2,
+          "false_recalls": 1
+        }
+      },
+      {
+        "seed": 1701112925,
+        "metrics": {
+          "reexposure_path_error": 0.055734487919732,
+          "reexposure_latency_s": 4.400000000000006,
+          "first_exposure_path_error": 0.03766753720795955,
+          "first_exposure_latency_s": 1.8999999999999986,
+          "unfamiliar_path_error": 0.13597493748068512,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2957129322,
+        "metrics": {
+          "reexposure_path_error": 0.21781432618392504,
+          "reexposure_latency_s": 1.4499999999999886,
+          "first_exposure_path_error": 0.07514720803106675,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.03252717370293186,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 4023885916,
+        "metrics": {
+          "reexposure_path_error": 0.01770111185603846,
+          "reexposure_latency_s": 1.6999999999999886,
+          "first_exposure_path_error": 0.050432892894666605,
+          "first_exposure_latency_s": 2.1999999999999993,
+          "unfamiliar_path_error": 0.041856203157210496,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1678647756,
+        "metrics": {
+          "reexposure_path_error": 0.030789176105613544,
+          "reexposure_latency_s": 17.599999999999994,
+          "first_exposure_path_error": 0.026935371385364004,
+          "first_exposure_latency_s": null,
+          "unfamiliar_path_error": 0.033919314425610754,
+          "recalls": 0,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1516296522,
+        "metrics": {
+          "reexposure_path_error": 0.007632964323673626,
+          "reexposure_latency_s": 1.9499999999999886,
+          "first_exposure_path_error": 0.07117194350628278,
+          "first_exposure_latency_s": 2.1999999999999993,
+          "unfamiliar_path_error": 0.28467621563192075,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      }
+    ]
+  },
+  "doses": [
+    {
+      "label": "the full ECHO self-model reset to an innate one 5 s before a remembered change returns",
+      "treatment": {
+        "kind": "echo_retention",
+        "variant": "memory_reset"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "reexposure_path_error": 0.014656484756012415,
+            "reexposure_latency_s": 2.3000000000000114,
+            "first_exposure_path_error": 0.23304286801330906,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.6327403690048268,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "reexposure_path_error": 0.03630066474566687,
+            "reexposure_latency_s": 3.5999999999999943,
+            "first_exposure_path_error": 0.018050765423382253,
+            "first_exposure_latency_s": 3.3000000000000007,
+            "unfamiliar_path_error": 0.24257054222165736,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "reexposure_path_error": 0.17028212357057196,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.07308730145886616,
+            "first_exposure_latency_s": 2.6000000000000014,
+            "unfamiliar_path_error": 0.43183369414983125,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "reexposure_path_error": 0.07141449926470714,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.057283001553470506,
+            "first_exposure_latency_s": 2.6000000000000014,
+            "unfamiliar_path_error": 0.2347032538012553,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "reexposure_path_error": 0.03298580702804507,
+            "reexposure_latency_s": 2.5,
+            "first_exposure_path_error": 0.04783347886816985,
+            "first_exposure_latency_s": 5.449999999999999,
+            "unfamiliar_path_error": 0.08947270936536061,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "reexposure_path_error": 0.035708800677631,
+            "reexposure_latency_s": 2.1500000000000057,
+            "first_exposure_path_error": 0.012427388598113154,
+            "first_exposure_latency_s": 2.1000000000000014,
+            "unfamiliar_path_error": 0.05959273971539373,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "reexposure_path_error": 0.03967529386573991,
+            "reexposure_latency_s": 2.3499999999999943,
+            "first_exposure_path_error": 0.02758412151702694,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.2476327072484911,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "reexposure_path_error": 0.01080059237416964,
+            "reexposure_latency_s": 3.5,
+            "first_exposure_path_error": 0.053068319135300634,
+            "first_exposure_latency_s": 4.899999999999999,
+            "unfamiliar_path_error": 0.1388172891774512,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "reexposure_path_error": 0.03398901331331835,
+            "reexposure_latency_s": 2.3499999999999943,
+            "first_exposure_path_error": 0.03111076504067916,
+            "first_exposure_latency_s": 5.800000000000001,
+            "unfamiliar_path_error": 0.11309651590386331,
+            "recalls": 1,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "reexposure_path_error": 0.07782606912611169,
+            "reexposure_latency_s": 12.949999999999989,
+            "first_exposure_path_error": 0.02492541598189549,
+            "first_exposure_latency_s": 5.550000000000001,
+            "unfamiliar_path_error": 0.219370252169575,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "reexposure_path_error": 0.08517769054679238,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.08195346990561277,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.260228201176774,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "reexposure_path_error": 0.02574137816289303,
+            "reexposure_latency_s": 8,
+            "first_exposure_path_error": 0.05376235425217658,
+            "first_exposure_latency_s": 9.649999999999999,
+            "unfamiliar_path_error": 0.31018285865503203,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "reexposure_path_error": 0.02356278999737755,
+            "reexposure_latency_s": 2.75,
+            "first_exposure_path_error": 0.10276992901004957,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.4341523800548863,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "reexposure_path_error": 0.046974377649404986,
+            "reexposure_latency_s": 4.900000000000006,
+            "first_exposure_path_error": 0.0383864866506355,
+            "first_exposure_latency_s": 2.0500000000000007,
+            "unfamiliar_path_error": 0.07927735343575193,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "reexposure_path_error": 0.033370840668520904,
+            "reexposure_latency_s": 2.5500000000000114,
+            "first_exposure_path_error": 0.12975517182635674,
+            "first_exposure_latency_s": 6.699999999999999,
+            "unfamiliar_path_error": 0.027570377293781007,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "reexposure_path_error": 0.0472934430067729,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.1422126733679102,
+            "first_exposure_latency_s": 1.9499999999999993,
+            "unfamiliar_path_error": 0.11623020712048177,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "reexposure_path_error": 0.028315079840661946,
+            "reexposure_latency_s": 1.8499999999999943,
+            "first_exposure_path_error": 0.0395442618786446,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.02650008490285283,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "reexposure_path_error": 0.08756014071704175,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.0937097012336923,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.08627440081538275,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "reexposure_path_error": 0.08729379249870149,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.08248695675934595,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.0934115066618695,
+            "recalls": 1,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "reexposure_path_error": 0.054727890969786364,
+            "reexposure_latency_s": 2.8000000000000114,
+            "first_exposure_path_error": 0.03701495171214033,
+            "first_exposure_latency_s": 12.649999999999999,
+            "unfamiliar_path_error": 0.0347949090026302,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "reexposure_path_error": 0.010572803408929424,
+            "reexposure_latency_s": 4.099999999999994,
+            "first_exposure_path_error": 0.02884701459402818,
+            "first_exposure_latency_s": 3.6999999999999993,
+            "unfamiliar_path_error": 0.02576856985531442,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "reexposure_path_error": 0.018995483570510344,
+            "reexposure_latency_s": 2.5,
+            "first_exposure_path_error": 0.03241836398328962,
+            "first_exposure_latency_s": 1.8500000000000014,
+            "unfamiliar_path_error": 0.3960274342807543,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "reexposure_path_error": 0.023133155268197685,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.024988057862248426,
+            "first_exposure_latency_s": 4.75,
+            "unfamiliar_path_error": 0.21283348575770233,
+            "recalls": 1,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "reexposure_path_error": 0.010864912487705181,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.08001468463545701,
+            "first_exposure_latency_s": 5.050000000000001,
+            "unfamiliar_path_error": 0.018498722019955432,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "reexposure_path_error": 0.030098302745914962,
+            "reexposure_latency_s": 1.9000000000000057,
+            "first_exposure_path_error": 0.04575810081717715,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.09716450504265883,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "reexposure_path_error": 0.0350929478923567,
+            "reexposure_latency_s": 6.900000000000006,
+            "first_exposure_path_error": 0.02502455460314141,
+            "first_exposure_latency_s": 2.1000000000000014,
+            "unfamiliar_path_error": 0.1266221949848454,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "reexposure_path_error": 0.023256634268371587,
+            "reexposure_latency_s": 4.849999999999994,
+            "first_exposure_path_error": 0.013778885935233092,
+            "first_exposure_latency_s": 2.8000000000000007,
+            "unfamiliar_path_error": 0.13292152483664207,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "reexposure_path_error": 0.05043095250295612,
+            "reexposure_latency_s": 4.400000000000006,
+            "first_exposure_path_error": 0.03766753720795955,
+            "first_exposure_latency_s": 1.8999999999999986,
+            "unfamiliar_path_error": 0.029359727848385347,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "reexposure_path_error": 0.21728489324427183,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.07514720803106675,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.010780070266055252,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "reexposure_path_error": 0.012863424543599325,
+            "reexposure_latency_s": 2.6999999999999886,
+            "first_exposure_path_error": 0.050432892894666605,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.028752987944919373,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "reexposure_path_error": 0.029675432298979145,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.026935371385364004,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.10363787966091337,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "reexposure_path_error": 0.015022620060648187,
+            "reexposure_latency_s": 2.1500000000000057,
+            "first_exposure_path_error": 0.07117194350628278,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.2821014137961125,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        }
+      ],
+      "metrics": {
+        "reexposure_path_error": {
+          "control_mean": 0.06410324773540045,
+          "treatment_mean": 0.047529635471011494,
+          "mean_difference": -0.016573612264388967,
+          "sd_difference": 0.0697024368552666,
+          "increase": 12,
+          "decrease": 20,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "reexposure_latency_s": {
+          "control_mean": 3.1616666666666635,
+          "treatment_mean": 3.3866666666666654,
+          "mean_difference": 0.2250000000000019,
+          "sd_difference": 0.9734182571989659,
+          "increase": 19,
+          "decrease": 4,
+          "tie": 7,
+          "undefined": 2,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "unfamiliar_path_error": {
+          "control_mean": 0.16109803783056148,
+          "treatment_mean": 0.16696627713035647,
+          "mean_difference": 0.005868239299794946,
+          "sd_difference": 0.09031054028255826,
+          "increase": 15,
+          "decrease": 17,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "the ECHO controller with episodic memory disabled",
+      "treatment": {
+        "kind": "echo_retention",
+        "variant": "no_memory"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "reexposure_path_error": 0.00767149797739194,
+            "reexposure_latency_s": 2.3000000000000114,
+            "first_exposure_path_error": 0.23304286801330906,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.21749323164205697,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "reexposure_path_error": 0.017925096753591722,
+            "reexposure_latency_s": 4.449999999999989,
+            "first_exposure_path_error": 0.018050765423382253,
+            "first_exposure_latency_s": 3.3000000000000007,
+            "unfamiliar_path_error": 0.030128106885213314,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "reexposure_path_error": 0.21623056914091823,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.07308730145886616,
+            "first_exposure_latency_s": 2.6000000000000014,
+            "unfamiliar_path_error": 0.46285192793258095,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "reexposure_path_error": 0.07261258347811156,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.057283001553470506,
+            "first_exposure_latency_s": 2.6000000000000014,
+            "unfamiliar_path_error": 0.23469582147642795,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "reexposure_path_error": 0.03392820428055077,
+            "reexposure_latency_s": 2.5,
+            "first_exposure_path_error": 0.04783347886816985,
+            "first_exposure_latency_s": 5.449999999999999,
+            "unfamiliar_path_error": 0.08951691340073777,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "reexposure_path_error": 0.04461505831128981,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.012427388598113154,
+            "first_exposure_latency_s": 2.1000000000000014,
+            "unfamiliar_path_error": 0.059588325535467446,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "reexposure_path_error": 0.00663194044027635,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.02758412151702694,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.22751847937417732,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "reexposure_path_error": 0.017443844501215767,
+            "reexposure_latency_s": 2.1500000000000057,
+            "first_exposure_path_error": 0.053068319135300634,
+            "first_exposure_latency_s": 4.899999999999999,
+            "unfamiliar_path_error": 0.14672900825088436,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "reexposure_path_error": 0.008784586072922483,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.03111076504067916,
+            "first_exposure_latency_s": 5.800000000000001,
+            "unfamiliar_path_error": 0.11023474564068568,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "reexposure_path_error": 0.05567664985883569,
+            "reexposure_latency_s": 11,
+            "first_exposure_path_error": 0.02492541598189549,
+            "first_exposure_latency_s": 5.550000000000001,
+            "unfamiliar_path_error": 0.16996118461814919,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "reexposure_path_error": 0.08763847029169271,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.08195346990561277,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.260167269342327,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "reexposure_path_error": 0.03224206860133856,
+            "reexposure_latency_s": 8.349999999999994,
+            "first_exposure_path_error": 0.05376235425217658,
+            "first_exposure_latency_s": 9.649999999999999,
+            "unfamiliar_path_error": 0.2771216908925704,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "reexposure_path_error": 0.014391514593626429,
+            "reexposure_latency_s": 2.75,
+            "first_exposure_path_error": 0.10276992901004957,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.4044999012723452,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "reexposure_path_error": 0.05943886667102896,
+            "reexposure_latency_s": 7,
+            "first_exposure_path_error": 0.0383864866506355,
+            "first_exposure_latency_s": 2.0500000000000007,
+            "unfamiliar_path_error": 0.08515524260865277,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "reexposure_path_error": 0.03468025383962785,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.12975517182635674,
+            "first_exposure_latency_s": 6.699999999999999,
+            "unfamiliar_path_error": 0.049679451635813776,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "reexposure_path_error": 0.04232678016157289,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.1422126733679102,
+            "first_exposure_latency_s": 1.9499999999999993,
+            "unfamiliar_path_error": 0.11912758892769562,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "reexposure_path_error": 0.021410191633311877,
+            "reexposure_latency_s": 1.8499999999999943,
+            "first_exposure_path_error": 0.0395442618786446,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.026617212043965933,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "reexposure_path_error": 0.09492642676541051,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.0937097012336923,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.08660699851430187,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "reexposure_path_error": 0.08785180896151931,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.08248695675934595,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.08939524478366438,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "reexposure_path_error": 0.025381519162037538,
+            "reexposure_latency_s": 6.599999999999994,
+            "first_exposure_path_error": 0.03701495171214033,
+            "first_exposure_latency_s": 12.649999999999999,
+            "unfamiliar_path_error": 0.035097405565324126,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "reexposure_path_error": 0.008157792387548237,
+            "reexposure_latency_s": 4.099999999999994,
+            "first_exposure_path_error": 0.02884701459402818,
+            "first_exposure_latency_s": 3.6999999999999993,
+            "unfamiliar_path_error": 0.025691960819755354,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "reexposure_path_error": 0.014166414286693787,
+            "reexposure_latency_s": 2.5,
+            "first_exposure_path_error": 0.03241836398328962,
+            "first_exposure_latency_s": 1.8500000000000014,
+            "unfamiliar_path_error": 0.396027461609235,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "reexposure_path_error": 0.0116697704419508,
+            "reexposure_latency_s": 15.349999999999994,
+            "first_exposure_path_error": 0.024988057862248426,
+            "first_exposure_latency_s": 4.75,
+            "unfamiliar_path_error": 0.1381542224007313,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "reexposure_path_error": 0.015020045431961688,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.08001468463545701,
+            "first_exposure_latency_s": 5.050000000000001,
+            "unfamiliar_path_error": 0.018442865705626154,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "reexposure_path_error": 0.033089785257871415,
+            "reexposure_latency_s": 1.9000000000000057,
+            "first_exposure_path_error": 0.04575810081717715,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.0971633041973188,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "reexposure_path_error": 0.04877666360237731,
+            "reexposure_latency_s": 9.050000000000011,
+            "first_exposure_path_error": 0.02502455460314141,
+            "first_exposure_latency_s": 2.1000000000000014,
+            "unfamiliar_path_error": 0.12662297627347763,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "reexposure_path_error": 0.01250670589489691,
+            "reexposure_latency_s": 4.849999999999994,
+            "first_exposure_path_error": 0.013778885935233092,
+            "first_exposure_latency_s": 2.8000000000000007,
+            "unfamiliar_path_error": 0.13288575117801518,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "reexposure_path_error": 0.03848442925470926,
+            "reexposure_latency_s": 4.400000000000006,
+            "first_exposure_path_error": 0.03766753720795955,
+            "first_exposure_latency_s": 1.8999999999999986,
+            "unfamiliar_path_error": 0.02820640571478148,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "reexposure_path_error": 0.20627660408482218,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.07514720803106675,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.008843759113616389,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "reexposure_path_error": 0.024784556378873415,
+            "reexposure_latency_s": 10.349999999999994,
+            "first_exposure_path_error": 0.050432892894666605,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.08023752603693693,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "reexposure_path_error": 0.030789176105613544,
+            "reexposure_latency_s": 15.599999999999994,
+            "first_exposure_path_error": 0.026935371385364004,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.033918029536993397,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "reexposure_path_error": 0.012961513672466752,
+            "reexposure_latency_s": 2.1500000000000057,
+            "first_exposure_path_error": 0.07117194350628278,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.2820946855922562,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        }
+      ],
+      "metrics": {
+        "reexposure_path_error": {
+          "control_mean": 0.06410324773540045,
+          "treatment_mean": 0.04495285588425177,
+          "mean_difference": -0.0191503918511487,
+          "sd_difference": 0.0709497366619729,
+          "increase": 11,
+          "decrease": 20,
+          "tie": 1,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "reexposure_latency_s": {
+          "control_mean": 3.978124999999997,
+          "treatment_mean": 4.540624999999998,
+          "mean_difference": 0.5625000000000009,
+          "sd_difference": 2.052221455697656,
+          "increase": 19,
+          "decrease": 3,
+          "tie": 10,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "unfamiliar_path_error": {
+          "control_mean": 0.16109803783056148,
+          "treatment_mean": 0.1422023343288058,
+          "mean_difference": -0.018895703501755706,
+          "sd_difference": 0.06681087980207662,
+          "increase": 13,
+          "decrease": 19,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "the ECHO controller with predictive learning disabled (beliefs never revised)",
+      "treatment": {
+        "kind": "echo_retention",
+        "variant": "no_learning"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 3.3499999999999943,
+            "first_exposure_path_error": null,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.5950015334405448,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "reexposure_path_error": 0.07112354338060237,
+            "reexposure_latency_s": 2.8000000000000114,
+            "first_exposure_path_error": 0.04887238003796294,
+            "first_exposure_latency_s": 3.3000000000000007,
+            "unfamiliar_path_error": 0.4584211160659899,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "reexposure_path_error": 0.6214657381325327,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.6116669205405284,
+            "first_exposure_latency_s": 5.300000000000001,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "reexposure_path_error": 0.3282446376115131,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.3373724799513833,
+            "first_exposure_latency_s": 5.600000000000001,
+            "unfamiliar_path_error": 0.48153375764391065,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "reexposure_path_error": 0.09248055149436102,
+            "reexposure_latency_s": 3.1999999999999886,
+            "first_exposure_path_error": 0.04632257954575885,
+            "first_exposure_latency_s": 5.449999999999999,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "reexposure_path_error": 0.2834836909449058,
+            "reexposure_latency_s": 2.3499999999999943,
+            "first_exposure_path_error": null,
+            "first_exposure_latency_s": 2.1000000000000014,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "reexposure_path_error": 0.06293887469239434,
+            "reexposure_latency_s": 2.5999999999999943,
+            "first_exposure_path_error": 0.17100105703610838,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.5863187510237966,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 2.1500000000000057,
+            "first_exposure_path_error": 0.2864049426886904,
+            "first_exposure_latency_s": 3.8999999999999986,
+            "unfamiliar_path_error": 0.4301351985451259,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "reexposure_path_error": 0.09344849115434045,
+            "reexposure_latency_s": 5.300000000000011,
+            "first_exposure_path_error": 0.025216441408252147,
+            "first_exposure_latency_s": 5.800000000000001,
+            "unfamiliar_path_error": 0.6073335275324958,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "reexposure_path_error": 0.05423038481763252,
+            "reexposure_latency_s": 8.849999999999994,
+            "first_exposure_path_error": 0.009278177458735132,
+            "first_exposure_latency_s": 7.299999999999997,
+            "unfamiliar_path_error": 0.48818260631466437,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "reexposure_path_error": 0.4343349289780355,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.44759676785405705,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.44978498358061136,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "reexposure_path_error": 0.0257813057899676,
+            "reexposure_latency_s": 26.44999999999999,
+            "first_exposure_path_error": 0.04840952490573055,
+            "first_exposure_latency_s": 2.6000000000000014,
+            "unfamiliar_path_error": 0.6000829224135464,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "reexposure_path_error": 0.5720155221588489,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": 0.6145495401034073,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "reexposure_path_error": 0.26614354915564914,
+            "reexposure_latency_s": 3.8499999999999943,
+            "first_exposure_path_error": 0.26660611900860043,
+            "first_exposure_latency_s": 2.6999999999999993,
+            "unfamiliar_path_error": 0.40977769402445685,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "reexposure_path_error": 0.21845543762164427,
+            "reexposure_latency_s": 2.5999999999999943,
+            "first_exposure_path_error": 0.2505348457839023,
+            "first_exposure_latency_s": 6.699999999999999,
+            "unfamiliar_path_error": 0.5909025176004581,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 4.050000000000011,
+            "first_exposure_path_error": 0.6167937898179641,
+            "first_exposure_latency_s": 2.25,
+            "unfamiliar_path_error": 0.6185580746489177,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "reexposure_path_error": 0.2756032310387652,
+            "reexposure_latency_s": 1.8000000000000114,
+            "first_exposure_path_error": 0.23320200627333773,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "reexposure_path_error": 0.5845516462761103,
+            "reexposure_latency_s": 2.9000000000000057,
+            "first_exposure_path_error": 0.5722694727795776,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.4145786052575854,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.3392628913349085,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.6003161733217296,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "reexposure_path_error": 0.022922143898251746,
+            "reexposure_latency_s": 8.199999999999989,
+            "first_exposure_path_error": 0.040514784739145104,
+            "first_exposure_latency_s": 11.149999999999999,
+            "unfamiliar_path_error": 0.4292210236816892,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "reexposure_path_error": 0.1078950653380043,
+            "reexposure_latency_s": 2.4499999999999886,
+            "first_exposure_path_error": 0.06090580703512766,
+            "first_exposure_latency_s": 3.6999999999999993,
+            "unfamiliar_path_error": 0.3637209401845348,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "reexposure_path_error": 0.5272537839629435,
+            "reexposure_latency_s": 2.1999999999999886,
+            "first_exposure_path_error": null,
+            "first_exposure_latency_s": 1.8500000000000014,
+            "unfamiliar_path_error": 0.5064728320615142,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "reexposure_path_error": 0.020211348101913527,
+            "reexposure_latency_s": 14.099999999999994,
+            "first_exposure_path_error": 0.015648498288427095,
+            "first_exposure_latency_s": 4.75,
+            "unfamiliar_path_error": 0.4899738614146109,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "reexposure_path_error": 0.29145439639006004,
+            "reexposure_latency_s": 2.0999999999999943,
+            "first_exposure_path_error": 0.2966253474202078,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 1.8499999999999943,
+            "first_exposure_path_error": null,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": 0.501159390960895,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 5.650000000000006,
+            "first_exposure_path_error": 0.30148797400299643,
+            "first_exposure_latency_s": 2.1000000000000014,
+            "unfamiliar_path_error": 0.6174927223846933,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "reexposure_path_error": 0.05625532970834049,
+            "reexposure_latency_s": 8.25,
+            "first_exposure_path_error": 0.03689001204180543,
+            "first_exposure_latency_s": 2.8000000000000007,
+            "unfamiliar_path_error": 0.3644672536312144,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 2.6500000000000057,
+            "first_exposure_path_error": 0.21085148968587036,
+            "first_exposure_latency_s": 2.3000000000000007,
+            "unfamiliar_path_error": 0.6023213555352873,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "reexposure_path_error": 0.5836643006602058,
+            "reexposure_latency_s": 2.25,
+            "first_exposure_path_error": 0.5858846727172935,
+            "first_exposure_latency_s": 2.1499999999999986,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "reexposure_path_error": 0.017374682795905576,
+            "reexposure_latency_s": 8.75,
+            "first_exposure_path_error": 0.10667487491524692,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.507578910531326,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "reexposure_path_error": 0.03747495238894196,
+            "reexposure_latency_s": 19.55000000000001,
+            "first_exposure_path_error": 0.030200002326918326,
+            "first_exposure_latency_s": 4.300000000000001,
+            "unfamiliar_path_error": null,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "reexposure_path_error": null,
+            "reexposure_latency_s": 2.0500000000000114,
+            "first_exposure_path_error": 0.523962012797661,
+            "first_exposure_latency_s": 2.1999999999999993,
+            "unfamiliar_path_error": 0.5163799946712078,
+            "recalls": 0,
+            "false_recalls": 0
+          }
+        }
+      ],
+      "metrics": {
+        "reexposure_path_error": {
+          "control_mean": 0.05866571847566745,
+          "treatment_mean": 0.23536698068716125,
+          "mean_difference": 0.17670126221149376,
+          "sd_difference": 0.18807898485885663,
+          "increase": 20,
+          "decrease": 4,
+          "tie": 0,
+          "undefined": 8,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "reexposure_latency_s": {
+          "control_mean": 3.978124999999997,
+          "treatment_mean": 5.099999999999998,
+          "mean_difference": 1.121875000000001,
+          "sd_difference": 3.8758336772297617,
+          "increase": 19,
+          "decrease": 11,
+          "tie": 2,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "unfamiliar_path_error": {
+          "control_mean": 0.1650790792538803,
+          "treatment_mean": 0.5095714894362837,
+          "mean_difference": 0.34449241018240334,
+          "sd_difference": 0.12707850379594543,
+          "increase": 24,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 8,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "the ECHO controller with no self-model (the reduced-order controller alone)",
+      "treatment": {
+        "kind": "echo_retention",
+        "variant": "reactive"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "reexposure_path_error": 0.6008867112104889,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.6029726375470528,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6293425056931058,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "reexposure_path_error": 0.03398420563306948,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.04834375530590243,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.4605662555773355,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "reexposure_path_error": 0.647422198278819,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.6576951055121754,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6681397258066499,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "reexposure_path_error": 0.3284689115221275,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.3397856048524845,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.483435033533934,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "reexposure_path_error": 0.11674175436170607,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.09341013597605055,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.563921669479176,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "reexposure_path_error": 0.27844734096697316,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.2786147588455066,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.43413683491181676,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "reexposure_path_error": 0.07060602628235453,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.09261450235437134,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5870516009384695,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "reexposure_path_error": 0.2857837957546489,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.28218005668805424,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.45946322672021295,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "reexposure_path_error": 0.09704939354890618,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.026517728340464942,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6473627996381396,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "reexposure_path_error": 0.05722326958217824,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.03579325974009836,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5173623046965665,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "reexposure_path_error": 0.4814353107146732,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.486291231942818,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.4501447207020254,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "reexposure_path_error": 0.03207559690612383,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.03809899287847432,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6129315011171106,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "reexposure_path_error": 0.6147978159774967,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.6320232111698474,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6436280888555229,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "reexposure_path_error": 0.2814742910878381,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.2654402561909605,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.39780413437769846,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "reexposure_path_error": 0.24552398371160955,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.24596459172890403,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6053936966209913,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "reexposure_path_error": 0.6132252766966789,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.6155893301217358,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.623469513723163,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "reexposure_path_error": 0.2545521210824836,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.2642553694120989,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.41843624090566817,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "reexposure_path_error": 0.6238091655384117,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.6341128935324791,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.41202906660697175,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "reexposure_path_error": 0.34779114130795313,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.33951810669034027,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6135919974543051,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "reexposure_path_error": 0.025561430755888015,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.04252227563265621,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.4363918178562088,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "reexposure_path_error": 0.05039158388831664,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.05167129144835705,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.35985269887547117,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "reexposure_path_error": 0.5744465085905401,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.5896676478838685,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5002342980911217,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "reexposure_path_error": 0.008842928283135234,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.026514821998490878,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.4845126932830091,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "reexposure_path_error": 0.29860526604939613,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.30054600499372974,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5001941101683894,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "reexposure_path_error": 0.3059097617577663,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.2941328059480056,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5571727886418893,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "reexposure_path_error": 0.2645713914368901,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.2995287103244993,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.6375431041451083,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "reexposure_path_error": 0.07849294236375538,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.08870957844322908,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.3630235781302676,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "reexposure_path_error": 0.20672674847622458,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.2007110624460044,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5780805897786523,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "reexposure_path_error": 0.6409212399637093,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.6327370794365192,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.4250591494437995,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "reexposure_path_error": 0.0175345506453401,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.05937040316289686,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5229251104615498,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "reexposure_path_error": 0.012389673655195407,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.03155806176406105,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.4660209258149142,
+            "recalls": null,
+            "false_recalls": null
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "reexposure_path_error": 0.5242709637072888,
+            "reexposure_latency_s": null,
+            "first_exposure_path_error": 0.5474246164174079,
+            "first_exposure_latency_s": null,
+            "unfamiliar_path_error": 0.5219856575244491,
+            "recalls": null,
+            "false_recalls": null
+          }
+        }
+      ],
+      "metrics": {
+        "reexposure_path_error": {
+          "control_mean": 0.06410324773540045,
+          "treatment_mean": 0.2818738531168122,
+          "mean_difference": 0.21777060538141163,
+          "sd_difference": 0.19936295681451763,
+          "increase": 27,
+          "decrease": 5,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "reexposure_latency_s": {
+          "control_mean": null,
+          "treatment_mean": null,
+          "mean_difference": null,
+          "sd_difference": null,
+          "increase": 0,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 32,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        },
+        "unfamiliar_path_error": {
+          "control_mean": 0.16109803783056148,
+          "treatment_mean": 0.5181627324866779,
+          "mean_difference": 0.35706469465611634,
+          "sd_difference": 0.1251011990081892,
+          "increase": 32,
+          "decrease": 0,
+          "tie": 0,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    }
+  ],
+  "null": {
+    "label": "null: the control again on the next 32 pilot seeds, paired in order",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1389853239,
+        "metrics": {
+          "reexposure_path_error": 0.05260854293397601,
+          "reexposure_latency_s": 2.25,
+          "first_exposure_path_error": 0.015863360993071913,
+          "first_exposure_latency_s": 2.1000000000000014,
+          "unfamiliar_path_error": 0.0910239925679315,
+          "recalls": 2,
+          "false_recalls": 1
+        }
+      },
+      {
+        "seed": 3817225699,
+        "metrics": {
+          "reexposure_path_error": 0.07639114979665643,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.014720911061117465,
+          "first_exposure_latency_s": 2.0500000000000007,
+          "unfamiliar_path_error": 0.10321639132085378,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3921015553,
+        "metrics": {
+          "reexposure_path_error": 0.09724809987817216,
+          "reexposure_latency_s": 1.4499999999999886,
+          "first_exposure_path_error": 0.1373390776713082,
+          "first_exposure_latency_s": 2.1999999999999993,
+          "unfamiliar_path_error": 0.07347676780885086,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 340036684,
+        "metrics": {
+          "reexposure_path_error": null,
+          "reexposure_latency_s": 11.849999999999994,
+          "first_exposure_path_error": 0.03505855990426762,
+          "first_exposure_latency_s": 3.25,
+          "unfamiliar_path_error": 0.03094131897607404,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 73397429,
+        "metrics": {
+          "reexposure_path_error": 0.008863968645014705,
+          "reexposure_latency_s": 2.8499999999999943,
+          "first_exposure_path_error": 0.03159241455126165,
+          "first_exposure_latency_s": 6.899999999999999,
+          "unfamiliar_path_error": 0.2066468130544737,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3964186322,
+        "metrics": {
+          "reexposure_path_error": 0.1874135722297945,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.13803061457617646,
+          "first_exposure_latency_s": 4.800000000000001,
+          "unfamiliar_path_error": 0.12063128960692487,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2077844650,
+        "metrics": {
+          "reexposure_path_error": 0.09474794773457873,
+          "reexposure_latency_s": 1.9000000000000057,
+          "first_exposure_path_error": 0.0911349515514534,
+          "first_exposure_latency_s": 2.9499999999999993,
+          "unfamiliar_path_error": 0.3358880168018815,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1800957549,
+        "metrics": {
+          "reexposure_path_error": 0.03862676575997724,
+          "reexposure_latency_s": 1.5999999999999943,
+          "first_exposure_path_error": 0.032704921610996106,
+          "first_exposure_latency_s": 2.8500000000000014,
+          "unfamiliar_path_error": 0.08279390082388517,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1043787298,
+        "metrics": {
+          "reexposure_path_error": 0.008475547574722892,
+          "reexposure_latency_s": 2.1500000000000057,
+          "first_exposure_path_error": 0.016167982226913385,
+          "first_exposure_latency_s": 1.5500000000000007,
+          "unfamiliar_path_error": 0.014028950722532421,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1024682578,
+        "metrics": {
+          "reexposure_path_error": 0.0808167948938401,
+          "reexposure_latency_s": 1.5999999999999943,
+          "first_exposure_path_error": 0.008532570101140877,
+          "first_exposure_latency_s": 2.8000000000000007,
+          "unfamiliar_path_error": 0.12570416365591544,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2688939661,
+        "metrics": {
+          "reexposure_path_error": 0.029493845136128655,
+          "reexposure_latency_s": 2.75,
+          "first_exposure_path_error": 0.04902494662493204,
+          "first_exposure_latency_s": 2.1999999999999993,
+          "unfamiliar_path_error": 0.15839989736627458,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3190625804,
+        "metrics": {
+          "reexposure_path_error": 0.018942978642510964,
+          "reexposure_latency_s": 2,
+          "first_exposure_path_error": 0.035494225152400166,
+          "first_exposure_latency_s": 4.149999999999999,
+          "unfamiliar_path_error": 0.1591287716492795,
+          "recalls": 2,
+          "false_recalls": 1
+        }
+      },
+      {
+        "seed": 388700234,
+        "metrics": {
+          "reexposure_path_error": 0.06786998565158016,
+          "reexposure_latency_s": 2,
+          "first_exposure_path_error": 0.010101401333063182,
+          "first_exposure_latency_s": 2.75,
+          "unfamiliar_path_error": 0.16951396607312658,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3959280679,
+        "metrics": {
+          "reexposure_path_error": 0.05919382802378396,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.03506262354589428,
+          "first_exposure_latency_s": 2.6000000000000014,
+          "unfamiliar_path_error": 0.14655408956919683,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1269043350,
+        "metrics": {
+          "reexposure_path_error": 0.13175909701590702,
+          "reexposure_latency_s": 2,
+          "first_exposure_path_error": 0.09497481032890122,
+          "first_exposure_latency_s": 2.1999999999999993,
+          "unfamiliar_path_error": 0.23655044269589745,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 4016638675,
+        "metrics": {
+          "reexposure_path_error": 0.04187032198015602,
+          "reexposure_latency_s": 1.4000000000000057,
+          "first_exposure_path_error": 0.00514094024859867,
+          "first_exposure_latency_s": 3.1499999999999986,
+          "unfamiliar_path_error": 0.11752779639358184,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1988085456,
+        "metrics": {
+          "reexposure_path_error": 0.02389660929122356,
+          "reexposure_latency_s": 3.1500000000000057,
+          "first_exposure_path_error": 0.056391788405074236,
+          "first_exposure_latency_s": 2.6000000000000014,
+          "unfamiliar_path_error": 0.354650194014826,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 164549902,
+        "metrics": {
+          "reexposure_path_error": 0.040784822317028055,
+          "reexposure_latency_s": 2.6500000000000057,
+          "first_exposure_path_error": 0.02634158688845311,
+          "first_exposure_latency_s": 2.3999999999999986,
+          "unfamiliar_path_error": 0.2004382576557078,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 536081231,
+        "metrics": {
+          "reexposure_path_error": 0.03926732303983161,
+          "reexposure_latency_s": 2.1500000000000057,
+          "first_exposure_path_error": 0.03113458922171218,
+          "first_exposure_latency_s": 3.3999999999999986,
+          "unfamiliar_path_error": 0.23703038073653457,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 4074758372,
+        "metrics": {
+          "reexposure_path_error": 0.009832020756077288,
+          "reexposure_latency_s": 5.5,
+          "first_exposure_path_error": 0.10825916613453479,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.35805415611202623,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 808908111,
+        "metrics": {
+          "reexposure_path_error": 0.03781762446805824,
+          "reexposure_latency_s": 1.9000000000000057,
+          "first_exposure_path_error": 0.018546461168705956,
+          "first_exposure_latency_s": 2.3500000000000014,
+          "unfamiliar_path_error": 0.017155584895848997,
+          "recalls": 2,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1172435952,
+        "metrics": {
+          "reexposure_path_error": 0.09585785128733179,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.014307353551214336,
+          "first_exposure_latency_s": 2.25,
+          "unfamiliar_path_error": 0.041141533360088724,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1553893803,
+        "metrics": {
+          "reexposure_path_error": 0.03187040164493145,
+          "reexposure_latency_s": 4.25,
+          "first_exposure_path_error": 0.03111432659008726,
+          "first_exposure_latency_s": 2.5,
+          "unfamiliar_path_error": 0.020944234359770938,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3361379865,
+        "metrics": {
+          "reexposure_path_error": 0.02266479506708182,
+          "reexposure_latency_s": 4.150000000000006,
+          "first_exposure_path_error": 0.006386305986582136,
+          "first_exposure_latency_s": 5.050000000000001,
+          "unfamiliar_path_error": 0.009391998708089341,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 1123745285,
+        "metrics": {
+          "reexposure_path_error": 0.28293820492751387,
+          "reexposure_latency_s": 18.400000000000006,
+          "first_exposure_path_error": 0.01597868642050131,
+          "first_exposure_latency_s": 2.0500000000000007,
+          "unfamiliar_path_error": 0.22199930939532084,
+          "recalls": 2,
+          "false_recalls": 1
+        }
+      },
+      {
+        "seed": 4261818673,
+        "metrics": {
+          "reexposure_path_error": 0.030574305058265663,
+          "reexposure_latency_s": 1.4000000000000057,
+          "first_exposure_path_error": 0.010451228002457394,
+          "first_exposure_latency_s": 2.75,
+          "unfamiliar_path_error": 0.2709009211309806,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 472226864,
+        "metrics": {
+          "reexposure_path_error": 0.08477226620935754,
+          "reexposure_latency_s": 2.1500000000000057,
+          "first_exposure_path_error": 0.11430404130227592,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.33655087124728916,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 707999433,
+        "metrics": {
+          "reexposure_path_error": 0.3196297121983382,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.3490943994629991,
+          "first_exposure_latency_s": 2.1999999999999993,
+          "unfamiliar_path_error": 0.13507791317931997,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2655811014,
+        "metrics": {
+          "reexposure_path_error": 0.031441806508226096,
+          "reexposure_latency_s": 2.25,
+          "first_exposure_path_error": 0.2888310633457709,
+          "first_exposure_latency_s": 4.550000000000001,
+          "unfamiliar_path_error": 0.09945145993277049,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 101944684,
+        "metrics": {
+          "reexposure_path_error": 0.5391035818160914,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.1513439008161556,
+          "first_exposure_latency_s": 2.1499999999999986,
+          "unfamiliar_path_error": 0.08814020759870254,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 3593148740,
+        "metrics": {
+          "reexposure_path_error": 0.015589099501827715,
+          "reexposure_latency_s": 6.650000000000006,
+          "first_exposure_path_error": 0.016506404896029468,
+          "first_exposure_latency_s": 13.299999999999997,
+          "unfamiliar_path_error": 0.04443987027148299,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      },
+      {
+        "seed": 2873974990,
+        "metrics": {
+          "reexposure_path_error": 0.06808359883606943,
+          "reexposure_latency_s": 2.1999999999999886,
+          "first_exposure_path_error": 0.0735743000309496,
+          "first_exposure_latency_s": 4,
+          "unfamiliar_path_error": 0.026506198062869985,
+          "recalls": 1,
+          "false_recalls": 0
+        }
+      }
+    ],
+    "metrics": {
+      "reexposure_path_error": {
+        "control_mean": 0.06370790059720192,
+        "treatment_mean": 0.086078918349163,
+        "mean_difference": 0.022371017751961073,
+        "sd_difference": 0.14135459419482518,
+        "increase": 18,
+        "decrease": 13,
+        "tie": 0,
+        "undefined": 1,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "reexposure_latency_s": {
+        "control_mean": 3.978124999999997,
+        "treatment_mean": 3.3062499999999986,
+        "mean_difference": -0.6718749999999982,
+        "sd_difference": 5.36453313213801,
+        "increase": 17,
+        "decrease": 15,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      },
+      "unfamiliar_path_error": {
+        "control_mean": 0.16109803783056148,
+        "treatment_mean": 0.14480936436713462,
+        "mean_difference": -0.016288673463426835,
+        "sd_difference": 0.18556269324383337,
+        "increase": 15,
+        "decrease": 17,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      }
+    }
+  },
+  "sized": {
+    "metric": "reexposure_latency_s",
+    "direction": "increase",
+    "treatment": {
+      "kind": "echo_retention",
+      "variant": "memory_reset"
+    },
+    "outcomes": {
+      "expected": 19,
+      "opposite": 4,
+      "uninformative": 9
+    },
+    "seed_count": null,
+    "pass_probability": null,
+    "minimum_effect": null,
+    "host_minimum_effect": 4,
+    "design_minimum_effect": null,
+    "s1_probability": null,
+    "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
+  },
+  "floors": [
+    {
+      "metric": "reexposure_path_error",
+      "resolution": 0,
+      "divergence_bound": 0.09995279210703346,
+      "floor": 0.1,
+      "host_minimum_effect": 0.1
+    },
+    {
+      "metric": "reexposure_latency_s",
+      "resolution": 0.05,
+      "divergence_bound": 3.7932977556346956,
+      "floor": 4,
+      "host_minimum_effect": 4
+    },
+    {
+      "metric": "unfamiliar_path_error",
+      "resolution": 0,
+      "divergence_bound": 0.13121263872795372,
+      "floor": 0.2,
+      "host_minimum_effect": 0.2
+    }
+  ],
+  "runs_sha256": "6bb149e47abb051255d4a14b7ada413fd7faab3e50170ffb7b8c6085fd9827f7",
+  "outputs_sha256": "abc103fce4d1375557d3f63197636d72e4f090634ec968da4f117079d2086d6f",
+  "generated_at": "2026-10-25T19:30:25.382Z",
+  "sha256": "fef0b0acc68f922159710ac37db63518560434940356ec401d5b6726ac46b0a8"
+}

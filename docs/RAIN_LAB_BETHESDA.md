@@ -1020,7 +1020,8 @@ digest from what is stored and reports any edit.
 The digital fly (`src/bethesda/fly/`, described in `docs/DIGITAL_FLY.md`) is a
 fourth experiment substrate beside the city, the oscillator and Noeterra:
 `digital-fly-behavior/v3` in `src/rain/scientific/fly.ts`. A
-`rain-fly-design/v3` is a closed object naming one of six protocols and how
+`rain-fly-design/v3` is a closed object naming one of nine protocols (the
+three `echo_*` ones are [Project ECHO](PROJECT_ECHO.md)'s) and how
 many seeds to run (8 to 16), never which. The host builds the arenas, the
 stimuli and both arms, writes the question and hypothesis, and freezes the
 criteria. It binds the fly's version, its controller, its full parameter table

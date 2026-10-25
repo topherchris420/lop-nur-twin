@@ -14,6 +14,7 @@ import { groundAt } from "../terrain";
 import { bounds, buildingAt, buildings, inBounds, inside } from "../model";
 import { BethesdaFlyWorld } from "./bethesdaWorld";
 import { CITY_START_RESERVE, CityFly } from "./cityFly";
+import { EchoAdapter } from "./echo/adapter";
 import { People } from "./people";
 import { PARAMS } from "./params";
 import type { V3 } from "./units";
@@ -37,6 +38,29 @@ const config = {
 const storm = "A thunderstorm suddenly rolls through downtown Bethesda.";
 
 describe("the fly in Bethesda", () => {
+  it("runs Project ECHO's controller only when asked, and still never changes the city", () => {
+    const plain = new CitySimulation(config),
+      host = new CitySimulation(config);
+    expect(new CityFly(plain).controller).toBe("reduced-order");
+    expect(new CityFly(plain).fly.adapter.descriptor.id).toBe("reduced-order-fsm/v1");
+    const fly = new CityFly(host, { controller: "echo" });
+    expect(fly.fly.adapter).toBeInstanceOf(EchoAdapter);
+    for (let k = 0; k < 600; k++) {
+      plain.step();
+      host.step();
+      fly.tick();
+    }
+    expect(fly.failed).toBeNull();
+    expect(host.stateHash()).toBe(plain.stateHash());
+    expect(fly.fly.state.counts.rejected).toBe(0);
+    // Nothing is perturbed in the city: a calibrated self-model finds nothing to explain.
+    const m = (fly.fly.adapter as EchoAdapter).model!.state;
+    expect(m.counts.concluded.self + m.counts.concluded.both).toBe(0);
+    expect(
+      m.calibration.in90.reduce((a, b) => a + b, 0) / (3 * m.calibration.n),
+    ).toBeGreaterThan(0.85);
+  }, 60_000);
+
   it("never changes the city: the same state hash with and without it", () => {
     const plain = new CitySimulation(config),
       host = new CitySimulation(config);

@@ -13,7 +13,7 @@
  *                                       never by a person
  *   --verify                            check every archived folder against its
  *                                       record and re-simulate what this code can
- *   --pilot [--protocol p] [--check | --readme]
+ *   --pilot [--protocol p[,q…]] [--check | --readme]
  *                                       run the redesigned protocols' pilots on the
  *                                       public pilot seeds and write them, labelled
  *                                       not evidence, to docs/benchmarks/fly-pilots/;
@@ -378,7 +378,8 @@ async function main() {
   if (args.includes("--scripted")) {
     // The host's own designs, authorized by this script and labelled so: a
     // demonstration of the pipeline, never a person's review. The last two
-    // must be refused, and are archived as refusals.
+    // must be refused, and are archived as refusals. A plan already archived
+    // is not run again.
     const designs: [string, FlyDesign, boolean][] = [
       ["scripted: obstacle avoidance", flyExample("obstacle_avoidance"), false],
       ["scripted: light preference", flyExample("light_preference"), false],
@@ -386,6 +387,21 @@ async function main() {
       ["scripted: noisy sensing", flyExample("noisy_sensing"), false],
       ["scripted: adaptation to repeated looms", flyExample("adaptation"), false],
       ["scripted: controller comparison", flyExample("controller_comparison"), false],
+      [
+        "scripted: ECHO-01, recognizing a bodily impairment",
+        flyExample("echo_impairment"),
+        false,
+      ],
+      [
+        "scripted: ECHO-02, self versus external causation",
+        flyExample("echo_attribution"),
+        false,
+      ],
+      [
+        "scripted: ECHO-03, learning retained through time (under-powered by its pilot)",
+        flyExample("echo_retention"),
+        false,
+      ],
       [
         "scripted: a minimum effect below the host's minimum for its metric, which the host must refuse",
         flyExample("visual_threat", { minimumEffect: 0.01 }),
@@ -490,9 +506,11 @@ async function main() {
  * identical and this code would still run the same definition.
  */
 function pilot() {
-  const only = value("--protocol");
+  // One protocol, or several separated by commas: one process, so a pilot
+  // written earlier in the run does not make the later ones' tree dirty.
+  const only = value("--protocol")?.split(",");
   const protocols = (Object.keys(FLY_PILOT_SERIES) as FlyProtocolId[]).filter(
-    (p) => !only || p === only,
+    (p) => !only || only.includes(p),
   );
   if (!protocols.length) throw new Error(`no pilot for ${only}`);
   const kept = () =>

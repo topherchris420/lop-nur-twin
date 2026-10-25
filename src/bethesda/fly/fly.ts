@@ -48,6 +48,13 @@ import {
   type MotorCommand,
 } from "./neural.js";
 import { resolveParams, type ControllerConfig, type ResolvedParams } from "./params.js";
+import {
+  checkedPerturbation,
+  perturbationAt,
+  type ActivePerturbation,
+  type Perturbation,
+} from "./perturbation.js";
+import { SelfMotionSense, type SelfMotionSample } from "./selfMotion.js";
 import { inVisualField, Senses, type SenseFrame } from "./senses.js";
 import { FOOT_RADIUS_CM, SKELETON } from "./skeleton.js";
 import { degToRad, forward, left, radToDeg, type V3, wrapAngle } from "./units.js";
@@ -188,6 +195,11 @@ export interface DigitalFlyOptions {
   noise?: number;
   /** Builds the decision maker from its random stream; defaults to the reduced-order controller. */
   adapter?: (rng: () => number, streams: AdapterStreams) => FlyNeuralAdapter;
+  /**
+   * An experimenter's perturbation schedule (perturbation.ts): applied by the
+   * body and the self-motion sense, never shown to the decision maker.
+   */
+  perturbation?: Perturbation;
   logSize?: number;
 }
 
@@ -243,6 +255,10 @@ export class DigitalFly {
   /** The sensory sample the last decision used, and the command it produced. */
   lastFrame: SenseFrame | null = null;
   lastCommand: MotorCommand | null = null;
+  /** The self-motion sample the last decision got, when its decision maker reads that sense. */
+  lastSelfMotion: SelfMotionSample | null = null;
+  /** The experimenter's perturbation schedule, frozen; null without one. Never handed to the decision maker. */
+  readonly perturbation: Readonly<Perturbation> | null;
   /** The decision maker's own copy of the parameters: frozen, and not the one the gate reads. */
   private adapterParams: ResolvedParams;
   private senses: Senses;
@@ -262,6 +278,10 @@ export class DigitalFly {
   private gait: GaitParams;
   private surface: GateContext["surface"];
   private food: NonNullable<GateContext["food"]>;
+  /** The self-motion sense, only for a decision maker that reads it. */
+  private selfMotion: SelfMotionSense | null;
+  /** A perturbation's drift pushed the perched fly against an edge or a solid this step. */
+  private pushBlocked = false;
 
   constructor(o: DigitalFlyOptions) {
     this.seed = o.seed >>> 0;
@@ -282,6 +302,12 @@ export class DigitalFly {
     this.adapter = (
       o.adapter ?? ((rng, st) => new ReducedOrderController(rng, st.navigation))
     )(ctrlRng, streams);
+    this.perturbation = o.perturbation ? checkedPerturbation(o.perturbation) : null;
+    // A stream of its own, made only when the decision maker reads the sense.
+    this.selfMotion =
+      this.adapter.descriptor.selfMotion === true
+        ? new SelfMotionSense(mulberry32(this.seed ^ 0x165667b1))
+        : null;
     this.senses = new Senses(o.world, P, this.noise, senseRng);
     this.stepUs = Math.max(1000, Math.round(P.physicsStepMs * 1000));
     this.senseEvery = Math.max(1, Math.round((P.sensePeriodMs * 1000) / this.stepUs));
@@ -491,7 +517,10 @@ export class DigitalFly {
       if (!deciding) this.interrupt(this.senseEvery * h);
     }
     if (deciding) this.decide(this.decideEvery * h);
+    this.pushBlocked = false;
     this.integrate(h);
+    if (this.selfMotion)
+      this.selfMotion.observe(s.edge || s.contact !== null || this.pushBlocked);
     this.metabolize(h);
     s.responsiveness +=
       (1 - s.responsiveness) * (1 - Math.exp(-h / P.habituationRecoveryS));
@@ -570,6 +599,11 @@ export class DigitalFly {
     if (!frame) return;
     this.lastFrame = frame;
     const sites = this.offeredSites(this.framePoses[0]!);
+    const s = this.state;
+    const self = this.selfMotion
+      ? frozen(this.selfMotion.sample(s.t, s.p, s.yaw, this.activePerturbation()))
+      : undefined;
+    if (self !== undefined) this.lastSelfMotion = self;
     let raw: unknown;
     try {
       raw = this.adapter.decide({
@@ -578,6 +612,7 @@ export class DigitalFly {
         sites,
         params: this.adapterParams,
         dt,
+        ...(self !== undefined ? { self } : {}),
       });
     } catch (e) {
       this.refuse(`the decision maker failed: ${describe(e)}`);
@@ -763,9 +798,10 @@ export class DigitalFly {
     }
     if (s.mode === "flight") {
       if (cmd.saccade !== undefined && s.sub !== "saccade") {
+        const pert = this.activePerturbation();
         s.saccade = {
           from: s.yaw,
-          delta: cmd.saccade,
+          delta: pert ? cmd.saccade * pert.turnGain : cmd.saccade,
           t0: s.t,
           dur: P.saccadeMs / 1000,
           launch: false,
@@ -828,6 +864,7 @@ export class DigitalFly {
         s.v = [0, 0, 0];
         s.walkSpeed = 0;
         s.yawRate = 0;
+        if (this.perturbation) this.carry(h);
         s.pitch = ease(s.pitch, 0, 0.05);
         s.roll = ease(s.roll, 0, 0.05);
         s.wingsOpen = ease(s.wingsOpen, 0, 0.04);
@@ -878,6 +915,11 @@ export class DigitalFly {
     const target = s.edge ? 0 : (cmd.walkSpeed ?? s.walkSpeed);
     s.walkSpeed +=
       (target - s.walkSpeed) * (1 - Math.exp(-h / this.params.walkSpeedTauS));
+    const pert = this.activePerturbation();
+    if (pert) {
+      this.walkPerturbed(h, cmd, pert);
+      return;
+    }
     s.yawRate = cmd.yawRate ?? 0;
     s.yaw = wrapAngle(s.yaw + s.yawRate * h);
     s.wingsOpen = 0;
@@ -907,6 +949,80 @@ export class DigitalFly {
     s.v = [f[0] * speed, 0, f[2] * speed];
     s.p = [nx, perch.y + this.standingHeight, nz];
     s.counts.walkedM += speed * h;
+  }
+
+  /** The perturbation in force now, or null when the fly has no schedule. */
+  activePerturbation(): ActivePerturbation | null {
+    return this.perturbation ? perturbationAt(this.perturbation, this.state.t) : null;
+  }
+
+  /**
+   * Walking under a perturbation (perturbation.ts): the legs step at the
+   * commanded speed, the body advances `speedGain` times as far, turns at
+   * `turnGain` × the commanded rate plus `turnBias` (and any spin of the
+   * surface), and is carried by any drift; it stops at an edge or a solid exactly as unperturbed walking does.
+   */
+  private walkPerturbed(h: number, cmd: MotorCommand, pert: ActivePerturbation): void {
+    const s = this.state;
+    s.yawRate = (cmd.yawRate ?? 0) * pert.turnGain + pert.turnBias + pert.spin;
+    s.yaw = wrapAngle(s.yaw + s.yawRate * h);
+    s.wingsOpen = 0;
+    s.legs = 1;
+    s.pitch = 0;
+    s.roll = 0;
+    const legs = s.walkSpeed / 100;
+    const stepping = steppingSpeedCmS(s.walkSpeed, s.yawRate, FOOT_RADIUS_CM);
+    if (stepping >= STEPPING_MIN_CMS)
+      s.gaitClock = (s.gaitClock + h / stepPeriodS(stepping, this.gait)) % 1;
+    const f = forward(s.yaw);
+    const ground = legs * pert.speedGain;
+    const vx = f[0] * ground + pert.drift[0],
+      vz = f[2] * ground + pert.drift[1];
+    const nx = s.p[0] + vx * h,
+      nz = s.p[2] + vz * h;
+    const perch = this.world.perchAt(nx, nz, s.p[1] + STEP_HEIGHT_M);
+    const ok =
+      perch !== null &&
+      Math.abs(perch.y - (s.perch?.y ?? perch.y)) <= STEP_HEIGHT_M &&
+      !this.world.solid([nx, perch.y + this.standingHeight, nz]);
+    if (!ok) {
+      s.edge = true;
+      s.v = [0, 0, 0];
+      return;
+    }
+    s.edge = false;
+    s.perch = perch;
+    s.v = [vx, 0, vz];
+    s.p = [nx, perch.y + this.standingHeight, nz];
+    s.counts.walkedM += Math.hypot(vx, vz) * h;
+  }
+
+  /**
+   * A perched fly carried by a perturbation's drift and spin: along the
+   * surface it stands on, stopping (and feeling it) at an edge or a solid.
+   */
+  private carry(h: number): void {
+    const pert = this.activePerturbation()!;
+    const s = this.state;
+    if (pert.spin !== 0) {
+      s.yawRate = pert.spin;
+      s.yaw = wrapAngle(s.yaw + pert.spin * h);
+    }
+    if (pert.drift[0] === 0 && pert.drift[1] === 0) return;
+    const nx = s.p[0] + pert.drift[0] * h,
+      nz = s.p[2] + pert.drift[1] * h;
+    const perch = this.world.perchAt(nx, nz, s.p[1] + STEP_HEIGHT_M);
+    if (
+      perch === null ||
+      Math.abs(perch.y - (s.perch?.y ?? perch.y)) > STEP_HEIGHT_M ||
+      this.world.solid([nx, perch.y + this.standingHeight, nz])
+    ) {
+      this.pushBlocked = true;
+      return;
+    }
+    s.perch = perch;
+    s.v = [pert.drift[0], 0, pert.drift[1]];
+    s.p = [nx, perch.y + this.standingHeight, nz];
   }
 
   private prepareTakeoff(): void {
@@ -1016,7 +1132,13 @@ export class DigitalFly {
         s.saccade = null;
         if (s.mode === "flight" && s.sub === "saccade") s.sub = "cruise";
       }
-    } else s.yaw = wrapAngle(s.yaw + (cmd.yawRate ?? 0) * h);
+    } else {
+      const pert = this.activePerturbation();
+      const rate = pert
+        ? (cmd.yawRate ?? 0) * pert.turnGain + pert.turnBias
+        : (cmd.yawRate ?? 0);
+      s.yaw = wrapAngle(s.yaw + rate * h);
+    }
     const yawRate = wrapAngle(s.yaw - yaw0) / h;
     const yawAcc = (yawRate - s.yawRate) / h;
     s.yawRate = yawRate;
@@ -1029,6 +1151,9 @@ export class DigitalFly {
       vd = [f[0] * speed, vd[1], f[2] * speed];
     }
     if (s.mode === "flight" && s.sub === "hover") vd = [0, vd[1], 0];
+    const pert = this.activePerturbation();
+    // Movement effectiveness scales the horizontal velocity the wings can hold.
+    if (pert) vd = [vd[0] * pert.speedGain, vd[1], vd[2] * pert.speedGain];
     // A contact lasts while its surface stays within reach; its normal follows a curved surface.
     this.keepContact();
     // An exponential approach to the desired velocity, stable for any time
@@ -1070,7 +1195,8 @@ export class DigitalFly {
       }
     }
     s.legs += (legsTarget - s.legs) * (1 - Math.exp(-h / 0.04));
-    this.move(h);
+    // Wind carries the fly over the ground on top of the velocity it holds in the air.
+    this.move(h, pert ? [s.v[0] + pert.drift[0], s.v[1], s.v[2] + pert.drift[1]] : s.v);
     if (s.contact && (s.mode === "flight" || s.mode === "land")) s.counts.contactS += h;
   }
 
@@ -1090,11 +1216,11 @@ export class DigitalFly {
     else s.contact = null;
   }
 
-  /** Move by the velocity for one step, with contacts, sliding and touchdowns. */
-  private move(h: number): void {
+  /** Move by the ground velocity `g` for one step, with contacts, sliding and touchdowns. */
+  private move(h: number, g: V3): void {
     const s = this.state;
     const P = this.params;
-    const step: V3 = [s.v[0] * h, s.v[1] * h, s.v[2] * h];
+    const step: V3 = [g[0] * h, g[1] * h, g[2] * h];
     const dist = Math.hypot(...step);
     const margin = this.standingHeight;
     const dir: V3 =
@@ -1258,6 +1384,11 @@ export class DigitalFly {
       controller: ctrl,
       pendingUs: this.pendingUs,
       frames: this.frames.length,
+      // Present only when used, so a fly without them hashes as it always has.
+      ...(this.perturbation ? { perturbation: this.perturbation } : {}),
+      ...(this.selfMotion
+        ? { selfMotion: this.selfMotion.state, pushBlocked: this.pushBlocked }
+        : {}),
     });
   }
 }

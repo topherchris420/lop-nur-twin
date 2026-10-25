@@ -26,6 +26,7 @@
  * reading list, not a claim that those circuits are simulated.
  */
 import type { ResolvedParams } from "./params.js";
+import type { SelfMotionSample } from "./selfMotion.js";
 import type { SenseFrame } from "./senses.js";
 import type { V3 } from "./units.js";
 import type { FoodPatch, Home, LandingSite, Perch } from "./world.js";
@@ -137,6 +138,13 @@ export interface DecisionInput {
   sites: readonly LandingSite[];
   params: ResolvedParams;
   dt: number;
+  /**
+   * The self-motion sense (selfMotion.ts) over the decision period just
+   * ended, for a decision maker whose descriptor asks for it
+   * (`AdapterDescriptor.selfMotion`); absent otherwise, null at the first
+   * decision, and never given to the fast pathway.
+   */
+  self?: SelfMotionSample | null;
 }
 
 export interface RegionLink {
@@ -154,6 +162,12 @@ export interface AdapterDescriptor {
   fidelity: string;
   simulatesNeurons: boolean;
   regions: RegionLink[];
+  /**
+   * Whether this decision maker reads the self-motion sense. Only then does
+   * the fly sample it (from a seeded stream of its own), so a decision maker
+   * that does not ask for it runs exactly as it would without it.
+   */
+  selfMotion?: boolean;
 }
 
 /**
