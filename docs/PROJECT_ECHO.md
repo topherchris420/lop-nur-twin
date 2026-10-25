@@ -448,6 +448,46 @@ node scripts/run-ts.mjs scripts/echo-evaluate.ts --check                   # the
 npm run rain:fly:verify                                                    # re-simulate the archived records
 ```
 
+## Tests
+
+`src/bethesda/fly/echo/echo.test.ts`:
+
+- the version, every parameter a fixed model choice, the variants the
+  contract names, no descriptor claiming awareness;
+- the forward model reproducing the body's walking law to 12 decimals, and
+  linear in a gain;
+- perturbations refused when malformed, combined within their windows,
+  slowing, turning and carrying the body while the legs step as commanded,
+  and faults of the sense changing only what the fly feels;
+- isolation: no self-model module imports the world, the perturbations or the
+  body or reads position, velocity or heading, and scrambling every privileged
+  field of 600 recorded inputs changes neither its state nor one command;
+- a hidden impairment noticed, blamed on the legs, learned and compensated; a
+  push at rest blamed on the outside; a noisier sense blamed on the sense,
+  with trust lowered and caution engaged; calibrated 50% and 90% intervals and
+  no conclusion where nothing changed; no revision with learning disabled;
+  one state hash per seed whatever the step size;
+- the reactive variant step for step the reduced-order controller, and a fly
+  without the hooks drawing nothing new;
+- a probe when walking cannot tell a bias from a turning surface, and every
+  command through the gate under absurd beliefs;
+- bounded stores over 30 perturbations, a byte-for-byte checkpoint round trip,
+  exact continuation after restoring its own checkpoint, refusals of another
+  version, variant or changed byte, a recorded reset, a recalled impairment;
+- a decision well under a millisecond, and a state under 400 KB.
+
+`src/rain/scientific/flyEcho.test.ts`: evaluation bands that exclude the
+development values; registered blocks on evaluation conditions only, in the
+held-out arena; one schedule per seed; the three demonstrations compiling,
+with their limitations, and an unknown variant refused; an ECHO block run
+deterministically with no gate refusals; no path error for an unimpaired
+body; scoring by the fly's own conclusions; the temporary obstacle; the
+recorded reset. `cityFly.test.ts` and `life/headless.test.ts` check the city
+and the headless runner with the ECHO controller: an unchanged city hash, no
+gate refusals, nothing concluded where nothing changed, the labelled
+checkpoint. `fly.test.ts` holds the ECHO pilots, demonstrations and host
+minimum effects to their pilot files.
+
 To run a registered ECHO experiment of your own, write a `rain-fly-design/v3`
 with an `echo_*` treatment and follow the backend's review
 ([the lab guide](RAIN_LAB_BETHESDA.md#the-digital-fly-backend)).
