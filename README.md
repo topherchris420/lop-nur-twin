@@ -69,7 +69,7 @@ See the [Bethesda guide](docs/BETHESDA_ANOMALY.md) and
 
 ## Featured research · Project ECHO
 
-### Can a simulated organism learn what *it* can do?
+### Can a simulated organism learn what _it_ can do?
 
 ECHO (**Emergent Computational Self-Modeling**) extends the digital fly with
 a functional model of its own sensorimotor capabilities. Every 50 ms in the
