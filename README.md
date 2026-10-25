@@ -42,6 +42,22 @@ Buckley, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
 
 </details>
 
+### A life three millimeters long
+
+An enormous world, experienced by something extraordinarily small. Meet the digital
+fly in a **58-second illustrated film** with narration and an original soundtrack.
+
+[![Watch A Life Three Millimeters Long — the digital fly film](docs/media/fly-film/poster.jpg)](https://github.com/topherchris420/lop-nur-twin/blob/main/docs/media/fly-film/a-life-three-millimeters-long.mp4)
+
+**[Watch the film (MP4)](https://github.com/topherchris420/lop-nur-twin/blob/main/docs/media/fly-film/a-life-three-millimeters-long.mp4)** ·
+[Watch the fly live ↗](http://150.136.49.49/) ·
+[Vertical edition](docs/media/fly-film/a-life-three-millimeters-long-vertical.mp4) ·
+[JavaScript player, subtitles and production notes](docs/media/fly-film/README.md)
+
+The film is an illustrated interpretation of simulated behavior. Its garden inset
+uses the deployed renderer and a recorded observation. The live garden runs a
+separate server-side simulation; it is distinct from the research fly in 3D Bethesda.
+
 **Start here:** [Explore](#explore) · [Run locally](#run-locally) ·
 [Research loop](#how-the-research-loop-works) · [Recorded results](#recorded-results) ·
 [Validation](#validation) · [Documentation](#documentation)

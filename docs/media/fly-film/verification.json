@@ -1,0 +1,24 @@
+{
+  "source": "http://150.136.49.49/api/state",
+  "scope": "Two read-only samples, no viewer held open between samples. Same identity and birth time; ticks advanced. Does not prove uptime or recovery across restarts.",
+  "samples": [
+    {
+      "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+      "born_at": 1792908400.321717,
+      "server_time": 1792937452.1207728,
+      "updated_at": 1792937445.321717,
+      "ticks": 5809,
+      "journeys": 13,
+      "moments_count": 115
+    },
+    {
+      "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+      "born_at": 1792908400.321717,
+      "server_time": 1792937672.916936,
+      "updated_at": 1792937665.321717,
+      "ticks": 5853,
+      "journeys": 14,
+      "moments_count": 118
+    }
+  ]
+}

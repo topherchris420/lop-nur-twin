@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A Life Three Millimeters Long. A 58-second animated field film from Vers3Dynamics."
+    />
+    <meta name="theme-color" content="#0b5d63" />
+    <title>A Life Three Millimeters Long · Vers3Dynamics</title>
+    <link rel="stylesheet" href="player.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">VERS3DYNAMICS / FIELD FILM 01 / 58 SECONDS</p>
+      <h1>A life three millimeters long.</h1>
+      <p class="intro">
+        An enormous world, experienced by something extraordinarily small.
+      </p>
+      <figure>
+        <canvas
+          id="film"
+          width="1920"
+          height="1080"
+          role="img"
+          aria-label="An illustrated film about a simulated fruit fly in a Bethesda garden."
+          >Use the MP4 or transcript below to watch or read the film.</canvas
+        >
+        <figcaption id="caption" aria-live="off"></figcaption>
+      </figure>
+      <div class="controls" role="group" aria-label="Film controls">
+        <button id="play" type="button" disabled>Loading film…</button
+        ><button id="restart" type="button">Restart</button>
+        <label class="time"
+          >Position
+          <input
+            id="seek"
+            aria-label="Film position in seconds"
+            type="range"
+            min="0"
+            max="58"
+            value="0"
+            step="0.1" /></label
+        ><output id="time">0:00 / 0:58</output>
+        <label><input id="captions" type="checkbox" checked /> Captions</label
+        ><label><input id="still" type="checkbox" /> Reduced motion</label>
+      </div>
+      <p id="status" role="status">Preparing the illustrated garden.</p>
+      <a
+        class="cta"
+        href="http://150.136.49.49/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Watch the fly live ↗</a
+      >
+      <nav aria-label="Film downloads">
+        <a href="a-life-three-millimeters-long.mp4">Landscape MP4</a
+        ><a href="a-life-three-millimeters-long-vertical.mp4">Vertical MP4</a
+        ><a href="captions.srt">Subtitles</a
+        ><a href="https://github.com/topherchris420/lop-nur-twin">Source on GitHub</a>
+      </nav>
+      <details>
+        <summary>Read the film transcript</summary>
+        <div id="transcript"></div>
+      </details>
+      <p class="note">
+        An illustrated interpretation of simulated behavior. The garden inset uses the
+        deployed renderer and a recorded observation; it is not a live feed. The enlarged
+        fly is original artwork. Synthetic narration; original procedural score. No claim
+        of consciousness or biological equivalence.
+      </p>
+      <audio id="audio" src="soundtrack.m4a" preload="metadata"></audio>
+    </main>
+    <script type="module" src="player.js"></script>
+  </body>
+</html>

@@ -1,0 +1,134 @@
+{
+  "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+  "born_at": 1792908400.321717,
+  "server_time": 1792937452.1207728,
+  "updated_at": 1792937445.321717,
+  "ticks": 5809,
+  "place": "leaf",
+  "place_name": "Under the maple leaf",
+  "position": [0.29000002150960347, 0.37978002978528785],
+  "activity": "resting",
+  "travel": null,
+  "journeys": 13,
+  "distance": 35.4,
+  "places_visited": 6,
+  "moments_count": 115,
+  "moments": [
+    {
+      "id": 115,
+      "at": 1792937345.321717,
+      "text": "Turns toward a passing ripple in the air."
+    },
+    {
+      "id": 114,
+      "at": 1792937340.321717,
+      "text": "Tucks into a familiar fold of green."
+    },
+    {
+      "id": 113,
+      "at": 1792937265.321717,
+      "text": "Leaves its perch. The garden is wide enough."
+    },
+    {
+      "id": 112,
+      "at": 1792936875.321717,
+      "text": "The garden offers another patch of light and shade."
+    },
+    {
+      "id": 111,
+      "at": 1792936820.321717,
+      "text": "The window holds a small square of borrowed warmth."
+    },
+    {
+      "id": 110,
+      "at": 1792936755.321717,
+      "text": "Lifts off, following a small possibility."
+    },
+    {
+      "id": 109,
+      "at": 1792936655.321717,
+      "text": "A small pause. Then a small adjustment."
+    },
+    {
+      "id": 108,
+      "at": 1792936585.321717,
+      "text": "Rests where the garden meets the path."
+    }
+  ],
+  "weather": {
+    "temperature": 9.7,
+    "code": 0,
+    "wind": 3.4,
+    "rain": 0.0,
+    "fetched_at": 1792936334.4539614,
+    "source": "Open-Meteo",
+    "sun": {
+      "2026-10-25": [1792927701, 1792966561],
+      "2026-10-26": [1793014164, 1793052885]
+    },
+    "description": "clear skies",
+    "is_day": true
+  },
+  "learning": {
+    "trials": 1304,
+    "condition": "cold:rested:sound:dry",
+    "capabilities": {
+      "fly": {
+        "samples": 137,
+        "estimated_speed": 0.00721,
+        "success_rate": 1.0
+      },
+      "walk": {
+        "samples": 99,
+        "estimated_speed": 0.00337,
+        "success_rate": 1.0
+      }
+    },
+    "prediction_error": 0.000123,
+    "last": {
+      "at": 1792937445.321717,
+      "action": "rest",
+      "condition": "cold:rested:sound:dry",
+      "command": [0.0, 0.0],
+      "predicted_position": [0.29000002150960347, 0.37978002978528785],
+      "observed_position": [0.2900914449919812, 0.3797532119532779],
+      "prediction_error": 9.527564874502787e-5,
+      "predicted_landmark": [0.5299999784903965, -0.004780029785287854],
+      "observed_landmark": [0.5299085550080187, -0.0047532119532778805],
+      "success": true
+    },
+    "surprises": 0,
+    "body": {
+      "wing_integrity": 1.0,
+      "leg_integrity": 1.0,
+      "wetness": 0.0
+    },
+    "nearby": [
+      {
+        "name": "drifting_midge",
+        "position": [0.43969684236095063, 0.3154213721983943],
+        "samples": 1304,
+        "external_motion": 0.006365869055830779,
+        "self_only_error": 0.03187877594543615,
+        "moving_error": 0.007978645862461883,
+        "velocity": [0.0076918330403132115, -0.002478470392714538],
+        "independent": true
+      },
+      {
+        "name": "swaying_leaf",
+        "position": [0.2804002204331406, 0.34565433980704197],
+        "samples": 1304,
+        "external_motion": 0.0016724111903622487,
+        "self_only_error": 0.008339081024686126,
+        "moving_error": 0.002945908526077606,
+        "velocity": [-0.001760791501236858, 0.0006622324031440252],
+        "independent": true
+      }
+    ]
+  },
+  "needs": {
+    "energy": 100,
+    "fullness": 96,
+    "water": 98
+  }
+}
