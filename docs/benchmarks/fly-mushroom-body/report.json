@@ -1,7 +1,7 @@
 {
   "schema": "fly-mushroom-body-report/v1",
   "study": "fly-mushroom-body-study/v1",
-  "fly": "digital-fly/7",
+  "fly": "digital-fly/8",
   "genesis": { "seed": 119269, "startReserve": 0.5, "yaw": 0 },
   "circuit": { "learningRate": 0.25, "mealReward": 1, "approachThreshold": 0.3 },
   "c1": {
