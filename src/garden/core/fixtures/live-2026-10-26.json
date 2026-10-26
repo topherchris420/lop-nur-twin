@@ -1,0 +1,2988 @@
+{
+  "source": "GET http://150.136.49.49/api/state, recorded read-only on 2026-10-26 (UTC) by polling every 2.5 s; each response kept once per tick, unmodified.",
+  "sequences": {
+    "missed-tick": [
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028307.5690176,
+        "updated_at": 1793028300.321717,
+        "ticks": 23980,
+        "place": "water",
+        "place_name": "The rain saucer",
+        "position": [0.6929049605775143, 0.8415366776136676],
+        "activity": "flying",
+        "travel": {
+          "from": [0.5139816486995771, 0.8218948733912859],
+          "to": [0.77, 0.85],
+          "control": [0.6419908243497885, 0.6545802249912057],
+          "started_at": 1793028290.321717,
+          "ends_at": 1793028329.4872289,
+          "destination": "stone"
+        },
+        "journeys": 137,
+        "distance": 415.73,
+        "places_visited": 7,
+        "moments_count": 641,
+        "moments": [
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 636,
+            "at": 1793027545.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 635,
+            "at": 1793027400.321717,
+            "text": "The window holds a small square of borrowed warmth."
+          },
+          {
+            "id": 634,
+            "at": 1793027380.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19475,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 633, "estimated_speed": 0.01801, "success_rate": 1 },
+            "walk": { "samples": 972, "estimated_speed": 0.00366, "success_rate": 1 }
+          },
+          "prediction_error": 0.000118,
+          "last": {
+            "at": 1793028300.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.9940283395555676, 0.10912222578558971],
+            "predicted_position": [0.6929199837966893, 0.8415383268293384],
+            "observed_position": [0.6929797927896877, 0.8416221770599162],
+            "prediction_error": 0.0001029950329454232,
+            "predicted_landmark": [0.12708001620331066, -0.4665383268293384],
+            "observed_landmark": [0.12702020721031226, -0.46662217705991615],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999800000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.4065573566696725, 0.46006342577770615],
+              "samples": 19475,
+              "external_motion": 0.007786681737238377,
+              "self_only_error": 0.0389170830863185,
+              "moving_error": 0.005542671748424931,
+              "velocity": [-0.007870670990089224, 0.0031157558767741624],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.32329587896891604, 0.329571238242656],
+              "samples": 19475,
+              "external_motion": 0.0016472359737341714,
+              "self_only_error": 0.00823649448763956,
+              "moving_error": 0.003122115754040423,
+              "velocity": [0.0012697131207659806, -0.0004337532983225145],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 96, "fullness": 97, "water": 56 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028312.6199422,
+        "updated_at": 1793028305.321717,
+        "ticks": 23981,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7699725920856803, 0.8499969912199726],
+        "activity": "resting",
+        "travel": null,
+        "journeys": 137,
+        "distance": 416.19,
+        "places_visited": 7,
+        "moments_count": 642,
+        "moments": [
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 636,
+            "at": 1793027545.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 635,
+            "at": 1793027400.321717,
+            "text": "The window holds a small square of borrowed warmth."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19476,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 634, "estimated_speed": 0.01801, "success_rate": 1 },
+            "walk": { "samples": 972, "estimated_speed": 0.00366, "success_rate": 1 }
+          },
+          "prediction_error": 0.000106,
+          "last": {
+            "at": 1793028305.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8563412700656658, 0.09400724476668794],
+            "predicted_position": [0.77, 0.85],
+            "observed_position": [0.7699889406335115, 0.8499817428342646],
+            "prediction_error": 0.000021345577710949232,
+            "predicted_landmark": [0.04999999999999993, -0.475],
+            "observed_landmark": [0.05001105936648842, -0.47498174283426464],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999700000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.37395629703168176, 0.47408306485081875],
+              "samples": 19476,
+              "external_motion": 0.0077039855802092,
+              "self_only_error": 0.03850520846915232,
+              "moving_error": 0.005709950645022505,
+              "velocity": [-0.006520211927598152, 0.00280392781462252],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.32491354945019557, 0.32829812927824314],
+              "samples": 19476,
+              "external_motion": 0.001498973067434434,
+              "self_only_error": 0.007494843260477446,
+              "moving_error": 0.0033243622801565195,
+              "velocity": [0.00032353409625590634, -0.00025462179288255894],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 95, "fullness": 97, "water": 56 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028317.7056904,
+        "updated_at": 1793028315.321717,
+        "ticks": 23983,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7701631354097543, 0.8513839639095563],
+        "activity": "resting",
+        "travel": null,
+        "journeys": 137,
+        "distance": 416.2,
+        "places_visited": 7,
+        "moments_count": 642,
+        "moments": [
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 636,
+            "at": 1793027545.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 635,
+            "at": 1793027400.321717,
+            "text": "The window holds a small square of borrowed warmth."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19478,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 634, "estimated_speed": 0.01801, "success_rate": 1 },
+            "walk": { "samples": 973, "estimated_speed": 0.00364, "success_rate": 1 }
+          },
+          "prediction_error": 0.000114,
+          "last": {
+            "at": 1793028315.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.7701631354097543, 0.8513839639095563],
+            "observed_position": [0.7702959510390269, 0.8515027059007069],
+            "prediction_error": 0.00017815625681260412,
+            "predicted_landmark": [0.04983686459024561, -0.4763839639095563],
+            "observed_landmark": [0.049704048960973024, -0.47650270590070687],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.33475952024209255, 0.4960391449937472],
+              "samples": 19478,
+              "external_motion": 0.006967976946251048,
+              "self_only_error": 0.03482630043689453,
+              "moving_error": 0.0064803064761650405,
+              "velocity": [-0.002976530306913894, 0.0019719009966570056],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.3136696066963201, 0.32878992670055274],
+              "samples": 19478,
+              "external_motion": 0.0014218534430441266,
+              "self_only_error": 0.007113788277443372,
+              "moving_error": 0.003660031339242323,
+              "velocity": [-0.001560440803203733, 0.00015198201549020406],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 96, "fullness": 97, "water": 56 }
+      }
+    ],
+    "stone-to-flowers": [
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028381.1345954,
+        "updated_at": 1793028380.321717,
+        "ticks": 23996,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7711611540252161, 0.8500020360476608],
+        "activity": "resting",
+        "travel": null,
+        "journeys": 137,
+        "distance": 416.22,
+        "places_visited": 7,
+        "moments_count": 642,
+        "moments": [
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 636,
+            "at": 1793027545.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 635,
+            "at": 1793027400.321717,
+            "text": "The window holds a small square of borrowed warmth."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19491,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 634, "estimated_speed": 0.01801, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000103,
+          "last": {
+            "at": 1793028380.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.7711611540252161, 0.8500020360476608],
+            "observed_position": [0.7712170845864682, 0.8499791768383596],
+            "prediction_error": 0.00006042161146353447,
+            "predicted_landmark": [0.04883884597478383, -0.4750020360476608],
+            "observed_landmark": [0.04878291541353175, -0.47497917683835955],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7404932111094041, 0.39816617003728694],
+              "samples": 19491,
+              "external_motion": 0.0074892769654005065,
+              "self_only_error": 0.037488814371734264,
+              "moving_error": 0.006094275951203358,
+              "velocity": [0.005644157548840156, -0.003537291492672112],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.3203733173531415, 0.34600413706584265],
+              "samples": 19491,
+              "external_motion": 0.001413320705331548,
+              "self_only_error": 0.007108608919599897,
+              "moving_error": 0.0036161048506935644,
+              "velocity": [-0.0008585424468468217, -0.0005508323639032087],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 100, "fullness": 97, "water": 55 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028386.198498,
+        "updated_at": 1793028385.321717,
+        "ticks": 23997,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7711611540252161, 0.8500020360476608],
+        "activity": "flying",
+        "travel": {
+          "from": [0.7711611540252161, 0.8500020360476608],
+          "to": [0.68, 0.63],
+          "control": [0.725580577012608, 0.4702119538884847],
+          "started_at": 1793028385.321717,
+          "ends_at": 1793028417.756742,
+          "destination": "flowers"
+        },
+        "journeys": 138,
+        "distance": 416.22,
+        "places_visited": 7,
+        "moments_count": 643,
+        "moments": [
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 636,
+            "at": 1793027545.321717,
+            "text": "A small pause. Then a small adjustment."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19492,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 634, "estimated_speed": 0.01801, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000107,
+          "last": {
+            "at": 1793028385.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.7711611540252161, 0.8500020360476608],
+            "observed_position": [0.7710558597145051, 0.8500947961914284],
+            "prediction_error": 0.000140325821358352,
+            "predicted_landmark": [0.04883884597478383, -0.4750020360476608],
+            "observed_landmark": [0.048944140285494875, -0.47509479619142836],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.759746880857067, 0.38052731553812535],
+              "samples": 19492,
+              "external_motion": 0.007217250094805213,
+              "self_only_error": 0.03614042440090932,
+              "moving_error": 0.006426395485710249,
+              "velocity": [0.00385073394953257, -0.0035277708998323167],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.31194322039786077, 0.3427343194360359],
+              "samples": 19492,
+              "external_motion": 0.0014607308550738862,
+              "self_only_error": 0.007332967822627582,
+              "moving_error": 0.0036715004733195384,
+              "velocity": [-0.0016860193910561484, -0.0006539635259613652],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 100, "fullness": 97, "water": 55 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028391.3079805,
+        "updated_at": 1793028390.321717,
+        "ticks": 23998,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7367088947660674, 0.7668573318751135],
+        "activity": "flying",
+        "travel": {
+          "from": [0.7711611540252161, 0.8500020360476608],
+          "to": [0.68, 0.63],
+          "control": [0.725580577012608, 0.4702119538884847],
+          "started_at": 1793028385.321717,
+          "ends_at": 1793028417.756742,
+          "destination": "flowers"
+        },
+        "journeys": 138,
+        "distance": 416.76,
+        "places_visited": 7,
+        "moments_count": 643,
+        "moments": [
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 636,
+            "at": 1793027545.321717,
+            "text": "A small pause. Then a small adjustment."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19493,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 635, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000117,
+          "last": {
+            "at": 1793028390.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [-0.3828028806572087, -0.9238300463616361],
+            "predicted_position": [0.736699290355718, 0.7668341532541924],
+            "observed_position": [0.7368407300399858, 0.7669616720590237],
+            "prediction_error": 0.00019043694460736373,
+            "predicted_landmark": [0.08330070964428193, -0.39183415325419235],
+            "observed_landmark": [0.0831592699600141, -0.39196167205902366],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 0.99999, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7691271042009017, 0.36339393806650866],
+              "samples": 19493,
+              "external_motion": 0.006819974002985477,
+              "self_only_error": 0.034152919926253564,
+              "moving_error": 0.006857869893971097,
+              "velocity": [0.0018760446687669408, -0.003426675494323339],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.30108771017520464, 0.3392296693426665],
+              "samples": 19493,
+              "external_motion": 0.0015592164391373686,
+              "self_only_error": 0.00784276275425203,
+              "moving_error": 0.0035419967226676965,
+              "velocity": [-0.0021711020445312258, -0.0007009300186738843],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 100, "fullness": 97, "water": 55 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028396.3872344,
+        "updated_at": 1793028395.321717,
+        "ticks": 23999,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7022573245486585, 0.6837142905883352],
+        "activity": "flying",
+        "travel": {
+          "from": [0.7711611540252161, 0.8500020360476608],
+          "to": [0.68, 0.63],
+          "control": [0.725580577012608, 0.4702119538884847],
+          "started_at": 1793028385.321717,
+          "ends_at": 1793028417.756742,
+          "destination": "flowers"
+        },
+        "journeys": 138,
+        "distance": 417.3,
+        "places_visited": 7,
+        "moments_count": 643,
+        "moments": [
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 636,
+            "at": 1793027545.321717,
+            "text": "A small pause. Then a small adjustment."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19494,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 636, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000107,
+          "last": {
+            "at": 1793028395.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [-0.38280288065720897, -0.923830046361636],
+            "predicted_position": [0.7022615120812175, 0.6837243964903372],
+            "observed_position": [0.702228980453933, 0.6837337826464666],
+            "prediction_error": 0.00003385862815677112,
+            "predicted_landmark": [0.1177384879187825, -0.3087243964903372],
+            "observed_landmark": [0.11777101954606695, -0.30873378264646656],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999800000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7681923231856314, 0.3472107880488611],
+              "samples": 19494,
+              "external_motion": 0.006390620128197495,
+              "self_only_error": 0.03200068794271342,
+              "moving_error": 0.0072739766600891,
+              "velocity": [-0.00018695620305406724, -0.003236630003529517],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.29001130994339075, 0.3357911778564077],
+              "samples": 19494,
+              "external_motion": 0.0016504585986399831,
+              "self_only_error": 0.008289979333356332,
+              "moving_error": 0.003140564501941331,
+              "velocity": [-0.0022152800463627774, -0.0006876982972517598],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 99, "fullness": 97, "water": 55 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028401.4749377,
+        "updated_at": 1793028400.321717,
+        "ticks": 24000,
+        "place": "flowers",
+        "place_name": "The last of the asters",
+        "position": [0.6799979453461558, 0.62999504144025],
+        "activity": "feeding",
+        "travel": null,
+        "journeys": 138,
+        "distance": 417.64,
+        "places_visited": 7,
+        "moments_count": 644,
+        "moments": [
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          },
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19495,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 637, "estimated_speed": 0.01801, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000113,
+          "last": {
+            "at": 1793028400.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [-0.24733632893758664, -0.5969044220279547],
+            "predicted_position": [0.68, 0.63],
+            "observed_position": [0.6798609074201745, 0.6299362721620911],
+            "prediction_error": 0.00015299667671905554,
+            "predicted_landmark": [0.1399999999999999, -0.255],
+            "observed_landmark": [0.14013909257982549, -0.25493627216209114],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999700000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7569865407779548, 0.33239795208305933],
+              "samples": 19495,
+              "external_motion": 0.006069519253057645,
+              "self_only_error": 0.03037332148663315,
+              "moving_error": 0.007629046346343531,
+              "velocity": [-0.0022411564815353114, -0.002962567193160348],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.28096339845890256, 0.33271415427739776],
+              "samples": 19495,
+              "external_motion": 0.0016817672064021066,
+              "self_only_error": 0.008423737030962143,
+              "moving_error": 0.0030287637029398607,
+              "velocity": [-0.0018095822968976383, -0.0006154047158019926],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 99, "fullness": 97, "water": 55 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028406.5537674,
+        "updated_at": 1793028405.321717,
+        "ticks": 24001,
+        "place": "flowers",
+        "place_name": "The last of the asters",
+        "position": [0.6799979453461558, 0.62999504144025],
+        "activity": "feeding",
+        "travel": null,
+        "journeys": 138,
+        "distance": 417.64,
+        "places_visited": 7,
+        "moments_count": 644,
+        "moments": [
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          },
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 638,
+            "at": 1793027590.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 637,
+            "at": 1793027560.321717,
+            "text": "Lifts off, following a small possibility."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19496,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 637, "estimated_speed": 0.01801, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000119,
+          "last": {
+            "at": 1793028405.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.6799979453461558, 0.62999504144025],
+            "observed_position": [0.6798517040720643, 0.6300764273078777],
+            "prediction_error": 0.0001673623903313225,
+            "predicted_landmark": [0.1400020546538442, -0.25499504144025],
+            "observed_landmark": [0.14014829592793565, -0.2550764273078777],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.736037250000782, 0.3193399456020516],
+              "samples": 19496,
+              "external_motion": 0.005933634001707629,
+              "self_only_error": 0.02968113382043574,
+              "moving_error": 0.007882609316307571,
+              "velocity": [-0.004189858155434556, -0.002611601296201549],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2757814141190821, 0.33026286381706965],
+              "samples": 19496,
+              "external_motion": 0.00161753562387086,
+              "self_only_error": 0.00808930079110588,
+              "moving_error": 0.0031511832911612536,
+              "velocity": [-0.0010363968679640955, -0.0004902580920656208],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 99, "fullness": 98, "water": 55 }
+      }
+    ],
+    "drinking": [
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028617.3815079,
+        "updated_at": 1793028615.321717,
+        "ticks": 24043,
+        "place": "flowers",
+        "place_name": "The last of the asters",
+        "position": [0.5634248913873052, 0.7671448686263856],
+        "activity": "flying",
+        "travel": {
+          "from": [0.6799979453461558, 0.62999504144025],
+          "to": [0.51, 0.83],
+          "control": [0.5949989726730779, 0.4805455734964851],
+          "started_at": 1793028605.321717,
+          "ends_at": 1793028645.817406,
+          "destination": "water"
+        },
+        "journeys": 139,
+        "distance": 418.72,
+        "places_visited": 7,
+        "moments_count": 646,
+        "moments": [
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          },
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          },
+          {
+            "id": 639,
+            "at": 1793027990.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19538,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 639, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000101,
+          "last": {
+            "at": 1793028615.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [-0.6476345538623265, 0.7619511038403615],
+            "predicted_position": [0.5634129516622283, 0.767158915879806],
+            "observed_position": [0.5634534399240395, 0.7672275247712149],
+            "prediction_error": 0.00007966479350915563,
+            "predicted_landmark": [0.2565870483377717, -0.392158915879806],
+            "observed_landmark": [0.25654656007596044, -0.3922275247712149],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999800000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.3378954820504189, 0.2936033703735251],
+              "samples": 19538,
+              "external_motion": 0.0057493962335574775,
+              "self_only_error": 0.02873932585890429,
+              "moving_error": 0.0074751472897137934,
+              "velocity": [0.0015211464874324344, -0.0011730646753882134],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2750010878597505, 0.33196933045121585],
+              "samples": 19538,
+              "external_motion": 0.0015493245760147968,
+              "self_only_error": 0.0077311391714617456,
+              "moving_error": 0.003241376004709497,
+              "velocity": [-0.0005281536943134157, -0.0005859550058698648],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 97, "fullness": 100, "water": 55 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028622.435855,
+        "updated_at": 1793028620.321717,
+        "ticks": 24044,
+        "place": "water",
+        "place_name": "The rain saucer",
+        "position": [0.5100154110181108, 0.8299818687218111],
+        "activity": "drinking",
+        "travel": null,
+        "journeys": 139,
+        "distance": 419.22,
+        "places_visited": 7,
+        "moments_count": 647,
+        "moments": [
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          },
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19539,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 640, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000106,
+          "last": {
+            "at": 1793028620.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [-0.5934624090278036, 0.6982168183426187],
+            "predicted_position": [0.51, 0.83],
+            "observed_position": [0.509937154593067, 0.8298763928863229],
+            "prediction_error": 0.0001386660150294904,
+            "predicted_landmark": [0.30999999999999994, -0.45499999999999996],
+            "observed_landmark": [0.31006284540693296, -0.45487639288632287],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999700000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.3554856441227192, 0.2904999139329681],
+              "samples": 19539,
+              "external_motion": 0.005488152788709528,
+              "self_only_error": 0.027438935809088082,
+              "moving_error": 0.00783253833072233,
+              "velocity": [0.0035180324144600595, -0.0006206912881114079],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2774370638824815, 0.3297292566964248],
+              "samples": 19539,
+              "external_motion": 0.0014428304336947327,
+              "self_only_error": 0.007196364262866513,
+              "moving_error": 0.003476835988040599,
+              "velocity": [0.000487195204546198, -0.0004480147509582255],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 96, "fullness": 100, "water": 55 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793028627.5294383,
+        "updated_at": 1793028625.321717,
+        "ticks": 24045,
+        "place": "water",
+        "place_name": "The rain saucer",
+        "position": [0.5100154110181108, 0.8299818687218111],
+        "activity": "drinking",
+        "travel": null,
+        "journeys": 139,
+        "distance": 419.22,
+        "places_visited": 7,
+        "moments_count": 647,
+        "moments": [
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          },
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          },
+          {
+            "id": 642,
+            "at": 1793028305.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 641,
+            "at": 1793028290.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 640,
+            "at": 1793028215.321717,
+            "text": "Cleans its forelegs, then its wings. Small, necessary work."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19540,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 640, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 975, "estimated_speed": 0.00356, "success_rate": 1 }
+          },
+          "prediction_error": 0.000111,
+          "last": {
+            "at": 1793028625.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.5100154110181108, 0.8299818687218111],
+            "observed_position": [0.5101644798757307, 0.830009052732688],
+            "prediction_error": 0.00015152720798409082,
+            "predicted_landmark": [0.3099845889818892, -0.4549818687218111],
+            "observed_landmark": [0.3098355201242693, -0.455009052732688],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.38223220906438354, 0.29023888497086764],
+              "samples": 19540,
+              "external_motion": 0.005471522581597668,
+              "self_only_error": 0.027338150422757845,
+              "moving_error": 0.008025078135695132,
+              "velocity": [0.005349312988332866, -0.00005220579242009027],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.28445508947606407, 0.32837126917886894],
+              "samples": 19540,
+              "external_motion": 0.0014412476657396753,
+              "self_only_error": 0.007173668104492107,
+              "moving_error": 0.003601375147302778,
+              "velocity": [0.001403605118716511, -0.0002715975035111784],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 96, "fullness": 100, "water": 56 }
+      }
+    ],
+    "fence-to-stone": [
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029067.3334756,
+        "updated_at": 1793029065.321717,
+        "ticks": 24133,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.13053142195229114, 0.5322005477033218],
+        "activity": "resting",
+        "travel": null,
+        "journeys": 140,
+        "distance": 422.19,
+        "places_visited": 7,
+        "moments_count": 650,
+        "moments": [
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          },
+          {
+            "id": 643,
+            "at": 1793028385.321717,
+            "text": "Lifts off, following a small possibility."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19628,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 646, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000124,
+          "last": {
+            "at": 1793029065.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.13053142195229114, 0.5322005477033218],
+            "observed_position": [0.13062252556761464, 0.5320836713382976],
+            "prediction_error": 0.00014818891127977974,
+            "predicted_landmark": [0.6894685780477088, -0.1572005477033218],
+            "observed_landmark": [0.6893774744323853, -0.1570836713382976],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.4282568027735083, 0.41341922295980255],
+              "samples": 19628,
+              "external_motion": 0.006206397595817425,
+              "self_only_error": 0.031035245341167125,
+              "moving_error": 0.008078809320628976,
+              "velocity": [0.007331468741392388, 0.0035414676922514653],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.32495641538382675, 0.3294702324834014],
+              "samples": 19628,
+              "external_motion": 0.001495101476893384,
+              "self_only_error": 0.007490774987537972,
+              "moving_error": 0.0033413816710604663,
+              "velocity": [0.0003772397057840049, 0.00024325651601404542],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 100, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029072.4098961,
+        "updated_at": 1793029070.321717,
+        "ticks": 24134,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.13053142195229114, 0.5322005477033218],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 422.19,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19629,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 646, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000113,
+          "last": {
+            "at": 1793029070.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.13053142195229114, 0.5322005477033218],
+            "observed_position": [0.13056040110127257, 0.5322169003358779],
+            "prediction_error": 0.00003327460994814252,
+            "predicted_landmark": [0.6894685780477088, -0.1572005477033218],
+            "observed_landmark": [0.6894395988987274, -0.15721690033587787],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.47064498550304146, 0.4307782230792705],
+              "samples": 19629,
+              "external_motion": 0.006560948546978052,
+              "self_only_error": 0.032803647466025786,
+              "moving_error": 0.00779497349671592,
+              "velocity": [0.008477636545906641, 0.00347180002389359],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.32177449955520904, 0.3315908471412302],
+              "samples": 19629,
+              "external_motion": 0.0014074609654657374,
+              "self_only_error": 0.007052559554458235,
+              "moving_error": 0.0035612795623480467,
+              "velocity": [-0.0006363831657235419, 0.00042412293156576244],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 100, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029077.4749258,
+        "updated_at": 1793029075.321717,
+        "ticks": 24135,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.21112717600798148, 0.572254566580267],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 422.73,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19630,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 647, "estimated_speed": 0.018, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.00012,
+          "last": {
+            "at": 1793029075.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8955083783965594, 0.4450446541882789],
+            "predicted_position": [0.2111148132428467, 0.5722484226036533],
+            "observed_position": [0.21121941933501256, 0.572113211526487],
+            "prediction_error": 0.00017095165956106985,
+            "predicted_landmark": [0.6088851867571532, -0.19724842260365327],
+            "observed_landmark": [0.6087805806649874, -0.19711321152648698],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 0.99999, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.5167686561203289, 0.44733827526946446],
+              "samples": 19630,
+              "external_motion": 0.006949788585500596,
+              "self_only_error": 0.034741679964154774,
+              "moving_error": 0.0073025026628032045,
+              "velocity": [0.009224734123457489, 0.0033120104380387925],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.31417064880290807, 0.3344336683409114],
+              "samples": 19630,
+              "external_motion": 0.0014333950696025592,
+              "self_only_error": 0.0071978981902343095,
+              "moving_error": 0.003686769785744255,
+              "velocity": [-0.0015207701504601934, 0.0005685642399362422],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 100, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029082.578708,
+        "updated_at": 1793029080.321717,
+        "ticks": 24136,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.2917213181566503, 0.6123077843808399],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 423.27,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19631,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 648, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000124,
+          "last": {
+            "at": 1793029080.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8955083783965594, 0.44504465418827877],
+            "predicted_position": [0.2917171673262762, 0.6123057215247987],
+            "observed_position": [0.2916158573296461, 0.6121920287451765],
+            "prediction_error": 0.0001522818556342194,
+            "predicted_landmark": [0.5282828326737237, -0.23730572152479867],
+            "observed_landmark": [0.5283841426703538, -0.23719202874517653],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999800000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.5644566340932013, 0.46266950935553525],
+              "samples": 19631,
+              "external_motion": 0.007318017527637483,
+              "self_only_error": 0.03659945280188811,
+              "moving_error": 0.00666673532106436,
+              "velocity": [0.0095375955945745, 0.003066246817214158],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.30368904174016775, 0.33775454496494145],
+              "samples": 19631,
+              "external_motion": 0.001525270153101752,
+              "self_only_error": 0.007646200106173914,
+              "moving_error": 0.003585014143390913,
+              "velocity": [-0.0020963214125480634, 0.0006641753248060045],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 99, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029087.6116862,
+        "updated_at": 1793029085.321717,
+        "ticks": 24137,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.3723138484144167, 0.6523602011130515],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 423.81,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19632,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 649, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000122,
+          "last": {
+            "at": 1793029085.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8955083783965593, 0.44504465418827877],
+            "predicted_position": [0.3722834673052561, 0.652345102482434],
+            "observed_position": [0.3722149222996889, 0.652255971862812],
+            "prediction_error": 0.00011243969558127567,
+            "predicted_landmark": [0.4477165326947439, -0.27734510248243405],
+            "observed_landmark": [0.44778507770031106, -0.27725597186281203],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999700000000001,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.611464089498837, 0.476373955181938],
+              "samples": 19632,
+              "external_motion": 0.0076150010811202005,
+              "self_only_error": 0.03809414236640343,
+              "moving_error": 0.0060653228246292075,
+              "velocity": [0.009401491081127134, 0.002740889165280547],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2924582698453585, 0.34126826887608713],
+              "samples": 19632,
+              "external_motion": 0.0016246602196919625,
+              "self_only_error": 0.008136168980235082,
+              "moving_error": 0.0032432187264409074,
+              "velocity": [-0.002246154378961851, 0.0007027447822291367],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 99, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029092.6753383,
+        "updated_at": 1793029090.321717,
+        "ticks": 24138,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.45290476679739994, 0.6924118167849126],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 424.35,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19633,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 650, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000126,
+          "last": {
+            "at": 1793029090.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8955083783965594, 0.4450446541882789],
+            "predicted_position": [0.4528560895689493, 0.6923876254531224],
+            "observed_position": [0.4529075625436742, 0.6925335254940846],
+            "prediction_error": 0.00015471357109129733,
+            "predicted_landmark": [0.36714391043105066, -0.3173876254531224],
+            "observed_landmark": [0.36709243745632575, -0.31753352549408465],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999600000000002,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.655578239384847, 0.4880958689698302],
+              "samples": 19633,
+              "external_motion": 0.0077966797573045836,
+              "self_only_error": 0.038989795045177196,
+              "moving_error": 0.005773497831290904,
+              "velocity": [0.008822829977202008, 0.0023443827575784447],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2827590614408947, 0.3446730695586364],
+              "samples": 19633,
+              "external_motion": 0.0016764080490529153,
+              "self_only_error": 0.00839353271038297,
+              "moving_error": 0.003034256453248132,
+              "velocity": [-0.0019398416808927622, 0.0006809601365098561],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 99, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029097.7446291,
+        "updated_at": 1793029095.321717,
+        "ticks": 24139,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.533494073321719, 0.732462631404434],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 424.89,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19634,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 651, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000127,
+          "last": {
+            "at": 1793029095.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8955083783965594, 0.4450446541882789],
+            "predicted_position": [0.5334688814899874, 0.7324501117113614],
+            "observed_position": [0.5334500243712191, 0.7323158454790858],
+            "prediction_error": 0.00013558396681663903,
+            "predicted_landmark": [0.28653111851001256, -0.35745011171136143],
+            "observed_landmark": [0.2865499756287808, -0.3573158454790858],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999500000000002,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.6947224856673223, 0.49753097030675847],
+              "samples": 19634,
+              "external_motion": 0.007827445019910248,
+              "self_only_error": 0.03914885273703727,
+              "moving_error": 0.005728526035005664,
+              "velocity": [0.007828849256495051, 0.0018870202673856528],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2765611192180434, 0.3476765313302737],
+              "samples": 19634,
+              "external_motion": 0.0016405349262994706,
+              "self_only_error": 0.008217922029620638,
+              "moving_error": 0.0030937745027880183,
+              "velocity": [-0.001239588444570261, 0.000600692354327459],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 99, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029102.7899728,
+        "updated_at": 1793029100.321717,
+        "ticks": 24140,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.6140817680034932, 0.7725126449796265],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 425.43,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19635,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 652, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000121,
+          "last": {
+            "at": 1793029100.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8955083783965593, 0.4450446541882787],
+            "predicted_position": [0.6140430887948041, 0.772493422406761],
+            "observed_position": [0.6141183317366682, 0.7724841800023211],
+            "prediction_error": 0.00007580845823651539,
+            "predicted_landmark": [0.20595691120519588, -0.397493422406761],
+            "observed_landmark": [0.20588166826333176, -0.3974841800023211],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999400000000003,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7270541904048868, 0.5044343416129925],
+              "samples": 19635,
+              "external_motion": 0.007681603256865333,
+              "self_only_error": 0.03840965119285088,
+              "moving_error": 0.0059213216751110125,
+              "velocity": [0.006466340947512905, 0.001380674261246806],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2751231127180722, 0.3500207064147094],
+              "samples": 19635,
+              "external_motion": 0.0015096730021029218,
+              "self_only_error": 0.007567524818814525,
+              "moving_error": 0.0032900708712518914,
+              "velocity": [-0.00028760129999423346, 0.0004688350168871369],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 98, "fullness": 99, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029107.9112487,
+        "updated_at": 1793029105.321717,
+        "ticks": 24141,
+        "place": "fence",
+        "place_name": "The cedar fence",
+        "position": [0.6946678508588416, 0.8125618575185009],
+        "activity": "flying",
+        "travel": {
+          "from": [0.13053142195229114, 0.5322005477033218],
+          "to": [0.77, 0.85],
+          "control": [0.4502657109761456, 0.33924872668169587],
+          "started_at": 1793029070.321717,
+          "ends_at": 1793029108.8450692,
+          "destination": "stone"
+        },
+        "journeys": 141,
+        "distance": 425.97,
+        "places_visited": 7,
+        "moments_count": 651,
+        "moments": [
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          },
+          {
+            "id": 644,
+            "at": 1793028400.321717,
+            "text": "Finds a little sweetness in the late asters."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19636,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 653, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000121,
+          "last": {
+            "at": 1793029105.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8955083783965594, 0.44504465418827877],
+            "predicted_position": [0.6946432479040965, 0.8125496304821596],
+            "observed_position": [0.6945236529501265, 0.812538359282555],
+            "prediction_error": 0.00012012490564242672,
+            "predicted_landmark": [0.12535675209590347, -0.43754963048215956],
+            "observed_landmark": [0.12547634704987343, -0.437538359282555],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999300000000003,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7510513939478357, 0.5086267831569105],
+              "samples": 19636,
+              "external_motion": 0.007344466995858834,
+              "self_only_error": 0.03673814395753002,
+              "moving_error": 0.006248418560725413,
+              "velocity": [0.004799440708589775, 0.0008384883087835914],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2787370701455444, 0.35150426927717343],
+              "samples": 19636,
+              "external_motion": 0.0014222710211908075,
+              "self_only_error": 0.007142023921485304,
+              "moving_error": 0.003524163138430634,
+              "velocity": [0.0007227914854944339, 0.0002967125724928077],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 98, "fullness": 98, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029112.9610753,
+        "updated_at": 1793029110.321717,
+        "ticks": 24142,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7700421644563219, 0.8500209546513863],
+        "activity": "resting",
+        "travel": null,
+        "journeys": 141,
+        "distance": 426.48,
+        "places_visited": 7,
+        "moments_count": 652,
+        "moments": [
+          {
+            "id": 652,
+            "at": 1793029110.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19637,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 654, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000119,
+          "last": {
+            "at": 1793029110.321717,
+            "action": "fly",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.8376096345498852, 0.4162704661909346],
+            "predicted_position": [0.77, 0.85],
+            "observed_position": [0.770051648083941, 0.8499127250994921],
+            "prediction_error": 0.00010141219272568565,
+            "predicted_landmark": [0.04999999999999993, -0.475],
+            "observed_landmark": [0.04994835191605895, -0.4749127250994921],
+            "success": true
+          },
+          "surprises": 4,
+          "body": {
+            "wing_integrity": 0.9999200000000004,
+            "leg_integrity": 1,
+            "wetness": 0
+          },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7655844754212113, 0.5099994666152223],
+              "samples": 19637,
+              "external_motion": 0.006813477294977107,
+              "self_only_error": 0.034076147581548234,
+              "moving_error": 0.006686646793248287,
+              "velocity": [0.002906616294675124, 0.0002745366916623748],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.28666907360626065, 0.3519998065119976],
+              "samples": 19637,
+              "external_motion": 0.0014423377131946348,
+              "self_only_error": 0.007233206372352769,
+              "moving_error": 0.003624517274670718,
+              "velocity": [0.0015864006921432528, 0.0000991074469648301],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 98, "fullness": 98, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029118.0551043,
+        "updated_at": 1793029115.321717,
+        "ticks": 24143,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7700421644563219, 0.8500209546513863],
+        "activity": "resting",
+        "travel": null,
+        "journeys": 141,
+        "distance": 426.48,
+        "places_visited": 7,
+        "moments_count": 652,
+        "moments": [
+          {
+            "id": 652,
+            "at": 1793029110.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19638,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 654, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 984, "estimated_speed": 0.00352, "success_rate": 1 }
+          },
+          "prediction_error": 0.000108,
+          "last": {
+            "at": 1793029115.321717,
+            "action": "rest",
+            "condition": "warm:rested:sound:dry",
+            "command": [0, 0],
+            "predicted_position": [0.7700421644563219, 0.8500209546513863],
+            "observed_position": [0.7700374716507454, 0.849991627949932],
+            "prediction_error": 0.000029699795325338104,
+            "predicted_landmark": [0.04995783554367805, -0.4750209546513863],
+            "observed_landmark": [0.04996252834925452, -0.474991627949932],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7699693148948126, 0.5085167596933359],
+              "samples": 19638,
+              "external_motion": 0.006106949787455505,
+              "self_only_error": 0.030541876009501312,
+              "moving_error": 0.007147833942476212,
+              "velocity": [0.0008769678947202486, -0.00029654138437729127],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.2973083037268255, 0.35146475970233165],
+              "samples": 19638,
+              "external_motion": 0.0015249213966132345,
+              "self_only_error": 0.0076439332297459535,
+              "moving_error": 0.003536477403687467,
+              "velocity": [0.002127846024112967, -0.00010700936193318578],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 98, "fullness": 98, "water": 98 }
+      },
+      {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "server_time": 1793029123.1060066,
+        "updated_at": 1793029120.321717,
+        "ticks": 24144,
+        "place": "stone",
+        "place_name": "A sun-warmed stone",
+        "position": [0.7709291226888869, 0.8511041467366995],
+        "activity": "resting",
+        "travel": null,
+        "journeys": 141,
+        "distance": 426.49,
+        "places_visited": 7,
+        "moments_count": 652,
+        "moments": [
+          {
+            "id": 652,
+            "at": 1793029110.321717,
+            "text": "Rests where the garden meets the path."
+          },
+          {
+            "id": 651,
+            "at": 1793029070.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 650,
+            "at": 1793029030.321717,
+            "text": "A small pause. Then a small adjustment."
+          },
+          {
+            "id": 649,
+            "at": 1793028975.321717,
+            "text": "Lands on the cedar fence and feels the air."
+          },
+          {
+            "id": 648,
+            "at": 1793028945.321717,
+            "text": "Takes the long way across the garden."
+          },
+          {
+            "id": 647,
+            "at": 1793028620.321717,
+            "text": "Finds a bead of water on the saucer's rim."
+          },
+          {
+            "id": 646,
+            "at": 1793028605.321717,
+            "text": "Leaves its perch. The garden is wide enough."
+          },
+          {
+            "id": 645,
+            "at": 1793028570.321717,
+            "text": "Lingers over a little sweetness. There is no hurry."
+          }
+        ],
+        "weather": {
+          "temperature": 14,
+          "code": 0,
+          "wind": 14,
+          "rain": 0,
+          "fetched_at": 1793028146.261356,
+          "source": "Open-Meteo",
+          "sun": {
+            "2026-10-26": [1793014164, 1793052885],
+            "2026-10-27": [1793100628, 1793139211]
+          },
+          "description": "clear skies",
+          "is_day": true
+        },
+        "learning": {
+          "trials": 19639,
+          "condition": "warm:rested:sound:dry",
+          "capabilities": {
+            "fly": { "samples": 654, "estimated_speed": 0.01799, "success_rate": 1 },
+            "walk": { "samples": 985, "estimated_speed": 0.00351, "success_rate": 1 }
+          },
+          "prediction_error": 0.000113,
+          "last": {
+            "at": 1793029120.321717,
+            "action": "walk",
+            "condition": "warm:rested:sound:dry",
+            "command": [0.05068332757514098, 0.0618966905893276],
+            "predicted_position": [0.7709349031773611, 0.851111206121386],
+            "observed_position": [0.77103315796929, 0.8509969023693617],
+            "prediction_error": 0.0001507293994674705,
+            "predicted_landmark": [0.04906509682263882, -0.476111206121386],
+            "observed_landmark": [0.04896684203071, -0.47599690236936165],
+            "success": true
+          },
+          "surprises": 4,
+          "body": { "wing_integrity": 1, "leg_integrity": 1, "wetness": 0 },
+          "nearby": [
+            {
+              "name": "drifting_midge",
+              "position": [0.7639995047264382, 0.5042171509589523],
+              "samples": 19639,
+              "external_motion": 0.005550683518898152,
+              "self_only_error": 0.027761424196952718,
+              "moving_error": 0.007585689625116048,
+              "velocity": [-0.001193962033674878, -0.0008599217468767239],
+              "independent": true
+            },
+            {
+              "name": "swaying_leaf",
+              "position": [0.30849415913805006, 0.3499450804811911],
+              "samples": 19639,
+              "external_motion": 0.0016128575439453056,
+              "self_only_error": 0.008067818777632917,
+              "moving_error": 0.0032295842262818875,
+              "velocity": [0.0022371710822449153, -0.00030393584422810926],
+              "independent": true
+            }
+          ]
+        },
+        "needs": { "energy": 98, "fullness": 98, "water": 98 }
+      }
+    ]
+  }
+}

@@ -1067,6 +1067,67 @@ gate.
   entries marked as such that exist to be refused or flagged); `fixture.ts`
   builds an index from it in memory.
 
+## The live fly garden's exhibit (`src/garden/`)
+
+The clay exhibit page for the live fly garden (<http://150.136.49.49/>), whose
+simulation is a separate Python service on its own VM. Read
+`docs/LIVE_GARDEN.md` first. Outside `src/garden/` it adds:
+
+- `scripts/garden-build.ts`, `tools/garden.mjs` and `deploy/garden/`;
+- `docs/LIVE_GARDEN.md` and `docs/media/live-garden/`;
+- the `garden:build`, `garden:check` and `garden:deploy` scripts;
+- `dist-garden`, `garden-check/` and `garden-recording-*.jsonl` in
+  `.gitignore`.
+
+The rule it exists to keep: **the server's fly is the only fly; the page only
+watches it.**
+
+- **Read, never write.** The page's only request to the garden is
+  `GET /api/state`. Never add another endpoint, a write, a beacon or
+  analytics. `ui/page.test.ts` fails on any other request in the sources, and
+  `tools/garden.mjs check` fails on any non-GET request the running page
+  makes.
+- **Never stand in for the server.** The browser runs no simulation,
+  prediction or extrapolation.
+  - The page interpolates between two published states, 12 s behind the
+    server's clock, and holds the last one when the next is late.
+  - Never draw a fly the server did not report, and never blend two
+    `life_id`s.
+- **Presentation stays presentation.** Stop motion, cameras, presets and
+  reduced motion change only the picture.
+  - Every visible choice is seeded by the life, the tick or the journey,
+    never by the visitor, so every visitor sees the same performance.
+  - Never let a camera or a preset reach the timeline, the poller or anything
+    sent.
+- **Keep the three labels honest.** In `ui/words.ts`, these stay apart:
+  - modelled: the simulation's state;
+  - reported: the server's weather;
+  - established: published measurements, each with its source.
+
+  Never show a simulated number as a measurement of a real fly, and never
+  fill in what the server omits.
+
+- **FlyBody is not restyled.** The fly's shape is FlyBody's meshes on its
+  skeleton, posed by `src/bethesda/fly/pose.ts`; only the surface is clay.
+  Give it no cartoon eyes or expressions.
+- **The live CSP holds.** No inline scripts, styles or handlers, and no
+  requests beyond the page's own origin. Load no images or fonts: textures
+  are drawn on canvases.
+- **Deploy only through `deploy/garden/`, and only with the owner's
+  approval.**
+  - `deploy.mjs` takes the server and its credentials from the environment;
+    never commit them.
+  - `publish.py` refuses without a fresh backup from the garden's own backup
+    unit. It restarts nothing, never opens the life's database, and puts the
+    previous page back if any check fails.
+  - Never restart `bethesda-fly`, touch its database, or change nginx or
+    systemd from here.
+- **Check a change by looking.** Run `bunx vitest run src/garden`, then
+  `bun run garden:build` and `bun run garden:check` (`--source live` reads the
+  live garden). Look at the photographs it writes to `garden-check/`. For
+  other hours and weather, use `node tools/garden.mjs serve --hours-later 10`
+  or `--weather rain=2.5,code=63`.
+
 ## Noeterra (`noeterra/`) and the civilization backend
 
 Noeterra is a Rust crate: a civilization simulation whose rulers are autonomous

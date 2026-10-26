@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="One enduring fly in Bethesda, Maryland, seen in a handmade clay garden. The same small life, every time you return."
+    />
+    <meta name="theme-color" content="#161511" />
+    <title>A small life — Bethesda</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./garden.css" />
+    <script type="module" src="./main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#panel-body">Skip to the observations</a>
+    <main class="exhibit" id="exhibit" data-camera="tracking" data-panel="open">
+      <div class="stage" id="stage">
+        <canvas
+          id="garden"
+          role="img"
+          aria-label="Connecting to the fly's garden in Bethesda."
+          >A view of one fly in its garden. Its activity and recent observations are
+          listed in the observation panel.</canvas
+        >
+        <button class="locator" id="locator" type="button" hidden>
+          <span class="locator-ring" aria-hidden="true"></span
+          ><span class="locator-tag">the fly</span>
+        </button>
+        <div class="curtain" id="curtain" role="status" aria-live="polite">
+          <p class="curtain-mark" aria-hidden="true">⌖</p>
+          <p id="curtain-text">Opening a window into the garden…</p>
+          <button class="quiet-button" id="retry" type="button" hidden>Try again</button>
+        </div>
+        <p class="hint" id="hint" hidden>
+          Drag to look around · scroll or pinch to move closer · right-drag or two fingers
+          to pan
+        </p>
+      </div>
+
+      <header class="masthead">
+        <a class="wordmark" href="/" aria-label="A small life, home"
+          >a small life<span class="wordmark-dot">.</span></a
+        >
+        <p class="where">
+          <time id="clock">—</time> <span class="where-sep" aria-hidden="true">·</span>
+          <span>Bethesda, Maryland</span>
+          <span class="where-sep" aria-hidden="true">·</span>
+          <span id="weather">waiting for the weather</span>
+        </p>
+        <p
+          class="status"
+          id="status"
+          data-state="connecting"
+          role="status"
+          aria-live="polite"
+        >
+          <i aria-hidden="true"></i><span id="status-text">Connecting</span>
+        </p>
+      </header>
+
+      <section class="placard" aria-labelledby="placard-place">
+        <p class="placard-kicker" id="placard-kicker">A small life, in progress</p>
+        <h1 class="placard-place" id="placard-place">Somewhere in the garden.</h1>
+        <p class="placard-line" id="placard-line">
+          A little patience. The garden is coming into view.
+        </p>
+        <p class="placard-note">
+          One fly, modelled on a server, living in Bethesda's real weather. You can close
+          this window: its life and memories carry on.
+        </p>
+      </section>
+
+      <nav class="controls" aria-label="Viewing controls">
+        <div class="lenses" role="group" aria-label="Camera">
+          <button type="button" data-camera="observation" aria-pressed="false">
+            Observation
+          </button>
+          <button type="button" data-camera="tracking" aria-pressed="true">
+            Fly tracking
+          </button>
+          <button type="button" data-camera="macro" aria-pressed="false">Macro</button>
+          <button type="button" data-camera="free" aria-pressed="false">Free</button>
+        </div>
+        <button class="quiet-button" id="pause" type="button" aria-pressed="false">
+          Pause view
+        </button>
+        <button
+          class="quiet-button"
+          id="picture-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="picture"
+        >
+          Picture
+        </button>
+        <form class="picture" id="picture" hidden aria-label="Picture settings">
+          <fieldset>
+            <legend>Quality</legend>
+            <label><input type="radio" name="quality" value="high" /> High</label>
+            <label><input type="radio" name="quality" value="balanced" /> Balanced</label>
+            <label
+              ><input type="radio" name="quality" value="performance" />
+              Performance</label
+            >
+          </fieldset>
+          <fieldset>
+            <legend>Stop motion</legend>
+            <label><input type="checkbox" name="stop-motion" /> Animate on frames</label>
+            <label class="fps"
+              ><span>Frames a second</span>
+              <select name="fps">
+                <option>12</option>
+                <option>13</option>
+                <option>14</option>
+                <option>15</option>
+              </select>
+            </label>
+            <label><input type="checkbox" name="motion-blur" /> Motion blur</label>
+          </fieldset>
+          <p class="picture-note" id="picture-note">
+            These change only your picture. The fly's life, timing and choices are the
+            same for every visitor.
+          </p>
+        </form>
+      </nav>
+
+      <aside class="panel" id="panel" aria-labelledby="panel-title">
+        <h2 class="panel-heading">
+          <button
+            class="panel-toggle"
+            id="panel-toggle"
+            type="button"
+            aria-expanded="true"
+            aria-controls="panel-body"
+          >
+            <span id="panel-title">Observation</span
+            ><span class="panel-chevron" aria-hidden="true"></span>
+          </button>
+        </h2>
+        <div class="panel-body" id="panel-body" tabindex="-1">
+          <p class="panel-key">
+            <span class="tag tag-modelled">Modelled</span> the simulation's state
+            <span class="tag tag-reported">Reported</span> real weather
+            <span class="tag tag-established">Established</span> published biology
+          </p>
+
+          <section class="panel-section" aria-labelledby="now-title">
+            <h3 id="now-title">Now <span class="tag tag-modelled">Modelled</span></h3>
+            <dl class="facts">
+              <div>
+                <dt>Behaviour</dt>
+                <dd id="now-behaviour">—</dd>
+              </div>
+              <div>
+                <dt>Place</dt>
+                <dd id="now-place">—</dd>
+              </div>
+              <div>
+                <dt>Connection</dt>
+                <dd id="now-status">Connecting</dd>
+              </div>
+            </dl>
+            <p class="panel-small" id="now-detail">Opening a window into the garden.</p>
+            <p class="panel-alert" id="life-change" hidden></p>
+          </section>
+
+          <section class="panel-section" aria-labelledby="life-title">
+            <h3 id="life-title">
+              This life <span class="tag tag-modelled">Modelled</span>
+            </h3>
+            <dl class="facts facts-grid">
+              <div>
+                <dt>Age</dt>
+                <dd id="life-age">—</dd>
+              </div>
+              <div>
+                <dt>Born</dt>
+                <dd id="life-born">—</dd>
+              </div>
+              <div>
+                <dt>Journeys</dt>
+                <dd id="life-journeys">—</dd>
+              </div>
+              <div>
+                <dt>Places found</dt>
+                <dd id="life-places">—</dd>
+              </div>
+              <div>
+                <dt>Memories kept</dt>
+                <dd id="life-memories">—</dd>
+              </div>
+              <div>
+                <dt>Individual</dt>
+                <dd id="life-identity">—</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="panel-section" aria-labelledby="memories-title">
+            <h3 id="memories-title">
+              Recent memories <span class="tag tag-modelled">Modelled</span>
+            </h3>
+            <ol class="memories" id="memories">
+              <li class="waiting">The first memories are coming into view.</li>
+            </ol>
+          </section>
+
+          <section class="panel-section" aria-labelledby="learned-title">
+            <h3 id="learned-title">
+              What it has learned <span class="tag tag-modelled">Modelled</span>
+            </h3>
+            <ul class="learned" id="learned-movement">
+              <li>Waiting for its first movement observations.</li>
+            </ul>
+            <dl class="facts facts-grid">
+              <div>
+                <dt>Comparisons saved</dt>
+                <dd id="learned-trials">—</dd>
+              </div>
+              <div>
+                <dt>Prediction error</dt>
+                <dd id="learned-error">—</dd>
+              </div>
+              <div>
+                <dt>Larger surprises</dt>
+                <dd id="learned-surprises">—</dd>
+              </div>
+              <div>
+                <dt>Conditions</dt>
+                <dd id="learned-condition">—</dd>
+              </div>
+            </dl>
+            <p class="panel-small" id="learned-last"></p>
+            <p class="panel-small" id="learned-body"></p>
+            <p class="panel-small" id="learned-others"></p>
+            <details class="explain">
+              <summary>What do these mean?</summary>
+              <p>
+                Each movement is a small experiment in the simulation: it predicts where a
+                movement will take it, tries it, compares the result and saves the
+                comparison. Counts show experience, not a score of intelligence.
+              </p>
+              <p>
+                Prediction error is measured against the garden's size; lower is closer.
+                Cold, fatigue, wet wings and wear change what a movement achieves, so
+                unfamiliar conditions start uncertain.
+              </p>
+            </details>
+          </section>
+
+          <section class="panel-section" aria-labelledby="known-title">
+            <h3 id="known-title">
+              From real flies <span class="tag tag-established">Established</span>
+            </h3>
+            <div id="established"></div>
+          </section>
+
+          <section class="panel-section panel-credits" aria-label="About this picture">
+            <p>
+              A simulated life in a real place. Weather from
+              <a href="https://open-meteo.com/" target="_blank" rel="noreferrer"
+                >Open-Meteo</a
+              ><span id="weather-source"></span>. The garden is sculpted in code and drawn
+              in your browser; cameras and picture settings never touch the simulation.
+            </p>
+            <p>
+              Fly body:
+              <a
+                href="https://github.com/TuragaLab/flybody"
+                target="_blank"
+                rel="noreferrer"
+                >FlyBody</a
+              >
+              (Apache-2.0, <a href="%BASE_URL%flybody-LICENSE.txt">licence</a>).
+            </p>
+          </section>
+        </div>
+      </aside>
+    </main>
+    <noscript
+      ><p class="no-script">
+        The garden view needs JavaScript. The fly's life continues on the server without
+        it.
+      </p></noscript
+    >
+  </body>
+</html>

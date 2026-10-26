@@ -2,6 +2,7 @@ node_modules
 dist
 .omx/
 dist-ssr
+dist-garden
 *.local
 .DS_Store
 *.log
@@ -24,6 +25,11 @@ trivy-results.*
 
 # `bun run test:coverage` output.
 coverage/
+
+# The live garden's harness (tools/garden.mjs): its check's report and
+# photographs, and recordings of live states. Evidence for a review.
+garden-check/
+garden-recording-*.jsonl
 
 # tools/probe.mjs output
 render_output.png
