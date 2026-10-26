@@ -1,9 +1,10 @@
 /**
- * The self-model's beliefs as a Gaussian over the nine numbers of
+ * The self-model's beliefs as a Gaussian over the eleven numbers of
  * forward.ts, revised by every period that can teach (an extended Kalman
  * filter, Kalman 1960): predict, compare with what the self-motion sense
  * reported, and move each belief by as much as its own uncertainty and the
- * sense's warrant.
+ * sense's warrant. The antennae's readings of the air revise the wind the
+ * same way (`feelAir`).
  *
  * `frozen` beliefs are never moved (a learning-disabled self-model freezes
  * them all); `noiseScale` is the fly's own rescaling of how noisy it takes
@@ -21,7 +22,13 @@ import {
   transpose,
   zeros,
 } from "./linalg.js";
-import { N, predict, type PeriodContext, type Prediction } from "./forward.js";
+import {
+  N,
+  predict,
+  type AirRow,
+  type PeriodContext,
+  type Prediction,
+} from "./forward.js";
 
 export interface Belief {
   x: number[];
@@ -181,3 +188,46 @@ export function update(
 /** A belief's standard deviations. */
 export const spreads = (b: Belief): number[] =>
   zeros(N).map((_, i) => Math.sqrt(Math.max(0, b.P[i * N + i]!)));
+
+/**
+ * The antennae's readings `readings` against what they should be (`rows`,
+ * from `predictAir`), each with its expected spread `sd`. Their errors are
+ * independent, so taking them one at a time is the same as all at once.
+ * Returns the revised belief and the readings' ln predictive density; a
+ * reading that would leave anything non-finite is refused, with the rest.
+ */
+export function feelAir(
+  b: Belief,
+  rows: readonly AirRow[],
+  readings: readonly number[],
+  sd: readonly number[],
+): { belief: Belief; logLik: number; ok: boolean } {
+  const x = b.x.slice();
+  let P = b.P.slice();
+  let logLik = 0;
+  for (let r = 0; r < rows.length; r++) {
+    const { H } = rows[r]!;
+    // The rows are linear in what the readings revise: each earlier one's revision moves the later predictions by H.
+    let y = rows[r]!.y;
+    for (let i = 0; i < N; i++) y += H[i]! * (x[i]! - b.x[i]!);
+    const PH = zeros(N);
+    for (let i = 0; i < N; i++)
+      for (let j = 0; j < N; j++) PH[i]! += P[i * N + j]! * H[j]!;
+    let s = sd[r]! * sd[r]!;
+    for (let i = 0; i < N; i++) s += H[i]! * PH[i]!;
+    const innovation = readings[r]! - y;
+    if (!(s > 0) || !Number.isFinite(innovation))
+      return { belief: b, logLik: 0, ok: false };
+    const next = P.slice();
+    for (let i = 0; i < N; i++) {
+      x[i]! += (PH[i]! / s) * innovation;
+      for (let j = 0; j < N; j++) next[i * N + j]! -= (PH[i]! * PH[j]!) / s;
+    }
+    P = next;
+    logLik +=
+      -0.5 * ((innovation * innovation) / s + Math.log(s) + Math.log(2 * Math.PI));
+  }
+  if (![...x, ...P, logLik].every(Number.isFinite))
+    return { belief: b, logLik: 0, ok: false };
+  return { belief: { x, P }, logLik, ok: true };
+}

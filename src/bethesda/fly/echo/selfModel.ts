@@ -5,10 +5,12 @@
  *
  * Each decision period runs one cycle:
  *
- * 1. observe: the self-motion sense reports how far the fly went and turned;
+ * 1. observe: the self-motion sense reports how far the fly went and turned,
+ *    and its antennae how the air goes by;
  * 2. estimate: the report is compared with what the fly predicted when it
  *    acted, and its beliefs about its body and surroundings (estimator.ts)
- *    move by what the error warrants;
+ *    move by what the error warrants; the antennae's reading moves its belief
+ *    in the wind;
  * 3. doubt: it rescales how far it trusts its own sense, watches for errors
  *    that persist (a cumulative-sum detector, Page 1954) and, when they do,
  *    opens an inquiry into why (inquiry.ts);
@@ -30,13 +32,24 @@
  * explicit Bayesian bookkeeping.
  */
 import type { MotorCommand } from "../neural.js";
-import { cloneBelief, diffuse, update, spreads, type Belief } from "./estimator.js";
+import {
+  cloneBelief,
+  diffuse,
+  feelAir,
+  update,
+  spreads,
+  widen,
+  type Belief,
+} from "./estimator.js";
 import {
   BELIEF_NAMES,
   INNATE,
   N,
+  WIND,
   X,
   predict,
+  predictAir,
+  rotated,
   type PeriodContext,
   type PeriodKind,
 } from "./forward.js";
@@ -63,7 +76,7 @@ import { detect, freshDetector, type Detector } from "./detector.js";
 import { ECHO_VERSION, EP } from "./params.js";
 import type { SelfModelView } from "./view.js";
 
-export const ECHO_STATE = "echo-state/v1" as const;
+export const ECHO_STATE = "echo-state/v2" as const;
 
 /**
  * The self-model and its ablations. `reactive` has none at all (the
@@ -133,6 +146,21 @@ export interface EchoState {
   heading: number;
   /** The sun's direction in that frame, fixed at the first sight of it; null until then. */
   sun: number | null;
+  /**
+   * The air: whether the antennae have felt it move (from then on the fly
+   * tracks the wind), whether the fly was aloft at the last period's end, how
+   * many of the antennae's readings it has taken, the last of them, and how
+   * fast it takes the wind to be changing (m/s per s, x and z in its frame).
+   */
+  wind: {
+    felt: boolean;
+    aloft: boolean;
+    readings: number;
+    last: WindReading | null;
+    rate: [number, number];
+    /** The air going by at the end of the last period, in its frame (m/s), its expected spread, and when. */
+    air: { t: number; v: [number, number]; sd: number } | null;
+  };
   nisWindow: number[];
   detector: Detector;
   inquiry: Inquiry | null;
@@ -173,6 +201,15 @@ export interface EchoState {
   };
 }
 
+/**
+ * One reading of the antennae as the wind's rate is taken from it: standing
+ * still or hovering, the air going by in the fly's frame; in cruise, the air
+ * from ahead, at a heading and a commanded speed.
+ */
+export type WindReading =
+  | { kind: "still" | "hover"; air: [number, number] }
+  | { kind: "cruise"; ahead: number; heading: number; airSpeed: number };
+
 const EVENTS_KEPT = 32;
 /**
  * Flight periods teach only after the same command has held this long (10
@@ -194,9 +231,12 @@ const PROCESS: readonly number[] = [
   EP.driftProcessSd,
   EP.driftProcessSd,
   EP.selfProcessSd,
+  // The air changes with time whether or not a period teaches (`observe`).
+  0,
+  0,
 ];
 
-/** The innate belief: an unimpaired body in still surroundings, with the innate spreads. */
+/** The innate belief: an unimpaired body in still surroundings, with the innate spreads; still air, without doubt. */
 export function innateBelief(): Belief {
   return {
     x: INNATE.slice(),
@@ -210,7 +250,17 @@ export function innateBelief(): Belief {
       EP.driftPriorSd ** 2,
       EP.driftPriorSd ** 2,
       EP.spinPriorSd ** 2,
+      0,
+      0,
     ]),
+  };
+}
+
+/** The antennae's reading as the air's motion past the fly, forward and left (m/s), and its expected spread. */
+function airReading(air: { speedMS: number; from: number }): { y: number[]; sd: number } {
+  return {
+    y: [-air.speedMS * Math.cos(air.from), -air.speedMS * Math.sin(air.from)],
+    sd: EP.airSenseShare * air.speedMS + EP.airSenseFloorMS,
   };
 }
 
@@ -231,6 +281,7 @@ export function initialEchoState(
     noiseScale: 1,
     heading: 0,
     sun: null,
+    wind: { felt: false, aloft: false, readings: 0, last: null, rate: [0, 0], air: null },
     nisWindow: [],
     detector: freshDetector(0),
     inquiry: null,
@@ -319,12 +370,55 @@ export class SelfModel {
             ? view.mode === "flight"
             : false;
     context.learnable = context.learnable && consistent && !sample.touched;
+    // In cruise in wind the antennae tell which regime the wings were in: air
+    // from ahead below their limit, at it, or none from ahead at all.
+    if (context.wind && context.kind === "flight" && !context.hover)
+      context.regime =
+        view.air === null || Math.cos(view.air.from) <= 0
+          ? "carried"
+          : view.air.speedMS >= context.airMax * 0.99
+            ? "limit"
+            : "held";
     S.heading += sample.turn;
     // The sun holds the heading: its bearing tells where the fly faces in the frame its first sight fixed.
     if (view.compass !== null) {
       if (S.sun === null) S.sun = S.heading + view.compass;
       else S.heading = S.sun - view.compass;
     }
+    // The air going by, and how much further than its wings held it the body
+    // went in flight while its air velocity caught up with a change.
+    const W = S.wind;
+    const reading = view.air ? airReading(view.air) : null;
+    const felt: [number, number] = reading
+      ? rotated(reading.y, Math.cos(S.heading), Math.sin(S.heading))
+      : [0, 0];
+    const feltSd = reading ? reading.sd : EP.airQuietMS;
+    const start =
+      W.air && Math.abs(W.air.t - (sample.t - sample.dt)) < 1e-6 ? W.air : null;
+    let settled = true;
+    if (context.wind && context.kind === "flight") {
+      if (start) {
+        const tau = context.flightTau;
+        context.airLag = [tau * (felt[0] - start.v[0]), tau * (felt[1] - start.v[1])];
+        context.airLagSd = tau * Math.hypot(start.sd, feltSd);
+        settled =
+          Math.hypot(felt[0] - start.v[0], felt[1] - start.v[1]) <= EP.airSettleMS;
+      } else context.learnable = false;
+    }
+    W.air = { t: sample.t, v: felt, sd: feltSd };
+    // The air, once the antennae have felt it move: it changes as it will,
+    // and the air at a surface is not the air aloft.
+    const aloft = view.mode === "flight" || view.mode === "land";
+    let windVar = 0;
+    if (this.learns && (W.felt || view.air)) {
+      windVar = !W.felt
+        ? EP.windPriorSd ** 2
+        : EP.windProcessSd ** 2 * sample.dt +
+          (aloft !== W.aloft ? EP.windPriorSd ** 2 : 0);
+      W.felt = true;
+      S.belief = widen(S.belief, WIND, Math.sqrt(windVar));
+    }
+    W.aloft = aloft;
     const prior = this.learns ? diffuse(S.belief, sample.dt, PROCESS) : S.belief;
     let nis = 0;
     let z: [number, number, number] = [0, 0, 0];
@@ -348,6 +442,21 @@ export class SelfModel {
         }
       } else S.counts.refused++;
     }
+    // What the antennae felt at the period's end, against what they should have.
+    let air: Period["air"] = null;
+    if (this.learns && context.wind && context.learnable && settled && reading) {
+      const legSpeed = view.legSpeedCmS / 100;
+      const rows = predictAir(S.belief.x, context, S.heading, legSpeed);
+      const y = reading.y.slice(0, rows.length);
+      const sd = y.map(() => reading.sd);
+      const r = feelAir(S.belief, rows, y, sd);
+      if (rows.length && r.ok) {
+        S.belief = r.belief;
+        W.readings++;
+        air = { y, sd, heading: S.heading, legSpeed };
+      }
+    }
+    this.windRate(air, context, sample.dt);
     S.last = {
       t: sample.t,
       kind: context.kind,
@@ -370,6 +479,8 @@ export class SelfModel {
       moving:
         (context.kind === "walk" && context.legCommand > 0) ||
         (context.kind === "flight" && context.airSpeed > 0),
+      windVar,
+      air,
     };
     remember(S.history, period);
     if (!context.learnable) return;
@@ -397,6 +508,53 @@ export class SelfModel {
       this.event({ t: sample.t, kind: "noticed", since: S.inquiry.since });
       this.consider(view);
     }
+  }
+
+  /**
+   * How fast the wind is changing, from the antennae alone (never from the
+   * beliefs, whose revisions it feeds): the change between two readings of
+   * one kind in a row, smoothed over `windRateTauS`. Walking, or after any
+   * break, it is taken as steady again.
+   */
+  private windRate(air: Period["air"], c: PeriodContext, dt: number): void {
+    const W = this.state.wind;
+    const kind =
+      !air || c.kind === "walk"
+        ? null
+        : c.kind === "still"
+          ? "still"
+          : c.hover
+            ? "hover"
+            : "cruise";
+    if (!air || kind === null) {
+      W.last = null;
+      W.rate = [0, 0];
+      return;
+    }
+    const cosH = Math.cos(air.heading),
+      sinH = Math.sin(air.heading);
+    const reading: WindReading =
+      kind === "cruise"
+        ? { kind, ahead: air.y[0]!, heading: air.heading, airSpeed: c.airSpeed }
+        : { kind, air: rotated(air.y, cosH, sinH) };
+    const last = W.last;
+    let raw: [number, number] | null = null;
+    if (last?.kind === "cruise" && reading.kind === "cruise") {
+      // Along the heading only, while the command and the heading hold.
+      if (
+        last.airSpeed === reading.airSpeed &&
+        Math.abs(reading.heading - last.heading) < 0.05
+      )
+        raw = rotated([(reading.ahead - last.ahead) / dt, 0], cosH, sinH);
+    } else if (last && last.kind === reading.kind && reading.kind !== "cruise") {
+      const a = (last as { air: [number, number] }).air;
+      raw = [(reading.air[0] - a[0]) / dt, (reading.air[1] - a[1]) / dt];
+    }
+    const k = dt / (dt + EP.windRateTauS);
+    W.rate = raw
+      ? [W.rate[0] + k * (raw[0] - W.rate[0]), W.rate[1] + k * (raw[1] - W.rate[1])]
+      : [0, 0];
+    W.last = reading;
   }
 
   /** How far the fly trusts its sense: widened when errors outrun their predicted spread, narrowed back when not. */
@@ -502,8 +660,16 @@ export class SelfModel {
       });
     const why = `${winner.id === winner.explains ? winner.explains : `${winner.explains} (${winner.id})`}, p = ${probability.toFixed(2)}${resolved ? "" : ", unresolved"}`;
     for (let i = 0; i < N; i++) {
+      // The wind is followed, not concluded, unless the conclusion is that it changed.
+      if ((WIND as readonly number[]).includes(i) && winner.id !== "external:wind")
+        continue;
       const moved = Math.abs(after[i]! - before[i]!);
-      const visible = i === X.driftX || i === X.driftZ ? moved > 5e-4 : moved > 0.02;
+      const visible =
+        i === X.driftX || i === X.driftZ
+          ? moved > 5e-4
+          : i === X.windX || i === X.windZ
+            ? moved > 0.05
+            : moved > 0.02;
       if (visible)
         logBelief(S.beliefs, {
           t: S.t,
@@ -673,6 +839,14 @@ export class SelfModel {
       tau: view.schema.walkTauS,
       turnCommand: 0,
       airSpeed: 0,
+      hover: false,
+      airMax: view.schema.airMaxMS,
+      wind: S.wind.felt,
+      flightTau: view.schema.flightTauS,
+      windRate: [S.wind.rate[0], S.wind.rate[1]],
+      airLag: [0, 0],
+      airLagSd: 0,
+      regime: null,
       heading: S.heading,
       learnable: false,
     };
@@ -711,6 +885,7 @@ export class SelfModel {
         kind: "flight",
         turnCommand: cmd.yawRate ?? 0,
         airSpeed: speed,
+        hover,
         learnable:
           cmd.saccade === undefined &&
           (view.sub === "cruise" || view.sub === "hover") &&

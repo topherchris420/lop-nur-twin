@@ -10,7 +10,7 @@ export const FLY_SOURCE: {
   readonly sha256: string;
   readonly files: Readonly<Record<string, string>>;
 } = {
-  sha256: "daad49019246c38c2673cd442ecaae50eba95994635676bdc333b5563cebfb78",
+  sha256: "86708015e47c271602b7856459ea1d6ff513ea0f1df0bb8587c3f192a417f022",
   files: {
     "src/bethesda/fly/arena.ts":
       "b89bba26c9d984ffd69d7718af2728c3efe0a34af9652d6c609086464f74d786",
@@ -25,21 +25,21 @@ export const FLY_SOURCE: {
     "src/bethesda/fly/echo/detector.ts":
       "c942d9de013aa32348aa0e693f28104228e0e4a24805a09bc7a1c8a7f94eed95",
     "src/bethesda/fly/echo/estimator.ts":
-      "7daa81cfcb9390a002e39d68abd233bcb3d1792273ba8db78a50124120c76fd9",
+      "40da4d308a1f70085b45d3036fcdaac545c53e7e895be22d6184cd785967f8dc",
     "src/bethesda/fly/echo/forward.ts":
-      "4971f8dc4b58805c67163240140e6417e6aebbe0fb39c02531d9f0bf3750e0cd",
+      "fe672faf87368f1d538a85e69f02f49601edfd2c635e82b39d97a8b21e0cdf92",
     "src/bethesda/fly/echo/inquiry.ts":
-      "34b8c806ebe2cbc0dba3dbb86e119dea0f7f208cde6fae711d6fc90afbb539fa",
+      "abed7a3f550de03c0d0af009a9bbf2366866e72a9b16d1b92fd20f339a8c0dca",
     "src/bethesda/fly/echo/linalg.ts":
       "ec68323d097a453fb9f4719f3bf3f23f468ab54afb64c09db3d0cb37f0f3ddd8",
     "src/bethesda/fly/echo/memory.ts":
-      "5022967bef0ef5afcce704e857dfaceed04bec27129992c5e5c5750d7ae646dd",
+      "27570f7ded467501a5aaec531a961a1156fb35c6ddcfe5b116e0d3278c9dd5a4",
     "src/bethesda/fly/echo/params.ts":
-      "7839cf3fadbb8df0e6da58413b25542dc12d0444ad037c0b11ceff90f7d3c3ad",
+      "f40d633e97cb7f76690df49ea1cefa9c86ec4a4145cd37336124e641e807d656",
     "src/bethesda/fly/echo/selfModel.ts":
-      "f39531c60fcc7e17ee3b7d08bb9d9b5147e3f2e2a80124152116fa106ad860c6",
+      "b64dfdda350ccfc01475518910e8c0a60a95f76d0f4c2e4c647fcda9f41d72ba",
     "src/bethesda/fly/echo/view.ts":
-      "7e90611440b1b4e47c4132a6b7138b4a5706263499db37a20f1da097443cde29",
+      "b0c5df2b7172a4cc357ac7ddb160a484a86563fb7cb6424b885473b823ba2cf0",
     "src/bethesda/fly/fly.ts":
       "fef0a925cc2d1ce065b825cb25ccb26fa5a5811918891005ce291ff61b240f78",
     "src/bethesda/fly/gait.ts":

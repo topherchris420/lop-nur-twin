@@ -50,7 +50,7 @@ describe("headless Bethesda life foundation", () => {
     expect(echo.city.stateHash()).toBe(plain.city.stateHash());
     const status = echo.status();
     expect(status.flyController).toBe("echo");
-    expect(status.selfModel?.echoVersion).toBe("echo-self-model/v1");
+    expect(status.selfModel?.echoVersion).toBe("echo-self-model/v2");
     const checkpoint = echo.selfModelCheckpoint()!;
     expect(checkpoint.note).toMatch(/does not bring this fly back/);
     expect(echo.cityFly.fly.state.counts.rejected).toBe(0);

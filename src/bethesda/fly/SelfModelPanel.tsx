@@ -113,7 +113,10 @@ export function SelfModelPanel({ fly, echo }: { fly: DigitalFly; echo: EchoAdapt
         </Row>
         <Row label="Its surroundings" tag="fly's estimate">
           Outside drift {(Math.hypot(x[X.driftX]!, x[X.driftZ]!) * 100).toFixed(2)} cm/s,
-          outside turn {pm(x[X.spin]!, sd(X.spin))} rad/s.
+          outside turn {pm(x[X.spin]!, sd(X.spin))} rad/s;{" "}
+          {m.wind.felt
+            ? `the wind ${pm(Math.hypot(x[X.windX]!, x[X.windZ]!), Math.max(sd(X.windX), sd(X.windZ)))} m/s, as its antennae feel it.`
+            : "still air: its antennae have never felt the air move."}
         </Row>
         <Row label="Inquiry" tag="fly's estimate">
           {m.inquiry
