@@ -1,0 +1,64 @@
+# The Bethesda headless life as a service on one machine: one city and its
+# one digital fly, resumed from the durable store on this machine's boot
+# volume and checkpointed as it lives. Installed by install.sh next to this
+# file; read "Running it on one VM" in docs/BETHESDA_CONTINUOUS_LIFE.md.
+#
+# It is not the production service that document describes: the store is a
+# local directory, there is no observer API, and nothing reads the life but
+# its own status lines in the journal (journalctl -u bethesda-life).
+
+[Unit]
+Description=Bethesda headless life (one city, one digital fly)
+Documentation=https://github.com/topherchris420/lop-nur-twin/blob/main/docs/BETHESDA_CONTINUOUS_LIFE.md
+RequiresMountsFor=/var/lib/bethesda-life
+# Never give up restarting: each restart only resumes the same individual.
+StartLimitIntervalSec=0
+
+[Service]
+Type=exec
+User=bethesda-life
+Group=bethesda-life
+WorkingDirectory=/opt/bethesda-life/current
+# The heap a resume and a verified checkpoint need (install.sh reads this
+# value for its trial and its checks; change it in a drop-in, not here).
+Environment=NODE_OPTIONS=--max-old-space-size=2560
+ExecStart=/opt/bethesda-life/node/bin/node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /var/lib/bethesda-life/store --continuous
+# On SIGTERM the runner commits a last verified checkpoint and releases its lease.
+KillSignal=SIGTERM
+TimeoutStopSec=300
+Restart=always
+# A writer that died without releasing its lease holds it for 60 s
+# (LEASE_MS in src/bethesda/life/store.ts); a sooner start is refused.
+RestartSec=75
+StateDirectory=bethesda-life
+StateDirectoryMode=0750
+UMask=0027
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bethesda-life
+# If memory runs out, the kernel stops this before it stops sshd.
+OOMScoreAdjust=500
+
+# It needs no network, no device, no privilege and no write access outside its store.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

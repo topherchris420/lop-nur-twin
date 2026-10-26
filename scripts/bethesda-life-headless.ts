@@ -12,6 +12,9 @@
  * Durable: ... --store DIR --create [--controller echo]   (a birth: ticks 0)
  *          ... --store DIR --ticks N | --continuous         (resume, live, checkpoint)
  *          ... --store DIR --verify                         (check the chain; resume nothing)
+ *          ... --store DIR --check                          (--verify, then restore the head in
+ *                                                            memory; no lease, nothing written)
+ * As a service on one machine: deploy/bethesda-life/ (docs/BETHESDA_CONTINUOUS_LIFE.md).
  */
 import { randomBytes } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
@@ -31,7 +34,13 @@ import { LifeStore } from "../src/bethesda/life/store.js";
 import { PROFILES } from "../src/bethesda/simulation.js";
 
 const TICK_MS = 100;
-const MAX_BACKLOG_TICKS = 300;
+/**
+ * How far the clock may fall behind wall time before the run stops. A
+ * verified checkpoint of a full-grown city blocks it for about 18 s on the
+ * development laptop and two or three times that on a slower cloud core;
+ * the ticks it falls behind are computed afterwards, never skipped.
+ */
+const MAX_BACKLOG_TICKS = 1800;
 /** A durable life is checkpointed every this many ticks (five simulated minutes). */
 const CHECKPOINT_TICKS = 3000;
 
@@ -42,6 +51,7 @@ interface Mode {
   store: string | null;
   create: boolean;
   verify: boolean;
+  check: boolean;
 }
 
 function take(args: string[], flag: string, value: boolean): string | true | null {
@@ -62,13 +72,16 @@ function parseMode(all: string[]): Mode {
   const store = take(args, "--store", true) as string | null;
   const create = take(args, "--create", false) === true;
   const verify = take(args, "--verify", false) === true;
-  if ((create || verify) && !store)
-    throw new Error("--create and --verify need --store DIR");
-  if (create || verify) {
+  const check = take(args, "--check", false) === true;
+  if ((create || verify || check) && !store)
+    throw new Error("--create, --verify and --check need --store DIR");
+  if (Number(create) + Number(verify) + Number(check) > 1)
+    throw new Error("use one of --create, --verify and --check");
+  if (create || verify || check) {
     if (args.length) throw new Error(`unexpected ${args.join(" ")}`);
-    return { clock: null, controller: named, store, create, verify };
+    return { clock: null, controller: named, store, create, verify, check };
   }
-  return { clock: parseClock(args), controller: named, store, create, verify };
+  return { clock: parseClock(args), controller: named, store, create, verify, check };
 }
 
 function parseClock(args: string[]): Clock {
@@ -147,6 +160,17 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
     process.stdout.write(JSON.stringify(store.verify()) + "\n");
     return;
   }
+  if (mode.check) {
+    // What a resume would do first, without the lease: restoreLife throws on any mismatch.
+    const { checkpoint } = store.headRecord();
+    const life = restoreLife(BETHESDA_LIFE, checkpoint);
+    print(life, {
+      individual: checkpoint.birth.individual,
+      checkpoint: checkpoint.sequence,
+      restored: true,
+    });
+    return;
+  }
   store.acquire();
   const { checkpoint, committedUtc } = store.headRecord();
   const life = restoreLife(BETHESDA_LIFE, checkpoint);
@@ -173,6 +197,8 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
     });
     // Verified before it is committed: it must restore to this very life.
     restoreLife(BETHESDA_LIFE, next);
+    // Making and verifying it can outlast a good part of the lease on a slow machine.
+    store.renew();
     store.commit(next);
     previous = next;
     pending = [];
