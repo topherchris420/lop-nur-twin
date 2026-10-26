@@ -35,8 +35,10 @@ import { LIMITS } from "./src/bethesda/rain/contracts.js";
  *   forces, and it is the weakest link in the policy.
  * - `blob:` in `img-src`/`worker-src` covers canvas-derived textures and any
  *   worker a bundled dependency spawns.
- * - `connect-src` allows the opt-in `?liveTraffic=1` ADS-B feed and nothing
- *   else. Remove that origin to forbid the feature outright.
+ * - `connect-src` allows the opt-in `?liveTraffic=1` ADS-B feed and the
+ *   read-only observer of the Bethesda life that `/live` follows
+ *   (`src/bethesda/live/witnessFeed.ts`), and nothing else. Remove an origin
+ *   to forbid its feature outright.
  * - WebGL and GLSL are unaffected by CSP; shaders are not scripts.
  * - `'wasm-unsafe-eval'` lets `/noeterra` compile its engine, a same-origin
  *   WebAssembly module that imports nothing. It permits WebAssembly
@@ -53,7 +55,7 @@ export const CONTENT_SECURITY_POLICY = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   "worker-src 'self' blob:",
-  "connect-src 'self' https://api.adsb.lol",
+  "connect-src 'self' https://api.adsb.lol https://129-213-139-78.sslip.io",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
 ].join("; ");

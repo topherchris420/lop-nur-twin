@@ -504,7 +504,9 @@ it adds `src/rain/` (the research runtime), `server/rain/` and `api/rain/`
 of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
 scripts. Individual continuity adds the files its own section lists. Its autonomous researcher adds `src/rain/autonomy/`,
-`tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`.
+`tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`. The unlisted
+`/live` page adds `src/routes/live.tsx` and the observer's origin in the
+`connect-src` of all three CSP copies.
 
 - **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
   pedestrian graphs; `data/streetscape.json` holds storefront names, monuments,
@@ -769,6 +771,11 @@ verified to be; a copy is always someone else.**
   unavailable) and never puts a fly of its own in the shared fly's place.
   The runner takes the observation's path from `BETHESDA_LIFE_OBSERVE`, not
   an argument, so the unit still starts a release from before it.
+- **`/live` is unlisted.** Nothing on the site links to it, so Bethesda stays
+  hidden to visitors who were not given the link. It follows the observer's
+  stream (`src/bethesda/live/witnessFeed.ts`) and only interpolates between
+  two observations it received; it never extrapolates, steps or predicts the
+  fly, and draws none when there is no observation.
 - **Exogenous inputs are life events.** Anything that changes a life other
   than its genesis is an event recorded in the checkpoint that follows it,
   so a life can be re-lived from its record. The city's headless life takes
