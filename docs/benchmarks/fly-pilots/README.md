@@ -22,13 +22,13 @@ the redesign and ECHO added (FLY_METRICS) come from `floors`;
 
 | pilot | fly version | flySource digest | fly identity | engine | code | runs digest | outputs digest |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| adaptation | digital-fly/8 | `daad49019246` | `e2eb5e95c355` | node 24.19.0 (V8 13.6.233.17-node.51) | `104576148eae` | `26dec5e045bf` | `e2882f456e4a` |
-| echo_attribution | digital-fly/8 | `daad49019246` | `e2eb5e95c355` | node 24.19.0 (V8 13.6.233.17-node.51) | `104576148eae` | `afecc56f8376` | `b992e5bc6583` |
-| echo_impairment | digital-fly/8 | `daad49019246` | `e2eb5e95c355` | node 24.19.0 (V8 13.6.233.17-node.51) | `104576148eae` | `34ad5fb61ef6` | `b3e09eb2a1ee` |
-| echo_retention | digital-fly/8 | `daad49019246` | `e2eb5e95c355` | node 24.19.0 (V8 13.6.233.17-node.51) | `104576148eae` | `2ef1416e7dd9` | `493da19a2c51` |
-| noisy_sensing | digital-fly/8 | `daad49019246` | `e2eb5e95c355` | node 24.19.0 (V8 13.6.233.17-node.51) | `104576148eae` | `9959291514c3` | `3bf02c19ae9d` |
-| obstacle_avoidance | digital-fly/8 | `daad49019246` | `e2eb5e95c355` | node 24.19.0 (V8 13.6.233.17-node.51) | `104576148eae` | `6e4f49d552ab` | `97b352b3a0b4` |
-| visual_threat | digital-fly/8 | `daad49019246` | `e2eb5e95c355` | node 24.19.0 (V8 13.6.233.17-node.51) | `104576148eae` | `d6398bac6d76` | `0e4e54818d99` |
+| adaptation | digital-fly/8 | `86708015e47c` | `8d86753f0ca7` | node 24.19.0 (V8 13.6.233.17-node.51) | `0a2c9fed8eaa` | `26dec5e045bf` | `e2882f456e4a` |
+| echo_attribution | digital-fly/8 | `86708015e47c` | `8d86753f0ca7` | node 24.19.0 (V8 13.6.233.17-node.51) | `0a2c9fed8eaa` | `98720bd3bd31` | `b992e5bc6583` |
+| echo_impairment | digital-fly/8 | `86708015e47c` | `8d86753f0ca7` | node 24.19.0 (V8 13.6.233.17-node.51) | `0a2c9fed8eaa` | `3ad37941b985` | `b3e09eb2a1ee` |
+| echo_retention | digital-fly/8 | `86708015e47c` | `8d86753f0ca7` | node 24.19.0 (V8 13.6.233.17-node.51) | `0a2c9fed8eaa` | `dfea588a76e8` | `493da19a2c51` |
+| noisy_sensing | digital-fly/8 | `86708015e47c` | `8d86753f0ca7` | node 24.19.0 (V8 13.6.233.17-node.51) | `0a2c9fed8eaa` | `9959291514c3` | `3bf02c19ae9d` |
+| obstacle_avoidance | digital-fly/8 | `86708015e47c` | `8d86753f0ca7` | node 24.19.0 (V8 13.6.233.17-node.51) | `0a2c9fed8eaa` | `6e4f49d552ab` | `97b352b3a0b4` |
+| visual_threat | digital-fly/8 | `86708015e47c` | `8d86753f0ca7` | node 24.19.0 (V8 13.6.233.17-node.51) | `0a2c9fed8eaa` | `d6398bac6d76` | `0e4e54818d99` |
 
 `npm run rain:fly -- --pilot --check` re-runs every pilot exactly from its
 recorded definition and compares the digests of its runs (final state hashes,
