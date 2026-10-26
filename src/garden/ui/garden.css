@@ -505,6 +505,12 @@ a:hover {
   text-align: left;
   font-size: 15px;
 }
+.facts-grid > .facts-wide {
+  grid-column: 1 / -1;
+}
+.facts-grid .facts-name {
+  font: 400 20px/1.25 var(--serif);
+}
 .panel-small {
   margin: 8px 0 0;
   color: var(--muted);

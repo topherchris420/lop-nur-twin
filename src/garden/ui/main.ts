@@ -37,9 +37,12 @@ import {
   learnedOf,
   lifeOf,
   memoriesOf,
+  NAME_NOTE,
+  nameOf,
   sceneDescription,
   statusOf,
   weatherOf,
+  whoOf,
 } from "./words.js";
 
 const STATE_URL = "/api/state";
@@ -466,8 +469,8 @@ function showLifeChange() {
   const el = $("life-change");
   el.hidden = false;
   el.textContent =
-    `The server is now reporting a different individual (${change.to.lifeId.slice(0, 8)}, begun ${dayText(change.to.bornAt)}) ` +
-    `in place of ${change.from.lifeId.slice(0, 8)}. This page shows what the server reports and does not blend the two.`;
+    `The server is now reporting a different individual (${whoOf(change.to)}, begun ${dayText(change.to.bornAt)}) ` +
+    `in place of ${whoOf(change.from)}. This page shows what the server reports and does not blend the two.`;
 }
 
 /** The label, status and panel; at most once a second unless something changed. */
@@ -533,6 +536,11 @@ function words(force = false) {
   setText("placard-line", label.line);
   setText("now-behaviour", label.activity);
   setText("now-place", label.place);
+  const name = nameOf(state);
+  setText("locator-tag", name ?? "the fly");
+  setText("life-name", name ?? "");
+  setText("life-name-note", name ? NAME_NOTE : "");
+  $("life-name-row").hidden = name === null;
   const described = sceneDescription(state, paused !== null);
   if (described !== lastDescribed) {
     lastDescribed = described;

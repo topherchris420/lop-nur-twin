@@ -11,6 +11,9 @@
  * - **Reported**: Bethesda's weather, as the server fetched it.
  * - **Established**: published measurements of real fruit flies, each with
  *   its source, shown as context and never as this fly's data.
+ *
+ * The one thing said that is none of these is the fly's name: the garden's
+ * keeper gave it, and the panel says so.
  */
 import groomingReference from "../../bethesda/fly/data/grooming-reference.json" with { type: "json" };
 import flybodySource from "../../bethesda/fly/data/flybody.source.json" with { type: "json" };
@@ -206,6 +209,32 @@ export function lifeOf(o: Observation, now: number): LifeView {
   };
 }
 
+/**
+ * Names the garden's keeper has given, by the `life_id` each belongs to. The
+ * simulation has no names (and no sex), so a name is shown only for the life
+ * it was given to, with a note saying whose it is: another individual is
+ * shown by its id until it is named here.
+ */
+const NAMES = new Map([
+  // Named on 2026-10-26: Eva, as FlyBody's body, which draws this fly, was
+  // imaged from an adult female (Vaxenburg et al. 2025).
+  ["5cf42cd6-fd0a-474d-882c-4cb70e0357e8", "Eva"],
+]);
+
+export const NAME_NOTE =
+  "Named by the garden's keeper. The simulation itself has no names.";
+
+/** The keeper's name for an individual, or null if it has none. */
+export const nameOf = (o: Pick<Observation, "lifeId">): string | null =>
+  NAMES.get(o.lifeId) ?? null;
+
+/** An individual as the page refers to it: by name and id, or by id alone. */
+export function whoOf(o: Pick<Observation, "lifeId">): string {
+  const name = nameOf(o);
+  const id = o.lifeId.slice(0, 8);
+  return name ? `${name} (${id})` : id;
+}
+
 export interface MemoryView {
   key: string;
   time: string;
@@ -297,7 +326,7 @@ const FLYBODY: Citation = {
 /** The body's provenance: shown always. */
 export const BODY_NOTE: Established = {
   title: "The body",
-  text: "The fly's proportions and joints are FlyBody's anatomical model of the fruit fly Drosophila melanogaster, and its form is FlyBody's mesh with fewer triangles. Its clay surface, colours and fingerprints are an artist's rendering.",
+  text: "The fly's proportions and joints are FlyBody's anatomical model of the fruit fly Drosophila melanogaster, built from microscope images of one adult female, and its form is FlyBody's mesh with fewer triangles. Its clay surface, colours and fingerprints are an artist's rendering.",
   source: FLYBODY,
 };
 
@@ -342,5 +371,6 @@ export function sceneDescription(o: Observation, paused: boolean): string {
   const where = o.travel
     ? `crossing the garden toward the ${placeWord(o.travel.destination)}`
     : `at the ${placeWord(o.place ?? "")}`;
-  return `A clay model of a Bethesda garden ${o.weather.isDay ? "by day" : "at night"}. The fly is ${o.activity}, ${where}.`;
+  const name = nameOf(o);
+  return `A clay model of a Bethesda garden ${o.weather.isDay ? "by day" : "at night"}. ${name ? `${name}, the fly,` : "The fly"} is ${o.activity}, ${where}.`;
 }

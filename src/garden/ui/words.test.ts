@@ -12,9 +12,12 @@ import {
   learnedOf,
   lifeOf,
   memoriesOf,
+  NAME_NOTE,
+  nameOf,
   sceneDescription,
   statusOf,
   weatherOf,
+  whoOf,
   type Connection,
 } from "./words.js";
 
@@ -60,6 +63,21 @@ describe("this life", () => {
       );
       expect(v.born).toBe("October 25, 2026");
     }
+  });
+
+  it("names only the individual its keeper named, and says the name is the keeper's", () => {
+    for (const o of recorded) {
+      expect(nameOf(o)).toBe("Eva");
+      expect(whoOf(o)).toBe(`Eva (${o.lifeId.slice(0, 8)})`);
+      expect(sceneDescription(o, false)).toMatch(/\. Eva, the fly, is /);
+    }
+    // The name follows the whole life_id: never a prefix, another life, or the Map's own keys.
+    for (const lifeId of ["5cf42cd6", "a-different-life", "constructor", "__proto__"])
+      expect(nameOf({ lifeId })).toBeNull();
+    const other = { ...recorded[0]!, lifeId: "0123456789abcdef" };
+    expect(whoOf(other)).toBe("01234567");
+    expect(sceneDescription(other, false)).toMatch(/\. The fly is /);
+    expect(NAME_NOTE).toMatch(/keeper\. The simulation itself has no names\.$/);
   });
 
   it("quotes memories as the server wrote them, newest first", () => {
@@ -126,6 +144,8 @@ describe("published biology", () => {
       /This fly's grooming is modelled; these are measurements of real flies/,
     );
     expect(BODY_NOTE.text).toMatch(/an artist's rendering/);
+    // Why the fly is called Eva: FlyBody's body was imaged from one adult female.
+    expect(BODY_NOTE.text).toMatch(/one adult female/);
   });
 });
 

@@ -232,6 +232,22 @@ Every section carries one of three labels:
 The state's distance flown and `needs` (energy, fullness, water) are read but
 not shown.
 
+The fly's name, Eva, carries none of the three labels:
+
+- **Who gave it.** The garden's keeper named this individual on 2026-10-26.
+  The simulation has no names, and no sex.
+- **Why Eva.** It fits the body the fly is drawn with: FlyBody's model was
+  built from microscope images of one adult female (Vaxenburg et al. 2025).
+  The panel's body note says so.
+- **Where it lives.** The page holds the name, not the server: `NAMES` in
+  `src/garden/ui/words.ts` gives it to life
+  `5cf42cd6-fd0a-474d-882c-4cb70e0357e8` alone.
+- **Where it shows.** The panel shows it above the individual's id, with the
+  note "Named by the garden's keeper. The simulation itself has no names." The
+  locator and the canvas's text alternative use it too.
+- **Another life.** If the server ever reported another individual, the page
+  would show that one by its id until it is named there.
+
 ## API compatibility
 
 The page needs no change to the server, to nginx or to the site's Content
@@ -249,7 +265,7 @@ It reads these fields of `GET /api/state` and checks each one
 
 | Field                                                                                                         | Use                                                             | If absent or malformed                                                                   |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `life_id`, `born_at`                                                                                          | identity; age                                                   | state refused                                                                            |
+| `life_id`, `born_at`                                                                                          | identity, and the name given to it; age                         | state refused                                                                            |
 | `server_time`, `updated_at`, `ticks`                                                                          | the clocks and ordering                                         | state refused (`updated_at` must not precede `born_at`)                                  |
 | `place`, `place_name`, `position`                                                                             | where the fly is drawn; the label                               | state refused; an unknown `place` is staged as described above                           |
 | `activity`                                                                                                    | the pose; the label                                             | state refused; an unknown activity is drawn as a rest, its text shown as sent            |
@@ -276,7 +292,7 @@ These properties hold by construction, and are checked by tests and by
 | The same fly for everyone                           | Every visitor draws the state the server publishes, at the same presented instant.                                                     |
 | Refreshing changes nothing                          | A reload shows the same individual at the shared moment.                                                                               |
 | A lost connection is said, not hidden               | The status reads Reconnecting (Disconnected after two minutes) and the fly holds its last published state; polling resumes on its own. |
-| A new individual is never passed off as the old one | A change of `life_id` or `born_at` is shown as a notice, with both identities.                                                         |
+| A new individual is never passed off as the old one | A change of `life_id` or `born_at` is shown as a notice, with both identities. A name is shown only for the life it was given to.      |
 
 What only the garden's server can guarantee, and its present limits:
 

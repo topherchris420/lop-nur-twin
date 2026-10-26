@@ -1107,6 +1107,13 @@ watches it.**
   Never show a simulated number as a measurement of a real fly, and never
   fill in what the server omits.
 
+- **The name is the keeper's.** Eva is the name the owner gave life
+  `5cf42cd6-fd0a-474d-882c-4cb70e0357e8` (`NAMES` in `ui/words.ts`); the
+  simulation has no names.
+  - A name belongs to one `life_id`. Never move it to another individual,
+    and never send it to the server.
+  - Keep the panel's note that the keeper gave it. Name a new individual
+    only when the owner does.
 - **FlyBody is not restyled.** The fly's shape is FlyBody's meshes on its
   skeleton, posed by `src/bethesda/fly/pose.ts`; only the surface is clay.
   Give it no cartoon eyes or expressions.

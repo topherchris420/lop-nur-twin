@@ -152,7 +152,7 @@ The garden currently uses a plain-HTTP address, which some browsers or
 networks may block. The [hosted film page](https://lop-nur-twin.vercel.app/film/)
 is a separate viewing option, not the live garden.
 
-Since 2026-10-26 the live garden has shown its fly in clay: the same server
+Since 2026-10-26 the live garden has shown its fly, Eva, in clay: the same server
 state, drawn as a 3D stop-motion garden by a page (`src/garden/`) that only
 reads `GET /api/state`.
 [How it works, and how it was deployed](docs/LIVE_GARDEN.md).
