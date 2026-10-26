@@ -6,13 +6,14 @@ in a 3D Bethesda back garden instead of the flat 2D painting. The page is a
 viewer. The garden's Python service remains the only thing that decides what
 the fly does; this page reads its state and draws it.
 
-**Status (2026-10-26): not deployed.** The live garden still serves its 2D page
-(release `ui-20261025-9abcdf40d541`). Everything below was verified locally,
-against recorded live states and against the live garden's `/api/state` read
-through a local server. [Deploying](#deploying) lists the remaining steps.
-Until they have run and been verified, nothing here describes the live site.
+**Status: live since 2026-10-26.** At 20:27 UTC (4:27 PM in Bethesda) the live
+garden began serving this page as release `garden-20261026-65635e04cc63`,
+built from commit `5957f4d`, in place of its 2D page
+(`ui-20261025-9abcdf40d541`). The fly was not restarted, reset or replaced.
+The [deployment record](#deployment-record-2026-10-26) lists what was checked
+before and after.
 
-| The live page today (11:09 AM, 2026-10-26)                          | The clay garden, on a recorded live state from 11:27 AM the same day |
+| The live page before (11:09 AM, 2026-10-26)                         | The clay garden, on a recorded live state from 11:27 AM the same day |
 | ------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | ![The live 2D garden page](media/live-garden/before-garden.webp)    | ![The clay garden by day](media/live-garden/day.webp)                |
 | ![The live 2D page on a phone](media/live-garden/before-phone.webp) | ![The clay garden on a phone](media/live-garden/after-phone.webp)    |
@@ -23,14 +24,14 @@ Until they have run and been verified, nothing here describes the live site.
 | **Evening**                                                             | **Night**                                                 |
 | ![The garden at dusk](media/live-garden/dusk.webp)                      | ![The saucer by moonlight](media/live-garden/night.webp)  |
 
-![The page drawing the live garden's state at 4:06 PM: the fly in flight toward the fallen pear, beside the observation panel](media/live-garden/live.webp)
+![The live garden after the deploy: the fly feeding on the asters at 4:28 PM, beside the observation panel](media/live-garden/live.webp)
 
-The clay pictures are local renders of this release. All but the last replay
+The clay pictures above the last are local renders of this release, replaying
 live states recorded read-only on 2026-10-26; the dusk and night pictures move
-the clock to 6:21 PM and 9:30 PM to show the light. The last was drawn from
-the live garden's own state at 4:06 PM that day, read through a local server:
-the fly is crossing to the fallen pear, 199 journeys and 815 memories into its
-life.
+the clock to 6:21 PM and 9:30 PM to show the light. The last is the live site
+itself a minute after the deploy, at 4:28 PM, photographed through a local
+proxy because Chrome refuses the bare address: the fly feeding on the asters,
+205 journeys and 832 memories into its life.
 
 ## What the page may and may not do
 
@@ -297,17 +298,18 @@ What only the garden's server can guarantee, and its present limits:
 
 Measured by `tools/garden.mjs check` on release `garden-20261026-65635e04cc63`
 in headless Chrome 151, on this repository's development laptop (Snapdragon X,
-Adreno X1-45 GPU via ANGLE/Direct3D 11). It ran twice: on recorded states
-(replay), and on the live garden's state (live):
+Adreno X1-45 GPU via ANGLE/Direct3D 11). It ran three times: before the deploy
+on recorded states (replay) and on the live garden's state (live), and after
+it on the live site through a proxy (live site):
 
-| Measure                                                   | Replay                                                 | Live                     |
-| --------------------------------------------------------- | ------------------------------------------------------ | ------------------------ |
-| Frame interval, 1440×900, DPR 1, fly tracking, High       | median 16.7 ms, 90th percentile 16.8 ms                | the same                 |
-| Two observers' presented instants                         | 0.006 s apart, same pose                               | 0.002 s apart, same pose |
-| The same individual for both observers and after a reload | yes                                                    | yes (`5cf42cd6`)         |
-| JS heap after cycling every camera and two presets        | +0.45 MB; geometries and textures did not grow         | +0.78 MB; the same       |
-| Requests                                                  | 69, all same-origin GETs; the API only at `/api/state` | the same                 |
-| Console                                                   | no errors, warnings or CSP violations                  | the same                 |
+| Measure                                                   | Replay                                                 | Live                     | Live site                |
+| --------------------------------------------------------- | ------------------------------------------------------ | ------------------------ | ------------------------ |
+| Frame interval, 1440×900, DPR 1, fly tracking, High       | median 16.7 ms, 90th percentile 16.8 ms                | the same                 | the same                 |
+| Two observers' presented instants                         | 0.006 s apart, same pose                               | 0.002 s apart, same pose | 0.007 s apart, same pose |
+| The same individual for both observers and after a reload | yes                                                    | yes (`5cf42cd6`)         | yes (`5cf42cd6`)         |
+| JS heap after cycling every camera and two presets        | +0.45 MB; geometries and textures did not grow         | +0.78 MB; the same       | +0.77 MB; the same       |
+| Requests                                                  | 69, all same-origin GETs; the API only at `/api/state` | the same                 | 65; the same             |
+| Console                                                   | no errors, warnings or CSP violations                  | the same                 | the same                 |
 
 The frame interval is the display's 60 Hz: the page kept pace with it. GPU
 time per frame was not measured separately. A first visit downloads 1.41 MB
@@ -347,9 +349,9 @@ writes `report.json` and the photographs to `garden-check/` (ignored by git).
 
 ## Deploying
 
-Nothing below has been run against the live garden yet. Each step needs the
-owner's go-ahead. The tooling reads the server and its credentials from the
-environment, never from the repository:
+Each step needs the owner's go-ahead. The first deploy followed these steps on
+2026-10-26 ([record](#deployment-record-2026-10-26)). The tooling reads the
+server and its credentials from the environment, never from the repository:
 
 ```sh
 export GARDEN_SSH=ubuntu@150.136.49.49
@@ -403,7 +405,7 @@ export GARDEN_BACKUP_DIR=/path/outside/the/repository
    the release, reads the CSP, and reads `/api/state` twice, 6 s apart.
 6. **Check what the server actually serves:**
    `node tools/garden.mjs check --source proxy --origin http://150.136.49.49`.
-   Then look at the live page in a browser.
+   Then look at its photographs: they are the live page as a browser draws it.
 7. **Roll back, if needed:** `node deploy/garden/deploy.mjs rollback <release>`
    puts back the page that `<release>` replaced, with the same checks.
 
@@ -416,6 +418,19 @@ each needs the owner's approval:
   security headers.
 - `gzip_static on` for the release directories, to serve the `.gz` twins
   (0.44 MB instead of 1.41 MB on a first visit).
+
+### Deployment record: 2026-10-26
+
+| Step        | Result                                                                                                                                                                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inspect     | Live index `0a65c8f6…` (`ui-20261025-9abcdf40d541`). Service active, PID 8320, no restarts. Life `5cf42cd6`, 830 memories.                                                                                                        |
+| Backup      | Sunday's `day-6.sqlite3` copied off the server first. Then `bethesda-fly-backup.service` succeeded: `day-0.sqlite3` (69 632 bytes, SHA-256 `7f2d0c04…`) passed the integrity check and holds the same life with all 830 memories. |
+| Build       | From `5957f4d`: `garden-20261026-65635e04cc63`, byte for byte the release the replay and live checks ran on.                                                                                                                      |
+| Publish     | Index `0a65c8f6…` → `9615246d…`, the old one saved in `/var/backups/bethesda-fly-ui/garden-20261026-65635e04cc63/`. The same life in the same process (PID 8320, not restarted), 831 memories before and after.                   |
+| Verify      | 9 of 9 files served byte for byte; the CSP unchanged; the life the same, and advancing.                                                                                                                                           |
+| Proxy check | Passed (the "Live site" column under [Performance](#performance)).                                                                                                                                                                |
+
+To undo it: `node deploy/garden/deploy.mjs rollback garden-20261026-65635e04cc63`.
 
 ## Asset provenance
 
