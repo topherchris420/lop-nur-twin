@@ -503,7 +503,7 @@ it adds `src/rain/` (the research runtime), `server/rain/` and `api/rain/`
 `scripts/import-rain-source.ts`, `scripts/math-substrate.ts`, the `RAIN_` lines
 of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
-scripts. Its autonomous researcher adds `src/rain/autonomy/`,
+scripts. Individual continuity adds the files its own section lists. Its autonomous researcher adds `src/rain/autonomy/`,
 `tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`.
 
 - **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
@@ -715,6 +715,52 @@ cause.**
   own sensorimotor capabilities. Never write, generate or display a
   first-person claim of awareness, and never present a result as evidence of
   consciousness.
+
+### Individual continuity (`src/bethesda/life/`)
+
+The headless life, its durable checkpoints, and the individuality studies.
+Read `docs/INDIVIDUAL_CONTINUITY.md` and `docs/BETHESDA_CONTINUOUS_LIFE.md`
+first. Outside `src/bethesda/` it adds `scripts/bethesda-life-headless.ts`,
+`scripts/individuality-evaluate.ts`, `docs/benchmarks/fly-individuality/`,
+and `streamPosition`/`seekStream` in `src/lib/noise.ts`. The rule it exists
+to keep: **a restored life is the same individual only because it is
+verified to be; a copy is always someone else.**
+
+- **Snapshot the graph, not a summary.** `snapshot.ts` records everything
+  reachable from the life's root and restores it in place into a life
+  rebuilt from its genesis. New state needs no serializer, but it must be
+  plain data, arrays, maps, sets, typed arrays, class instances or
+  `mulberry32` streams. State held only inside a closure (other than a
+  stream's position) is invisible to it: never add any. Every random stream
+  goes through `mulberry32`, whose position the snapshot reads without
+  drawing, so the hook changes no outcome (the pilots reproduce).
+- **Never trust a restore.** `restoreLife` re-snapshots and compares bytes and
+  the state hash; the tests step restored lives beside uninterrupted ones in
+  flight, landing, grooming, feeding and the city with both controllers. A
+  mismatch or a corrupt store stops; nothing starts in its place.
+- **Identity is a birth.** An individual is its kind, genesis and a
+  host-drawn birth nonce; `twinCheckpoint` starts someone new with its
+  parentage recorded. Never reuse an individual id for a copy, never commit
+  one individual's checkpoint into another's store, and never merge a fork.
+- **One writer.** Commits go through `LifeStore` under the epoch-fenced lease;
+  never write a store's files any other way, and never edit or prune a
+  checkpoint by hand (compaction drops old graphs and keeps every header).
+- **Outages are gaps.** A resumed life records a `gap` event and computes no
+  catch-up ticks; never claim ticks that were not computed.
+- **Exogenous inputs are life events.** Anything that changes a life other
+  than its genesis is an event recorded in the checkpoint that follows it,
+  so a life can be re-lived from its record. The city's headless life takes
+  none, so from its genesis it is reproducible tick for tick: say so.
+- **The individuality report is generated.** After a change to the fly, the
+  controller or `individuality.ts`, bump `INDIVIDUALITY_VERSION` if the
+  study's design changed, then run
+  `node scripts/run-ts.mjs scripts/individuality-evaluate.ts` from a clean
+  commit and commit what it writes (`--check` reproduces it). Never edit
+  `docs/benchmarks/fly-individuality/` by hand. It is a seeded study, not a
+  registered R.A.I.N. experiment: never word it as one.
+- **Functional words only**, as for ECHO: the fly remembers where it fed and
+  acts on it. Never present continuity or a distinct history as evidence of a
+  self, awareness or consciousness.
 
 ### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 

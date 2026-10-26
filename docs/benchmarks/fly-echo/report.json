@@ -3,7 +3,7 @@
   "status": "SIMULATED CHARACTERIZATION: a seeded run of a reduced-order simulator's functional self-model; not preregistered evidence, not evidence about Drosophila, not evidence of awareness or subjective experience",
   "fly": "digital-fly/7",
   "echo": "echo-self-model/v1",
-  "fly_source_sha256": "e838b010f63674a8e7c6364631eff58473fbb0ef96fbd5d0e69b399a4303c485",
+  "fly_source_sha256": "b9abf944d6d246ff622184e4b0d29ccdf4e3966665643958ab4585d67f4b0aff",
   "seeds": {
     "evaluation": {
       "domain": "echo-evaluation/v1",

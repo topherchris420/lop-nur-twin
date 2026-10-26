@@ -1,0 +1,1634 @@
+{
+  "schema_version": "rain-experiment-run/v1",
+  "experiment_id": "V3D-EXP-0008",
+  "run_id": "V3D-EXP-0008-RUN-0001",
+  "kind": "external",
+  "reproduces": null,
+  "status": "passed",
+  "hypothesis_verdict": "supported",
+  "evidence_class": "simulated",
+  "started_at": "2026-10-26T00:35:38.285Z",
+  "finished_at": "2026-10-26T00:35:56.523Z",
+  "duration_ms": 18238,
+  "seed": null,
+  "parameters": {
+    "scientific_plan_sha256": "606f50db2c7c85cdf49becbe39aa58d38f626a2ec3926e94b373751a260d8fd3"
+  },
+  "definition": {
+    "created_at": "2026-10-26T00:35:38.253Z",
+    "created_by": "R.A.I.N.Host",
+    "criteria": {
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "note": "Exact one-sided sign test finds the opposite direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ],
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "note": "Every matched run completes",
+          "op": ">=",
+          "value": 20
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "note": "An independent re-simulation reproduces every state hash and measurement",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "note": "Enough seeds differ between the arms for the sign test",
+          "op": ">=",
+          "value": 6
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "note": "The fly's gate refused no command in any run",
+          "op": "<=",
+          "value": 0
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "note": "Mean paired difference beyond the minimum effect",
+          "op": "<=",
+          "value": -0.34
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "note": "Exact one-sided sign test in the expected direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ]
+    },
+    "data_policy": {
+      "classification": "internal",
+      "store_artifacts": false
+    },
+    "dependencies": [],
+    "evidence_class": "simulated",
+    "experiment_id": "V3D-EXP-0008",
+    "experiment_version": 1,
+    "hypothesis": "The ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) will decrease attribution_accuracy by at least 0.34 fraction on average over 10 matched seeds drawn after preregistration, compared with the full ECHO self-model under the same hidden conditions, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "A sense that reads a motion that is not there cannot be told from a push by any sense this fly has; it is measured apart and left out of the accuracy.",
+      "The ECHO self-model is a computational model of the fly's own sensorimotor gains, built over the reduced-order body. Its compensation acts on abstract movement gains of that body; it is not validated biological motor control, and FlyBody's physics does not run.",
+      "The perturbations are the experimenter's models of an impairment, a push, a turning surface, a sensor fault and an obstacle, applied by the simulator. The fly is never given their labels, causes or schedule; it meets only their consequences through its self-motion sense, its touch and its legs' stepping.",
+      "The conditions are the held-out evaluation set, in an arena the self-model was not developed in; its constants were chosen on the development set alone and frozen before evaluation.",
+      "A measurement of prediction, attribution or retention describes a functional self-model in a simulator. It is not evidence of awareness or subjective experience.",
+      "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+      "Seeds are replicates of one model, not samples of real flies."
+    ],
+    "metrics": [
+      {
+        "description": "matched runs (seed x arm x block) that completed",
+        "deterministic": true,
+        "name": "runs_completed",
+        "unit": "count"
+      },
+      {
+        "description": "a second simulation reached every recorded state hash and measurement",
+        "deterministic": true,
+        "name": "determinism_check",
+        "unit": "1 if reproduced"
+      },
+      {
+        "description": "matched seeds, drawn by the host after preregistration",
+        "deterministic": true,
+        "name": "seeds",
+        "unit": "count"
+      },
+      {
+        "description": "fly-seconds simulated across all runs",
+        "deterministic": true,
+        "name": "simulated_seconds",
+        "unit": "s"
+      },
+      {
+        "description": "commands the fly's gate refused, over every run",
+        "deterministic": true,
+        "name": "gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the control arm",
+        "deterministic": true,
+        "name": "control_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the treatment arm",
+        "deterministic": true,
+        "name": "treatment_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "mean attribution_accuracy in the control arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "control_mean",
+        "unit": "fraction"
+      },
+      {
+        "description": "mean attribution_accuracy in the treatment arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "treatment_mean",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment minus control attribution_accuracy, averaged over seeds defined in both arms",
+        "deterministic": true,
+        "name": "mean_paired_delta",
+        "unit": "fraction"
+      },
+      {
+        "description": "seeds whose difference lies in the expected direction",
+        "deterministic": true,
+        "name": "seeds_expected_direction",
+        "unit": "count"
+      },
+      {
+        "description": "seeds whose difference lies in the opposite direction",
+        "deterministic": true,
+        "name": "seeds_opposite",
+        "unit": "count"
+      },
+      {
+        "description": "seeds with no difference (ties)",
+        "deterministic": true,
+        "name": "seeds_unchanged",
+        "unit": "count"
+      },
+      {
+        "description": "seeds where the metric is undefined in an arm; they drop out of the test",
+        "deterministic": true,
+        "name": "seeds_undefined",
+        "unit": "count"
+      },
+      {
+        "description": "seeds that differ between the arms",
+        "deterministic": true,
+        "name": "untied_pairs",
+        "unit": "count"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the expected direction",
+        "deterministic": true,
+        "name": "sign_test_p_expected",
+        "unit": "probability"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the opposite direction",
+        "deterministic": true,
+        "name": "sign_test_p_opposite",
+        "unit": "probability"
+      },
+      {
+        "description": "0 when the control arm sits at the metric's floor or ceiling in every seed",
+        "deterministic": true,
+        "name": "control_informative",
+        "unit": "1 if informative"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out",
+        "deterministic": true,
+        "name": "control_attribution_accuracy",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out",
+        "deterministic": true,
+        "name": "treatment_attribution_accuracy",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of external changes (a push, a turning surface) the fly blamed on its own body",
+        "deterministic": true,
+        "name": "control_false_self_attribution",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of external changes (a push, a turning surface) the fly blamed on its own body",
+        "deterministic": true,
+        "name": "treatment_false_self_attribution",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: mean Brier score of the fly's confidence in each explanation it concluded (0 is perfect)",
+        "deterministic": true,
+        "name": "control_attribution_brier",
+        "unit": "score"
+      },
+      {
+        "description": "treatment arm, mean over seeds: mean Brier score of the fly's confidence in each explanation it concluded (0 is perfect)",
+        "deterministic": true,
+        "name": "treatment_attribution_brier",
+        "unit": "score"
+      },
+      {
+        "description": "control arm, mean over seeds: mean path error of steady walking over the whole run",
+        "deterministic": true,
+        "name": "control_attribution_path_error",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: mean path error of steady walking over the whole run",
+        "deterministic": true,
+        "name": "treatment_attribution_path_error",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: hidden changes the fly never asked about within 6 s",
+        "deterministic": true,
+        "name": "control_missed_changes",
+        "unit": "count"
+      },
+      {
+        "description": "treatment arm, mean over seeds: hidden changes the fly never asked about within 6 s",
+        "deterministic": true,
+        "name": "treatment_missed_changes",
+        "unit": "count"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of misleading-sense onsets (a motion read that is not there, which no sense here can tell from a push) the fly blamed on its body",
+        "deterministic": true,
+        "name": "control_misleading_sense_blamed_self",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of misleading-sense onsets (a motion read that is not there, which no sense here can tell from a push) the fly blamed on its body",
+        "deterministic": true,
+        "name": "treatment_misleading_sense_blamed_self",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: share of observed self-motion components inside the fly's predicted central 90% interval",
+        "deterministic": true,
+        "name": "control_attribution_coverage_90",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: share of observed self-motion components inside the fly's predicted central 90% interval",
+        "deterministic": true,
+        "name": "treatment_attribution_coverage_90",
+        "unit": "fraction"
+      }
+    ],
+    "parameters": {
+      "scientific_plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "sign_test_p_opposite",
+              "note": "Exact one-sided sign test finds the opposite direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "runs_completed",
+              "note": "Every matched run completes",
+              "op": ">=",
+              "value": 20
+            },
+            {
+              "id": "G2",
+              "metric": "determinism_check",
+              "note": "An independent re-simulation reproduces every state hash and measurement",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G3",
+              "metric": "control_informative",
+              "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G4",
+              "metric": "untied_pairs",
+              "note": "Enough seeds differ between the arms for the sign test",
+              "op": ">=",
+              "value": 6
+            },
+            {
+              "id": "G5",
+              "metric": "gate_refusals",
+              "note": "The fly's gate refused no command in any run",
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "mean_paired_delta",
+              "note": "Mean paired difference beyond the minimum effect",
+              "op": "<=",
+              "value": -0.34
+            },
+            {
+              "id": "S2",
+              "metric": "sign_test_p_expected",
+              "note": "Exact one-sided sign test in the expected direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ]
+        },
+        "definition_sha256": "606f50db2c7c85cdf49becbe39aa58d38f626a2ec3926e94b373751a260d8fd3",
+        "design": {
+          "analysis": {
+            "expected_direction": "decrease",
+            "method": "matched_seed_sign_test",
+            "metric": "attribution_accuracy",
+            "minimum_effect": 0.34
+          },
+          "budget": {
+            "max_simulated_seconds": 16000
+          },
+          "competing_hypothesis": "[scripted] Whether the fly was moving when a change began is all the evidence there is, so the rule does as well as the self-model.",
+          "hypothesis": "[scripted] A motion-gated rule (a change met while moving is its own, one met standing is the world's) explains fewer hidden held-out changes correctly than the full self-model.",
+          "parameters": {
+            "seed_count": 10,
+            "treatment": {
+              "kind": "echo_attribution",
+              "variant": "motion_gated"
+            }
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
+          "schema": "rain-fly-design/v3"
+        },
+        "experiment": {
+          "arms": [
+            {
+              "config": {},
+              "echo": {
+                "reset_s": null,
+                "variant": "full"
+              },
+              "id": "control",
+              "isi_s": 90,
+              "l_over_v_ms": 40,
+              "light_intensity": 2,
+              "noise": 0
+            },
+            {
+              "config": {},
+              "echo": {
+                "reset_s": null,
+                "variant": "motion_gated"
+              },
+              "id": "treatment",
+              "isi_s": 90,
+              "l_over_v_ms": 40,
+              "light_intensity": 2,
+              "noise": 0
+            }
+          ],
+          "blocks": [
+            {
+              "arena": {
+                "ambient": 0.6,
+                "pillars": [
+                  {
+                    "r": 0.05,
+                    "x": -0.75,
+                    "z": -0.75
+                  },
+                  {
+                    "r": 0.05,
+                    "x": -0.75,
+                    "z": 0.75
+                  },
+                  {
+                    "r": 0.05,
+                    "x": 0.75,
+                    "z": -0.75
+                  },
+                  {
+                    "r": 0.05,
+                    "x": 0.75,
+                    "z": 0.75
+                  }
+                ],
+                "size": [
+                  3,
+                  2.5,
+                  3
+                ]
+              },
+              "duration_s": 160,
+              "echo": {
+                "condition_set": [
+                  {
+                    "cause": "self",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            0.35,
+                            0.45
+                          ],
+                          [
+                            0.65,
+                            0.75
+                          ]
+                        ],
+                        "field": "speedGain",
+                        "signed": false
+                      }
+                    ],
+                    "id": "speed_gain"
+                  },
+                  {
+                    "cause": "self",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            0.4,
+                            0.6
+                          ],
+                          [
+                            1,
+                            1.4
+                          ]
+                        ],
+                        "field": "turnBias",
+                        "signed": true
+                      }
+                    ],
+                    "id": "turn_bias"
+                  },
+                  {
+                    "cause": "external",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            0.005,
+                            0.007
+                          ],
+                          [
+                            0.011,
+                            0.014
+                          ]
+                        ],
+                        "field": "drift",
+                        "signed": true
+                      }
+                    ],
+                    "id": "push"
+                  },
+                  {
+                    "cause": "external",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            0.3,
+                            0.45
+                          ],
+                          [
+                            0.75,
+                            1
+                          ]
+                        ],
+                        "field": "spin",
+                        "signed": true
+                      }
+                    ],
+                    "id": "spin"
+                  },
+                  {
+                    "cause": "sensor",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            2.5,
+                            3.5
+                          ],
+                          [
+                            5,
+                            7
+                          ]
+                        ],
+                        "field": "flowNoise",
+                        "signed": false
+                      }
+                    ],
+                    "id": "sensor_noise"
+                  },
+                  {
+                    "cause": "self+external",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            0.45,
+                            0.7
+                          ]
+                        ],
+                        "field": "speedGain",
+                        "signed": false
+                      },
+                      {
+                        "bands": [
+                          [
+                            0.006,
+                            0.012
+                          ]
+                        ],
+                        "field": "drift",
+                        "signed": true
+                      }
+                    ],
+                    "id": "speed_gain_and_push"
+                  },
+                  {
+                    "cause": "environment",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            1,
+                            1
+                          ]
+                        ],
+                        "field": "obstacle",
+                        "signed": false
+                      }
+                    ],
+                    "id": "obstacle"
+                  },
+                  {
+                    "cause": "sensor",
+                    "effects": [
+                      {
+                        "bands": [
+                          [
+                            0.005,
+                            0.01
+                          ]
+                        ],
+                        "field": "flowBias",
+                        "signed": true
+                      }
+                    ],
+                    "id": "misleading_sense"
+                  }
+                ],
+                "conditions": "evaluation",
+                "episode_s": [
+                  15,
+                  22
+                ],
+                "jitter_s": 3,
+                "onset_s": [
+                  30,
+                  40
+                ],
+                "onsets_s": [
+                  20,
+                  55,
+                  90,
+                  125
+                ],
+                "persistent_last": 0.5,
+                "phases_s": [
+                  25,
+                  65,
+                  90,
+                  125,
+                  150,
+                  185,
+                  210
+                ],
+                "reexposure_s": 10,
+                "schedule": "attribution",
+                "window_s": 1
+              },
+              "fixed_config": {
+                "groomHz": 0,
+                "takeoffHz": 0,
+                "walkStartHz": 1,
+                "walkStopHz": 0.1
+              },
+              "id": "attribution",
+              "light_at": null,
+              "near_miss_m": null,
+              "start_half_width_m": 0.4,
+              "stimulus": null,
+              "tick_s": 0.05,
+              "trials": 1
+            }
+          ],
+          "protocol": "echo_attribution",
+          "schema": "digital-fly-experiment/v3",
+          "seed_count": 10
+        },
+        "experiment_id": "FLY-606f50db2c7c85cdf49becbe",
+        "fly": "digital-fly/7 reduced-order-fsm/v1",
+        "fly_sha256": "309bc659d993b7c1affb6353a5aac0e434e9fc502d8d9477013d3af7296aaf38",
+        "fly_source_sha256": "b9abf944d6d246ff622184e4b0d29ccdf4e3966665643958ab4585d67f4b0aff",
+        "ir": {
+          "backend": "digital-fly",
+          "backend_version": "digital-fly-behavior/v3 (digital-fly/7 reduced-order-fsm/v1)",
+          "controls": [
+            "baseline arm: the full ECHO self-model under the same hidden conditions",
+            "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+            "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+            "fixed apparatus settings, both arms — attribution block: groomHz = 0, takeoffHz = 0, walkStartHz = 1, walkStopHz = 0.1",
+            "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+          ],
+          "dependent_variables": [
+            "attribution_accuracy"
+          ],
+          "domain": "fly-behavior-simulation",
+          "falsification": {
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "unit": "probability",
+            "value": 0.05
+          },
+          "hypothesis": "The ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) will decrease attribution_accuracy by at least 0.34 fraction on average over 10 matched seeds drawn after preregistration, compared with the full ECHO self-model under the same hidden conditions, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+          "independent_variables": [
+            "the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's)"
+          ],
+          "limitations": [
+            "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+            "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+            "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+            "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+            "A sense that reads a motion that is not there cannot be told from a push by any sense this fly has; it is measured apart and left out of the accuracy.",
+            "The ECHO self-model is a computational model of the fly's own sensorimotor gains, built over the reduced-order body. Its compensation acts on abstract movement gains of that body; it is not validated biological motor control, and FlyBody's physics does not run.",
+            "The perturbations are the experimenter's models of an impairment, a push, a turning surface, a sensor fault and an obstacle, applied by the simulator. The fly is never given their labels, causes or schedule; it meets only their consequences through its self-motion sense, its touch and its legs' stepping.",
+            "The conditions are the held-out evaluation set, in an arena the self-model was not developed in; its constants were chosen on the development set alone and frozen before evaluation.",
+            "A measurement of prediction, attribution or retention describes a functional self-model in a simulator. It is not evidence of awareness or subjective experience.",
+            "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+            "A result characterizes the simulator and is never empirical evidence about Drosophila."
+          ],
+          "observables": [
+            {
+              "description": "fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out",
+              "id": "attribution_accuracy",
+              "unit": "fraction"
+            },
+            {
+              "description": "fraction of external changes (a push, a turning surface) the fly blamed on its own body",
+              "id": "false_self_attribution",
+              "unit": "fraction"
+            },
+            {
+              "description": "mean Brier score of the fly's confidence in each explanation it concluded (0 is perfect)",
+              "id": "attribution_brier",
+              "unit": "score"
+            },
+            {
+              "description": "mean path error of steady walking over the whole run",
+              "id": "attribution_path_error",
+              "unit": "fraction"
+            },
+            {
+              "description": "hidden changes the fly never asked about within 6 s",
+              "id": "missed_changes",
+              "unit": "count"
+            },
+            {
+              "description": "fraction of misleading-sense onsets (a motion read that is not there, which no sense here can tell from a push) the fly blamed on its body",
+              "id": "misleading_sense_blamed_self",
+              "unit": "fraction"
+            },
+            {
+              "description": "share of observed self-motion components inside the fly's predicted central 90% interval",
+              "id": "attribution_coverage_90",
+              "unit": "fraction"
+            },
+            {
+              "description": "treatment minus control attribution_accuracy, averaged over the seeds where both are defined",
+              "id": "mean_paired_delta",
+              "unit": "fraction"
+            },
+            {
+              "description": "exact one-sided sign test p-value for a decrease, over untied seeds",
+              "id": "sign_test_p_expected",
+              "unit": "probability"
+            },
+            {
+              "description": "the same test in the opposite direction",
+              "id": "sign_test_p_opposite",
+              "unit": "probability"
+            }
+          ],
+          "parameter_constraints": [
+            "9 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+            "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+            "the integration settings (physics, sensing and decision periods) are never varied",
+            "at most 16000 simulated fly-seconds per experiment",
+            "8-16 seeds, drawn by the host after preregistration",
+            "a minimum effect at or above the host's 0.2 fraction for attribution_accuracy"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "In the digital fly simulator, how does the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) change fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out, against the full ECHO self-model under the same hidden conditions on matched seeds?",
+          "resource_budget": {
+            "execution_steps": 640000,
+            "max_samples": 20,
+            "replay_steps": 640000
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 10,
+            "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+            "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+          }
+        },
+        "schema": "rain-fly-plan/v2",
+        "simulated_seconds": 3200
+      }
+    },
+    "procedure": [
+      "Preregister the exact fly plan; the registry's receipt fixes when.",
+      "A person at a terminal (or, for the host's demonstration designs, the demonstration script) authorizes the plan once; the authorization binds the receipt and draws a random nonce.",
+      "Derive the seeds from SHA-256 of the receipt digest and the nonce, and refuse any this fly has already run.",
+      "Run every seed in both arms on the host-built arenas and stimuli of the protocol, counting the gate's refusals.",
+      "Simulate every run a second time and require each state hash and measurement.",
+      "Recompile and re-simulate again before registry admission, from committed code only."
+    ],
+    "question": "In the digital fly simulator, how does the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) change fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out, against the full ECHO self-model under the same hidden conditions on matched seeds?",
+    "rationale": "Bounded experiment on the digital fly's reduced-order controller in a closed arena: seeds drawn by the host after preregistration, an exact one-sided sign test at alpha 0.05 on at least 6 untied seeds, and independent re-simulation.",
+    "runner": {
+      "adapter": "digital-fly-behavior/v3",
+      "kind": "external",
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "schema_version": "rain-experiment/v1",
+    "seed": null,
+    "subsystem": {
+      "component": "digital-fly",
+      "paths": [],
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "title": "Matched-seed digital fly behaviour",
+    "variables": {
+      "controls": [
+        "baseline arm: the full ECHO self-model under the same hidden conditions",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "fixed apparatus settings, both arms — attribution block: groomHz = 0, takeoffHz = 0, walkStartHz = 1, walkStopHz = 0.1",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "dependent": [
+        "attribution_accuracy"
+      ],
+      "independent": [
+        "the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's)"
+      ]
+    }
+  },
+  "definition_sha256": "72b3eeb464e38ec6f26d4016fda8093fe01411830b873fb2f94d72fd8f0b3e04",
+  "inputs": {
+    "scientific_plan": {
+      "schema": "rain-fly-plan/v2",
+      "design": {
+        "schema": "rain-fly-design/v3",
+        "question": "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
+        "hypothesis": "[scripted] A motion-gated rule (a change met while moving is its own, one met standing is the world's) explains fewer hidden held-out changes correctly than the full self-model.",
+        "competing_hypothesis": "[scripted] Whether the fly was moving when a change began is all the evidence there is, so the rule does as well as the self-model.",
+        "parameters": {
+          "seed_count": 10,
+          "treatment": {
+            "kind": "echo_attribution",
+            "variant": "motion_gated"
+          }
+        },
+        "analysis": {
+          "method": "matched_seed_sign_test",
+          "metric": "attribution_accuracy",
+          "expected_direction": "decrease",
+          "minimum_effect": 0.34
+        },
+        "budget": {
+          "max_simulated_seconds": 16000
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        }
+      },
+      "ir": {
+        "schema": "rain-scientific-experiment/v1",
+        "domain": "fly-behavior-simulation",
+        "backend": "digital-fly",
+        "backend_version": "digital-fly-behavior/v3 (digital-fly/7 reduced-order-fsm/v1)",
+        "question": "In the digital fly simulator, how does the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) change fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out, against the full ECHO self-model under the same hidden conditions on matched seeds?",
+        "hypothesis": "The ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) will decrease attribution_accuracy by at least 0.34 fraction on average over 10 matched seeds drawn after preregistration, compared with the full ECHO self-model under the same hidden conditions, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+        "observables": [
+          {
+            "id": "attribution_accuracy",
+            "unit": "fraction",
+            "description": "fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out"
+          },
+          {
+            "id": "false_self_attribution",
+            "unit": "fraction",
+            "description": "fraction of external changes (a push, a turning surface) the fly blamed on its own body"
+          },
+          {
+            "id": "attribution_brier",
+            "unit": "score",
+            "description": "mean Brier score of the fly's confidence in each explanation it concluded (0 is perfect)"
+          },
+          {
+            "id": "attribution_path_error",
+            "unit": "fraction",
+            "description": "mean path error of steady walking over the whole run"
+          },
+          {
+            "id": "missed_changes",
+            "unit": "count",
+            "description": "hidden changes the fly never asked about within 6 s"
+          },
+          {
+            "id": "misleading_sense_blamed_self",
+            "unit": "fraction",
+            "description": "fraction of misleading-sense onsets (a motion read that is not there, which no sense here can tell from a push) the fly blamed on its body"
+          },
+          {
+            "id": "attribution_coverage_90",
+            "unit": "fraction",
+            "description": "share of observed self-motion components inside the fly's predicted central 90% interval"
+          },
+          {
+            "id": "mean_paired_delta",
+            "unit": "fraction",
+            "description": "treatment minus control attribution_accuracy, averaged over the seeds where both are defined"
+          },
+          {
+            "id": "sign_test_p_expected",
+            "unit": "probability",
+            "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+          },
+          {
+            "id": "sign_test_p_opposite",
+            "unit": "probability",
+            "description": "the same test in the opposite direction"
+          }
+        ],
+        "independent_variables": [
+          "the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's)"
+        ],
+        "dependent_variables": [
+          "attribution_accuracy"
+        ],
+        "controls": [
+          "baseline arm: the full ECHO self-model under the same hidden conditions",
+          "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+          "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+          "fixed apparatus settings, both arms — attribution block: groomHz = 0, takeoffHz = 0, walkStartHz = 1, walkStopHz = 0.1",
+          "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+        ],
+        "parameter_constraints": [
+          "9 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+          "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+          "the integration settings (physics, sensing and decision periods) are never varied",
+          "at most 16000 simulated fly-seconds per experiment",
+          "8-16 seeds, drawn by the host after preregistration",
+          "a minimum effect at or above the host's 0.2 fraction for attribution_accuracy"
+        ],
+        "resource_budget": {
+          "execution_steps": 640000,
+          "replay_steps": 640000,
+          "max_samples": 20
+        },
+        "statistical_analysis": {
+          "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+          "independent_replicates": 10,
+          "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+        },
+        "falsification": {
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "unit": "probability"
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        },
+        "limitations": [
+          "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+          "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+          "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+          "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+          "A sense that reads a motion that is not there cannot be told from a push by any sense this fly has; it is measured apart and left out of the accuracy.",
+          "The ECHO self-model is a computational model of the fly's own sensorimotor gains, built over the reduced-order body. Its compensation acts on abstract movement gains of that body; it is not validated biological motor control, and FlyBody's physics does not run.",
+          "The perturbations are the experimenter's models of an impairment, a push, a turning surface, a sensor fault and an obstacle, applied by the simulator. The fly is never given their labels, causes or schedule; it meets only their consequences through its self-motion sense, its touch and its legs' stepping.",
+          "The conditions are the held-out evaluation set, in an arena the self-model was not developed in; its constants were chosen on the development set alone and frozen before evaluation.",
+          "A measurement of prediction, attribution or retention describes a functional self-model in a simulator. It is not evidence of awareness or subjective experience.",
+          "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+          "A result characterizes the simulator and is never empirical evidence about Drosophila."
+        ]
+      },
+      "fly": "digital-fly/7 reduced-order-fsm/v1",
+      "fly_sha256": "309bc659d993b7c1affb6353a5aac0e434e9fc502d8d9477013d3af7296aaf38",
+      "fly_source_sha256": "b9abf944d6d246ff622184e4b0d29ccdf4e3966665643958ab4585d67f4b0aff",
+      "experiment": {
+        "schema": "digital-fly-experiment/v3",
+        "protocol": "echo_attribution",
+        "seed_count": 10,
+        "blocks": [
+          {
+            "id": "attribution",
+            "arena": {
+              "size": [
+                3,
+                2.5,
+                3
+              ],
+              "ambient": 0.6,
+              "pillars": [
+                {
+                  "x": -0.75,
+                  "z": -0.75,
+                  "r": 0.05
+                },
+                {
+                  "x": -0.75,
+                  "z": 0.75,
+                  "r": 0.05
+                },
+                {
+                  "x": 0.75,
+                  "z": -0.75,
+                  "r": 0.05
+                },
+                {
+                  "x": 0.75,
+                  "z": 0.75,
+                  "r": 0.05
+                }
+              ]
+            },
+            "fixed_config": {
+              "takeoffHz": 0,
+              "groomHz": 0,
+              "walkStartHz": 1,
+              "walkStopHz": 0.1
+            },
+            "start_half_width_m": 0.4,
+            "tick_s": 0.05,
+            "duration_s": 160,
+            "trials": 1,
+            "light_at": null,
+            "near_miss_m": null,
+            "stimulus": null,
+            "echo": {
+              "schedule": "attribution",
+              "conditions": "evaluation",
+              "condition_set": [
+                {
+                  "id": "speed_gain",
+                  "cause": "self",
+                  "effects": [
+                    {
+                      "field": "speedGain",
+                      "bands": [
+                        [
+                          0.35,
+                          0.45
+                        ],
+                        [
+                          0.65,
+                          0.75
+                        ]
+                      ],
+                      "signed": false
+                    }
+                  ]
+                },
+                {
+                  "id": "turn_bias",
+                  "cause": "self",
+                  "effects": [
+                    {
+                      "field": "turnBias",
+                      "bands": [
+                        [
+                          0.4,
+                          0.6
+                        ],
+                        [
+                          1,
+                          1.4
+                        ]
+                      ],
+                      "signed": true
+                    }
+                  ]
+                },
+                {
+                  "id": "push",
+                  "cause": "external",
+                  "effects": [
+                    {
+                      "field": "drift",
+                      "bands": [
+                        [
+                          0.005,
+                          0.007
+                        ],
+                        [
+                          0.011,
+                          0.014
+                        ]
+                      ],
+                      "signed": true
+                    }
+                  ]
+                },
+                {
+                  "id": "spin",
+                  "cause": "external",
+                  "effects": [
+                    {
+                      "field": "spin",
+                      "bands": [
+                        [
+                          0.3,
+                          0.45
+                        ],
+                        [
+                          0.75,
+                          1
+                        ]
+                      ],
+                      "signed": true
+                    }
+                  ]
+                },
+                {
+                  "id": "sensor_noise",
+                  "cause": "sensor",
+                  "effects": [
+                    {
+                      "field": "flowNoise",
+                      "bands": [
+                        [
+                          2.5,
+                          3.5
+                        ],
+                        [
+                          5,
+                          7
+                        ]
+                      ],
+                      "signed": false
+                    }
+                  ]
+                },
+                {
+                  "id": "speed_gain_and_push",
+                  "cause": "self+external",
+                  "effects": [
+                    {
+                      "field": "speedGain",
+                      "bands": [
+                        [
+                          0.45,
+                          0.7
+                        ]
+                      ],
+                      "signed": false
+                    },
+                    {
+                      "field": "drift",
+                      "bands": [
+                        [
+                          0.006,
+                          0.012
+                        ]
+                      ],
+                      "signed": true
+                    }
+                  ]
+                },
+                {
+                  "id": "obstacle",
+                  "cause": "environment",
+                  "effects": [
+                    {
+                      "field": "obstacle",
+                      "bands": [
+                        [
+                          1,
+                          1
+                        ]
+                      ],
+                      "signed": false
+                    }
+                  ]
+                },
+                {
+                  "id": "misleading_sense",
+                  "cause": "sensor",
+                  "effects": [
+                    {
+                      "field": "flowBias",
+                      "bands": [
+                        [
+                          0.005,
+                          0.01
+                        ]
+                      ],
+                      "signed": true
+                    }
+                  ]
+                }
+              ],
+              "onset_s": [
+                30,
+                40
+              ],
+              "onsets_s": [
+                20,
+                55,
+                90,
+                125
+              ],
+              "jitter_s": 3,
+              "episode_s": [
+                15,
+                22
+              ],
+              "persistent_last": 0.5,
+              "phases_s": [
+                25,
+                65,
+                90,
+                125,
+                150,
+                185,
+                210
+              ],
+              "window_s": 1,
+              "reexposure_s": 10
+            }
+          }
+        ],
+        "arms": [
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 2,
+            "l_over_v_ms": 40,
+            "isi_s": 90,
+            "echo": {
+              "variant": "full",
+              "reset_s": null
+            },
+            "id": "control"
+          },
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 2,
+            "l_over_v_ms": 40,
+            "isi_s": 90,
+            "echo": {
+              "variant": "motion_gated",
+              "reset_s": null
+            },
+            "id": "treatment"
+          }
+        ]
+      },
+      "simulated_seconds": 3200,
+      "criteria": {
+        "guards": [
+          {
+            "id": "G1",
+            "metric": "runs_completed",
+            "op": ">=",
+            "value": 20,
+            "note": "Every matched run completes"
+          },
+          {
+            "id": "G2",
+            "metric": "determinism_check",
+            "op": ">=",
+            "value": 1,
+            "note": "An independent re-simulation reproduces every state hash and measurement"
+          },
+          {
+            "id": "G3",
+            "metric": "control_informative",
+            "op": ">=",
+            "value": 1,
+            "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+          },
+          {
+            "id": "G4",
+            "metric": "untied_pairs",
+            "op": ">=",
+            "value": 6,
+            "note": "Enough seeds differ between the arms for the sign test"
+          },
+          {
+            "id": "G5",
+            "metric": "gate_refusals",
+            "op": "<=",
+            "value": 0,
+            "note": "The fly's gate refused no command in any run"
+          }
+        ],
+        "success": [
+          {
+            "id": "S1",
+            "metric": "mean_paired_delta",
+            "op": "<=",
+            "value": -0.34,
+            "note": "Mean paired difference beyond the minimum effect"
+          },
+          {
+            "id": "S2",
+            "metric": "sign_test_p_expected",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test in the expected direction"
+          }
+        ],
+        "failure": [
+          {
+            "id": "F1",
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test finds the opposite direction"
+          }
+        ]
+      },
+      "definition_sha256": "606f50db2c7c85cdf49becbe39aa58d38f626a2ec3926e94b373751a260d8fd3",
+      "experiment_id": "FLY-606f50db2c7c85cdf49becbe"
+    },
+    "preregistration": {
+      "experiment_id": "V3D-EXP-0008",
+      "registry_definition_sha256": "72b3eeb464e38ec6f26d4016fda8093fe01411830b873fb2f94d72fd8f0b3e04",
+      "plan_sha256": "606f50db2c7c85cdf49becbe39aa58d38f626a2ec3926e94b373751a260d8fd3",
+      "created_at": "2026-10-26T00:35:38.253Z"
+    },
+    "authorization": {
+      "schema": "rain-fly-authorization/v2",
+      "experiment_id": "FLY-606f50db2c7c85cdf49becbe",
+      "definition_sha256": "606f50db2c7c85cdf49becbe39aa58d38f626a2ec3926e94b373751a260d8fd3",
+      "registry_experiment_id": "V3D-EXP-0008",
+      "preregistration_sha256": "cf454163d745b4e2fe1984984a41b78136da7d5e9212a5339deb297f83d4ffb6",
+      "registered_at": "2026-10-26T00:35:38.253Z",
+      "nonce": "c87f76239d27886cad06d3ddb84cb06dd8c528564e62186b5c77a2d50e1bb9cf",
+      "channel": "script",
+      "operator": "Scripted.DemoOperator",
+      "attestation": "demonstration-script",
+      "identity_verified": false,
+      "human_design_attested": false,
+      "scope": "fly-behavior-simulation",
+      "confirmed_prefix": "606f50db",
+      "authorized_at": "2026-10-26T00:35:38.284Z",
+      "expires_at": "2026-10-26T01:35:38.284Z",
+      "authorization_sha256": "[REDACTED]"
+    },
+    "seeds": [
+      2192118163,
+      2410488333,
+      907843113,
+      1197022093,
+      3640936060,
+      3639282049,
+      3610121335,
+      2096434705,
+      1836948369,
+      1895029287
+    ],
+    "engine": {
+      "runtime": "node",
+      "version": "22.22.0",
+      "js": "V8 12.4.254.21-node.33"
+    },
+    "replay_sha256": "0859e08a63d11f1f1ea6bd2259a6f78f86a94b02297e30d6ff35935804667248",
+    "final_state_hashes": [
+      "attribution/control/2192118163/c1baf6238833dc99e7573f30230e7e2411fe6d49b9f15e6f5b176b8e0ff2f5d4",
+      "attribution/treatment/2192118163/b21cfd71180929005811728e736cd1977098c44d7d725c2b1ff1a20c6887ac5b",
+      "attribution/control/2410488333/b10d7e58fb3e09026d8642c9d39525d9c429c84fb454a5d35945858fb1232f3d",
+      "attribution/treatment/2410488333/bb06679f92bc5dc535d87e8a704215252e6a6cdc59ef2a640b4a8b0c43daadc9",
+      "attribution/control/907843113/dccfc2024b4ee3ba721ea77112ed760c0bf33589a24ebfbd5d99d7f1708b91ae",
+      "attribution/treatment/907843113/fe2831434cd29dd4cae5f3147fdf24e6121d5e9b0b9d800577c5812b18911a66",
+      "attribution/control/1197022093/c646f4fc8ffd8347e91b6b44e69a8f2d5e66405f7d3d05f8d63a1614c963e9c9",
+      "attribution/treatment/1197022093/5fe664b9748fa6f30878db4d17f9ff2370b01e33b275421cf36c915d10d54fba",
+      "attribution/control/3640936060/519dfdd4b0a456f3155193818af5307305cc863cb728c6e53b31d3b317900302",
+      "attribution/treatment/3640936060/897d3b3e9de0a3dd705a739e23b95bf69f3d26bb878d6b50b87ff6aaf30bd45a",
+      "attribution/control/3639282049/86596dd980cfb0201ad8e1b556f0e3b26e138f0ddf867623237b88228a3ab62b",
+      "attribution/treatment/3639282049/270505c52057e2937f4596f3687e3a891051a14416339cfd0fa1e13de58bb281",
+      "attribution/control/3610121335/ae01db141a845fab888bb8f5624c32cda592e84fb7ef676387fc4a0d877aa3d8",
+      "attribution/treatment/3610121335/a7605d7a7a52a11c78140cbb089870b2fe1ac53cf51035147fa5fe698009e271",
+      "attribution/control/2096434705/b64886b51c48f44e7cd9bf67c7c9f8e62d89c13316ddabefd52d25ad0a23a0d1",
+      "attribution/treatment/2096434705/3a84a3390e9a43d8c6ca3883e40edd5bfaf8dca49d673c11786f755f538fc36d",
+      "attribution/control/1836948369/eabc280e822b217c1e9060fad193d35b950f6af1f3cff8a03a95acec735cfb9d",
+      "attribution/treatment/1836948369/9fa67b014f623dd6687e9b553264d84af48c6889ad6263ebfc060df9c80b406a",
+      "attribution/control/1895029287/d6ae61c5804dc2cf29979d26514898ef81e0ebb7c9d9e4d73e1cc5051f1812f3",
+      "attribution/treatment/1895029287/f97743f70a64b282a673ad0ea1ca03b5749caf75c94783cf488915e1df687d38"
+    ]
+  },
+  "measurements": {
+    "control_attribution_accuracy": 0.8452380952380952,
+    "control_attribution_brier": 0.13859227747966377,
+    "control_attribution_coverage_90": 0.8939363595430919,
+    "control_attribution_path_error": 0.13938019296853218,
+    "control_false_self_attribution": 0,
+    "control_gate_refusals": 0,
+    "control_informative": 1,
+    "control_mean": 0.8452380952380952,
+    "control_misleading_sense_blamed_self": 0,
+    "control_missed_changes": 0.1,
+    "determinism_check": 1,
+    "gate_refusals": 0,
+    "mean_paired_delta": -0.545952380952381,
+    "runs_completed": 20,
+    "seeds": 10,
+    "seeds_expected_direction": 9,
+    "seeds_opposite": 0,
+    "seeds_unchanged": 1,
+    "seeds_undefined": 0,
+    "sign_test_p_expected": 0.001953125,
+    "sign_test_p_opposite": 1,
+    "simulated_seconds": 3200,
+    "treatment_attribution_accuracy": 0.29928571428571427,
+    "treatment_attribution_brier": 0.7107142857142856,
+    "treatment_attribution_coverage_90": 0.8127467484919946,
+    "treatment_attribution_path_error": 0.20334976528535398,
+    "treatment_false_self_attribution": 0.869047619047619,
+    "treatment_gate_refusals": 0,
+    "treatment_mean": 0.29928571428571427,
+    "treatment_misleading_sense_blamed_self": 1,
+    "treatment_missed_changes": 0.1,
+    "untied_pairs": 9
+  },
+  "series": {
+    "control_primary": [
+      0.8333333333333334,
+      0.7142857142857143,
+      0.5714285714285714,
+      1,
+      1,
+      1,
+      0.8333333333333334,
+      1,
+      1,
+      0.5
+    ],
+    "paired_delta": [
+      -0.5,
+      -0.5714285714285714,
+      0,
+      -0.75,
+      -0.6666666666666667,
+      -0.4,
+      -0.8333333333333334,
+      -1,
+      -0.5714285714285714,
+      -0.16666666666666669
+    ],
+    "treatment_primary": [
+      0.3333333333333333,
+      0.14285714285714285,
+      0.5714285714285714,
+      0.25,
+      0.3333333333333333,
+      0.6,
+      0,
+      0,
+      0.42857142857142855,
+      0.3333333333333333
+    ]
+  },
+  "statistics": {
+    "control_primary": {
+      "n": 10,
+      "mean": 0.845238095,
+      "median": 0.916666667,
+      "min": 0.5,
+      "max": 1,
+      "stdev": 0.191876467,
+      "variance": 0.036816578,
+      "note": null
+    },
+    "paired_delta": {
+      "n": 10,
+      "mean": -0.545952381,
+      "median": -0.571428571,
+      "min": -1,
+      "max": 0,
+      "stdev": 0.300293906,
+      "variance": 0.09017643,
+      "note": null
+    },
+    "treatment_primary": {
+      "n": 10,
+      "mean": 0.299285714,
+      "median": 0.333333333,
+      "min": 0,
+      "max": 0.6,
+      "stdev": 0.208360316,
+      "variance": 0.043414021,
+      "note": null
+    }
+  },
+  "evaluation": {
+    "rule": "rain-criteria/v1",
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 20,
+        "observed": 20,
+        "holds": true
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G3",
+        "metric": "control_informative",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G4",
+        "metric": "untied_pairs",
+        "op": ">=",
+        "value": 6,
+        "observed": 9,
+        "holds": true
+      },
+      {
+        "id": "G5",
+        "metric": "gate_refusals",
+        "op": "<=",
+        "value": 0,
+        "observed": 0,
+        "holds": true
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -0.34,
+        "observed": -0.545952380952381,
+        "holds": true
+      },
+      {
+        "id": "S2",
+        "metric": "sign_test_p_expected",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 0.001953125,
+        "holds": true
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 1,
+        "holds": false
+      }
+    ],
+    "summary": "All 2 success criteria held and no failure criterion triggered."
+  },
+  "observations": [
+    "Every arm is an output of the digital fly simulator (a reduced-order controller that simulates no neurons) in a closed arena; no animal was observed.",
+    "Seeds drawn by the host after preregistration; authorized by the demonstration script (Scripted.DemoOperator), not a person.",
+    "Independent re-simulation reproduced every state hash and measurement: 0859e08a63d11f1f1ea6bd2259a6f78f86a94b02297e30d6ff35935804667248"
+  ],
+  "interpretation": {
+    "deterministic": "All 2 success criteria held and no failure criterion triggered. Simulated data: this characterizes the simulator and analysis pipeline, not a physical system.",
+    "model": null
+  },
+  "limitations": [
+    "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+    "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+    "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+    "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+    "A sense that reads a motion that is not there cannot be told from a push by any sense this fly has; it is measured apart and left out of the accuracy.",
+    "The ECHO self-model is a computational model of the fly's own sensorimotor gains, built over the reduced-order body. Its compensation acts on abstract movement gains of that body; it is not validated biological motor control, and FlyBody's physics does not run.",
+    "The perturbations are the experimenter's models of an impairment, a push, a turning surface, a sensor fault and an obstacle, applied by the simulator. The fly is never given their labels, causes or schedule; it meets only their consequences through its self-motion sense, its touch and its legs' stepping.",
+    "The conditions are the held-out evaluation set, in an arena the self-model was not developed in; its constants were chosen on the development set alone and frozen before evaluation.",
+    "A measurement of prediction, attribution or retention describes a functional self-model in a simulator. It is not evidence of awareness or subjective experience.",
+    "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+    "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+    "Seeds are replicates of one model, not samples of real flies.",
+    "Matched seeds of one model; the sign test's p-values describe consistency across this simulator's seeds, not a population."
+  ],
+  "artifacts": [
+    {
+      "name": "fly-record.json",
+      "sha256": "8ae565fd0cba98f68714596499f1248b27b771945e0b0f01e1380bb927af8f51",
+      "bytes": 22629,
+      "kind": "fly-simulation-record",
+      "stored": false,
+      "note": "external artifact; referenced by hash, never fetched"
+    }
+  ],
+  "models": [],
+  "reproduction": null,
+  "error": null,
+  "provenance": {
+    "source": "external_submission",
+    "submission_sha256": "336773af8048f139a4f98bf34af26c902ecd859543540c19ca40aea61915b712",
+    "producer": {
+      "producer": "R.A.I.N.FlyHost",
+      "repository": "topherchris420/lop-nur-twin",
+      "commit": "06ff901fae549bb121d80c9b61e0f5c6b61faf77",
+      "dirty": false,
+      "fly_record_sha256": "1fd45be0a851ba808fa54765148957234417e1fedab76911331167d199f2d29e",
+      "fly_run_id": "FR-8af0210f32208bae25284e73",
+      "fly": "digital-fly/7 reduced-order-fsm/v1",
+      "fly_sha256": "309bc659d993b7c1affb6353a5aac0e434e9fc502d8d9477013d3af7296aaf38",
+      "fly_source_sha256": "b9abf944d6d246ff622184e4b0d29ccdf4e3966665643958ab4585d67f4b0aff",
+      "engine": "node 22.22.0 (V8 12.4.254.21-node.33)",
+      "approval_channel": "script"
+    },
+    "recorded_by": {
+      "git": {
+        "commit": "06ff901fae549bb121d80c9b61e0f5c6b61faf77",
+        "branch": "HEAD",
+        "dirty": false,
+        "changed_paths": 0,
+        "note": null
+      },
+      "environment": {
+        "runtime": "node",
+        "node": "22.22.0",
+        "os": "linux",
+        "os_release": "6.18.44-fc-v153",
+        "machine": "x64",
+        "cpu_count": 4
+      }
+    },
+    "recorded_at": "2026-10-26T00:36:15.397Z"
+  }
+}

@@ -10,18 +10,38 @@ position, physiological reserve, navigation memory, or lived history.
 This is a research-simulation continuity requirement, **not consciousness**.
 The fly remains a reduced-order behavioural controller, not a neural simulation.
 
-## Status: foundation only, not persistent or deployed
+## Status: durable on one machine, not deployed
 
 `src/bethesda/life/headless.ts` supplies a headless deterministic runner of
 the existing `CitySimulation` and `CityFly`. It needs no browser and creates
 only one fly per process. `scripts/bethesda-life-headless.ts --ticks 100`
-exercises a finite run; `--continuous` is development-only. Its clock will
-stop when the process stops. Its memories are currently **in memory only**.
+exercises a finite run; `--continuous` is development-only.
 
-**Do not configure an always-on cloud worker yet.** This phase has neither
-durable checkpoint restore nor a lease, and restarting or accidentally running
-two instances would produce separate flies. Browser visits still run their
-existing local city and fly. There is no visitor-facing shared fly yet.
+With `--store DIR` the life is one individual kept in a directory
+([individual continuity](INDIVIDUAL_CONTINUITY.md)): `--create` gives it a
+birth (a host-drawn nonce, so a second store from the same genesis is a
+second individual), and every later run takes the single-writer lease,
+restores the newest checkpoint, verifies it, lives on, and commits a sealed
+checkpoint every five simulated minutes, each restored and re-checked before
+it is committed. `--verify` checks the whole chain. A process killed between
+checkpoints loses only the uncommitted ticks, which are not claimed; once its lease lapses (60 s) the next
+run resumes from the last committed checkpoint.
+
+**Do not configure an always-on cloud worker yet.** The store is a local
+directory, not a transactional database, and there is no observer API.
+Browser visits still run their existing local city and fly. There is no
+visitor-facing shared fly yet.
+
+| Criterion                      | Status                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Durable clock and snapshots | **Met on a filesystem.** `snapshot.ts` records the whole object graph of city and fly (every random stream's position, pending sensory frames, controller and navigation state, people), versioned by city, fly, ECHO and headless schema; sealed by SHA-256; written atomically. Older or newer versions are refused.                 |
+| 2. Crash recovery              | **Met in tests.** Restores are re-snapshotted and compared byte for byte, then stepped beside the uninterrupted life and compared at several intervals: the city with both controllers, and the fly in flight, landing, grooming and feeding. Corruption stops with the reason. A swat in progress has not been captured specifically. |
+| 3. One writer                  | **Met on one machine.** An expiring lease, one file per epoch created exclusively; a replaced writer is fenced; a second continuation of a checkpoint is refused as a fork, never merged. Not a database lock; blue-green deployment untested.                                                                                         |
+| 4. Wall-clock policy           | **Met: paused during outage.** A resumed life records a `gap` event (stopped, resumed, UTC) and computes no catch-up ticks.                                                                                                                                                                                                            |
+| 5. Bounded histories           | **Partly.** The city's replay windows are already bounded (`REPLAY_LIMITS`), so a checkpoint is bounded (about 8–17 MB, most of it the decision window and the fly's static city geometry); only the newest four keep their graphs. The chain of headers and life events grows by about a kilobyte per checkpoint and is not rotated.  |
+| 6. Read-only observer API      | Not started.                                                                                                                                                                                                                                                                                                                           |
+| 7. Visitor integration         | Not started.                                                                                                                                                                                                                                                                                                                           |
+| 8. Operations                  | Not started; nothing is provisioned.                                                                                                                                                                                                                                                                                                   |
 
 ## Production design and acceptance criteria
 
@@ -70,14 +90,16 @@ The live fly is not complete until all eight criteria are tested. The
 production footprint is intentionally not provisioned by this foundational
 change.
 
-## Why the existing simulation cannot simply be moved to a server
+## Why the simulation could not simply be moved to a server
 
-`CityFly` currently tracks the browser's `CitySimulation`; it is created
-at that city's current tick and has no public restore method. The fly's
+`CityFly` tracks the browser's `CitySimulation`; it is created at that
+city's current tick and has no restore method of its own. The fly's
 `stateHash` deliberately does **not** preserve random-stream positions or
 all pending sensory frames. The city and fly have internal seeded random
 generators and mutable controller state. Persisting only position, energy and
-a timestamp would produce a different fly after restart.
+a timestamp would produce a different fly after restart. That is why the
+checkpoint is the whole graph, restored in place into a life rebuilt from its
+genesis, with the streams' positions read through `src/lib/noise.ts`.
 
 Current Vercel Functions scale to zero with no requests. Vercel Daemons,
 introduced in public beta in October 2026, can host long-running workers,
@@ -92,12 +114,17 @@ self-model, and `HeadlessBethesdaLife.selfModelCheckpoint()` returns an
 version, variant or byte mismatch. It is labelled experimental and is **not**
 the durable recovery criterion 2 asks for: it holds no city, body, controller
 state or random stream, so restored into another process it would give a
-different fly this one's self-model. Nothing here makes the fly persist.
+different fly this one's self-model. The life checkpoint (`continuity.ts`)
+holds the self-model too, as part of the whole graph, and is what a durable
+store keeps.
 
-## Verification of foundation
+## Verification
 
 ```sh
 npm run bethesda:life:smoke
 node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100 --controller echo
-npx vitest run src/bethesda/life/headless.test.ts
+node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --create
+node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --ticks 6000
+node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --verify
+npx vitest run src/bethesda/life
 ```
