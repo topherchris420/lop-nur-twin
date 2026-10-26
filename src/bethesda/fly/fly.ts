@@ -66,7 +66,7 @@ import {
   type SurfaceKind,
 } from "./world.js";
 
-export const FLY_VERSION = "digital-fly/7";
+export const FLY_VERSION = "digital-fly/8";
 const G = 9.81;
 /** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
 const DRAW_DRAG = 3;
@@ -440,6 +440,19 @@ export class DigitalFly {
     return sub ? `${mode}/${sub}` : mode;
   }
 
+  /**
+   * The body's velocity over the ground, as optic flow reports it: in wind a
+   * flying fly's air velocity plus the wind's. It only reads.
+   */
+  velocityOverGround(): V3 {
+    const s = this.state;
+    const w =
+      s.mode === "flight" || s.mode === "land"
+        ? (this.world.wind?.(s.p, s.t) ?? null)
+        : null;
+    return w ? [s.v[0] + w[0], s.v[1], s.v[2] + w[2]] : [...s.v];
+  }
+
   /** A fresh copy of the body as a decision maker may see it. */
   private snapshot(): BodySnapshot {
     const s = this.state;
@@ -450,7 +463,7 @@ export class DigitalFly {
       sub: s.sub,
       modeT: s.modeT,
       p: [...s.p],
-      v: [...s.v],
+      v: this.velocityOverGround(),
       yaw: s.yaw,
       altitude: this.lastFrame?.altitude ?? 0,
       walkSpeed: s.walkSpeed,
@@ -497,14 +510,25 @@ export class DigitalFly {
     const h = this.stepUs / 1e6;
     const deciding = s.step % this.decideEvery === 0;
     if (s.step % this.senseEvery === 0) {
+      // In wind a flying fly moves over the ground at its air velocity plus
+      // the wind's, and its antennae feel the air moving past it.
+      const w = this.world.wind?.(s.p, s.t) ?? null;
+      const carried = s.mode === "flight" || s.mode === "land";
       this.frames.push(
         frozen(
           this.senses.sample({
             t: s.t,
             p: s.p,
-            v: s.v,
+            v: w && carried ? [s.v[0] + w[0], s.v[1], s.v[2] + w[2]] : s.v,
             yaw: s.yaw,
             flying: !PERCHED.has(s.mode) && s.takeoff === null,
+            ...(w
+              ? {
+                  air: carried
+                    ? [-s.v[0], 0, -s.v[2]]
+                    : [w[0] - s.v[0], 0, w[2] - s.v[2]],
+                }
+              : {}),
           }),
         ),
       );
@@ -1151,6 +1175,8 @@ export class DigitalFly {
       vd = [f[0] * speed, vd[1], f[2] * speed];
     }
     if (s.mode === "flight" && s.sub === "hover") vd = [0, vd[1], 0];
+    const wind = this.world.wind?.(s.p, s.t) ?? null;
+    if (wind) vd = this.againstWind(vd, wind);
     const pert = this.activePerturbation();
     // Movement effectiveness scales the horizontal velocity the wings can hold.
     if (pert) vd = [vd[0] * pert.speedGain, vd[1], vd[2] * pert.speedGain];
@@ -1166,7 +1192,7 @@ export class DigitalFly {
       dv = [(dv[0] * dvMax) / dn, (dv[1] * dvMax) / dn, (dv[2] * dvMax) / dn];
     s.v = [s.v[0] + dv[0], s.v[1] + dv[1], s.v[2] + dv[2]];
     // In contact, the fly cannot push into the surface: it slides along it.
-    if (s.contact) s.v = slide(s.v, s.contact.normal);
+    if (s.contact) s.v = this.stopped(s.v, s.contact.normal, wind, 1);
     this.drawAttitude([dv[0] / h, dv[1] / h, dv[2] / h]);
     const steer = Math.max(-1, Math.min(1, yawAcc / 300));
     s.ampL = 1 - 0.15 * steer;
@@ -1196,8 +1222,71 @@ export class DigitalFly {
     }
     s.legs += (legsTarget - s.legs) * (1 - Math.exp(-h / 0.04));
     // Wind carries the fly over the ground on top of the velocity it holds in the air.
-    this.move(h, pert ? [s.v[0] + pert.drift[0], s.v[1], s.v[2] + pert.drift[1]] : s.v);
+    const w = wind ?? [0, 0, 0];
+    this.move(
+      h,
+      pert
+        ? [s.v[0] + w[0] + pert.drift[0], s.v[1], s.v[2] + w[2] + pert.drift[1]]
+        : wind
+          ? [s.v[0] + w[0], s.v[1], s.v[2] + w[2]]
+          : s.v,
+      wind,
+    );
     if (s.contact && (s.mode === "flight" || s.mode === "land")) s.counts.contactS += h;
+  }
+
+  /**
+   * The air velocity the wings hold to fly at ground velocity `vd` in the
+   * wind `w`. In flight the fly holds its groundspeed along its body axis
+   * and lets the wind carry it sideways, as flies dispersing outdoors do
+   * (Leitch et al. 2021), and never flies backward through the air to do it;
+   * hovering or approaching a landing it holds its ground velocity both ways
+   * (a model choice: it holds its station by what it sees). Either way
+   * the horizontal air speed is at most `maxAirspeedCmS`, and past it the wind
+   * carries the fly. Then, or whenever the wind is faster than that, it drops
+   * toward the top it aims to land on, or else the one below it, as fast as
+   * the landing approach would (a model choice: near the ground the wind is
+   * weaker, the boundary layer insects keep to in strong wind). A model of
+   * the behaviour, not of how the eyes measure it.
+   */
+  private againstWind(vd: V3, w: V3): V3 {
+    const s = this.state;
+    const P = this.params;
+    const cap = P.maxAirspeedCmS / 100;
+    let x: number,
+      z: number,
+      y = vd[1];
+    if (s.mode === "land" || s.sub === "hover") {
+      x = vd[0] - w[0];
+      z = vd[2] - w[2];
+    } else {
+      const f = forward(s.yaw);
+      const along = vd[0] * f[0] + vd[2] * f[2];
+      const air = Math.min(cap, Math.max(0, along - (w[0] * f[0] + w[2] * f[2])));
+      x = vd[0] + f[0] * (air - along);
+      z = vd[2] + f[2] * (air - along);
+    }
+    const speed = Math.hypot(x, z);
+    if (speed > cap) {
+      x *= cap / speed;
+      z *= cap / speed;
+    }
+    // Carried by a wind faster than its wings, the fly drops toward the
+    // surface it means to land on, or else the one below it.
+    if (speed > cap || Math.hypot(w[0], w[2]) > cap) {
+      const top =
+        s.mode === "land" && s.target
+          ? s.target.point[1]
+          : this.world.perchAt(s.p[0], s.p[2], s.p[1] - this.standingHeight)?.y;
+      if (top !== undefined) {
+        const above = s.p[1] - (top + this.standingHeight);
+        y = Math.min(
+          y,
+          -Math.min(P.cruiseCmS / 100, Math.max(0, above) / P.approachTauS),
+        );
+      }
+    }
+    return [x, y, z];
   }
 
   /** End the contact if its surface has moved out of reach; else follow its normal. */
@@ -1216,8 +1305,25 @@ export class DigitalFly {
     else s.contact = null;
   }
 
-  /** Move by the ground velocity `g` for one step, with contacts, sliding and touchdowns. */
-  private move(h: number, g: V3): void {
+  /**
+   * The air velocity `v` once a surface with normal `n` stops what goes into
+   * it, `keep` of the rest kept. The surface stops the fly over the ground, so
+   * in the wind `w` the air goes on by: a fly held against a wall feels it.
+   */
+  private stopped(v: V3, n: V3, w: V3 | null, keep: number): V3 {
+    if (!w) {
+      const along = slide(v, n);
+      return keep === 1 ? along : [along[0] * keep, along[1] * keep, along[2] * keep];
+    }
+    const g = slide([v[0] + w[0], v[1], v[2] + w[2]], n);
+    return [g[0] * keep - w[0], g[1] * keep, g[2] * keep - w[2]];
+  }
+
+  /**
+   * Move by the ground velocity `g` for one step, with contacts, sliding and
+   * touchdowns; `wind` is the part of it the air carries the fly, if any.
+   */
+  private move(h: number, g: V3, wind: V3 | null = null): void {
     const s = this.state;
     const P = this.params;
     const step: V3 = [g[0] * h, g[1] * h, g[2] * h];
@@ -1229,12 +1335,24 @@ export class DigitalFly {
     if (!hit) {
       s.p = [s.p[0] + step[0], s.p[1] + step[1], s.p[2] + step[2]];
       s.counts.flownM += dist;
-      this.reachTarget();
+      this.reachTarget(g);
       return;
     }
-    const speed = Math.hypot(...s.v);
+    // How fast the fly meets the surface: over the ground, in wind.
+    const speed = this.world.wind ? Math.hypot(...g) : Math.hypot(...s.v);
     const landing = s.mode === "land";
-    const onset = !s.contact || s.contact.id !== hit.id;
+    // In wind, touching one surface, another already within reach (as
+    // `keepContact` measures it) is the same contact: held into a corner, the
+    // fly touches both walls at once.
+    const reach =
+      wind && s.contact
+        ? hit.t *
+          Math.abs(
+            dir[0] * hit.normal[0] + dir[1] * hit.normal[1] + dir[2] * hit.normal[2],
+          )
+        : Infinity;
+    const onset =
+      (!s.contact || s.contact.id !== hit.id) && reach > margin + CONTACT_SLOP_M;
     // The thorax stops the standing height short of the surface along its path.
     const stop = Math.max(0, hit.t - margin);
     const at: V3 = [
@@ -1280,12 +1398,10 @@ export class DigitalFly {
     s.p = p;
     s.counts.flownM += moved;
     s.contact = { id: hit.id, kind: hit.kind, normal: [...hit.normal] };
-    const v = slide(s.v, hit.normal);
-    const keep = P.contactKeep;
-    s.v = onset ? [v[0] * keep, v[1] * keep, v[2] * keep] : v;
+    s.v = this.stopped(s.v, hit.normal, wind, onset ? P.contactKeep : 1);
     if (!onset) {
       // Still touching the same surface: no new collision, and a landing may still finish.
-      this.reachTarget();
+      this.reachTarget(g);
       return;
     }
     if (landing || !gentle) this.collision(hit, speed);
@@ -1311,7 +1427,7 @@ export class DigitalFly {
   }
 
   /** Touch down when the feet have reached the landing point, slowly enough. */
-  private reachTarget(): void {
+  private reachTarget(g: V3): void {
     const s = this.state;
     const target = s.target;
     if (s.mode !== "land" || !target) return;
@@ -1320,8 +1436,9 @@ export class DigitalFly {
       target.point[1] - (s.p[1] - this.standingHeight),
       target.point[2] - s.p[2],
     );
-    if (d >= TOUCHDOWN_REACH_M || Math.hypot(...s.v) > this.params.touchdownSpeedMS)
-      return;
+    // As slow over the ground as a touchdown needs: in wind the air goes by faster.
+    const speed = this.world.wind ? Math.hypot(...g) : Math.hypot(...s.v);
+    if (d >= TOUCHDOWN_REACH_M || speed > this.params.touchdownSpeedMS) return;
     const failed = this.settle(s.p, `touchdown on ${target.id}`);
     if (failed !== null) this.abortLanding(`touchdown aborted: ${failed}`);
   }

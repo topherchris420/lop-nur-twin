@@ -531,6 +531,24 @@ export const PARAMS = {
   walkStopHz: model(0.35, "1/s", RATE, "rate of stopping while walking"),
   walkTurnHz: model(1.2, "1/s", RATE, "rate of walking turns"),
   takeoffHz: model(0.03, "1/s", RATE, "rate of voluntary takeoff from rest or walking"),
+  windFeltMS: model(
+    0.3,
+    "m/s",
+    [0, 2],
+    "airflow at the antennae of a standing fly below which its rate of voluntary takeoff is unchanged (not fitted)",
+  ),
+  windTakeoffMS: model(
+    0.4,
+    "m/s",
+    [0.1, 10],
+    "past `windFeltMS`, a standing fly's rate of voluntary takeoff falls by a factor of e for every this much more airflow at its antennae (not fitted): that wind keeps flies down is a model choice here, not a measured rate",
+  ),
+  maxAirspeedCmS: model(
+    150,
+    "cm/s",
+    [100, 400],
+    "the fastest horizontal air speed the wings hold while the fly holds its groundspeed against the wind; past it the wind carries the fly (not fitted). At least the 1 m/s of a long flight, so still air never caps one",
+  ),
   activityFloor: model(
     0.2,
     "fraction",

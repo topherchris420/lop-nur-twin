@@ -624,6 +624,13 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 - **Read-only toward the city.** The fly is not a recorded command and not in
   the city's state hash; `cityFly.test.ts` compares the hash with and without
   it. The city must never read the fly.
+- **The wind is the city's, and holds no state.** `fly/weather.ts` is a pure
+  function of the city's seed, its clock and its storms, read only by the
+  fly's Bethesda world (`BethesdaFlyWorld.wind`): the same wind at a city time
+  in the browser and in the headless life, however the fly's advance is
+  split. Never give it state, a random stream or a reader in the city. A world
+  without `wind` has still air and its fly draws nothing for it, so the
+  arenas, and every pilot, are untouched by it.
 - **People see the fly; the city never does.** `fly/people.ts` is a layer
   stepped with the fly: the pedestrians near it see it through a bounded
   model of human sight, notice it, follow it and sometimes swat, and the fly

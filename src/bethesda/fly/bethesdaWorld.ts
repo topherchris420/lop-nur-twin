@@ -49,12 +49,21 @@ import {
 } from "../furniture";
 import { mappedBenches, mappedLamps, mappedTrees, storefronts } from "../streetscape";
 import { groundAt, maximumGround } from "../terrain";
-import type { CitySimulation } from "../simulation";
+import { DT, type CitySimulation } from "../simulation";
 import { agentHeading } from "../facing";
 import { LIMITS } from "./neural.js";
 import type { People, PersonView } from "./people.js";
 import { PARAMS } from "./params.js";
 import { type V3, yawOf } from "./units.js";
+import {
+  heightShare,
+  shelterShare,
+  WEATHER_MODEL,
+  windAt,
+  windVelocity,
+  type StormWindow,
+  type WindNow,
+} from "./weather.js";
 import {
   ODOUR_LENGTH_M,
   PrimitiveWorld,
@@ -82,6 +91,7 @@ export const BETHESDA_INPUTS: WorldInputs = {
     "pedestrians, vehicles and the visitor (city simulator), seen only",
     "food at the door of every mapped place that sells or serves food or drink (OSM)",
     "people who see the fly, notice it, follow it with their eyes and sometimes swat at it (`people.ts`); the fly sees their hands",
+    "wind: the city's seeded wind (`weather.ts`), stronger in a storm, which carries the flying fly and is felt at the antennae",
   ],
   proxies: [
     "light: open sun or building shade, relative units, dimmed in storms by the renderer's sun ratio",
@@ -90,11 +100,12 @@ export const BETHESDA_INPUTS: WorldInputs = {
     "lamp poles and tree trunks are round tapered cylinders through the corners of the drawn ones: the drawn faces lie inside by up to 19 % of the radius (five-sided street-tree trunks), 13 % (six-sided mapped trunks) and 8 % (eight-sided poles)",
     `food: each mapped food place stands for a patch ${FOOD_PATCH_RADIUS_M * 200} cm across on the ground ${FOOD_DOOR_M} m out from its building's wall (its bins, spills, tables), the same at every place; its odour falls off as e^(−d/${ODOUR_LENGTH_M} m) in still air, with no wind or plume, and does not pass through buildings or other solids (nor flow round them)`,
     "people see the fly by its size against their acuity, not its contrast or motion; a swatting hand is a 5 cm sphere, seen and never touched",
+    `wind: one seeded wind over the whole city (a model, not measured Bethesda weather), horizontal only, weaker near the ground by a power law of height, in the lee of whatever static surface stands within ${WEATHER_MODEL.shelterM} m upwind and in front of one within ${WEATHER_MODEL.windwardM} m downwind, with no flow round buildings, no turbulence finer than a gust, and no effect on the odour`,
   ],
   // Senses the fly lacks everywhere are `UNSUPPORTED_SENSES`; these are this world's gaps.
   unsupported: [
     "windows (not in the map data; facades are opaque)",
-    "wind and rain (a storm only dims the light)",
+    "rain (a storm dims the light and raises the wind; nothing gets wet)",
     "facade relief on the detailed blocks (ledges, pilasters, window frames, sills, rails): facades are flat walls",
     "other drawn street objects: traffic-signal poles and mast arms, bus stops and shelters, bike-share docks, street-name blades and signs, monuments and art, the metro entrance, construction fencing, the Bethesda Lane ring lights, tree pits and limbs",
   ],
@@ -246,6 +257,12 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
   private t0 = 0;
   private t1 = 0.1;
   private weather: { stormy: boolean };
+  /** The wind is the city's: a function of its seed and its clock (`weather.ts`). */
+  private windSeed: number;
+  /** The city's time (s) at fly time 0: the fly is placed when the city has run this long. */
+  private clock0: number;
+  /** The city's storms, in city seconds, as of the last `sync`. */
+  private storms: StormWindow[] = [];
 
   constructor(sim: CitySimulation) {
     const weather = { stormy: false };
@@ -485,6 +502,8 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
     });
     this.sim = sim;
     this.weather = weather;
+    this.windSeed = sim.config.seed >>> 0;
+    this.clock0 = sim.tick * DT;
     this.curr = this.snapshot();
     this.prev = this.curr;
     this.index(null, 0);
@@ -612,8 +631,40 @@ export class BethesdaFlyWorld extends PrimitiveWorld {
     this.curr = this.snapshot();
     this.t0 = tStart;
     this.t1 = tEnd;
-    this.weather.stormy = this.sim.events.some((e) => e.kind === "storm");
+    const storms = this.sim.events.filter((e) => e.kind === "storm");
+    this.weather.stormy = storms.length > 0;
+    this.storms = storms.map((e) => ({
+      from: e.startTick * DT,
+      to: (e.startTick + e.durationTicks) * DT,
+    }));
     this.index(around ?? null, tEnd - tStart);
+  }
+
+  /** The city's wind at 10 m at fly time `t`. */
+  windNow(t: number): WindNow {
+    return windAt(this.windSeed, this.clock0 + t, this.storms);
+  }
+
+  /**
+   * The air's velocity at `p` at fly time `t` (m/s): the city's wind at
+   * 10 m, weaker near the ground (`heightShare`), in the lee of whatever
+   * static surface stands within `shelterM` upwind of `p`, and in front of
+   * one within `windwardM` downwind (`shelterShare`).
+   */
+  wind(p: V3, t: number): V3 {
+    const now = this.windNow(t);
+    if (!(now.speedMS > 0)) return [0, 0, 0];
+    // Toward where the wind comes from: compass bearing β points along (sin β, −cos β).
+    const upwind: V3 = [Math.sin(now.from), 0, -Math.cos(now.from)];
+    const downwind: V3 = [-upwind[0], 0, -upwind[2]];
+    const lee = this.raycast(p, upwind, WEATHER_MODEL.shelterM, false);
+    const wall = this.raycast(p, downwind, WEATHER_MODEL.windwardM, false);
+    const speed =
+      now.speedMS *
+      heightShare(p[1] - groundAt({ x: p[0], z: p[2] })) *
+      shelterShare(lee ? lee.t : Infinity, wall ? wall.t : Infinity);
+    const [x, z] = windVelocity(speed, now.from);
+    return [x, 0, z];
   }
 
   override movers(near: V3, radius: number, out: Mover[], t: number): void {

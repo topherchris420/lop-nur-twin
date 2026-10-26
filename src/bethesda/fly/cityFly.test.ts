@@ -53,7 +53,8 @@ describe("the fly in Bethesda", () => {
     expect(fly.failed).toBeNull();
     expect(host.stateHash()).toBe(plain.stateHash());
     expect(fly.fly.state.counts.rejected).toBe(0);
-    // Nothing is perturbed in the city: a calibrated self-model finds nothing to explain.
+    // Nothing in the city changes the fly's body: a calibrated self-model blames
+    // nothing on itself (the wind is outside it).
     const m = (fly.fly.adapter as EchoAdapter).model!.state;
     expect(m.counts.concluded.self + m.counts.concluded.both).toBe(0);
     expect(

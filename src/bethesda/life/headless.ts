@@ -21,6 +21,7 @@ import {
   REASON_MAX,
   RECENT_DECISIONS,
   type LifeObservation,
+  type ObservedWeather,
 } from "./observation.js";
 
 /** v2: the fly's controller, and with the ECHO controller a summary of its self-model. */
@@ -164,7 +165,7 @@ export class HeadlessBethesdaLife {
       checkpointing: at.checkpointing,
       fly: {
         position: [s.p[0], s.p[1], s.p[2]],
-        velocity: [s.v[0], s.v[1], s.v[2]],
+        velocity: fly.velocityOverGround(),
         yaw: s.yaw,
         mode: s.mode,
         energyFraction: s.reserve / fly.params.reserveJ,
@@ -180,6 +181,23 @@ export class HeadlessBethesdaLife {
       },
       nearby,
       selfModel: this.selfModelSummary(),
+      weather: this.weather(),
+    };
+  }
+
+  /** The city's wind now, at 10 m and at the fly (read only). */
+  private weather(): ObservedWeather {
+    const world = this.cityFly.world,
+      s = this.cityFly.fly.state;
+    const now = world.windNow(s.t);
+    const w = world.wind(s.p, s.t);
+    const deg = (now.from * 180) / Math.PI;
+    return {
+      regime: now.regime,
+      speedMS: now.speedMS,
+      fromDeg: (deg + 360) % 360,
+      gusting: now.gusting,
+      atFlyMS: Math.hypot(w[0], w[2]),
     };
   }
 

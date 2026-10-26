@@ -81,7 +81,25 @@ export interface LifeObservation {
     legGain: number;
     trustInSense: number;
   } | null;
+  /**
+   * The city's wind (fly/weather.ts) at 10 m and where the fly is. Lives
+   * from before the wind (fly versions before `digital-fly/8`) write none.
+   */
+  weather?: ObservedWeather;
 }
+
+export interface ObservedWeather {
+  regime: "calm" | "breezy" | "windy" | "storm";
+  /** Speed at 10 m (m/s), the gust included. */
+  speedMS: number;
+  /** The compass bearing it comes from (degrees clockwise from north, [0, 360)). */
+  fromDeg: number;
+  gusting: boolean;
+  /** Its speed where the fly is (m/s): weaker near the ground and in shelter. */
+  atFlyMS: number;
+}
+
+const REGIMES: readonly string[] = ["calm", "breezy", "windy", "storm"];
 
 export type WitnessStatus = "live" | "stale" | "unavailable";
 
@@ -105,11 +123,16 @@ const fail = (path: string, what: string): never => {
   throw new Invalid(`${path}: ${what}`);
 };
 
-function object(v: unknown, path: string, keys: readonly string[]): Obj {
+function object(
+  v: unknown,
+  path: string,
+  keys: readonly string[],
+  optional: readonly string[] = [],
+): Obj {
   if (typeof v !== "object" || v === null || Array.isArray(v))
     fail(path, "not an object");
   const o = v as Obj;
-  const extra = Object.keys(o).filter((k) => !keys.includes(k));
+  const extra = Object.keys(o).filter((k) => !keys.includes(k) && !optional.includes(k));
   if (extra.length) fail(path, `unexpected ${extra.join(", ")}`);
   for (const k of keys) if (!(k in o)) fail(path, `missing ${k}`);
   return o;
@@ -163,21 +186,26 @@ const WORD = /^[a-z][a-z0-9/_-]*$/;
 
 /** A validated observation, or a thrown error that says what is wrong with it. */
 export function parseObservation(value: unknown): LifeObservation {
-  const o = object(value, "observation", [
-    "schema",
-    "individual",
-    "epoch",
-    "versions",
-    "flyController",
-    "tick",
-    "simulatedSeconds",
-    "observedUtc",
-    "checkpoint",
-    "checkpointing",
-    "fly",
-    "nearby",
-    "selfModel",
-  ]);
+  const o = object(
+    value,
+    "observation",
+    [
+      "schema",
+      "individual",
+      "epoch",
+      "versions",
+      "flyController",
+      "tick",
+      "simulatedSeconds",
+      "observedUtc",
+      "checkpoint",
+      "checkpointing",
+      "fly",
+      "nearby",
+      "selfModel",
+    ],
+    ["weather"],
+  );
   if (o.schema !== OBSERVATION_SCHEMA)
     fail("observation.schema", `not ${OBSERVATION_SCHEMA}`);
   const versions = object(o.versions, "versions", ["headless", "city", "fly", "echo"]);
@@ -221,6 +249,28 @@ export function parseObservation(value: unknown): LifeObservation {
   }
   if ((o.flyController === "echo") !== (selfModel !== null))
     fail("selfModel", "present exactly when the controller is echo");
+  let weather: ObservedWeather | undefined;
+  if (o.weather !== undefined) {
+    const w = object(o.weather, "weather", [
+      "regime",
+      "speedMS",
+      "fromDeg",
+      "gusting",
+      "atFlyMS",
+    ]);
+    if (typeof w.regime !== "string" || !REGIMES.includes(w.regime))
+      fail("weather.regime", "not calm, breezy, windy or storm");
+    if (typeof w.gusting !== "boolean") fail("weather.gusting", "not true or false");
+    const fromDeg = num(w.fromDeg, "weather.fromDeg", 0, 360);
+    if (fromDeg === 360) fail("weather.fromDeg", "outside [0, 360)");
+    weather = {
+      regime: w.regime as ObservedWeather["regime"],
+      speedMS: num(w.speedMS, "weather.speedMS", 0, 100),
+      fromDeg,
+      gusting: w.gusting as boolean,
+      atFlyMS: num(w.atFlyMS, "weather.atFlyMS", 0, 100),
+    };
+  }
   return {
     schema: OBSERVATION_SCHEMA,
     individual: str(o.individual, "individual", 64, /^[0-9a-f]{64}$/),
@@ -271,6 +321,7 @@ export function parseObservation(value: unknown): LifeObservation {
       };
     }),
     selfModel,
+    ...(weather ? { weather } : {}),
   };
 }
 

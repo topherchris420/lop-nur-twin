@@ -1,7 +1,7 @@
 {
   "schema": "fly-individuality-report/v1",
   "individuality": "fly-individuality/v1",
-  "fly": "digital-fly/7",
+  "fly": "digital-fly/8",
   "genesis": { "seed": 119269, "startReserve": 0.5, "yaw": 0 },
   "probeS": 300,
   "probeYaws": [0, 1.571, 3.142, 4.712],
@@ -14,7 +14,7 @@
       "storedProbesIdentical": true,
       "replayProbesIdentical": true,
       "genesisProbesAllAlike": true,
-      "checkpointBytes": { "n": 24, "mean": 55980, "ci95": [55820, 56140] }
+      "checkpointBytes": { "n": 24, "mean": 56280, "ci95": [56120, 56450] }
     },
     "arms": {
       "self": {
@@ -77,7 +77,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55077,
+        "checkpointBytes": 55380,
         "probes": {
           "self": [
             {
@@ -86,7 +86,7 @@
               "first": "east",
               "firstT": 58.9,
               "near": { "east": 35.8, "north": 0, "west": 0, "south": 0 },
-              "digest": "b826c0192adff31e"
+              "digest": "a016d7a9c79cdd8c"
             },
             {
               "yaw": 1.571,
@@ -94,7 +94,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ab5328ef69efa44d"
+              "digest": "52eb38962829f7ee"
             },
             {
               "yaw": 3.142,
@@ -102,7 +102,7 @@
               "first": "east",
               "firstT": 60.5,
               "near": { "east": 40.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "9f2566e4af82756e"
+              "digest": "34945d5fb29a093f"
             },
             {
               "yaw": 4.712,
@@ -110,7 +110,7 @@
               "first": "east",
               "firstT": 58.9,
               "near": { "east": 39.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "31fc9871e8ca7ac7"
+              "digest": "9dfe55b3fa3147b3"
             }
           ],
           "stored": [
@@ -120,7 +120,7 @@
               "first": "east",
               "firstT": 58.9,
               "near": { "east": 35.8, "north": 0, "west": 0, "south": 0 },
-              "digest": "b826c0192adff31e"
+              "digest": "a016d7a9c79cdd8c"
             },
             {
               "yaw": 1.571,
@@ -128,7 +128,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ab5328ef69efa44d"
+              "digest": "52eb38962829f7ee"
             },
             {
               "yaw": 3.142,
@@ -136,7 +136,7 @@
               "first": "east",
               "firstT": 60.5,
               "near": { "east": 40.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "9f2566e4af82756e"
+              "digest": "34945d5fb29a093f"
             },
             {
               "yaw": 4.712,
@@ -144,7 +144,7 @@
               "first": "east",
               "firstT": 58.9,
               "near": { "east": 39.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "31fc9871e8ca7ac7"
+              "digest": "9dfe55b3fa3147b3"
             }
           ],
           "replay": [
@@ -154,7 +154,7 @@
               "first": "east",
               "firstT": 58.9,
               "near": { "east": 35.8, "north": 0, "west": 0, "south": 0 },
-              "digest": "b826c0192adff31e"
+              "digest": "a016d7a9c79cdd8c"
             },
             {
               "yaw": 1.571,
@@ -162,7 +162,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ab5328ef69efa44d"
+              "digest": "52eb38962829f7ee"
             },
             {
               "yaw": 3.142,
@@ -170,7 +170,7 @@
               "first": "east",
               "firstT": 60.5,
               "near": { "east": 40.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "9f2566e4af82756e"
+              "digest": "34945d5fb29a093f"
             },
             {
               "yaw": 4.712,
@@ -178,7 +178,7 @@
               "first": "east",
               "firstT": 58.9,
               "near": { "east": 39.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "31fc9871e8ca7ac7"
+              "digest": "9dfe55b3fa3147b3"
             }
           ],
           "erased": [
@@ -188,7 +188,7 @@
               "first": "east",
               "firstT": 187.6,
               "near": { "east": 13.9, "north": 0, "west": 0, "south": 73.5 },
-              "digest": "a39bb59280e9b35e"
+              "digest": "41defa7d3724a246"
             },
             {
               "yaw": 1.571,
@@ -196,7 +196,7 @@
               "first": "west",
               "firstT": 189.3,
               "near": { "east": 0, "north": 0, "west": 14.5, "south": 0 },
-              "digest": "8b326d44c860389e"
+              "digest": "21005715c351c7ac"
             },
             {
               "yaw": 3.142,
@@ -204,7 +204,7 @@
               "first": "west",
               "firstT": 187.6,
               "near": { "east": 0, "north": 0, "west": 14.2, "south": 0 },
-              "digest": "90bceea5a4007e85"
+              "digest": "7f43f342e1430943"
             },
             {
               "yaw": 4.712,
@@ -212,7 +212,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c485650f930589a4"
+              "digest": "df3826ade605c996"
             }
           ],
           "genesis": [
@@ -222,7 +222,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -230,7 +230,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -238,7 +238,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -246,7 +246,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -260,7 +260,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55520,
+        "checkpointBytes": 55823,
         "probes": {
           "self": [
             {
@@ -269,7 +269,7 @@
               "first": "west",
               "firstT": 120.5,
               "near": { "east": 0, "north": 0, "west": 15.2, "south": 0 },
-              "digest": "c8007b7544d57b95"
+              "digest": "805b7abfb0572125"
             },
             {
               "yaw": 1.571,
@@ -277,7 +277,7 @@
               "first": "west",
               "firstT": 121.3,
               "near": { "east": 0, "north": 0, "west": 15.3, "south": 0 },
-              "digest": "74f39844b7f9e852"
+              "digest": "218a379b4502ae08"
             },
             {
               "yaw": 3.142,
@@ -285,7 +285,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "92b1c53ec60691e4"
+              "digest": "ec8234193bfcc11f"
             },
             {
               "yaw": 4.712,
@@ -293,7 +293,7 @@
               "first": "west",
               "firstT": 120.5,
               "near": { "east": 0, "north": 0, "west": 15.2, "south": 0 },
-              "digest": "333f49a8de3a9142"
+              "digest": "08d08b455fc02b8c"
             }
           ],
           "stored": [
@@ -303,7 +303,7 @@
               "first": "west",
               "firstT": 120.5,
               "near": { "east": 0, "north": 0, "west": 15.2, "south": 0 },
-              "digest": "c8007b7544d57b95"
+              "digest": "805b7abfb0572125"
             },
             {
               "yaw": 1.571,
@@ -311,7 +311,7 @@
               "first": "west",
               "firstT": 121.3,
               "near": { "east": 0, "north": 0, "west": 15.3, "south": 0 },
-              "digest": "74f39844b7f9e852"
+              "digest": "218a379b4502ae08"
             },
             {
               "yaw": 3.142,
@@ -319,7 +319,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "92b1c53ec60691e4"
+              "digest": "ec8234193bfcc11f"
             },
             {
               "yaw": 4.712,
@@ -327,7 +327,7 @@
               "first": "west",
               "firstT": 120.5,
               "near": { "east": 0, "north": 0, "west": 15.2, "south": 0 },
-              "digest": "333f49a8de3a9142"
+              "digest": "08d08b455fc02b8c"
             }
           ],
           "replay": [
@@ -337,7 +337,7 @@
               "first": "west",
               "firstT": 120.5,
               "near": { "east": 0, "north": 0, "west": 15.2, "south": 0 },
-              "digest": "c8007b7544d57b95"
+              "digest": "805b7abfb0572125"
             },
             {
               "yaw": 1.571,
@@ -345,7 +345,7 @@
               "first": "west",
               "firstT": 121.3,
               "near": { "east": 0, "north": 0, "west": 15.3, "south": 0 },
-              "digest": "74f39844b7f9e852"
+              "digest": "218a379b4502ae08"
             },
             {
               "yaw": 3.142,
@@ -353,7 +353,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "92b1c53ec60691e4"
+              "digest": "ec8234193bfcc11f"
             },
             {
               "yaw": 4.712,
@@ -361,7 +361,7 @@
               "first": "west",
               "firstT": 120.5,
               "near": { "east": 0, "north": 0, "west": 15.2, "south": 0 },
-              "digest": "333f49a8de3a9142"
+              "digest": "08d08b455fc02b8c"
             }
           ],
           "erased": [
@@ -371,7 +371,7 @@
               "first": "west",
               "firstT": 90.7,
               "near": { "east": 0, "north": 0, "west": 37.2, "south": 0 },
-              "digest": "d0bb53318c5f02a1"
+              "digest": "093e7c1ea66946bd"
             },
             {
               "yaw": 1.571,
@@ -379,7 +379,7 @@
               "first": "east",
               "firstT": 50.8,
               "near": { "east": 67.7, "north": 0, "west": 0, "south": 0 },
-              "digest": "730398ddaf9f1d22"
+              "digest": "a1f6714b7e8aab56"
             },
             {
               "yaw": 3.142,
@@ -387,7 +387,7 @@
               "first": "north",
               "firstT": 50.8,
               "near": { "east": 0, "north": 67.7, "west": 0, "south": 0 },
-              "digest": "435c9acae0c2d430"
+              "digest": "ac3fa50d82f9247f"
             },
             {
               "yaw": 4.712,
@@ -395,7 +395,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "5cca126580e09b83"
+              "digest": "e2a18b1755465f72"
             }
           ],
           "genesis": [
@@ -405,7 +405,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -413,7 +413,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -421,7 +421,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -429,7 +429,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -443,7 +443,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55860,
+        "checkpointBytes": 56163,
         "probes": {
           "self": [
             {
@@ -452,7 +452,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bb3f651eb5fe215c"
+              "digest": "31d1cd2706736933"
             },
             {
               "yaw": 1.571,
@@ -460,7 +460,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bfda307d7d78a335"
+              "digest": "3fee6e4e61f80ea4"
             },
             {
               "yaw": 3.142,
@@ -468,7 +468,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "589ea670e8b064eb"
+              "digest": "55a7015e9fd80375"
             },
             {
               "yaw": 4.712,
@@ -476,7 +476,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3585105b4aa45ad6"
+              "digest": "2daf1ea3d823c94e"
             }
           ],
           "stored": [
@@ -486,7 +486,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bb3f651eb5fe215c"
+              "digest": "31d1cd2706736933"
             },
             {
               "yaw": 1.571,
@@ -494,7 +494,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bfda307d7d78a335"
+              "digest": "3fee6e4e61f80ea4"
             },
             {
               "yaw": 3.142,
@@ -502,7 +502,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "589ea670e8b064eb"
+              "digest": "55a7015e9fd80375"
             },
             {
               "yaw": 4.712,
@@ -510,7 +510,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3585105b4aa45ad6"
+              "digest": "2daf1ea3d823c94e"
             }
           ],
           "replay": [
@@ -520,7 +520,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bb3f651eb5fe215c"
+              "digest": "31d1cd2706736933"
             },
             {
               "yaw": 1.571,
@@ -528,7 +528,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bfda307d7d78a335"
+              "digest": "3fee6e4e61f80ea4"
             },
             {
               "yaw": 3.142,
@@ -536,7 +536,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "589ea670e8b064eb"
+              "digest": "55a7015e9fd80375"
             },
             {
               "yaw": 4.712,
@@ -544,7 +544,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3585105b4aa45ad6"
+              "digest": "2daf1ea3d823c94e"
             }
           ],
           "erased": [
@@ -554,7 +554,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4a3cf8d53f97fd6f"
+              "digest": "4e72402370ef6d77"
             },
             {
               "yaw": 1.571,
@@ -562,7 +562,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c0b59b0925743e90"
+              "digest": "be17c202ef59e08e"
             },
             {
               "yaw": 3.142,
@@ -570,7 +570,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c898820b2f6ae4a4"
+              "digest": "36e7aaeac607c5e8"
             },
             {
               "yaw": 4.712,
@@ -578,7 +578,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7a78fbd96b384a25"
+              "digest": "8515d0accc3c0a7b"
             }
           ],
           "genesis": [
@@ -588,7 +588,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -596,7 +596,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -604,7 +604,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -612,7 +612,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -626,7 +626,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56259,
+        "checkpointBytes": 56562,
         "probes": {
           "self": [
             {
@@ -635,7 +635,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "58d77ae1a4d6a660"
+              "digest": "ecd2e183abf9c5eb"
             },
             {
               "yaw": 1.571,
@@ -643,7 +643,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "9dd670ad9bb22c9b"
+              "digest": "011d02e079cd68fc"
             },
             {
               "yaw": 3.142,
@@ -651,7 +651,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c42b5ab9c0fb89c4"
+              "digest": "9348ff8256c7addb"
             },
             {
               "yaw": 4.712,
@@ -659,7 +659,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "33f62b08d9c66158"
+              "digest": "994226ad32709bfe"
             }
           ],
           "stored": [
@@ -669,7 +669,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "58d77ae1a4d6a660"
+              "digest": "ecd2e183abf9c5eb"
             },
             {
               "yaw": 1.571,
@@ -677,7 +677,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "9dd670ad9bb22c9b"
+              "digest": "011d02e079cd68fc"
             },
             {
               "yaw": 3.142,
@@ -685,7 +685,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c42b5ab9c0fb89c4"
+              "digest": "9348ff8256c7addb"
             },
             {
               "yaw": 4.712,
@@ -693,7 +693,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "33f62b08d9c66158"
+              "digest": "994226ad32709bfe"
             }
           ],
           "replay": [
@@ -703,7 +703,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "58d77ae1a4d6a660"
+              "digest": "ecd2e183abf9c5eb"
             },
             {
               "yaw": 1.571,
@@ -711,7 +711,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "9dd670ad9bb22c9b"
+              "digest": "011d02e079cd68fc"
             },
             {
               "yaw": 3.142,
@@ -719,7 +719,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c42b5ab9c0fb89c4"
+              "digest": "9348ff8256c7addb"
             },
             {
               "yaw": 4.712,
@@ -727,7 +727,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "33f62b08d9c66158"
+              "digest": "994226ad32709bfe"
             }
           ],
           "erased": [
@@ -737,7 +737,7 @@
               "first": "north",
               "firstT": 276.2,
               "near": { "east": 0, "north": 23.9, "west": 0, "south": 0 },
-              "digest": "623f260be8a03e43"
+              "digest": "232364f2d6b5c91a"
             },
             {
               "yaw": 1.571,
@@ -745,7 +745,7 @@
               "first": "west",
               "firstT": 276.2,
               "near": { "east": 0, "north": 0, "west": 23.9, "south": 0 },
-              "digest": "2a9e851dcce043e7"
+              "digest": "e142dfec694294ae"
             },
             {
               "yaw": 3.142,
@@ -753,7 +753,7 @@
               "first": "south",
               "firstT": 276.2,
               "near": { "east": 0, "north": 0, "west": 0, "south": 23.9 },
-              "digest": "97c91777c6f93b46"
+              "digest": "e9bb37384633c085"
             },
             {
               "yaw": 4.712,
@@ -761,7 +761,7 @@
               "first": "east",
               "firstT": 276.2,
               "near": { "east": 23.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "fa7840d1f0458158"
+              "digest": "b286a474e05b4ace"
             }
           ],
           "genesis": [
@@ -771,7 +771,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -779,7 +779,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -787,7 +787,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -795,7 +795,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -809,7 +809,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56279,
+        "checkpointBytes": 56582,
         "probes": {
           "self": [
             {
@@ -818,7 +818,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e792af824426769c"
+              "digest": "4bb049a273bc8b3b"
             },
             {
               "yaw": 1.571,
@@ -826,7 +826,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7c438950a8a36ef5"
+              "digest": "7a4596907f9ba7a9"
             },
             {
               "yaw": 3.142,
@@ -834,7 +834,7 @@
               "first": "east",
               "firstT": 299.9,
               "near": { "east": 0.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "b338c9ccb1d3f5b5"
+              "digest": "2981032e72772eae"
             },
             {
               "yaw": 4.712,
@@ -842,7 +842,7 @@
               "first": "east",
               "firstT": 300,
               "near": { "east": 0.1, "north": 0, "west": 0, "south": 0 },
-              "digest": "b9ce4f416ec6d123"
+              "digest": "352b42c9129fec13"
             }
           ],
           "stored": [
@@ -852,7 +852,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e792af824426769c"
+              "digest": "4bb049a273bc8b3b"
             },
             {
               "yaw": 1.571,
@@ -860,7 +860,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7c438950a8a36ef5"
+              "digest": "7a4596907f9ba7a9"
             },
             {
               "yaw": 3.142,
@@ -868,7 +868,7 @@
               "first": "east",
               "firstT": 299.9,
               "near": { "east": 0.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "b338c9ccb1d3f5b5"
+              "digest": "2981032e72772eae"
             },
             {
               "yaw": 4.712,
@@ -876,7 +876,7 @@
               "first": "east",
               "firstT": 300,
               "near": { "east": 0.1, "north": 0, "west": 0, "south": 0 },
-              "digest": "b9ce4f416ec6d123"
+              "digest": "352b42c9129fec13"
             }
           ],
           "replay": [
@@ -886,7 +886,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e792af824426769c"
+              "digest": "4bb049a273bc8b3b"
             },
             {
               "yaw": 1.571,
@@ -894,7 +894,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7c438950a8a36ef5"
+              "digest": "7a4596907f9ba7a9"
             },
             {
               "yaw": 3.142,
@@ -902,7 +902,7 @@
               "first": "east",
               "firstT": 299.9,
               "near": { "east": 0.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "b338c9ccb1d3f5b5"
+              "digest": "2981032e72772eae"
             },
             {
               "yaw": 4.712,
@@ -910,7 +910,7 @@
               "first": "east",
               "firstT": 300,
               "near": { "east": 0.1, "north": 0, "west": 0, "south": 0 },
-              "digest": "b9ce4f416ec6d123"
+              "digest": "352b42c9129fec13"
             }
           ],
           "erased": [
@@ -920,7 +920,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2de90c76af6aa68e"
+              "digest": "83f85cdea2ee1605"
             },
             {
               "yaw": 1.571,
@@ -928,7 +928,7 @@
               "first": "south",
               "firstT": 258.3,
               "near": { "east": 0, "north": 0, "west": 0, "south": 41.8 },
-              "digest": "dd2e712af1e5ee8c"
+              "digest": "4f22aa2fb6dcf6c6"
             },
             {
               "yaw": 3.142,
@@ -936,7 +936,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "128df7862170dab7"
+              "digest": "ca0502885f8dd652"
             },
             {
               "yaw": 4.712,
@@ -944,7 +944,7 @@
               "first": "north",
               "firstT": 257.7,
               "near": { "east": 0, "north": 42.4, "west": 0, "south": 0 },
-              "digest": "be1b51bc9c1d5145"
+              "digest": "2ae43c8127fbe49f"
             }
           ],
           "genesis": [
@@ -954,7 +954,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -962,7 +962,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -970,7 +970,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -978,7 +978,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -992,7 +992,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55765,
+        "checkpointBytes": 56068,
         "probes": {
           "self": [
             {
@@ -1001,7 +1001,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "baf355a6781003e4"
+              "digest": "021e9c245afc1cb2"
             },
             {
               "yaw": 1.571,
@@ -1009,7 +1009,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "10b3c93fa8a36280"
+              "digest": "7ca29b5d3c4afa9d"
             },
             {
               "yaw": 3.142,
@@ -1017,7 +1017,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "52f7ea133d0e2e16"
+              "digest": "a16d78cb48fdb9a4"
             },
             {
               "yaw": 4.712,
@@ -1025,7 +1025,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3446f5846c3c6b5e"
+              "digest": "892cffd4e29f52a5"
             }
           ],
           "stored": [
@@ -1035,7 +1035,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "baf355a6781003e4"
+              "digest": "021e9c245afc1cb2"
             },
             {
               "yaw": 1.571,
@@ -1043,7 +1043,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "10b3c93fa8a36280"
+              "digest": "7ca29b5d3c4afa9d"
             },
             {
               "yaw": 3.142,
@@ -1051,7 +1051,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "52f7ea133d0e2e16"
+              "digest": "a16d78cb48fdb9a4"
             },
             {
               "yaw": 4.712,
@@ -1059,7 +1059,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3446f5846c3c6b5e"
+              "digest": "892cffd4e29f52a5"
             }
           ],
           "replay": [
@@ -1069,7 +1069,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "baf355a6781003e4"
+              "digest": "021e9c245afc1cb2"
             },
             {
               "yaw": 1.571,
@@ -1077,7 +1077,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "10b3c93fa8a36280"
+              "digest": "7ca29b5d3c4afa9d"
             },
             {
               "yaw": 3.142,
@@ -1085,7 +1085,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "52f7ea133d0e2e16"
+              "digest": "a16d78cb48fdb9a4"
             },
             {
               "yaw": 4.712,
@@ -1093,7 +1093,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3446f5846c3c6b5e"
+              "digest": "892cffd4e29f52a5"
             }
           ],
           "erased": [
@@ -1103,7 +1103,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6fcbb074621a52a8"
+              "digest": "47612ab8959bab0a"
             },
             {
               "yaw": 1.571,
@@ -1111,7 +1111,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "5daec71a1838b286"
+              "digest": "0675f4cdc74caa0c"
             },
             {
               "yaw": 3.142,
@@ -1119,7 +1119,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c4e8dc53b29a28ed"
+              "digest": "ecef5e04a1674843"
             },
             {
               "yaw": 4.712,
@@ -1127,7 +1127,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "f3e93a3589581bf9"
+              "digest": "6199c01142b23f79"
             }
           ],
           "genesis": [
@@ -1137,7 +1137,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -1145,7 +1145,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -1153,7 +1153,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -1161,7 +1161,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -1175,7 +1175,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56963,
+        "checkpointBytes": 57266,
         "probes": {
           "self": [
             {
@@ -1184,7 +1184,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "03dde4fe1cee082f"
+              "digest": "18347754d57bcefd"
             },
             {
               "yaw": 1.571,
@@ -1192,7 +1192,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "11e917da050f0368"
+              "digest": "719ae454b417b265"
             },
             {
               "yaw": 3.142,
@@ -1200,7 +1200,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c21c3d36a52d2f59"
+              "digest": "029b97240c5ac368"
             },
             {
               "yaw": 4.712,
@@ -1208,7 +1208,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e7bf0a3a809cf2ff"
+              "digest": "680a4697362c8945"
             }
           ],
           "stored": [
@@ -1218,7 +1218,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "03dde4fe1cee082f"
+              "digest": "18347754d57bcefd"
             },
             {
               "yaw": 1.571,
@@ -1226,7 +1226,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "11e917da050f0368"
+              "digest": "719ae454b417b265"
             },
             {
               "yaw": 3.142,
@@ -1234,7 +1234,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c21c3d36a52d2f59"
+              "digest": "029b97240c5ac368"
             },
             {
               "yaw": 4.712,
@@ -1242,7 +1242,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e7bf0a3a809cf2ff"
+              "digest": "680a4697362c8945"
             }
           ],
           "replay": [
@@ -1252,7 +1252,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "03dde4fe1cee082f"
+              "digest": "18347754d57bcefd"
             },
             {
               "yaw": 1.571,
@@ -1260,7 +1260,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "11e917da050f0368"
+              "digest": "719ae454b417b265"
             },
             {
               "yaw": 3.142,
@@ -1268,7 +1268,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c21c3d36a52d2f59"
+              "digest": "029b97240c5ac368"
             },
             {
               "yaw": 4.712,
@@ -1276,7 +1276,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e7bf0a3a809cf2ff"
+              "digest": "680a4697362c8945"
             }
           ],
           "erased": [
@@ -1286,7 +1286,7 @@
               "first": "east",
               "firstT": 88.9,
               "near": { "east": 211.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "9b6e0696d824b35e"
+              "digest": "2f2de774d455b6cf"
             },
             {
               "yaw": 1.571,
@@ -1294,7 +1294,7 @@
               "first": "north",
               "firstT": 88.9,
               "near": { "east": 0, "north": 211.2, "west": 0, "south": 0 },
-              "digest": "913a73d39bd570d2"
+              "digest": "6780c48079487c45"
             },
             {
               "yaw": 3.142,
@@ -1302,7 +1302,7 @@
               "first": "west",
               "firstT": 88.9,
               "near": { "east": 0, "north": 0, "west": 211.2, "south": 0 },
-              "digest": "23c3d569128bdcfd"
+              "digest": "07553311be268a43"
             },
             {
               "yaw": 4.712,
@@ -1310,7 +1310,7 @@
               "first": "south",
               "firstT": 88.9,
               "near": { "east": 0, "north": 0, "west": 0, "south": 211.2 },
-              "digest": "fc19f2e3fb1087fe"
+              "digest": "ec11ab002242af34"
             }
           ],
           "genesis": [
@@ -1320,7 +1320,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -1328,7 +1328,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -1336,7 +1336,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -1344,7 +1344,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -1358,7 +1358,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55679,
+        "checkpointBytes": 55982,
         "probes": {
           "self": [
             {
@@ -1367,7 +1367,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "828fe05b8f0957b1"
+              "digest": "e241eef9808daf94"
             },
             {
               "yaw": 1.571,
@@ -1375,7 +1375,7 @@
               "first": "south",
               "firstT": 152.1,
               "near": { "east": 0, "north": 0, "west": 0, "south": 3 },
-              "digest": "6ad83d2750e013f2"
+              "digest": "4f09660d0c027de1"
             },
             {
               "yaw": 3.142,
@@ -1383,7 +1383,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "21b6ceaa674232ec"
+              "digest": "4b22e218c2e7f35e"
             },
             {
               "yaw": 4.712,
@@ -1391,7 +1391,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "10cb272a22223b54"
+              "digest": "204b9b266bb91f9c"
             }
           ],
           "stored": [
@@ -1401,7 +1401,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "828fe05b8f0957b1"
+              "digest": "e241eef9808daf94"
             },
             {
               "yaw": 1.571,
@@ -1409,7 +1409,7 @@
               "first": "south",
               "firstT": 152.1,
               "near": { "east": 0, "north": 0, "west": 0, "south": 3 },
-              "digest": "6ad83d2750e013f2"
+              "digest": "4f09660d0c027de1"
             },
             {
               "yaw": 3.142,
@@ -1417,7 +1417,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "21b6ceaa674232ec"
+              "digest": "4b22e218c2e7f35e"
             },
             {
               "yaw": 4.712,
@@ -1425,7 +1425,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "10cb272a22223b54"
+              "digest": "204b9b266bb91f9c"
             }
           ],
           "replay": [
@@ -1435,7 +1435,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "828fe05b8f0957b1"
+              "digest": "e241eef9808daf94"
             },
             {
               "yaw": 1.571,
@@ -1443,7 +1443,7 @@
               "first": "south",
               "firstT": 152.1,
               "near": { "east": 0, "north": 0, "west": 0, "south": 3 },
-              "digest": "6ad83d2750e013f2"
+              "digest": "4f09660d0c027de1"
             },
             {
               "yaw": 3.142,
@@ -1451,7 +1451,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "21b6ceaa674232ec"
+              "digest": "4b22e218c2e7f35e"
             },
             {
               "yaw": 4.712,
@@ -1459,7 +1459,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "10cb272a22223b54"
+              "digest": "204b9b266bb91f9c"
             }
           ],
           "erased": [
@@ -1469,7 +1469,7 @@
               "first": "east",
               "firstT": 30.2,
               "near": { "east": 55.8, "north": 0, "west": 0, "south": 3.5 },
-              "digest": "8fce4b07e9607fbe"
+              "digest": "66e3bc9c77e1f460"
             },
             {
               "yaw": 1.571,
@@ -1477,7 +1477,7 @@
               "first": "north",
               "firstT": 30.2,
               "near": { "east": 110, "north": 55.5, "west": 52.2, "south": 0 },
-              "digest": "d6b89eb3577aab3c"
+              "digest": "1f638631d72a8b3a"
             },
             {
               "yaw": 3.142,
@@ -1485,7 +1485,7 @@
               "first": "west",
               "firstT": 30.2,
               "near": { "east": 0, "north": 3.5, "west": 55.8, "south": 0 },
-              "digest": "8e295ae32c0084ba"
+              "digest": "0067dc9a2916253a"
             },
             {
               "yaw": 4.712,
@@ -1493,7 +1493,7 @@
               "first": "south",
               "firstT": 30.2,
               "near": { "east": 0, "north": 0, "west": 3.5, "south": 55.8 },
-              "digest": "2c83ff491ebd1c3e"
+              "digest": "f8b6f937663aad27"
             }
           ],
           "genesis": [
@@ -1503,7 +1503,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -1511,7 +1511,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -1519,7 +1519,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -1527,7 +1527,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -1541,7 +1541,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55629,
+        "checkpointBytes": 55932,
         "probes": {
           "self": [
             {
@@ -1550,7 +1550,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c184fc1e7935b9af"
+              "digest": "67ffc8b9f0758d22"
             },
             {
               "yaw": 1.571,
@@ -1558,7 +1558,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6a9b02bf69d1b3d0"
+              "digest": "f12d9a9c1d49d84b"
             },
             {
               "yaw": 3.142,
@@ -1566,7 +1566,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3b81f0fa4c7d97ef"
+              "digest": "09c291c65fad4a87"
             },
             {
               "yaw": 4.712,
@@ -1574,7 +1574,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a32e1c8e7b844d94"
+              "digest": "e4aff98ac0936cb9"
             }
           ],
           "stored": [
@@ -1584,7 +1584,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c184fc1e7935b9af"
+              "digest": "67ffc8b9f0758d22"
             },
             {
               "yaw": 1.571,
@@ -1592,7 +1592,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6a9b02bf69d1b3d0"
+              "digest": "f12d9a9c1d49d84b"
             },
             {
               "yaw": 3.142,
@@ -1600,7 +1600,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3b81f0fa4c7d97ef"
+              "digest": "09c291c65fad4a87"
             },
             {
               "yaw": 4.712,
@@ -1608,7 +1608,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a32e1c8e7b844d94"
+              "digest": "e4aff98ac0936cb9"
             }
           ],
           "replay": [
@@ -1618,7 +1618,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c184fc1e7935b9af"
+              "digest": "67ffc8b9f0758d22"
             },
             {
               "yaw": 1.571,
@@ -1626,7 +1626,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6a9b02bf69d1b3d0"
+              "digest": "f12d9a9c1d49d84b"
             },
             {
               "yaw": 3.142,
@@ -1634,7 +1634,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3b81f0fa4c7d97ef"
+              "digest": "09c291c65fad4a87"
             },
             {
               "yaw": 4.712,
@@ -1642,7 +1642,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a32e1c8e7b844d94"
+              "digest": "e4aff98ac0936cb9"
             }
           ],
           "erased": [
@@ -1652,7 +1652,7 @@
               "first": "north",
               "firstT": 38,
               "near": { "east": 0, "north": 92.5, "west": 0, "south": 0 },
-              "digest": "89e5084d7bdc5552"
+              "digest": "3d1cfdc287c7865a"
             },
             {
               "yaw": 1.571,
@@ -1660,7 +1660,7 @@
               "first": "west",
               "firstT": 38,
               "near": { "east": 0, "north": 0, "west": 92.5, "south": 0 },
-              "digest": "2b2edce4e11ed5f5"
+              "digest": "c45405414daeda24"
             },
             {
               "yaw": 3.142,
@@ -1668,7 +1668,7 @@
               "first": "south",
               "firstT": 38,
               "near": { "east": 0, "north": 0, "west": 0, "south": 92.5 },
-              "digest": "9daf89014cbd2a2b"
+              "digest": "a9e4d34a27280eaf"
             },
             {
               "yaw": 4.712,
@@ -1676,7 +1676,7 @@
               "first": "east",
               "firstT": 38,
               "near": { "east": 92.5, "north": 0, "west": 0, "south": 0 },
-              "digest": "2c295509fd1a1d07"
+              "digest": "8ac4b11a8a9ce6e7"
             }
           ],
           "genesis": [
@@ -1686,7 +1686,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -1694,7 +1694,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -1702,7 +1702,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -1710,7 +1710,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -1724,7 +1724,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55483,
+        "checkpointBytes": 55786,
         "probes": {
           "self": [
             {
@@ -1733,7 +1733,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "8617cfcdb841925a"
+              "digest": "029ab8a8d81f7a88"
             },
             {
               "yaw": 1.571,
@@ -1741,7 +1741,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "754f80e4055edbdc"
+              "digest": "e331e8e58168d2cc"
             },
             {
               "yaw": 3.142,
@@ -1749,7 +1749,7 @@
               "first": "west",
               "firstT": 125.5,
               "near": { "east": 0, "north": 0, "west": 97.1, "south": 0 },
-              "digest": "d0dbc00f77f76230"
+              "digest": "e27b80d93c76a321"
             },
             {
               "yaw": 4.712,
@@ -1757,7 +1757,7 @@
               "first": "west",
               "firstT": 142.9,
               "near": { "east": 0, "north": 0, "west": 2, "south": 0 },
-              "digest": "20fbfa8a2aa5260b"
+              "digest": "446397fd1586ed80"
             }
           ],
           "stored": [
@@ -1767,7 +1767,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "8617cfcdb841925a"
+              "digest": "029ab8a8d81f7a88"
             },
             {
               "yaw": 1.571,
@@ -1775,7 +1775,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "754f80e4055edbdc"
+              "digest": "e331e8e58168d2cc"
             },
             {
               "yaw": 3.142,
@@ -1783,7 +1783,7 @@
               "first": "west",
               "firstT": 125.5,
               "near": { "east": 0, "north": 0, "west": 97.1, "south": 0 },
-              "digest": "d0dbc00f77f76230"
+              "digest": "e27b80d93c76a321"
             },
             {
               "yaw": 4.712,
@@ -1791,7 +1791,7 @@
               "first": "west",
               "firstT": 142.9,
               "near": { "east": 0, "north": 0, "west": 2, "south": 0 },
-              "digest": "20fbfa8a2aa5260b"
+              "digest": "446397fd1586ed80"
             }
           ],
           "replay": [
@@ -1801,7 +1801,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "8617cfcdb841925a"
+              "digest": "029ab8a8d81f7a88"
             },
             {
               "yaw": 1.571,
@@ -1809,7 +1809,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "754f80e4055edbdc"
+              "digest": "e331e8e58168d2cc"
             },
             {
               "yaw": 3.142,
@@ -1817,7 +1817,7 @@
               "first": "west",
               "firstT": 125.5,
               "near": { "east": 0, "north": 0, "west": 97.1, "south": 0 },
-              "digest": "d0dbc00f77f76230"
+              "digest": "e27b80d93c76a321"
             },
             {
               "yaw": 4.712,
@@ -1825,7 +1825,7 @@
               "first": "west",
               "firstT": 142.9,
               "near": { "east": 0, "north": 0, "west": 2, "south": 0 },
-              "digest": "20fbfa8a2aa5260b"
+              "digest": "446397fd1586ed80"
             }
           ],
           "erased": [
@@ -1835,7 +1835,7 @@
               "first": "north",
               "firstT": 104.4,
               "near": { "east": 0, "north": 9.4, "west": 0, "south": 0 },
-              "digest": "01e418c66c40ffae"
+              "digest": "85ecf33dfc3fe185"
             },
             {
               "yaw": 1.571,
@@ -1843,7 +1843,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "dde545f332f58c7b"
+              "digest": "5facfc1cfcaad0c4"
             },
             {
               "yaw": 3.142,
@@ -1851,7 +1851,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3d3f85f516ed91bc"
+              "digest": "153909514c2ad92f"
             },
             {
               "yaw": 4.712,
@@ -1859,7 +1859,7 @@
               "first": "north",
               "firstT": 104.9,
               "near": { "east": 0, "north": 10.9, "west": 0, "south": 0 },
-              "digest": "cbde5dc3262d527e"
+              "digest": "60fb395c50b2d68a"
             }
           ],
           "genesis": [
@@ -1869,7 +1869,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -1877,7 +1877,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -1885,7 +1885,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -1893,7 +1893,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -1907,7 +1907,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56283,
+        "checkpointBytes": 56586,
         "probes": {
           "self": [
             {
@@ -1916,7 +1916,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e207eaffcf5c885b"
+              "digest": "d50d45eddae4951f"
             },
             {
               "yaw": 1.571,
@@ -1924,7 +1924,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6211b550f0c0ecfd"
+              "digest": "ad09ea7dccc8ef2e"
             },
             {
               "yaw": 3.142,
@@ -1932,7 +1932,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b2a78e359d8287ff"
+              "digest": "b2cafac111a92358"
             },
             {
               "yaw": 4.712,
@@ -1940,7 +1940,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "cd7198b54657cd37"
+              "digest": "f453848d16061dc4"
             }
           ],
           "stored": [
@@ -1950,7 +1950,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e207eaffcf5c885b"
+              "digest": "d50d45eddae4951f"
             },
             {
               "yaw": 1.571,
@@ -1958,7 +1958,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6211b550f0c0ecfd"
+              "digest": "ad09ea7dccc8ef2e"
             },
             {
               "yaw": 3.142,
@@ -1966,7 +1966,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b2a78e359d8287ff"
+              "digest": "b2cafac111a92358"
             },
             {
               "yaw": 4.712,
@@ -1974,7 +1974,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "cd7198b54657cd37"
+              "digest": "f453848d16061dc4"
             }
           ],
           "replay": [
@@ -1984,7 +1984,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e207eaffcf5c885b"
+              "digest": "d50d45eddae4951f"
             },
             {
               "yaw": 1.571,
@@ -1992,7 +1992,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6211b550f0c0ecfd"
+              "digest": "ad09ea7dccc8ef2e"
             },
             {
               "yaw": 3.142,
@@ -2000,7 +2000,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b2a78e359d8287ff"
+              "digest": "b2cafac111a92358"
             },
             {
               "yaw": 4.712,
@@ -2008,7 +2008,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "cd7198b54657cd37"
+              "digest": "f453848d16061dc4"
             }
           ],
           "erased": [
@@ -2018,7 +2018,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2dc7c5d598d36afe"
+              "digest": "ae827e0f69659e98"
             },
             {
               "yaw": 1.571,
@@ -2026,7 +2026,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "d5d10ac66fc71c8c"
+              "digest": "79b057e037cd835f"
             },
             {
               "yaw": 3.142,
@@ -2034,7 +2034,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c7645a8e2334f011"
+              "digest": "c28c3edf1c4ba91d"
             },
             {
               "yaw": 4.712,
@@ -2042,7 +2042,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "d8ef7347a441f348"
+              "digest": "1f33abbd4b2bb5d0"
             }
           ],
           "genesis": [
@@ -2052,7 +2052,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -2060,7 +2060,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -2068,7 +2068,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -2076,7 +2076,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -2090,7 +2090,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55589,
+        "checkpointBytes": 55892,
         "probes": {
           "self": [
             {
@@ -2099,7 +2099,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "33dfcf534b959d2e"
+              "digest": "8eeaa4dc7b3bcff6"
             },
             {
               "yaw": 1.571,
@@ -2107,7 +2107,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "699486e1ffff9e7a"
+              "digest": "ffc7f49f56080313"
             },
             {
               "yaw": 3.142,
@@ -2115,7 +2115,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "76d96530276353eb"
+              "digest": "ef19a2ffe0cb1d25"
             },
             {
               "yaw": 4.712,
@@ -2123,7 +2123,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c1aa75c5822b5a89"
+              "digest": "8e344f4fadc47589"
             }
           ],
           "stored": [
@@ -2133,7 +2133,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "33dfcf534b959d2e"
+              "digest": "8eeaa4dc7b3bcff6"
             },
             {
               "yaw": 1.571,
@@ -2141,7 +2141,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "699486e1ffff9e7a"
+              "digest": "ffc7f49f56080313"
             },
             {
               "yaw": 3.142,
@@ -2149,7 +2149,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "76d96530276353eb"
+              "digest": "ef19a2ffe0cb1d25"
             },
             {
               "yaw": 4.712,
@@ -2157,7 +2157,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c1aa75c5822b5a89"
+              "digest": "8e344f4fadc47589"
             }
           ],
           "replay": [
@@ -2167,7 +2167,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "33dfcf534b959d2e"
+              "digest": "8eeaa4dc7b3bcff6"
             },
             {
               "yaw": 1.571,
@@ -2175,7 +2175,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "699486e1ffff9e7a"
+              "digest": "ffc7f49f56080313"
             },
             {
               "yaw": 3.142,
@@ -2183,7 +2183,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "76d96530276353eb"
+              "digest": "ef19a2ffe0cb1d25"
             },
             {
               "yaw": 4.712,
@@ -2191,7 +2191,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c1aa75c5822b5a89"
+              "digest": "8e344f4fadc47589"
             }
           ],
           "erased": [
@@ -2201,7 +2201,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a69bc61df4aba881"
+              "digest": "d2bfa91ddb012b62"
             },
             {
               "yaw": 1.571,
@@ -2209,7 +2209,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "00aa45f5762f4570"
+              "digest": "ea4bb3f2ee1c6b55"
             },
             {
               "yaw": 3.142,
@@ -2217,7 +2217,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4f170657ff99d4de"
+              "digest": "b62066492bbd6c3d"
             },
             {
               "yaw": 4.712,
@@ -2225,7 +2225,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "1aa114e40d05a06b"
+              "digest": "f0ed4936eca264ee"
             }
           ],
           "genesis": [
@@ -2235,7 +2235,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -2243,7 +2243,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -2251,7 +2251,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -2259,7 +2259,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -2273,7 +2273,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56783,
+        "checkpointBytes": 57086,
         "probes": {
           "self": [
             {
@@ -2282,7 +2282,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "587cc1026f60b033"
+              "digest": "b2d8c77242002ec1"
             },
             {
               "yaw": 1.571,
@@ -2290,7 +2290,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b9f1f9684ee0d954"
+              "digest": "9cf74b6edd07a8ad"
             },
             {
               "yaw": 3.142,
@@ -2298,7 +2298,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b47b266fe449e778"
+              "digest": "385a6e4ce0b70a70"
             },
             {
               "yaw": 4.712,
@@ -2306,7 +2306,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ef35b057a8a106cf"
+              "digest": "037fe9bdfb8be6a1"
             }
           ],
           "stored": [
@@ -2316,7 +2316,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "587cc1026f60b033"
+              "digest": "b2d8c77242002ec1"
             },
             {
               "yaw": 1.571,
@@ -2324,7 +2324,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b9f1f9684ee0d954"
+              "digest": "9cf74b6edd07a8ad"
             },
             {
               "yaw": 3.142,
@@ -2332,7 +2332,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b47b266fe449e778"
+              "digest": "385a6e4ce0b70a70"
             },
             {
               "yaw": 4.712,
@@ -2340,7 +2340,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ef35b057a8a106cf"
+              "digest": "037fe9bdfb8be6a1"
             }
           ],
           "replay": [
@@ -2350,7 +2350,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "587cc1026f60b033"
+              "digest": "b2d8c77242002ec1"
             },
             {
               "yaw": 1.571,
@@ -2358,7 +2358,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b9f1f9684ee0d954"
+              "digest": "9cf74b6edd07a8ad"
             },
             {
               "yaw": 3.142,
@@ -2366,7 +2366,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b47b266fe449e778"
+              "digest": "385a6e4ce0b70a70"
             },
             {
               "yaw": 4.712,
@@ -2374,7 +2374,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ef35b057a8a106cf"
+              "digest": "037fe9bdfb8be6a1"
             }
           ],
           "erased": [
@@ -2384,7 +2384,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "dd5d08ab26366298"
+              "digest": "eaf900df554eb3f7"
             },
             {
               "yaw": 1.571,
@@ -2392,7 +2392,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ffac4c28f8bc41b0"
+              "digest": "4fd76b0691e1eede"
             },
             {
               "yaw": 3.142,
@@ -2400,7 +2400,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "0dc9b2d71700e8e5"
+              "digest": "a2741c7059ed6dca"
             },
             {
               "yaw": 4.712,
@@ -2408,7 +2408,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a09d8f7237c96fc5"
+              "digest": "fbf1d14e4e366b0d"
             }
           ],
           "genesis": [
@@ -2418,7 +2418,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -2426,7 +2426,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -2434,7 +2434,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -2442,7 +2442,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -2456,7 +2456,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55870,
+        "checkpointBytes": 56173,
         "probes": {
           "self": [
             {
@@ -2465,7 +2465,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "d1a299c9cd08f9f0"
+              "digest": "d22dd230e0973357"
             },
             {
               "yaw": 1.571,
@@ -2473,7 +2473,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4220cdcf18be309e"
+              "digest": "17b3cd7e49598456"
             },
             {
               "yaw": 3.142,
@@ -2481,7 +2481,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "0521e3ef32c9c1d8"
+              "digest": "885edad77dadae1a"
             },
             {
               "yaw": 4.712,
@@ -2489,7 +2489,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "24a3436d982f74e6"
+              "digest": "0a22f53250f1a12b"
             }
           ],
           "stored": [
@@ -2499,7 +2499,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "d1a299c9cd08f9f0"
+              "digest": "d22dd230e0973357"
             },
             {
               "yaw": 1.571,
@@ -2507,7 +2507,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4220cdcf18be309e"
+              "digest": "17b3cd7e49598456"
             },
             {
               "yaw": 3.142,
@@ -2515,7 +2515,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "0521e3ef32c9c1d8"
+              "digest": "885edad77dadae1a"
             },
             {
               "yaw": 4.712,
@@ -2523,7 +2523,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "24a3436d982f74e6"
+              "digest": "0a22f53250f1a12b"
             }
           ],
           "replay": [
@@ -2533,7 +2533,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "d1a299c9cd08f9f0"
+              "digest": "d22dd230e0973357"
             },
             {
               "yaw": 1.571,
@@ -2541,7 +2541,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4220cdcf18be309e"
+              "digest": "17b3cd7e49598456"
             },
             {
               "yaw": 3.142,
@@ -2549,7 +2549,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "0521e3ef32c9c1d8"
+              "digest": "885edad77dadae1a"
             },
             {
               "yaw": 4.712,
@@ -2557,7 +2557,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "24a3436d982f74e6"
+              "digest": "0a22f53250f1a12b"
             }
           ],
           "erased": [
@@ -2567,7 +2567,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "58138e49f444ae4a"
+              "digest": "10f7b3a07b71a831"
             },
             {
               "yaw": 1.571,
@@ -2575,7 +2575,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a7f72ae62113c6d7"
+              "digest": "61e2cb5dd9b372eb"
             },
             {
               "yaw": 3.142,
@@ -2583,7 +2583,7 @@
               "first": "east",
               "firstT": 98.7,
               "near": { "east": 85, "north": 0, "west": 0, "south": 0 },
-              "digest": "cfa9666c18d9665f"
+              "digest": "ef2805e573396683"
             },
             {
               "yaw": 4.712,
@@ -2591,7 +2591,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "22caffa0c802dd27"
+              "digest": "ec3d40b2f15c2dd5"
             }
           ],
           "genesis": [
@@ -2601,7 +2601,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -2609,7 +2609,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -2617,7 +2617,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -2625,7 +2625,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -2639,7 +2639,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55730,
+        "checkpointBytes": 56033,
         "probes": {
           "self": [
             {
@@ -2648,7 +2648,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "9cdc1e7df5db1d5d"
+              "digest": "7871f5a091e404ff"
             },
             {
               "yaw": 1.571,
@@ -2656,7 +2656,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6c69657b2d5621f1"
+              "digest": "fa71a8c56e585d89"
             },
             {
               "yaw": 3.142,
@@ -2664,7 +2664,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a6bff31bd7f5f4d5"
+              "digest": "0c426f6015b94bcb"
             },
             {
               "yaw": 4.712,
@@ -2672,7 +2672,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2bf2f34a33cf7d8d"
+              "digest": "c509eae00a254834"
             }
           ],
           "stored": [
@@ -2682,7 +2682,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "9cdc1e7df5db1d5d"
+              "digest": "7871f5a091e404ff"
             },
             {
               "yaw": 1.571,
@@ -2690,7 +2690,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6c69657b2d5621f1"
+              "digest": "fa71a8c56e585d89"
             },
             {
               "yaw": 3.142,
@@ -2698,7 +2698,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a6bff31bd7f5f4d5"
+              "digest": "0c426f6015b94bcb"
             },
             {
               "yaw": 4.712,
@@ -2706,7 +2706,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2bf2f34a33cf7d8d"
+              "digest": "c509eae00a254834"
             }
           ],
           "replay": [
@@ -2716,7 +2716,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "9cdc1e7df5db1d5d"
+              "digest": "7871f5a091e404ff"
             },
             {
               "yaw": 1.571,
@@ -2724,7 +2724,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "6c69657b2d5621f1"
+              "digest": "fa71a8c56e585d89"
             },
             {
               "yaw": 3.142,
@@ -2732,7 +2732,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a6bff31bd7f5f4d5"
+              "digest": "0c426f6015b94bcb"
             },
             {
               "yaw": 4.712,
@@ -2740,7 +2740,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2bf2f34a33cf7d8d"
+              "digest": "c509eae00a254834"
             }
           ],
           "erased": [
@@ -2750,7 +2750,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bdd646bf23b8e200"
+              "digest": "c09b1429c86c7965"
             },
             {
               "yaw": 1.571,
@@ -2758,7 +2758,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "03c30a3cc8fc3926"
+              "digest": "fbfa4b15394b6e13"
             },
             {
               "yaw": 3.142,
@@ -2766,7 +2766,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "0fef1838ca6b4e81"
+              "digest": "38f594a663d15ac9"
             },
             {
               "yaw": 4.712,
@@ -2774,7 +2774,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c003e718c4c98200"
+              "digest": "c9c49cbeb81bd80b"
             }
           ],
           "genesis": [
@@ -2784,7 +2784,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -2792,7 +2792,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -2800,7 +2800,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -2808,7 +2808,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -2822,7 +2822,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56350,
+        "checkpointBytes": 56653,
         "probes": {
           "self": [
             {
@@ -2831,7 +2831,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7a61c5408f10091d"
+              "digest": "357e3ef1db04a3fd"
             },
             {
               "yaw": 1.571,
@@ -2839,7 +2839,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "5944c5bf19ed3fab"
+              "digest": "2adf8330d7f7890e"
             },
             {
               "yaw": 3.142,
@@ -2847,7 +2847,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2f1ea4e8a31c8b31"
+              "digest": "a2234468597c30cf"
             },
             {
               "yaw": 4.712,
@@ -2855,7 +2855,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "373430112c468205"
+              "digest": "a37037735bdd8c76"
             }
           ],
           "stored": [
@@ -2865,7 +2865,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7a61c5408f10091d"
+              "digest": "357e3ef1db04a3fd"
             },
             {
               "yaw": 1.571,
@@ -2873,7 +2873,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "5944c5bf19ed3fab"
+              "digest": "2adf8330d7f7890e"
             },
             {
               "yaw": 3.142,
@@ -2881,7 +2881,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2f1ea4e8a31c8b31"
+              "digest": "a2234468597c30cf"
             },
             {
               "yaw": 4.712,
@@ -2889,7 +2889,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "373430112c468205"
+              "digest": "a37037735bdd8c76"
             }
           ],
           "replay": [
@@ -2899,7 +2899,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7a61c5408f10091d"
+              "digest": "357e3ef1db04a3fd"
             },
             {
               "yaw": 1.571,
@@ -2907,7 +2907,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "5944c5bf19ed3fab"
+              "digest": "2adf8330d7f7890e"
             },
             {
               "yaw": 3.142,
@@ -2915,7 +2915,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "2f1ea4e8a31c8b31"
+              "digest": "a2234468597c30cf"
             },
             {
               "yaw": 4.712,
@@ -2923,7 +2923,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "373430112c468205"
+              "digest": "a37037735bdd8c76"
             }
           ],
           "erased": [
@@ -2933,7 +2933,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "234735c847731950"
+              "digest": "0e13ca740e03e28b"
             },
             {
               "yaw": 1.571,
@@ -2941,7 +2941,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e62a374353ab91ee"
+              "digest": "505601e1aa335ea4"
             },
             {
               "yaw": 3.142,
@@ -2949,7 +2949,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3a4c53c2c2cd865d"
+              "digest": "cb3983d67c160d35"
             },
             {
               "yaw": 4.712,
@@ -2957,7 +2957,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "780fd9808ca105d4"
+              "digest": "b184c2b545079e9e"
             }
           ],
           "genesis": [
@@ -2967,7 +2967,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -2975,7 +2975,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -2983,7 +2983,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -2991,7 +2991,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -3005,7 +3005,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55954,
+        "checkpointBytes": 56257,
         "probes": {
           "self": [
             {
@@ -3014,7 +3014,7 @@
               "first": "east",
               "firstT": 71.6,
               "near": { "east": 185.7, "north": 0, "west": 0, "south": 0 },
-              "digest": "a43b143d1c637b69"
+              "digest": "1878979a1968b7b0"
             },
             {
               "yaw": 1.571,
@@ -3022,7 +3022,7 @@
               "first": "east",
               "firstT": 71.6,
               "near": { "east": 186.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "124f130aa2faae65"
+              "digest": "7fc25314b6ba0960"
             },
             {
               "yaw": 3.142,
@@ -3030,7 +3030,7 @@
               "first": "east",
               "firstT": 72.2,
               "near": { "east": 61.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "708f93794bc22839"
+              "digest": "2821d3468e183055"
             },
             {
               "yaw": 4.712,
@@ -3038,7 +3038,7 @@
               "first": "east",
               "firstT": 72.1,
               "near": { "east": 99.4, "north": 0, "west": 0, "south": 0 },
-              "digest": "9b88519d0445691d"
+              "digest": "efb88c6c44b021f1"
             }
           ],
           "stored": [
@@ -3048,7 +3048,7 @@
               "first": "east",
               "firstT": 71.6,
               "near": { "east": 185.7, "north": 0, "west": 0, "south": 0 },
-              "digest": "a43b143d1c637b69"
+              "digest": "1878979a1968b7b0"
             },
             {
               "yaw": 1.571,
@@ -3056,7 +3056,7 @@
               "first": "east",
               "firstT": 71.6,
               "near": { "east": 186.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "124f130aa2faae65"
+              "digest": "7fc25314b6ba0960"
             },
             {
               "yaw": 3.142,
@@ -3064,7 +3064,7 @@
               "first": "east",
               "firstT": 72.2,
               "near": { "east": 61.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "708f93794bc22839"
+              "digest": "2821d3468e183055"
             },
             {
               "yaw": 4.712,
@@ -3072,7 +3072,7 @@
               "first": "east",
               "firstT": 72.1,
               "near": { "east": 99.4, "north": 0, "west": 0, "south": 0 },
-              "digest": "9b88519d0445691d"
+              "digest": "efb88c6c44b021f1"
             }
           ],
           "replay": [
@@ -3082,7 +3082,7 @@
               "first": "east",
               "firstT": 71.6,
               "near": { "east": 185.7, "north": 0, "west": 0, "south": 0 },
-              "digest": "a43b143d1c637b69"
+              "digest": "1878979a1968b7b0"
             },
             {
               "yaw": 1.571,
@@ -3090,7 +3090,7 @@
               "first": "east",
               "firstT": 71.6,
               "near": { "east": 186.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "124f130aa2faae65"
+              "digest": "7fc25314b6ba0960"
             },
             {
               "yaw": 3.142,
@@ -3098,7 +3098,7 @@
               "first": "east",
               "firstT": 72.2,
               "near": { "east": 61.9, "north": 0, "west": 0, "south": 0 },
-              "digest": "708f93794bc22839"
+              "digest": "2821d3468e183055"
             },
             {
               "yaw": 4.712,
@@ -3106,7 +3106,7 @@
               "first": "east",
               "firstT": 72.1,
               "near": { "east": 99.4, "north": 0, "west": 0, "south": 0 },
-              "digest": "9b88519d0445691d"
+              "digest": "efb88c6c44b021f1"
             }
           ],
           "erased": [
@@ -3116,7 +3116,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "5b613088bf80aa3f"
+              "digest": "af994b2daf4b610a"
             },
             {
               "yaw": 1.571,
@@ -3124,7 +3124,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "82e7dcc92be935bd"
+              "digest": "f4722bccbfcdfed3"
             },
             {
               "yaw": 3.142,
@@ -3132,7 +3132,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "19599f7693eddc76"
+              "digest": "03f37867f103c652"
             },
             {
               "yaw": 4.712,
@@ -3140,7 +3140,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "51fdcfb397890b1a"
+              "digest": "eb50141267e6e131"
             }
           ],
           "genesis": [
@@ -3150,7 +3150,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -3158,7 +3158,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -3166,7 +3166,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -3174,7 +3174,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -3188,7 +3188,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56296,
+        "checkpointBytes": 56599,
         "probes": {
           "self": [
             {
@@ -3197,7 +3197,7 @@
               "first": "west",
               "firstT": 62.7,
               "near": { "east": 0, "north": 0, "west": 50.9, "south": 0 },
-              "digest": "0525aacd06e601ba"
+              "digest": "32c6ccaa22df4282"
             },
             {
               "yaw": 1.571,
@@ -3205,7 +3205,7 @@
               "first": "west",
               "firstT": 62.3,
               "near": { "east": 0, "north": 0, "west": 34.6, "south": 0 },
-              "digest": "127ece59abe1738b"
+              "digest": "e8856d90fa58d48e"
             },
             {
               "yaw": 3.142,
@@ -3213,7 +3213,7 @@
               "first": "west",
               "firstT": 62.1,
               "near": { "east": 0, "north": 0, "west": 34.6, "south": 0 },
-              "digest": "91576cf9895bd7e4"
+              "digest": "b43237790ec6a62b"
             },
             {
               "yaw": 4.712,
@@ -3221,7 +3221,7 @@
               "first": "west",
               "firstT": 62.6,
               "near": { "east": 0, "north": 0, "west": 34.7, "south": 0 },
-              "digest": "49dfc76f376551d1"
+              "digest": "9ccabb997297d5b8"
             }
           ],
           "stored": [
@@ -3231,7 +3231,7 @@
               "first": "west",
               "firstT": 62.7,
               "near": { "east": 0, "north": 0, "west": 50.9, "south": 0 },
-              "digest": "0525aacd06e601ba"
+              "digest": "32c6ccaa22df4282"
             },
             {
               "yaw": 1.571,
@@ -3239,7 +3239,7 @@
               "first": "west",
               "firstT": 62.3,
               "near": { "east": 0, "north": 0, "west": 34.6, "south": 0 },
-              "digest": "127ece59abe1738b"
+              "digest": "e8856d90fa58d48e"
             },
             {
               "yaw": 3.142,
@@ -3247,7 +3247,7 @@
               "first": "west",
               "firstT": 62.1,
               "near": { "east": 0, "north": 0, "west": 34.6, "south": 0 },
-              "digest": "91576cf9895bd7e4"
+              "digest": "b43237790ec6a62b"
             },
             {
               "yaw": 4.712,
@@ -3255,7 +3255,7 @@
               "first": "west",
               "firstT": 62.6,
               "near": { "east": 0, "north": 0, "west": 34.7, "south": 0 },
-              "digest": "49dfc76f376551d1"
+              "digest": "9ccabb997297d5b8"
             }
           ],
           "replay": [
@@ -3265,7 +3265,7 @@
               "first": "west",
               "firstT": 62.7,
               "near": { "east": 0, "north": 0, "west": 50.9, "south": 0 },
-              "digest": "0525aacd06e601ba"
+              "digest": "32c6ccaa22df4282"
             },
             {
               "yaw": 1.571,
@@ -3273,7 +3273,7 @@
               "first": "west",
               "firstT": 62.3,
               "near": { "east": 0, "north": 0, "west": 34.6, "south": 0 },
-              "digest": "127ece59abe1738b"
+              "digest": "e8856d90fa58d48e"
             },
             {
               "yaw": 3.142,
@@ -3281,7 +3281,7 @@
               "first": "west",
               "firstT": 62.1,
               "near": { "east": 0, "north": 0, "west": 34.6, "south": 0 },
-              "digest": "91576cf9895bd7e4"
+              "digest": "b43237790ec6a62b"
             },
             {
               "yaw": 4.712,
@@ -3289,7 +3289,7 @@
               "first": "west",
               "firstT": 62.6,
               "near": { "east": 0, "north": 0, "west": 34.7, "south": 0 },
-              "digest": "49dfc76f376551d1"
+              "digest": "9ccabb997297d5b8"
             }
           ],
           "erased": [
@@ -3299,7 +3299,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "71b0b74cdda5911c"
+              "digest": "144f708b456cbc37"
             },
             {
               "yaw": 1.571,
@@ -3307,7 +3307,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "34a2fec1efe35b55"
+              "digest": "177da102317e4117"
             },
             {
               "yaw": 3.142,
@@ -3315,7 +3315,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "73b48f3919d4ba54"
+              "digest": "484523e29dff7b3e"
             },
             {
               "yaw": 4.712,
@@ -3323,7 +3323,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "7a8074205335acdb"
+              "digest": "783c256e2992a3b1"
             }
           ],
           "genesis": [
@@ -3333,7 +3333,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -3341,7 +3341,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -3349,7 +3349,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -3357,7 +3357,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -3371,7 +3371,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55958,
+        "checkpointBytes": 56261,
         "probes": {
           "self": [
             {
@@ -3380,7 +3380,7 @@
               "first": "east",
               "firstT": 188.8,
               "near": { "east": 111.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "2edf72c1eaf99720"
+              "digest": "a37c93710d76e272"
             },
             {
               "yaw": 1.571,
@@ -3388,7 +3388,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e0cbb3379371ffa3"
+              "digest": "12e6f2e524f6c64f"
             },
             {
               "yaw": 3.142,
@@ -3396,7 +3396,7 @@
               "first": "east",
               "firstT": 188.5,
               "near": { "east": 97.5, "north": 0, "west": 0, "south": 0 },
-              "digest": "bbe7f1e87443ff4f"
+              "digest": "270b372ea0d7fa42"
             },
             {
               "yaw": 4.712,
@@ -3404,7 +3404,7 @@
               "first": "west",
               "firstT": 177.1,
               "near": { "east": 0, "north": 0, "west": 0.6, "south": 0 },
-              "digest": "e48b07844aca8649"
+              "digest": "cd15445f29c72dc9"
             }
           ],
           "stored": [
@@ -3414,7 +3414,7 @@
               "first": "east",
               "firstT": 188.8,
               "near": { "east": 111.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "2edf72c1eaf99720"
+              "digest": "a37c93710d76e272"
             },
             {
               "yaw": 1.571,
@@ -3422,7 +3422,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e0cbb3379371ffa3"
+              "digest": "12e6f2e524f6c64f"
             },
             {
               "yaw": 3.142,
@@ -3430,7 +3430,7 @@
               "first": "east",
               "firstT": 188.5,
               "near": { "east": 97.5, "north": 0, "west": 0, "south": 0 },
-              "digest": "bbe7f1e87443ff4f"
+              "digest": "270b372ea0d7fa42"
             },
             {
               "yaw": 4.712,
@@ -3438,7 +3438,7 @@
               "first": "west",
               "firstT": 177.1,
               "near": { "east": 0, "north": 0, "west": 0.6, "south": 0 },
-              "digest": "e48b07844aca8649"
+              "digest": "cd15445f29c72dc9"
             }
           ],
           "replay": [
@@ -3448,7 +3448,7 @@
               "first": "east",
               "firstT": 188.8,
               "near": { "east": 111.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "2edf72c1eaf99720"
+              "digest": "a37c93710d76e272"
             },
             {
               "yaw": 1.571,
@@ -3456,7 +3456,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e0cbb3379371ffa3"
+              "digest": "12e6f2e524f6c64f"
             },
             {
               "yaw": 3.142,
@@ -3464,7 +3464,7 @@
               "first": "east",
               "firstT": 188.5,
               "near": { "east": 97.5, "north": 0, "west": 0, "south": 0 },
-              "digest": "bbe7f1e87443ff4f"
+              "digest": "270b372ea0d7fa42"
             },
             {
               "yaw": 4.712,
@@ -3472,7 +3472,7 @@
               "first": "west",
               "firstT": 177.1,
               "near": { "east": 0, "north": 0, "west": 0.6, "south": 0 },
-              "digest": "e48b07844aca8649"
+              "digest": "cd15445f29c72dc9"
             }
           ],
           "erased": [
@@ -3482,7 +3482,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c05cc91a91907348"
+              "digest": "58a70f72a641f7f0"
             },
             {
               "yaw": 1.571,
@@ -3490,7 +3490,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "752ba446347ccfeb"
+              "digest": "3236412bb5440210"
             },
             {
               "yaw": 3.142,
@@ -3498,7 +3498,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a0ec02244aa6c21e"
+              "digest": "8d691024a385f3df"
             },
             {
               "yaw": 4.712,
@@ -3506,7 +3506,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "565ee57ed4b14127"
+              "digest": "099fefd813e0b7d4"
             }
           ],
           "genesis": [
@@ -3516,7 +3516,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -3524,7 +3524,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -3532,7 +3532,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -3540,7 +3540,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -3554,7 +3554,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56149,
+        "checkpointBytes": 56452,
         "probes": {
           "self": [
             {
@@ -3563,7 +3563,7 @@
               "first": "west",
               "firstT": 70.6,
               "near": { "east": 0, "north": 0, "west": 30.5, "south": 0 },
-              "digest": "66340d11f55cf965"
+              "digest": "8a62824eaeac07d9"
             },
             {
               "yaw": 1.571,
@@ -3571,7 +3571,7 @@
               "first": "west",
               "firstT": 70.8,
               "near": { "east": 0, "north": 0, "west": 32.3, "south": 0 },
-              "digest": "c4f9db7f9b6a91b2"
+              "digest": "7475e5965de1ae71"
             },
             {
               "yaw": 3.142,
@@ -3579,7 +3579,7 @@
               "first": "west",
               "firstT": 71.6,
               "near": { "east": 0, "north": 0, "west": 28.8, "south": 21.2 },
-              "digest": "a5d36d347580e74d"
+              "digest": "27caea994578c9d4"
             },
             {
               "yaw": 4.712,
@@ -3587,7 +3587,7 @@
               "first": "west",
               "firstT": 71.1,
               "near": { "east": 0, "north": 0, "west": 30.6, "south": 0 },
-              "digest": "4ba471c3f186d12b"
+              "digest": "7f5c8a4a6be26e03"
             }
           ],
           "stored": [
@@ -3597,7 +3597,7 @@
               "first": "west",
               "firstT": 70.6,
               "near": { "east": 0, "north": 0, "west": 30.5, "south": 0 },
-              "digest": "66340d11f55cf965"
+              "digest": "8a62824eaeac07d9"
             },
             {
               "yaw": 1.571,
@@ -3605,7 +3605,7 @@
               "first": "west",
               "firstT": 70.8,
               "near": { "east": 0, "north": 0, "west": 32.3, "south": 0 },
-              "digest": "c4f9db7f9b6a91b2"
+              "digest": "7475e5965de1ae71"
             },
             {
               "yaw": 3.142,
@@ -3613,7 +3613,7 @@
               "first": "west",
               "firstT": 71.6,
               "near": { "east": 0, "north": 0, "west": 28.8, "south": 21.2 },
-              "digest": "a5d36d347580e74d"
+              "digest": "27caea994578c9d4"
             },
             {
               "yaw": 4.712,
@@ -3621,7 +3621,7 @@
               "first": "west",
               "firstT": 71.1,
               "near": { "east": 0, "north": 0, "west": 30.6, "south": 0 },
-              "digest": "4ba471c3f186d12b"
+              "digest": "7f5c8a4a6be26e03"
             }
           ],
           "replay": [
@@ -3631,7 +3631,7 @@
               "first": "west",
               "firstT": 70.6,
               "near": { "east": 0, "north": 0, "west": 30.5, "south": 0 },
-              "digest": "66340d11f55cf965"
+              "digest": "8a62824eaeac07d9"
             },
             {
               "yaw": 1.571,
@@ -3639,7 +3639,7 @@
               "first": "west",
               "firstT": 70.8,
               "near": { "east": 0, "north": 0, "west": 32.3, "south": 0 },
-              "digest": "c4f9db7f9b6a91b2"
+              "digest": "7475e5965de1ae71"
             },
             {
               "yaw": 3.142,
@@ -3647,7 +3647,7 @@
               "first": "west",
               "firstT": 71.6,
               "near": { "east": 0, "north": 0, "west": 28.8, "south": 21.2 },
-              "digest": "a5d36d347580e74d"
+              "digest": "27caea994578c9d4"
             },
             {
               "yaw": 4.712,
@@ -3655,7 +3655,7 @@
               "first": "west",
               "firstT": 71.1,
               "near": { "east": 0, "north": 0, "west": 30.6, "south": 0 },
-              "digest": "4ba471c3f186d12b"
+              "digest": "7f5c8a4a6be26e03"
             }
           ],
           "erased": [
@@ -3665,7 +3665,7 @@
               "first": "north",
               "firstT": 279.9,
               "near": { "east": 0, "north": 20.2, "west": 0, "south": 0 },
-              "digest": "8c2772d3da6e4fe9"
+              "digest": "5a59a1512e4a1c3e"
             },
             {
               "yaw": 1.571,
@@ -3673,7 +3673,7 @@
               "first": "west",
               "firstT": 279.9,
               "near": { "east": 0, "north": 0, "west": 20.2, "south": 0 },
-              "digest": "f024f8090f161e6a"
+              "digest": "966a8118db3af13e"
             },
             {
               "yaw": 3.142,
@@ -3681,7 +3681,7 @@
               "first": "south",
               "firstT": 279.9,
               "near": { "east": 0, "north": 0, "west": 0, "south": 20.2 },
-              "digest": "a06cb6923047169a"
+              "digest": "f4ce9064a6306b4f"
             },
             {
               "yaw": 4.712,
@@ -3689,7 +3689,7 @@
               "first": "east",
               "firstT": 279.9,
               "near": { "east": 20.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "0b48a1a76d1aafb9"
+              "digest": "efcdd7445a37562e"
             }
           ],
           "genesis": [
@@ -3699,7 +3699,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -3707,7 +3707,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -3715,7 +3715,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -3723,7 +3723,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -3737,7 +3737,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 55662,
+        "checkpointBytes": 55965,
         "probes": {
           "self": [
             {
@@ -3746,7 +3746,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c4a638239e7f4ea0"
+              "digest": "90763763d8fc1caf"
             },
             {
               "yaw": 1.571,
@@ -3754,7 +3754,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4742183e1989faff"
+              "digest": "dd0e67326920a5bd"
             },
             {
               "yaw": 3.142,
@@ -3762,7 +3762,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "88759157b790a2fc"
+              "digest": "8bbed329eb20be91"
             },
             {
               "yaw": 4.712,
@@ -3770,7 +3770,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "316e9eec6f5ea6f9"
+              "digest": "890e8da37d7daeec"
             }
           ],
           "stored": [
@@ -3780,7 +3780,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c4a638239e7f4ea0"
+              "digest": "90763763d8fc1caf"
             },
             {
               "yaw": 1.571,
@@ -3788,7 +3788,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4742183e1989faff"
+              "digest": "dd0e67326920a5bd"
             },
             {
               "yaw": 3.142,
@@ -3796,7 +3796,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "88759157b790a2fc"
+              "digest": "8bbed329eb20be91"
             },
             {
               "yaw": 4.712,
@@ -3804,7 +3804,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "316e9eec6f5ea6f9"
+              "digest": "890e8da37d7daeec"
             }
           ],
           "replay": [
@@ -3814,7 +3814,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "c4a638239e7f4ea0"
+              "digest": "90763763d8fc1caf"
             },
             {
               "yaw": 1.571,
@@ -3822,7 +3822,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4742183e1989faff"
+              "digest": "dd0e67326920a5bd"
             },
             {
               "yaw": 3.142,
@@ -3830,7 +3830,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "88759157b790a2fc"
+              "digest": "8bbed329eb20be91"
             },
             {
               "yaw": 4.712,
@@ -3838,7 +3838,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "316e9eec6f5ea6f9"
+              "digest": "890e8da37d7daeec"
             }
           ],
           "erased": [
@@ -3848,7 +3848,7 @@
               "first": "west",
               "firstT": 61.7,
               "near": { "east": 0, "north": 0, "west": 27.6, "south": 0 },
-              "digest": "02bb1a77d2e5f60e"
+              "digest": "9ab9619545c15cb1"
             },
             {
               "yaw": 1.571,
@@ -3856,7 +3856,7 @@
               "first": "south",
               "firstT": 61.7,
               "near": { "east": 0, "north": 0, "west": 0, "south": 27.6 },
-              "digest": "848ecb3576b09386"
+              "digest": "9604bf47497e52fb"
             },
             {
               "yaw": 3.142,
@@ -3864,7 +3864,7 @@
               "first": "east",
               "firstT": 61.7,
               "near": { "east": 27.6, "north": 0, "west": 0, "south": 0 },
-              "digest": "3ba68d090de7f0a1"
+              "digest": "89e458651dbb2925"
             },
             {
               "yaw": 4.712,
@@ -3872,7 +3872,7 @@
               "first": "north",
               "firstT": 61.7,
               "near": { "east": 0, "north": 27.6, "west": 0, "south": 0 },
-              "digest": "3af31008a2b8df38"
+              "digest": "1c6a1190b99794d2"
             }
           ],
           "genesis": [
@@ -3882,7 +3882,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -3890,7 +3890,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -3898,7 +3898,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -3906,7 +3906,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -3920,7 +3920,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56088,
+        "checkpointBytes": 56391,
         "probes": {
           "self": [
             {
@@ -3929,7 +3929,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "f8b76117e8186f46"
+              "digest": "ca54e6f4465af10d"
             },
             {
               "yaw": 1.571,
@@ -3937,7 +3937,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "fa5838fed09a57ba"
+              "digest": "02ae2a9231749a84"
             },
             {
               "yaw": 3.142,
@@ -3945,7 +3945,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4e1b8d4b543b718e"
+              "digest": "a627c3233c978d12"
             },
             {
               "yaw": 4.712,
@@ -3953,7 +3953,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e878076d54db6508"
+              "digest": "09bf8554f600350d"
             }
           ],
           "stored": [
@@ -3963,7 +3963,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "f8b76117e8186f46"
+              "digest": "ca54e6f4465af10d"
             },
             {
               "yaw": 1.571,
@@ -3971,7 +3971,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "fa5838fed09a57ba"
+              "digest": "02ae2a9231749a84"
             },
             {
               "yaw": 3.142,
@@ -3979,7 +3979,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4e1b8d4b543b718e"
+              "digest": "a627c3233c978d12"
             },
             {
               "yaw": 4.712,
@@ -3987,7 +3987,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e878076d54db6508"
+              "digest": "09bf8554f600350d"
             }
           ],
           "replay": [
@@ -3997,7 +3997,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "f8b76117e8186f46"
+              "digest": "ca54e6f4465af10d"
             },
             {
               "yaw": 1.571,
@@ -4005,7 +4005,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "fa5838fed09a57ba"
+              "digest": "02ae2a9231749a84"
             },
             {
               "yaw": 3.142,
@@ -4013,7 +4013,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "4e1b8d4b543b718e"
+              "digest": "a627c3233c978d12"
             },
             {
               "yaw": 4.712,
@@ -4021,7 +4021,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e878076d54db6508"
+              "digest": "09bf8554f600350d"
             }
           ],
           "erased": [
@@ -4031,7 +4031,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ed78e54e70ea37d4"
+              "digest": "d700c0c58978f3e6"
             },
             {
               "yaw": 1.571,
@@ -4039,7 +4039,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "0080400d03d46090"
+              "digest": "76631537f8097f5f"
             },
             {
               "yaw": 3.142,
@@ -4047,7 +4047,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bd82a236cf8cb71a"
+              "digest": "ee2bfaf34e664a7d"
             },
             {
               "yaw": 4.712,
@@ -4055,7 +4055,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b2677ba80272488e"
+              "digest": "e9846c47efa5101d"
             }
           ],
           "genesis": [
@@ -4065,7 +4065,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -4073,7 +4073,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -4081,7 +4081,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -4089,7 +4089,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -4103,7 +4103,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56174,
+        "checkpointBytes": 56477,
         "probes": {
           "self": [
             {
@@ -4112,7 +4112,7 @@
               "first": "east",
               "firstT": 182.3,
               "near": { "east": 4.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "ce8e88b7e2668923"
+              "digest": "012575dfbe029ec7"
             },
             {
               "yaw": 1.571,
@@ -4120,7 +4120,7 @@
               "first": "east",
               "firstT": 92.8,
               "near": { "east": 24.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "97384f01620229f5"
+              "digest": "1f3ecb207fa88070"
             },
             {
               "yaw": 3.142,
@@ -4128,7 +4128,7 @@
               "first": "east",
               "firstT": 93.1,
               "near": { "east": 28.5, "north": 0, "west": 0, "south": 0 },
-              "digest": "b3b575c964840d97"
+              "digest": "06c9e00325126020"
             },
             {
               "yaw": 4.712,
@@ -4136,7 +4136,7 @@
               "first": "east",
               "firstT": 93.9,
               "near": { "east": 28.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "d9ebed0a3f953a29"
+              "digest": "0c4c1cfbcad9aad3"
             }
           ],
           "stored": [
@@ -4146,7 +4146,7 @@
               "first": "east",
               "firstT": 182.3,
               "near": { "east": 4.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "ce8e88b7e2668923"
+              "digest": "012575dfbe029ec7"
             },
             {
               "yaw": 1.571,
@@ -4154,7 +4154,7 @@
               "first": "east",
               "firstT": 92.8,
               "near": { "east": 24.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "97384f01620229f5"
+              "digest": "1f3ecb207fa88070"
             },
             {
               "yaw": 3.142,
@@ -4162,7 +4162,7 @@
               "first": "east",
               "firstT": 93.1,
               "near": { "east": 28.5, "north": 0, "west": 0, "south": 0 },
-              "digest": "b3b575c964840d97"
+              "digest": "06c9e00325126020"
             },
             {
               "yaw": 4.712,
@@ -4170,7 +4170,7 @@
               "first": "east",
               "firstT": 93.9,
               "near": { "east": 28.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "d9ebed0a3f953a29"
+              "digest": "0c4c1cfbcad9aad3"
             }
           ],
           "replay": [
@@ -4180,7 +4180,7 @@
               "first": "east",
               "firstT": 182.3,
               "near": { "east": 4.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "ce8e88b7e2668923"
+              "digest": "012575dfbe029ec7"
             },
             {
               "yaw": 1.571,
@@ -4188,7 +4188,7 @@
               "first": "east",
               "firstT": 92.8,
               "near": { "east": 24.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "97384f01620229f5"
+              "digest": "1f3ecb207fa88070"
             },
             {
               "yaw": 3.142,
@@ -4196,7 +4196,7 @@
               "first": "east",
               "firstT": 93.1,
               "near": { "east": 28.5, "north": 0, "west": 0, "south": 0 },
-              "digest": "b3b575c964840d97"
+              "digest": "06c9e00325126020"
             },
             {
               "yaw": 4.712,
@@ -4204,7 +4204,7 @@
               "first": "east",
               "firstT": 93.9,
               "near": { "east": 28.2, "north": 0, "west": 0, "south": 0 },
-              "digest": "d9ebed0a3f953a29"
+              "digest": "0c4c1cfbcad9aad3"
             }
           ],
           "erased": [
@@ -4214,7 +4214,7 @@
               "first": "south",
               "firstT": 43.8,
               "near": { "east": 0, "north": 0, "west": 0, "south": 28.3 },
-              "digest": "51e54905128c7f6f"
+              "digest": "bdfa5aeb44f189ed"
             },
             {
               "yaw": 1.571,
@@ -4222,7 +4222,7 @@
               "first": "east",
               "firstT": 43.8,
               "near": { "east": 28.3, "north": 0, "west": 0, "south": 0 },
-              "digest": "bd2ba81c33a0d718"
+              "digest": "161a58e99bf56dc5"
             },
             {
               "yaw": 3.142,
@@ -4230,7 +4230,7 @@
               "first": "north",
               "firstT": 43.8,
               "near": { "east": 0, "north": 28.3, "west": 0, "south": 0 },
-              "digest": "874f083626ddfa67"
+              "digest": "8d1358e0ee675d37"
             },
             {
               "yaw": 4.712,
@@ -4238,7 +4238,7 @@
               "first": "west",
               "firstT": 43.8,
               "near": { "east": 0, "north": 0, "west": 28.3, "south": 0 },
-              "digest": "3d057b8ffb7341ea"
+              "digest": "4e6cd847dbe5a7b6"
             }
           ],
           "genesis": [
@@ -4248,7 +4248,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -4256,7 +4256,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -4264,7 +4264,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -4272,7 +4272,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }
@@ -4286,7 +4286,7 @@
         "remembered": 1,
         "storedIsSelf": true,
         "replayIsSelf": true,
-        "checkpointBytes": 56010,
+        "checkpointBytes": 56313,
         "probes": {
           "self": [
             {
@@ -4295,7 +4295,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e6c6d37349fc898e"
+              "digest": "23f1e0ba47245d78"
             },
             {
               "yaw": 1.571,
@@ -4303,7 +4303,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b00dc20b4e845d28"
+              "digest": "95e32862e724431a"
             },
             {
               "yaw": 3.142,
@@ -4311,7 +4311,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ca6d6fbf24dcea93"
+              "digest": "659e069b2d8b5dde"
             },
             {
               "yaw": 4.712,
@@ -4319,7 +4319,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3409eb90f37b8d81"
+              "digest": "55f535fb1c105c99"
             }
           ],
           "stored": [
@@ -4329,7 +4329,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e6c6d37349fc898e"
+              "digest": "23f1e0ba47245d78"
             },
             {
               "yaw": 1.571,
@@ -4337,7 +4337,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b00dc20b4e845d28"
+              "digest": "95e32862e724431a"
             },
             {
               "yaw": 3.142,
@@ -4345,7 +4345,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ca6d6fbf24dcea93"
+              "digest": "659e069b2d8b5dde"
             },
             {
               "yaw": 4.712,
@@ -4353,7 +4353,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3409eb90f37b8d81"
+              "digest": "55f535fb1c105c99"
             }
           ],
           "replay": [
@@ -4363,7 +4363,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "e6c6d37349fc898e"
+              "digest": "23f1e0ba47245d78"
             },
             {
               "yaw": 1.571,
@@ -4371,7 +4371,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "b00dc20b4e845d28"
+              "digest": "95e32862e724431a"
             },
             {
               "yaw": 3.142,
@@ -4379,7 +4379,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ca6d6fbf24dcea93"
+              "digest": "659e069b2d8b5dde"
             },
             {
               "yaw": 4.712,
@@ -4387,7 +4387,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "3409eb90f37b8d81"
+              "digest": "55f535fb1c105c99"
             }
           ],
           "erased": [
@@ -4397,7 +4397,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "fcba7f5d73069049"
+              "digest": "e9980aed18d1b2ea"
             },
             {
               "yaw": 1.571,
@@ -4405,7 +4405,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "a99913dbd112a841"
+              "digest": "2f84c98e196bf422"
             },
             {
               "yaw": 3.142,
@@ -4413,7 +4413,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "843b3294724b44b9"
+              "digest": "003492d407628beb"
             },
             {
               "yaw": 4.712,
@@ -4421,7 +4421,7 @@
               "first": "north",
               "firstT": 193.5,
               "near": { "east": 0, "north": 106.6, "west": 0, "south": 0 },
-              "digest": "9b008223b5fc947e"
+              "digest": "43e359c8c48e17ef"
             }
           ],
           "genesis": [
@@ -4431,7 +4431,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "bec3c7a89ed4efde"
+              "digest": "b9132aa7d4115683"
             },
             {
               "yaw": 1.571,
@@ -4439,7 +4439,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "385b1f1e66ff77a3"
+              "digest": "7bdbbd576fc3776b"
             },
             {
               "yaw": 3.142,
@@ -4447,7 +4447,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "ba9409a24fbcc816"
+              "digest": "449c5807968b30ad"
             },
             {
               "yaw": 4.712,
@@ -4455,7 +4455,7 @@
               "first": null,
               "firstT": null,
               "near": { "east": 0, "north": 0, "west": 0, "south": 0 },
-              "digest": "89be6ea307f57b25"
+              "digest": "5052271863472c78"
             }
           ]
         }

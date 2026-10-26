@@ -166,6 +166,8 @@ const DETOUR_S = 3;
 const SCENT_BOUT_S = 20;
 /** A fly looking for shade to land in flies on until its flight has lasted this long (s). */
 const SHADE_SEARCH_S = 40;
+/** Air going by at this share of `maxAirspeedCmS` or more: the wind outpaces the wings. */
+const OUTPACED_SHARE = 0.95;
 
 export class ReducedOrderController implements FlyNeuralAdapter {
   readonly descriptor = REDUCED_ORDER_DESCRIPTOR;
@@ -326,6 +328,13 @@ export class ReducedOrderController implements FlyNeuralAdapter {
     const drive = 1 + P.starvedActivityGain * hunger;
     const canFly = body.reserve >= P.flightReserveFloor;
     const activity = CLAMP(frame.light, P.activityFloor, 1);
+    // Wind felt at the antennae keeps a standing fly down: past `windFeltMS`
+    // voluntary takeoffs grow rarer (a model choice; 1 in still air).
+    const calm =
+      frame.airflow > P.windFeltMS
+        ? Math.exp(-(frame.airflow - P.windFeltMS) / P.windTakeoffMS)
+        : 1;
+    const takeoffHz = P.takeoffHz * activity * drive * calm;
     // The extent's tether and phototaxis: steering terms shared by walking and flight.
     const { away, toward } = outsideExtent(body.home, body.p[0], body.p[2]);
     const homeBearing = wrapAngle(
@@ -364,13 +373,15 @@ export class ReducedOrderController implements FlyNeuralAdapter {
       }
       case "rest": {
         if (body.onFood && hungry) return this.startMeal(body, frame, P);
-        if (canFly && this.hazard(P.takeoffHz * activity * drive, dt))
+        if (canFly && this.hazard(takeoffHz, dt))
           return this.takeoff(
             body,
             P,
             wrapAngle(body.yaw + (this.rng() - 0.5) * 0.6),
             hungry,
-            "spontaneous takeoff (rate × light level)",
+            calm < 1
+              ? "spontaneous takeoff (rate × light level × the wind felt)"
+              : "spontaneous takeoff (rate × light level)",
           );
         if (this.hazard(P.groomHz, dt)) {
           const site = this.weighted(GROOM_START);
@@ -421,13 +432,15 @@ export class ReducedOrderController implements FlyNeuralAdapter {
       }
       case "walk": {
         if (body.onFood && hungry) return this.startMeal(body, frame, P);
-        if (canFly && this.hazard(P.takeoffHz * activity * drive, dt))
+        if (canFly && this.hazard(takeoffHz, dt))
           return this.takeoff(
             body,
             P,
             body.yaw,
             hungry,
-            "spontaneous takeoff while walking",
+            calm < 1
+              ? "spontaneous takeoff while walking (in the wind felt)"
+              : "spontaneous takeoff while walking",
           );
         if (this.hazard(P.walkStopHz, dt))
           return { mode: "rest", reason: "walking bout ends" };
@@ -471,6 +484,10 @@ export class ReducedOrderController implements FlyNeuralAdapter {
       case "flight": {
         // A hungry fly that smells food gives up a long flight and follows the odour.
         if (scenting && S.nav.goal) S.nav.goal = null;
+        // Air going by at its top air speed: the wind outpaces it, and it
+        // lands where it can (a model choice; never in a world without wind).
+        const outpaced = frame.airflow >= OUTPACED_SHARE * (P.maxAirspeedCmS / 100);
+        if (outpaced && S.nav.goal) S.nav.goal = null;
         const goal = S.nav.goal;
         const steer = nav.steer(body.yaw, body.t);
         // In food odour a flight bout runs on to the longest bout the body draws.
@@ -520,11 +537,15 @@ export class ReducedOrderController implements FlyNeuralAdapter {
             }
           }
         } else if (
-          (boutOver || (scenting && input.sites.some((x) => x.food))) &&
+          (boutOver || outpaced || (scenting && input.sites.some((x) => x.food))) &&
           body.t >= S.landRetryAt
         ) {
           const choice = this.pickSite(input, hungry);
-          if (choice) return choice;
+          if (choice) {
+            if (outpaced && !boutOver)
+              choice.reason = `the wind outpaces its wings: ${choice.reason}`;
+            return choice;
+          }
         }
         // A bout over, and no landing yet: looking for shade, toward any the eyes see.
         const shadeAt = !goal && boutOver && S.seekShade ? frame.shadeBearing : null;

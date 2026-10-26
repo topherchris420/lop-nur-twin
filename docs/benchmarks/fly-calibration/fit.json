@@ -1,6 +1,6 @@
 {
   "schema": "fly-calibration-fit/v1",
-  "flyVersion": "digital-fly/7",
+  "flyVersion": "digital-fly/8",
   "controller": "circuit-informed/v1",
   "giantFiber": {
     "method": "Each trial run once with the giant fiber silenced, recording the peak modelled potential up to the wing raise; expected short-mode share per (median, spread) = mean of Φ(ln(peak/median)/spread); binomial negative log-likelihood of the three counts minimized over the grid; the optimum run again in full and every trial's mode checked against its prediction.",

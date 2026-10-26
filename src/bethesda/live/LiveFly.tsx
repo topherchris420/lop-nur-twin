@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus } from "lucide-react";
-import type { LifeObservation, Witness } from "../life/observation";
+import type { LifeObservation, ObservedWeather, Witness } from "../life/observation";
 import { NEARBY_M } from "../life/observation";
 import {
   buildings,
@@ -252,6 +252,32 @@ function nearestPlace(p: Point): { name: string; m: number } | null {
   return best && best.m < 400 ? best : null;
 }
 
+const COMPASS = [
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
+];
+
+/** "breezy, 2.6 m/s from the WNW at 10 m, gusting; 0.8 m/s where the fly is" */
+function windWords(w: ObservedWeather): string {
+  const from = COMPASS[Math.round(w.fromDeg / 22.5) % 16];
+  const regime = w.regime === "storm" ? "stormy" : w.regime;
+  return `${regime[0]!.toUpperCase()}${regime.slice(1)}: ${w.speedMS.toFixed(1)} m/s from the ${from} at 10 m${w.gusting ? ", gusting" : ""}; ${w.atFlyMS.toFixed(1)} m/s where the fly is.`;
+}
+
 function Now({ o }: { o: LifeObservation }) {
   const [x, , z] = o.fly.position;
   const speed = Math.hypot(...o.fly.velocity);
@@ -301,6 +327,9 @@ function Now({ o }: { o: LifeObservation }) {
           ? `Within ${NEARBY_M} m: ${around}.`
           : `Nobody outdoors within ${NEARBY_M} m.`}
       </p>
+      {o.weather ? (
+        <p className="text-muted-foreground text-sm">Wind. {windWords(o.weather)}</p>
+      ) : null}
     </Section>
   );
 }
@@ -558,6 +587,30 @@ function WitnessMap({
       c.font = "10px ui-monospace, monospace";
       c.fillText(`${bar} m`, 14, h - 26);
       c.fillText("N ↑", w - 34, 52);
+      // The wind at 10 m: an arrow the way it blows.
+      const wind = o?.weather;
+      if (wind) {
+        const b = (wind.fromDeg * Math.PI) / 180;
+        const [ux, uz] = [-Math.sin(b), Math.cos(b)];
+        const [ax, az] = [w - 30, 78];
+        c.strokeStyle = "rgba(170, 205, 220, 0.85)";
+        c.fillStyle = "rgba(170, 205, 220, 0.85)";
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(ax - ux * 10, az - uz * 10);
+        c.lineTo(ax + ux * 10, az + uz * 10);
+        c.stroke();
+        c.beginPath();
+        c.moveTo(ax + ux * 12, az + uz * 12);
+        c.lineTo(ax + ux * 5 - uz * 4, az + uz * 5 + ux * 4);
+        c.lineTo(ax + ux * 5 + uz * 4, az + uz * 5 - ux * 4);
+        c.closePath();
+        c.fill();
+        c.textAlign = "right";
+        c.fillText(`${wind.speedMS.toFixed(1)} m/s`, w - 14, 104);
+        if (wind.gusting) c.fillText("gust", w - 14, 116);
+        c.textAlign = "left";
+      }
     };
     draw();
     return () => cancelAnimationFrame(frame);
