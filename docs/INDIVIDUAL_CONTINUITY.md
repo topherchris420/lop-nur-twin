@@ -95,9 +95,11 @@ restored life beside the uninterrupted one and compare at several intervals
 - the whole city with its fly, under both the reduced-order and the ECHO
   controller, compared at 1, 11, 111 and 611 ticks later.
 
-All match byte for byte. A city checkpoint is 8–17 MB (most of it the city's
-bounded 30-minute decision window and the fly's per-instance copy of the
-city's geometry); a yard fly's is about 56 KB.
+All match byte for byte. A city checkpoint grows from 8 MB at birth to 84 MB,
+where it stops once the city's decision record holds its 60,000 decisions
+(`REPLAY_LIMITS`), after about 41 simulated hours; most of it is that record
+and the fly's per-instance copy of the city's geometry. A yard fly's is about
+56 KB.
 
 ### Identity is a birth, and a copy is someone else
 

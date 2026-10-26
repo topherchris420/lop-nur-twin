@@ -10,12 +10,12 @@ position, physiological reserve, navigation memory, or lived history.
 This is a research-simulation continuity requirement, **not consciousness**.
 The fly remains a reduced-order behavioural controller, not a neural simulation.
 
-## Status: durable on one machine, not deployed
+## Status: durable on one machine, packaged for one VM, not deployed
 
 `src/bethesda/life/headless.ts` supplies a headless deterministic runner of
 the existing `CitySimulation` and `CityFly`. It needs no browser and creates
 only one fly per process. `scripts/bethesda-life-headless.ts --ticks 100`
-exercises a finite run; `--continuous` is development-only.
+exercises a finite run; without `--store`, `--continuous` is development-only.
 
 With `--store DIR` the life is one individual kept in a directory
 ([individual continuity](INDIVIDUAL_CONTINUITY.md)): `--create` gives it a
@@ -23,25 +23,235 @@ birth (a host-drawn nonce, so a second store from the same genesis is a
 second individual), and every later run takes the single-writer lease,
 restores the newest checkpoint, verifies it, lives on, and commits a sealed
 checkpoint every five simulated minutes, each restored and re-checked before
-it is committed. `--verify` checks the whole chain. A process killed between
-checkpoints loses only the uncommitted ticks, which are not claimed; once its lease lapses (60 s) the next
-run resumes from the last committed checkpoint.
+it is committed. `--verify` checks the whole chain; `--check` also restores
+the head in memory, as a resume would, without the lease and without writing.
+A process killed between checkpoints loses only the uncommitted ticks, which
+are not claimed; once its lease lapses (60 s) the next run resumes from the
+last committed checkpoint.
 
-**Do not configure an always-on cloud worker yet.** The store is a local
-directory, not a transactional database, and there is no observer API.
-Browser visits still run their existing local city and fly. There is no
-visitor-facing shared fly yet.
+`deploy/bethesda-life/` runs it as one always-on worker on one Ubuntu
+machine ([below](#running-it-on-one-vm)): a systemd service that resumes the
+same individual after a crash or a reboot, its store on the boot volume and
+its status lines in the journal. That is one machine, not the production
+service: the store is a local directory, not a transactional database; there
+is no observer API, so nothing but the journal sees the life; and browser
+visits still run their own local city and fly. There is no visitor-facing
+shared fly yet.
 
-| Criterion                      | Status                                                                                                                                                                                                                                                                                                                                 |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Durable clock and snapshots | **Met on a filesystem.** `snapshot.ts` records the whole object graph of city and fly (every random stream's position, pending sensory frames, controller and navigation state, people), versioned by city, fly, ECHO and headless schema; sealed by SHA-256; written atomically. Older or newer versions are refused.                 |
-| 2. Crash recovery              | **Met in tests.** Restores are re-snapshotted and compared byte for byte, then stepped beside the uninterrupted life and compared at several intervals: the city with both controllers, and the fly in flight, landing, grooming and feeding. Corruption stops with the reason. A swat in progress has not been captured specifically. |
-| 3. One writer                  | **Met on one machine.** An expiring lease, one file per epoch created exclusively; a replaced writer is fenced; a second continuation of a checkpoint is refused as a fork, never merged. Not a database lock; blue-green deployment untested.                                                                                         |
-| 4. Wall-clock policy           | **Met: paused during outage.** A resumed life records a `gap` event (stopped, resumed, UTC) and computes no catch-up ticks.                                                                                                                                                                                                            |
-| 5. Bounded histories           | **Partly.** The city's replay windows are already bounded (`REPLAY_LIMITS`), so a checkpoint is bounded (about 8–17 MB, most of it the decision window and the fly's static city geometry); only the newest four keep their graphs. The chain of headers and life events grows by about a kilobyte per checkpoint and is not rotated.  |
-| 6. Read-only observer API      | Not started.                                                                                                                                                                                                                                                                                                                           |
-| 7. Visitor integration         | Not started.                                                                                                                                                                                                                                                                                                                           |
-| 8. Operations                  | Not started; nothing is provisioned.                                                                                                                                                                                                                                                                                                   |
+| Criterion                      | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Durable clock and snapshots | **Met on a filesystem.** `snapshot.ts` records the whole object graph of city and fly (every random stream's position, pending sensory frames, controller and navigation state, people), versioned by city, fly, ECHO and headless schema; sealed by SHA-256; written atomically. Older or newer versions are refused.                                                                                                                                                                                                                                                                                                      |
+| 2. Crash recovery              | **Met in tests.** Restores are re-snapshotted and compared byte for byte, then stepped beside the uninterrupted life and compared at several intervals: the city with both controllers, and the fly in flight, landing, grooming and feeding. Corruption stops with the reason. A swat in progress has not been captured specifically.                                                                                                                                                                                                                                                                                      |
+| 3. One writer                  | **Met on one machine.** An expiring lease, one file per epoch created exclusively; a replaced writer is fenced; a second continuation of a checkpoint is refused as a fork, never merged. Not a database lock; blue-green deployment untested.                                                                                                                                                                                                                                                                                                                                                                              |
+| 4. Wall-clock policy           | **Met: paused during outage.** A resumed life records a `gap` event (stopped, resumed, UTC) and computes no catch-up ticks.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 5. Bounded histories           | **Partly.** A checkpoint is bounded only by the city's replay limits (`REPLAY_LIMITS`), which are counts, not a sliding window: it grows from 8 MB at birth to 84 MB when the decision record reaches 60,000 decisions, after about 41 simulated hours, and then stops (measured; [below](#what-the-machine-needs)). Most of it is that record and the fly's static city geometry. Only the newest four keep their graphs. The chain of headers and life events grows by about a kilobyte per checkpoint (about 300 KB a day) and is not rotated.                                                                           |
+| 6. Read-only observer API      | Not started.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 7. Visitor integration         | Not started.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 8. Operations                  | **Partly: packaged for one VM, not deployed.** `deploy/bethesda-life/` installs a hardened systemd service (restarted after a crash once the lease lapses, started at boot, checkpointed on stop, logged to the journal), a checksum-pinned Node, upgrades and rollbacks that switch only after the new release restores the head, and backups kept only if they restore. Not done: a transactional database, health checks beyond systemd's, spend limits, automatic off-machine backups, blue-green deployment (an upgrade pauses the life), and forced termination tested on a VM. The scripts have not yet run on a VM. |
+
+## Running it on one VM
+
+`deploy/bethesda-life/` runs the durable life as one always-on systemd
+service on one Ubuntu 24.04 machine, x86_64 or Arm:
+
+- **`install.sh`** installs a pinned Node (24.22.1, checked against its
+  SHA-256), copies the runner and `src/` from the checkout's HEAD commit
+  into `/opt/bethesda-life/releases/<commit>` with the locked production
+  dependencies, installs the unit and starts it. `--create` first runs a
+  throwaway trial life on the machine and then gives the individual its
+  birth. Without it the script upgrades: it stops the service, which commits
+  a last checkpoint, checks that the new release can resume the individual,
+  and only then switches to it; if not, it starts the old release again and
+  changes nothing. `--rollback` goes back one release, after the same check.
+- **`bethesda-life.service`** runs
+  `bethesda-life-headless.ts --store /var/lib/bethesda-life/store --continuous`
+  as the unprivileged user `bethesda-life`, with the store on the boot volume
+  and its status lines (one a minute) and errors in the journal. It starts
+  at boot. Whenever the process stops it is started again 75 s later, once a
+  dead writer's 60 s lease has lapsed, and it never gives up. On
+  `systemctl stop` or a shutdown it commits a last checkpoint and releases
+  the lease. It has no network, holds no capability and can write only its
+  store.
+- **`backup.sh`** archives the store while the life runs and keeps the
+  archive only if an unpacked copy passes `--check`.
+
+Every stop is an outage: the next start records a `gap` and computes no
+catch-up ticks, so an upgrade, a backup restore or a reboot pauses the life
+openly.
+
+### What the machine needs
+
+Measured on the development laptop (Node 24.19, arm64) with the headless
+default city (`PROFILES[1]`) and the reduced-order fly. Not yet measured on a
+VM.
+
+**The checkpoint grows for about two simulated days.** The city's replay
+limits (`REPLAY_LIMITS`) are counts, not a sliding window: its decision
+record grows from birth until it holds 60,000 decisions and then stops
+recording. So does the checkpoint:
+
+| The life's age | Tick      | Checkpoint |
+| -------------- | --------- | ---------- |
+| birth          | 0         | 8.2 MB     |
+| 10 minutes     | 6,000     | 15.8 MB    |
+| 100 minutes    | 60,000    | 33.8 MB    |
+| 5 hours        | 180,000   | 42.3 MB    |
+| 40.7 hours     | 1,464,000 | 83.8 MB    |
+| beyond         |           | 83.8 MB    |
+
+**Memory is several times the checkpoint.** A resume parses the chain and
+restores the head into a life rebuilt from its genesis; every new checkpoint
+is snapshotted, serialized, hashed, restored into another life and compared
+byte for byte while the living one waits. The smallest V8 heap that survives
+a resume and one verified checkpoint:
+
+| Checkpoint             | Fails at      | Works at | Peak resident memory |
+| ---------------------- | ------------- | -------- | -------------------- |
+| 25 MB (35 minutes old) | 512 MB heap   | 768 MB   | 0.94 GB              |
+| 84 MB (full-grown)     | 1,792 MB heap | 2,048 MB | 2.35 GB              |
+
+The service sets a 2,560 MB heap. Living full-grown under it with
+`--continuous`, a checkpoint committed in real time and the process peaked
+at 3.2 GB resident. `--check` alone needs less (it passes with a 1,536 MB
+heap at 1.9 GB resident), but `backup.sh` runs one beside the living life.
+With Ubuntu's own share, `install.sh` refuses a machine with less than
+7,000 MB of memory: an 8 GB machine.
+
+**So the 1 GB `VM.Standard.E2.1.Micro` cannot hold it**: a 35-minute-old
+life already peaks at nearly its whole memory, before Ubuntu's share, and a
+full-grown one needs more than three times that. Swap is no substitute: the
+garbage collector walks the live heap. On Oracle's Always Free tier the fit
+is `VM.Standard.A1.Flex` (Arm), whose allowance is 2 OCPUs and 12 GB in all:
+1 OCPU and 8 GB.
+
+**CPU is light but bursty.** A tick costs about 0.7 ms (under 1% of a core
+at ten a second). A full-grown checkpoint blocks the clock for 17.5–18.6 s
+(3.3–3.7 s to make it, 10.3–10.6 s to restore and compare it, 3.9–4.6 s to
+write it and drop an old graph), every five minutes: about 6% of a core on
+average. A resume takes 14–25 s: 11 s to restore the head, and 3 s to check
+the chain with one full graph in it, more with the four a running store
+keeps. A cloud core can be two or three times slower than the laptop's,
+so the runner tolerates falling up to 1,800 ticks (three minutes) behind
+wall time and computes the missed ticks afterwards, and it renews its lease
+just before committing. A checkpoint that takes longer than the 60 s lease
+to make and verify would still fail the commit; on a 1/8-OCPU Micro it
+would.
+
+### Setup
+
+1. Make the VM: Ubuntu 24.04 with 8 GB of memory (on Oracle's Always Free
+   tier, `VM.Standard.A1.Flex` with 1 OCPU and 8 GB; not the 1 GB
+   `VM.Standard.E2.1.Micro`, above). It needs outbound HTTPS once, for Node
+   and npm; the service itself needs no network, and nothing listens.
+2. On the VM:
+
+   ```sh
+   sudo apt-get update && sudo apt-get install -y git
+   git clone https://github.com/topherchris420/lop-nur-twin.git
+   cd lop-nur-twin
+   sudo deploy/bethesda-life/install.sh --create
+   ```
+
+   It checks the memory, installs Node, builds the release, runs the trial
+   life (born, 3000 ticks, one verified checkpoint, deleted), gives the
+   individual its birth, starts the service and watches it for 90 s. Add
+   `--controller echo` for Project ECHO's controller.
+
+3. Watch it: `journalctl -u bethesda-life -f` (a status line a minute: tick,
+   hashes, the fly's position, mode, energy, meals) and
+   `systemctl status bethesda-life`. To check the whole chain at any time:
+
+   ```sh
+   cd /opt/bethesda-life/current && sudo runuser -u bethesda-life -- \
+     /opt/bethesda-life/node/bin/node scripts/run-ts.mjs \
+     scripts/bethesda-life-headless.ts --store /var/lib/bethesda-life/store --verify
+   ```
+
+### Upgrade
+
+```sh
+cd ~/lop-nur-twin && git pull --ff-only
+sudo deploy/bethesda-life/install.sh
+```
+
+It builds the new release beside the running one, stops the service, and
+runs `--check` with the new release. If the new release can resume the
+individual it switches to it and starts it; if it cannot, it starts the old
+release again and exits with the reason. `sudo deploy/bethesda-life/install.sh --rollback`
+returns to the previous release, after the same check. The two newest
+releases are kept.
+
+A checkpoint is refused by any other city, fly, ECHO, headless or graph
+version, so **a release that bumps any of those cannot continue this
+individual**, and `install.sh` says so (for example
+`checkpoint 0 is corrupt: made by fly digital-fly/7; this is digital-fly/8`).
+Either stay on the release that is running, or end this individual's life
+on this machine: stop the service, move the store aside and keep it (it is
+the individual's whole record), and run `install.sh --create` for a new
+individual on the new release. Never edit a checkpoint's versions to make it
+load.
+
+### Backup
+
+```sh
+sudo deploy/bethesda-life/backup.sh            # → /var/backups/bethesda-life/bethesda-life-<UTC>-<commit>.tar.gz
+ssh ubuntu@VM sudo cat /var/backups/bethesda-life/NAME.tar.gz > NAME.tar.gz   # from your own computer
+```
+
+The archive is taken while the life runs (every file in the store is
+published whole, so the copy holds the chain up to some checkpoint) and is
+kept only if an unpacked copy passes `--check` with the installed release.
+Its name carries the commit of the release that wrote it. `backup.sh` keeps
+every archive it makes; delete old ones yourself. Keep copies off the VM: an
+Always Free VM can be reclaimed (below), and a boot-volume backup in the
+console (five are free) is a second, whole-disk layer, not a substitute.
+
+A backup is this individual, not a copy of it. Restore one only in place of a
+store that is lost or broken, and never run it beside a store that still
+lives, on this machine or any other: two continuations of one individual
+are a fork that no lease can see.
+
+### Recovery
+
+| In `journalctl -u bethesda-life`                                          | What it means                                                          | What to do                                                                                                                                                                 |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `the lease is held by pid N (epoch E) until T`                            | A writer died without releasing its lease, less than 60 s ago.         | Nothing. The next restart, 75 s later, takes the lease.                                                                                                                    |
+| `Headless city fell N ticks behind wall time`                             | The life fell three minutes behind wall time: the machine is too slow. | It restarts itself, with a gap. If it repeats, the machine is too slow: move the life to a faster one (restore a backup there).                                            |
+| `the lease of epoch N expired at T`                                       | Making and verifying a checkpoint took longer than the 60 s lease.     | It restarts itself, with a gap. If it repeats, the machine is too slow, as above.                                                                                          |
+| `JavaScript heap out of memory`, or an `oom-kill` in `journalctl -k`      | The life outgrew its heap or the machine's memory.                     | If the machine has room, raise the heap in a drop-in (`sudo systemctl edit bethesda-life`: `Environment=NODE_OPTIONS=--max-old-space-size=…`); otherwise a larger machine. |
+| `checkpoint N is corrupt: …`, `does not continue …`, `restore refused: …` | The store failed its checks. Nothing starts in its place.              | Do not delete or edit it. Restore the newest backup that passes, as below.                                                                                                 |
+| `ENOENT … individual.json`, `holds no checkpoint`                         | The store is missing or empty.                                         | Restore a backup, as below, or birth a new individual with `install.sh --create`.                                                                                          |
+
+To restore a backup in place of a broken or lost store:
+
+```sh
+sudo systemctl stop bethesda-life
+sudo mv /var/lib/bethesda-life/store /var/lib/bethesda-life/store.broken-$(date -u +%Y%m%dT%H%M%SZ)   # keep it
+sudo tar -xzf bethesda-life-<UTC>-<commit>.tar.gz -C /var/lib/bethesda-life
+sudo chown -R bethesda-life:bethesda-life /var/lib/bethesda-life/store
+sudo deploy/bethesda-life/install.sh            # checks it resumes, then starts it
+```
+
+On a new machine, clone the repository, `git checkout` the commit in the
+archive's name (or any later one with the same versions), restore the store
+the same way, and run `install.sh` without `--create`. The life resumes from
+the backup's newest checkpoint with a `gap` from that checkpoint's commit
+time; whatever the lost store committed after the backup is lost with it and
+is not claimed.
+
+### Known limits
+
+- **Upgrades pause the life**, and a version bump ends it on this machine
+  (above). Blue-green deployment is untested.
+- **Starting and committing take longer as the life ages.** Opening the
+  store reads every checkpoint from birth, and each commit re-reads every
+  older header to drop graphs: 288 more files for every simulated day. Not
+  yet measured on a long chain.
+- **Oracle may reclaim an Always Free VM it deems idle**: 95th-percentile
+  CPU and network use under 20% for 7 days, and on A1 shapes memory use
+  too. The life uses little CPU and no network; keep backups off the VM
+  regardless.
+- **Nothing reads it but the journal.** There is no observer API (criterion 6) and no visitor integration (criterion 7).
 
 ## Production design and acceptance criteria
 
@@ -126,5 +336,7 @@ node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100 --controll
 node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --create
 node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --ticks 6000
 node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --verify
+node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --check
 npx vitest run src/bethesda/life
+bash -n deploy/bethesda-life/install.sh && bash -n deploy/bethesda-life/backup.sh
 ```
