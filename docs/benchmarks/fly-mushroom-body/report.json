@@ -1,0 +1,2780 @@
+{
+  "schema": "fly-mushroom-body-report/v1",
+  "study": "fly-mushroom-body-study/v1",
+  "fly": "digital-fly/7",
+  "genesis": { "seed": 119269, "startReserve": 0.5, "yaw": 0 },
+  "circuit": { "learningRate": 0.25, "mealReward": 1, "approachThreshold": 0.3 },
+  "c1": {
+    "individuals": 24,
+    "trainingMeals": [1, 3],
+    "trainingCapS": 3600,
+    "extinctionS": 3600,
+    "arms": {
+      "1": {
+        "reduced-order": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 2, "ci95": [2, 2] },
+          "fruitless": { "n": 24, "mean": 2, "ci95": [2, 2] },
+          "lastReturnS": { "n": 24, "mean": 863.4, "ci95": [676.1, 1048] },
+          "arrivals": { "n": 24, "mean": 4.792, "ci95": [3.417, 6.375] },
+          "stillDrawn": 0,
+          "value": { "n": 0, "mean": null, "ci95": null }
+        },
+        "mushroom-body": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 1, "ci95": [1, 1] },
+          "fruitless": { "n": 24, "mean": 1, "ci95": [1, 1] },
+          "lastReturnS": { "n": 24, "mean": 446.5, "ci95": [318.7, 581.5] },
+          "arrivals": { "n": 24, "mean": 3.417, "ci95": [2.25, 4.625] },
+          "stillDrawn": 0,
+          "value": { "n": 24, "mean": 0.232, "ci95": [0.2268, 0.2372] }
+        },
+        "mushroom-body, omission blocked": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 6.458, "ci95": [5.708, 7.25] },
+          "fruitless": { "n": 24, "mean": 6.458, "ci95": [5.667, 7.292] },
+          "lastReturnS": { "n": 24, "mean": 3078, "ci95": [2877, 3269] },
+          "arrivals": { "n": 24, "mean": 9.5, "ci95": [7.75, 11.08] },
+          "stillDrawn": 1,
+          "value": { "n": 24, "mean": 0.4645, "ci95": [0.4618, 0.4672] }
+        },
+        "one fruitless return": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 1, "ci95": [1, 1] },
+          "fruitless": { "n": 24, "mean": 1, "ci95": [1, 1] },
+          "lastReturnS": { "n": 24, "mean": 446.5, "ci95": [318.7, 581.5] },
+          "arrivals": { "n": 24, "mean": 3.667, "ci95": [2.375, 5.042] },
+          "stillDrawn": 0,
+          "value": { "n": 0, "mean": null, "ci95": null }
+        }
+      },
+      "3": {
+        "reduced-order": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 1.958, "ci95": [1.875, 2] },
+          "fruitless": { "n": 24, "mean": 1.958, "ci95": [1.875, 2] },
+          "lastReturnS": { "n": 24, "mean": 1108, "ci95": [875.5, 1371] },
+          "arrivals": { "n": 24, "mean": 6.042, "ci95": [3.958, 8.333] },
+          "stillDrawn": 0.04167,
+          "value": { "n": 0, "mean": null, "ci95": null }
+        },
+        "mushroom-body": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 1.958, "ci95": [1.875, 2] },
+          "fruitless": { "n": 24, "mean": 1.958, "ci95": [1.875, 2] },
+          "lastReturnS": { "n": 24, "mean": 1108, "ci95": [875.5, 1371] },
+          "arrivals": { "n": 24, "mean": 5.958, "ci95": [3.792, 8.25] },
+          "stillDrawn": 0.04167,
+          "value": { "n": 24, "mean": 0.2112, "ci95": [0.1984, 0.2323] }
+        },
+        "mushroom-body, omission blocked": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 6.167, "ci95": [5.292, 7.125] },
+          "fruitless": { "n": 24, "mean": 6.167, "ci95": [5.208, 7.125] },
+          "lastReturnS": { "n": 24, "mean": 2962, "ci95": [2753, 3152] },
+          "arrivals": { "n": 24, "mean": 9.917, "ci95": [7.833, 12.13] },
+          "stillDrawn": 1,
+          "value": { "n": 24, "mean": 0.8136, "ci95": [0.8087, 0.8185] }
+        },
+        "one fruitless return": {
+          "trained": 24,
+          "returns": { "n": 24, "mean": 1, "ci95": [1, 1] },
+          "fruitless": { "n": 24, "mean": 1, "ci95": [1, 1] },
+          "lastReturnS": { "n": 24, "mean": 710.9, "ci95": [469.9, 1005] },
+          "arrivals": { "n": 24, "mean": 4.458, "ci95": [2.792, 6.375] },
+          "stillDrawn": 0,
+          "value": { "n": 0, "mean": null, "ci95": null }
+        }
+      }
+    },
+    "contrasts": {
+      "mushroomBodyMinusBookkeeping": {
+        "1": {
+          "returns": { "n": 24, "mean": -1, "ci95": [-1, -1] },
+          "sign": { "up": 0, "down": 24, "p": 1.192e-7 }
+        },
+        "3": {
+          "returns": { "n": 24, "mean": 0, "ci95": [0, 0] },
+          "sign": { "up": 0, "down": 0, "p": null }
+        }
+      },
+      "blockedMinusMushroomBody": {
+        "1": {
+          "returns": { "n": 24, "mean": 5.458, "ci95": [4.708, 6.292] },
+          "sign": { "up": 24, "down": 0, "p": 1.192e-7 }
+        },
+        "3": {
+          "returns": { "n": 24, "mean": 4.208, "ci95": [3.292, 5.125] },
+          "sign": { "up": 23, "down": 0, "p": 2.384e-7 }
+        }
+      },
+      "threeMinusOneMeal": {
+        "reduced-order": {
+          "returns": { "n": 24, "mean": -0.04167, "ci95": [-0.125, 0] },
+          "sign": { "up": 0, "down": 1, "p": 1 }
+        },
+        "mushroom-body": {
+          "returns": { "n": 24, "mean": 0.9583, "ci95": [0.875, 1] },
+          "sign": { "up": 23, "down": 0, "p": 2.384e-7 }
+        },
+        "mushroom-body, omission blocked": {
+          "returns": { "n": 24, "mean": -0.2917, "ci95": [-1.417, 0.7083] },
+          "sign": { "up": 10, "down": 10, "p": 1 }
+        },
+        "one fruitless return": {
+          "returns": { "n": 24, "mean": 0, "ci95": [0, 0] },
+          "sign": { "up": 0, "down": 0, "p": null }
+        }
+      },
+      "learnedFromHistory": {
+        "returns": { "n": 24, "mean": 1, "ci95": [1, 1] },
+        "sign": { "up": 24, "down": 0, "p": 1.192e-7 }
+      }
+    },
+    "individualsDetail": [
+      {
+        "draw": 3742244663,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 56.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 267.4,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 56.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 195.5,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 56.7,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 3292,
+            "arrivals": 16,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 56.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 195.5,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3742244663,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 88.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1060,
+            "arrivals": 8,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 88.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1060,
+            "arrivals": 12,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 88.1,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 2059,
+            "arrivals": 20,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 88.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 140.6,
+            "arrivals": 7,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1609463037,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 72.3,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1618,
+            "arrivals": 13,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 72.3,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 976,
+            "arrivals": 7,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 72.3,
+            "returns": 4,
+            "fruitless": 4,
+            "lastReturnS": 2639,
+            "arrivals": 12,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 72.3,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 976,
+            "arrivals": 7,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1609463037,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 95.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1566,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 95.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1566,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 95.1,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 3189,
+            "arrivals": 8,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 95.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 976,
+            "arrivals": 13,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3553170420,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 13.4,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1163,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 13.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 407.2,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 13.4,
+            "returns": 7,
+            "fruitless": 7,
+            "lastReturnS": 3514,
+            "arrivals": 13,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 13.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 407.2,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3553170420,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 180,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 480.2,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 180,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 480.2,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 180,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 3135,
+            "arrivals": 6,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 180,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 212.6,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 4097634429,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 63.2,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 308.8,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 63.2,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 157.9,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 63.2,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 2617,
+            "arrivals": 14,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 63.2,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 157.9,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 4097634429,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 169.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 639.2,
+            "arrivals": 12,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 169.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 639.2,
+            "arrivals": 12,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 169.5,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 2991,
+            "arrivals": 13,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 169.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 568.3,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 2561660502,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 20.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 251.7,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 20.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 204.1,
+            "arrivals": 6,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 20.5,
+            "returns": 7,
+            "fruitless": 7,
+            "lastReturnS": 3561,
+            "arrivals": 12,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 20.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 204.1,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 2561660502,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 152.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 541.6,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 152.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 541.6,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 152.7,
+            "returns": 4,
+            "fruitless": 4,
+            "lastReturnS": 2556,
+            "arrivals": 9,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 152.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 230.2,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1371508262,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 92.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 298.1,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 92.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 137.1,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 92.5,
+            "returns": 11,
+            "fruitless": 11,
+            "lastReturnS": 3283,
+            "arrivals": 4,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 92.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 137.1,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1371508262,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 124.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1937,
+            "arrivals": 19,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 124.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1937,
+            "arrivals": 19,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 124.8,
+            "returns": 3,
+            "fruitless": 3,
+            "lastReturnS": 3334,
+            "arrivals": 19,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 124.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 1589,
+            "arrivals": 10,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3665049691,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 14.6,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 614.5,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 14.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 301.6,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 14.6,
+            "returns": 8,
+            "fruitless": 8,
+            "lastReturnS": 3258,
+            "arrivals": 3,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 14.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 301.6,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3665049691,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 1265,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 599.2,
+            "arrivals": 6,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 1265,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 599.2,
+            "arrivals": 7,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 1265,
+            "returns": 10,
+            "fruitless": 10,
+            "lastReturnS": 3403,
+            "arrivals": 12,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 1265,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 449.4,
+            "arrivals": 6,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1579243894,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 81.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 929.6,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 81.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 558.1,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 81.7,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 3293,
+            "arrivals": 8,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 81.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 558.1,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1579243894,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 225.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1014,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 225.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1014,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 225.1,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 2403,
+            "arrivals": 2,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 225.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 225.3,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1740173770,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 12.4,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 524.6,
+            "arrivals": 11,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 12.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 231.6,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 12.4,
+            "returns": 7,
+            "fruitless": 7,
+            "lastReturnS": 3303,
+            "arrivals": 6,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 12.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 231.6,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1740173770,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 51.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1315,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 51.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1315,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 51.8,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 2284,
+            "arrivals": 15,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 51.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 1217,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1175390489,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 59.4,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 387,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 59.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 30.2,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 59.4,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 2156,
+            "arrivals": 11,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 59.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 30.2,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1175390489,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 110.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 368.5,
+            "arrivals": 6,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 110.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 368.5,
+            "arrivals": 8,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 110.7,
+            "returns": 8,
+            "fruitless": 8,
+            "lastReturnS": 3394,
+            "arrivals": 13,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 110.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 76.9,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1856243805,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 35.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1273,
+            "arrivals": 8,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 35.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 1030,
+            "arrivals": 6,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 35.7,
+            "returns": 4,
+            "fruitless": 4,
+            "lastReturnS": 2226,
+            "arrivals": 8,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 35.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 1030,
+            "arrivals": 12,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1856243805,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 117.3,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1387,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 117.3,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1387,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 117.3,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 3581,
+            "arrivals": 7,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 117.3,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 926.9,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3797036378,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 104.6,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1140,
+            "arrivals": 12,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 104.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 370.5,
+            "arrivals": 9,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 104.6,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 3487,
+            "arrivals": 11,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 104.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 370.5,
+            "arrivals": 10,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3797036378,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 131.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1213,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 131.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1213,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 131.1,
+            "returns": 3,
+            "fruitless": 3,
+            "lastReturnS": 2530,
+            "arrivals": 5,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 131.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 859.6,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1905554788,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 44.3,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1372,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 44.3,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 437.3,
+            "arrivals": 9,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 44.3,
+            "returns": 4,
+            "fruitless": 4,
+            "lastReturnS": 3373,
+            "arrivals": 5,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 44.3,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 437.3,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1905554788,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 183.2,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 425.5,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 183.2,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 425.5,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 183.2,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 1779,
+            "arrivals": 9,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 183.2,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 158.7,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1983336083,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 128.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1268,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 128.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 966.4,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 128.5,
+            "returns": 7,
+            "fruitless": 7,
+            "lastReturnS": 3356,
+            "arrivals": 4,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 128.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 966.4,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1983336083,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 321.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1240,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 321.7,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1240,
+            "arrivals": 7,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 321.7,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 2623,
+            "arrivals": 6,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 321.7,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 385.4,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3517697721,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 13.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1339,
+            "arrivals": 10,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 13.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 81.6,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 13.1,
+            "returns": 9,
+            "fruitless": 9,
+            "lastReturnS": 3311,
+            "arrivals": 9,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 13.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 81.6,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3517697721,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 52.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 256.9,
+            "arrivals": 8,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 52.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 256.9,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 52.5,
+            "returns": 10,
+            "fruitless": 10,
+            "lastReturnS": 3339,
+            "arrivals": 8,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 52.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 208.6,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 2262903636,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 119.4,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1148,
+            "arrivals": 9,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 119.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 359.3,
+            "arrivals": 9,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 119.4,
+            "returns": 4,
+            "fruitless": 4,
+            "lastReturnS": 1725,
+            "arrivals": 14,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 119.4,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 359.3,
+            "arrivals": 9,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 2262903636,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 145.6,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1284,
+            "arrivals": 18,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 145.6,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1284,
+            "arrivals": 16,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 145.6,
+            "returns": 7,
+            "fruitless": 7,
+            "lastReturnS": 2730,
+            "arrivals": 16,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 145.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 1011,
+            "arrivals": 9,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1871534715,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 65.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1430,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 65.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 993.8,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 65.8,
+            "returns": 4,
+            "fruitless": 4,
+            "lastReturnS": 3164,
+            "arrivals": 10,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 65.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 993.8,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1871534715,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 211.6,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1002,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 211.6,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1002,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 211.6,
+            "returns": 8,
+            "fruitless": 8,
+            "lastReturnS": 2899,
+            "arrivals": 9,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 211.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 422.8,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1693811174,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 121.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1241,
+            "arrivals": 6,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 121.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 860,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 121.1,
+            "returns": 7,
+            "fruitless": 7,
+            "lastReturnS": 3299,
+            "arrivals": 11,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 121.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 860,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1693811174,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 1113,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 957.4,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 1113,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 957.4,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 1113,
+            "returns": 4,
+            "fruitless": 4,
+            "lastReturnS": 2994,
+            "arrivals": 7,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 1113,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 822.4,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 365898373,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 42.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 391.3,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 42.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 297,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 42.1,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 3442,
+            "arrivals": 16,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 42.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 297,
+            "arrivals": 10,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 365898373,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 190.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1185,
+            "arrivals": 7,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 190.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1185,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 190.8,
+            "returns": 8,
+            "fruitless": 8,
+            "lastReturnS": 3483,
+            "arrivals": 10,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 190.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 510.8,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1009458115,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 89.6,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 409.2,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 89.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 239.5,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 89.6,
+            "returns": 8,
+            "fruitless": 8,
+            "lastReturnS": 3353,
+            "arrivals": 3,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 89.6,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 239.5,
+            "arrivals": 0,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 1009458115,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 158,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1019,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 158,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1019,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 158,
+            "returns": 8,
+            "fruitless": 8,
+            "lastReturnS": 3280,
+            "arrivals": 2,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 158,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 391.5,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3641258515,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 40.5,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 468.4,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 40.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 105.8,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 40.5,
+            "returns": 5,
+            "fruitless": 5,
+            "lastReturnS": 2239,
+            "arrivals": 17,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 40.5,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 105.8,
+            "arrivals": 4,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 3641258515,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 108.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 3360,
+            "arrivals": 19,
+            "stillDrawn": true,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 108.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 3360,
+            "arrivals": 19,
+            "stillDrawn": true,
+            "value": 0.4164
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 108.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 3360,
+            "arrivals": 19,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 108.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 3360,
+            "arrivals": 19,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 795383917,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 96,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 909.8,
+            "arrivals": 5,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 96,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 604.7,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 96,
+            "returns": 10,
+            "fruitless": 10,
+            "lastReturnS": 3408,
+            "arrivals": 7,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 96,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 604.7,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 795383917,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 149,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 960.3,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 149,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 960.3,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 149,
+            "returns": 11,
+            "fruitless": 11,
+            "lastReturnS": 3422,
+            "arrivals": 4,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 149,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 520.3,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 2585026086,
+        "site": "east",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 12.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 653.7,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 12.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 504,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": 0.2445
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 12.8,
+            "returns": 9,
+            "fruitless": 9,
+            "lastReturnS": 3128,
+            "arrivals": 6,
+            "stillDrawn": true,
+            "value": 0.471
+          },
+          "one fruitless return": {
+            "trainedS": 12.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 504,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 2585026086,
+        "site": "east",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 77.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1016,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 77.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1016,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": 0.2162
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 77.8,
+            "returns": 8,
+            "fruitless": 8,
+            "lastReturnS": 2949,
+            "arrivals": 2,
+            "stillDrawn": true,
+            "value": 0.8019
+          },
+          "one fruitless return": {
+            "trainedS": 77.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 576.2,
+            "arrivals": 1,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 459213886,
+        "site": "west",
+        "meals": 1,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 215.1,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1315,
+            "arrivals": 3,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 215.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 666.2,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": 0.2195
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 215.1,
+            "returns": 7,
+            "fruitless": 7,
+            "lastReturnS": 3453,
+            "arrivals": 8,
+            "stillDrawn": true,
+            "value": 0.458
+          },
+          "one fruitless return": {
+            "trainedS": 215.1,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 666.2,
+            "arrivals": 2,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      },
+      {
+        "draw": 459213886,
+        "site": "west",
+        "meals": 3,
+        "runs": {
+          "reduced-order": {
+            "trainedS": 372.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1777,
+            "arrivals": 8,
+            "stillDrawn": false,
+            "value": null
+          },
+          "mushroom-body": {
+            "trainedS": 372.8,
+            "returns": 2,
+            "fruitless": 2,
+            "lastReturnS": 1777,
+            "arrivals": 8,
+            "stillDrawn": false,
+            "value": 0.1895
+          },
+          "mushroom-body, omission blocked": {
+            "trainedS": 372.8,
+            "returns": 6,
+            "fruitless": 6,
+            "lastReturnS": 3372,
+            "arrivals": 17,
+            "stillDrawn": true,
+            "value": 0.8253
+          },
+          "one fruitless return": {
+            "trainedS": 372.8,
+            "returns": 1,
+            "fruitless": 1,
+            "lastReturnS": 1222,
+            "arrivals": 8,
+            "stillDrawn": false,
+            "value": null
+          }
+        }
+      }
+    ]
+  },
+  "c2": {
+    "individuals": 24,
+    "epochs": 8,
+    "identical": 24,
+    "arms": {
+      "reduced-order": {
+        "meals": { "n": 24, "mean": 10.67, "ci95": [9.708, 11.67] },
+        "epochsWithoutMeal": { "n": 24, "mean": 2.917, "ci95": [2.417, 3.375] },
+        "returns": { "n": 24, "mean": 4.75, "ci95": [3.583, 5.833] },
+        "inOdour": { "n": 24, "mean": 4.75, "ci95": [3.542, 5.917] },
+        "fruitless": { "n": 24, "mean": 0, "ci95": [0, 0] }
+      },
+      "mushroom-body": {
+        "meals": { "n": 24, "mean": 10.67, "ci95": [9.708, 11.67] },
+        "epochsWithoutMeal": { "n": 24, "mean": 2.917, "ci95": [2.417, 3.375] },
+        "returns": { "n": 24, "mean": 4.75, "ci95": [3.583, 5.833] },
+        "inOdour": { "n": 24, "mean": 4.75, "ci95": [3.542, 5.917] },
+        "fruitless": { "n": 24, "mean": 0, "ci95": [0, 0] }
+      }
+    },
+    "mushroomBodyMinusBookkeeping": {
+      "mealsPerLife": { "n": 24, "mean": 0, "ci95": [0, 0] },
+      "sign": { "up": 0, "down": 0, "p": null }
+    },
+    "individualsDetail": [
+      {
+        "draw": 933479414,
+        "sites": ["south", "west", "south", "north", "south", "west", "north", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 9,
+            "epochsWithoutMeal": 4,
+            "returns": 2,
+            "inOdour": 2,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 9,
+            "epochsWithoutMeal": 4,
+            "returns": 2,
+            "inOdour": 2,
+            "fruitless": 0,
+            "trials": 7
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 3432141115,
+        "sites": ["west", "east", "north", "east", "west", "south", "north", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 8,
+            "epochsWithoutMeal": 4,
+            "returns": 8,
+            "inOdour": 8,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 8,
+            "epochsWithoutMeal": 4,
+            "returns": 8,
+            "inOdour": 8,
+            "fruitless": 0,
+            "trials": 8
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1154936572,
+        "sites": ["east", "west", "south", "north", "west", "south", "north", "south"],
+        "runs": {
+          "reduced-order": {
+            "meals": 9,
+            "epochsWithoutMeal": 3,
+            "returns": 2,
+            "inOdour": 2,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 9,
+            "epochsWithoutMeal": 3,
+            "returns": 2,
+            "inOdour": 2,
+            "fruitless": 0,
+            "trials": 9
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1640875032,
+        "sites": ["south", "west", "south", "north", "west", "east", "north", "south"],
+        "runs": {
+          "reduced-order": {
+            "meals": 9,
+            "epochsWithoutMeal": 4,
+            "returns": 0,
+            "inOdour": 0,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 9,
+            "epochsWithoutMeal": 4,
+            "returns": 0,
+            "inOdour": 0,
+            "fruitless": 0,
+            "trials": 9
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1704207012,
+        "sites": ["east", "north", "south", "west", "north", "west", "south", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 12,
+            "epochsWithoutMeal": 2,
+            "returns": 5,
+            "inOdour": 5,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 12,
+            "epochsWithoutMeal": 2,
+            "returns": 5,
+            "inOdour": 5,
+            "fruitless": 0,
+            "trials": 12
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 2711265023,
+        "sites": ["east", "south", "north", "east", "north", "west", "north", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 16,
+            "epochsWithoutMeal": 1,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 16,
+            "epochsWithoutMeal": 1,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": 16
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 2943424431,
+        "sites": ["west", "east", "south", "west", "north", "east", "south", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 9,
+            "epochsWithoutMeal": 3,
+            "returns": 3,
+            "inOdour": 3,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 9,
+            "epochsWithoutMeal": 3,
+            "returns": 3,
+            "inOdour": 3,
+            "fruitless": 0,
+            "trials": 9
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 3444821153,
+        "sites": ["east", "south", "east", "west", "south", "north", "east", "north"],
+        "runs": {
+          "reduced-order": {
+            "meals": 11,
+            "epochsWithoutMeal": 2,
+            "returns": 5,
+            "inOdour": 5,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 11,
+            "epochsWithoutMeal": 2,
+            "returns": 5,
+            "inOdour": 5,
+            "fruitless": 0,
+            "trials": 11
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 4200606930,
+        "sites": ["north", "east", "south", "east", "north", "east", "west", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 13,
+            "epochsWithoutMeal": 2,
+            "returns": 10,
+            "inOdour": 10,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 13,
+            "epochsWithoutMeal": 2,
+            "returns": 10,
+            "inOdour": 10,
+            "fruitless": 0,
+            "trials": 13
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1408278262,
+        "sites": ["west", "north", "south", "north", "east", "south", "north", "south"],
+        "runs": {
+          "reduced-order": {
+            "meals": 10,
+            "epochsWithoutMeal": 2,
+            "returns": 3,
+            "inOdour": 3,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 10,
+            "epochsWithoutMeal": 2,
+            "returns": 3,
+            "inOdour": 3,
+            "fruitless": 0,
+            "trials": 10
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1797425513,
+        "sites": ["south", "west", "east", "west", "east", "south", "north", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 11,
+            "epochsWithoutMeal": 4,
+            "returns": 4,
+            "inOdour": 4,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 11,
+            "epochsWithoutMeal": 4,
+            "returns": 4,
+            "inOdour": 4,
+            "fruitless": 0,
+            "trials": 11
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 3706139831,
+        "sites": ["south", "north", "south", "east", "south", "north", "south", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 10,
+            "epochsWithoutMeal": 4,
+            "returns": 9,
+            "inOdour": 9,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 10,
+            "epochsWithoutMeal": 4,
+            "returns": 9,
+            "inOdour": 9,
+            "fruitless": 0,
+            "trials": 10
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 669377598,
+        "sites": ["south", "west", "north", "east", "north", "west", "east", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 8,
+            "epochsWithoutMeal": 3,
+            "returns": 2,
+            "inOdour": 2,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 8,
+            "epochsWithoutMeal": 3,
+            "returns": 2,
+            "inOdour": 2,
+            "fruitless": 0,
+            "trials": 8
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 2395038819,
+        "sites": ["north", "west", "north", "west", "east", "south", "north", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 11,
+            "epochsWithoutMeal": 2,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 11,
+            "epochsWithoutMeal": 2,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": 11
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1342836453,
+        "sites": ["south", "east", "north", "west", "east", "south", "north", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 8,
+            "epochsWithoutMeal": 4,
+            "returns": 4,
+            "inOdour": 4,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 8,
+            "epochsWithoutMeal": 4,
+            "returns": 4,
+            "inOdour": 4,
+            "fruitless": 0,
+            "trials": 8
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 3713621997,
+        "sites": ["east", "north", "east", "west", "north", "east", "north", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 13,
+            "epochsWithoutMeal": 3,
+            "returns": 0,
+            "inOdour": 0,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 13,
+            "epochsWithoutMeal": 3,
+            "returns": 0,
+            "inOdour": 0,
+            "fruitless": 0,
+            "trials": 13
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 3757960262,
+        "sites": ["north", "south", "west", "north", "east", "north", "south", "north"],
+        "runs": {
+          "reduced-order": {
+            "meals": 6,
+            "epochsWithoutMeal": 5,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 6,
+            "epochsWithoutMeal": 5,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": 6
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 3075594017,
+        "sites": ["east", "west", "south", "north", "south", "east", "north", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 14,
+            "epochsWithoutMeal": 3,
+            "returns": 0,
+            "inOdour": 0,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 14,
+            "epochsWithoutMeal": 3,
+            "returns": 0,
+            "inOdour": 0,
+            "fruitless": 0,
+            "trials": 14
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 2573978448,
+        "sites": ["east", "west", "east", "north", "south", "west", "east", "north"],
+        "runs": {
+          "reduced-order": {
+            "meals": 12,
+            "epochsWithoutMeal": 1,
+            "returns": 7,
+            "inOdour": 7,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 12,
+            "epochsWithoutMeal": 1,
+            "returns": 7,
+            "inOdour": 7,
+            "fruitless": 0,
+            "trials": 12
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1403102053,
+        "sites": ["south", "north", "south", "east", "north", "west", "south", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 9,
+            "epochsWithoutMeal": 4,
+            "returns": 4,
+            "inOdour": 4,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 9,
+            "epochsWithoutMeal": 4,
+            "returns": 4,
+            "inOdour": 4,
+            "fruitless": 0,
+            "trials": 9
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 4284622998,
+        "sites": ["north", "west", "south", "west", "south", "north", "west", "east"],
+        "runs": {
+          "reduced-order": {
+            "meals": 15,
+            "epochsWithoutMeal": 1,
+            "returns": 10,
+            "inOdour": 10,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 15,
+            "epochsWithoutMeal": 1,
+            "returns": 10,
+            "inOdour": 10,
+            "fruitless": 0,
+            "trials": 15
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 80838059,
+        "sites": ["east", "west", "south", "east", "north", "south", "west", "south"],
+        "runs": {
+          "reduced-order": {
+            "meals": 8,
+            "epochsWithoutMeal": 4,
+            "returns": 5,
+            "inOdour": 5,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 8,
+            "epochsWithoutMeal": 4,
+            "returns": 5,
+            "inOdour": 5,
+            "fruitless": 0,
+            "trials": 8
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 4099814381,
+        "sites": ["east", "south", "north", "west", "east", "west", "east", "south"],
+        "runs": {
+          "reduced-order": {
+            "meals": 14,
+            "epochsWithoutMeal": 1,
+            "returns": 7,
+            "inOdour": 7,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 14,
+            "epochsWithoutMeal": 1,
+            "returns": 7,
+            "inOdour": 7,
+            "fruitless": 0,
+            "trials": 14
+          }
+        },
+        "identical": true
+      },
+      {
+        "draw": 1894967949,
+        "sites": ["west", "north", "east", "west", "north", "west", "east", "west"],
+        "runs": {
+          "reduced-order": {
+            "meals": 11,
+            "epochsWithoutMeal": 4,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": null
+          },
+          "mushroom-body": {
+            "meals": 11,
+            "epochsWithoutMeal": 4,
+            "returns": 6,
+            "inOdour": 6,
+            "fruitless": 0,
+            "trials": 11
+          }
+        },
+        "identical": true
+      }
+    ]
+  }
+}

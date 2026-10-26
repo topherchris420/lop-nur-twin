@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] ECHO-01: does the fly's self-model let it walk where it intends after an impairment it is never told about?",
+  "hypothesis": "[scripted] Without its self-model, the fly's walking strays further from its intended path after a hidden impairment, from held-out conditions, than with it.",
+  "competing_hypothesis": "[scripted] The reduced-order controller's own feedback (turning back from edges, its tether) keeps its path as close to its intentions as a self-model would.",
+  "parameters": {
+    "seed_count": 9,
+    "treatment": {
+      "kind": "echo_impairment",
+      "variant": "reactive"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "impaired_path_error",
+    "expected_direction": "increase",
+    "minimum_effect": 0.19
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

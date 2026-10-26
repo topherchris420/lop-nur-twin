@@ -34,7 +34,7 @@ describe("individuality: lives from one genesis", () => {
     live(other, b.journal, short.end);
     expect(mindDigest(again)).toBe(mindDigest(one));
     expect(mindDigest(other)).not.toBe(mindDigest(one));
-    expect(one.mind.state.nav.places.length).toBeGreaterThan(0);
+    expect(one.nav.places.length).toBeGreaterThan(0);
   }, 60_000);
 
   it("moves food among the sites, never to where it just was", () => {
@@ -59,9 +59,9 @@ describe("individuality: lives from one genesis", () => {
     const copy = new YardLife(GENESIS);
     restoreGraph(mindOf(life), copy.mind);
     expect(mindDigest(copy)).toBe(mindDigest(life));
-    eraseMemory(copy.mind.state.nav);
-    expect(copy.mind.state.nav.places).toEqual([]);
-    expect(copy.mind.state.nav.est).toEqual(life.mind.state.nav.est);
+    eraseMemory(copy.nav);
+    expect(copy.nav.places).toEqual([]);
+    expect(copy.nav.est).toEqual(life.nav.est);
     const rng = (l: YardLife) =>
       streamPosition((l.mind as unknown as { rng: () => number }).rng);
     expect(rng(copy)).toBe(rng(life));

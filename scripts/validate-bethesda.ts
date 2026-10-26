@@ -28,6 +28,7 @@ import { decodePart, parseMeshFile } from "../src/bethesda/fly/meshCodec.ts";
 import { parseVfbReference } from "../src/bethesda/fly/reference.ts";
 import { REDUCED_ORDER_DESCRIPTOR } from "../src/bethesda/fly/controller.ts";
 import { CIRCUIT_DESCRIPTOR } from "../src/bethesda/fly/circuits/controller.ts";
+import { MUSHROOM_BODY_DESCRIPTOR } from "../src/bethesda/fly/mushroomBody/controller.ts";
 import { parseGroomingReference } from "../src/bethesda/fly/calibration/groomingReference.ts";
 import {
   changedFlySources,
@@ -298,12 +299,23 @@ const vfb = parseVfbReference(JSON.parse(flyData("vfb-reference.json").toString(
 if (Date.parse(vfb.retrievedAt) > Date.now())
   fail("VFB reference retrieved in the future");
 const vfbIds = new Set(vfb.terms.map((t) => t.id));
-for (const descriptor of [REDUCED_ORDER_DESCRIPTOR, CIRCUIT_DESCRIPTOR]) {
+for (const descriptor of [
+  REDUCED_ORDER_DESCRIPTOR,
+  CIRCUIT_DESCRIPTOR,
+  MUSHROOM_BODY_DESCRIPTOR,
+]) {
   for (const region of descriptor.regions)
     for (const id of region.vfb)
       if (!vfbIds.has(id))
         fail(`${descriptor.id} links ${id}, which the VFB reference does not hold`);
-  if (descriptor.simulatesNeurons)
+  const text = [descriptor.fidelity, ...descriptor.regions.map((r) => r.note)].join(" ");
+  if (/conscious|sentien|subjective|feelings?\b/i.test(text))
+    fail(`${descriptor.id} must not describe the fly's experience`);
+  // Only the mushroom-body controller simulates neurons, and only as rate units.
+  if (descriptor === MUSHROOM_BODY_DESCRIPTOR) {
+    if (!descriptor.simulatesNeurons || !/rate units, not spiking neurons/i.test(text))
+      fail(`${descriptor.id} must declare its neurons, and that they are rate units`);
+  } else if (descriptor.simulatesNeurons)
     fail(`${descriptor.id} must not claim to simulate neurons`);
 }
 // The grooming ethograms' summaries are what the importer wrote: parsed

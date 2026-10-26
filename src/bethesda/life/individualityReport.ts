@@ -83,7 +83,7 @@ export interface Summary {
   ci95: [number, number] | null;
 }
 
-function summary(xs: readonly number[], salt: string): Summary {
+export function summary(xs: readonly number[], salt: string): Summary {
   if (xs.length < 2) return { n: xs.length, mean: r4(mean(xs)), ci95: null };
   const r = mulberry32(Number.parseInt(sha256(`bootstrap|${salt}`).slice(0, 8), 16));
   const means: number[] = [];
@@ -199,7 +199,7 @@ function individualA(
   // Erased: the fly's own mind, its memory lesioned.
   const erased = new YardLife(structuredClone(GENESIS));
   restoreGraph(mindOf(life), erased.mind);
-  eraseMemory(erased.mind.state.nav);
+  eraseMemory(erased.nav);
 
   const minds: Record<MindArm, ReturnType<typeof mindOf> | null> = {
     self: mindOf(life),
@@ -222,7 +222,7 @@ function individualA(
       onsetS: r4(journal[0]!.tick / 10)!,
       livedS: r4(end / 10)!,
       meals: life.fly.state.counts.meals,
-      remembered: life.mind.state.nav.places.length,
+      remembered: life.nav.places.length,
       storedIsSelf: mindDigest(stored) === self,
       replayIsSelf: mindDigest(replay) === self,
       checkpointBytes: JSON.stringify(last).length,
@@ -302,7 +302,7 @@ export interface IndividualB {
 function individualB(draw: number): IndividualB {
   const { journal, epochs } = relocationLife(EPOCHS, draw);
   const probeFirst: IndividualB["probeFirst"] = [];
-  const full = relocationRun(epochs, journal, false, (life, k) => {
+  const onEpochEnd = (life: YardLife, k: number) => {
     if (k < 1) return;
     const first =
       probe(mindOf(life), PROBE_YAWS[k % PROBE_YAWS.length]!).first?.site ?? null;
@@ -318,8 +318,9 @@ function individualB(draw: number): IndividualB {
               ? "earlier"
               : "never fed",
     );
-  });
-  const amnesic = relocationRun(epochs, journal, true);
+  };
+  const full = relocationRun(epochs, journal, { onEpochEnd });
+  const amnesic = relocationRun(epochs, journal, { amnesic: true });
   return { draw, sites: epochs.map((e) => e.site), full, amnesic, probeFirst };
 }
 

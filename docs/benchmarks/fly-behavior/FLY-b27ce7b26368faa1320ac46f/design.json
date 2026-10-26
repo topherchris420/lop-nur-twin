@@ -1,0 +1,29 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] Does a faster looming approach (smaller l/v) make the simulated fly escape later, closer to collision?",
+  "hypothesis": "[scripted] At l/v = 40 ms the fly escapes with less time to collision than at l/v = 160 ms, as an angular-size threshold predicts.",
+  "competing_hypothesis": "[scripted] The escape proxy fires at a fixed time before collision whatever the approach speed.",
+  "parameters": {
+    "seed_count": 9,
+    "treatment": {
+      "kind": "visual_threat",
+      "control_l_over_v_ms": 160,
+      "treatment_l_over_v_ms": 40
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "escape_ttc_s",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.28
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}
