@@ -99,6 +99,16 @@ of the record.
 [Inspect the seeded evaluation](docs/benchmarks/fly-echo/README.md) ·
 [Study the digital fly](docs/DIGITAL_FLY.md)
 
+**One fly, one life.** The fly can now stay the same individual across
+saves, restarts and a killed process: its whole state is checkpointed,
+verified on restore and kept by a single writer, and any copy is recorded
+as someone else. In a seeded study, flies built identically but fed at
+different sites went back to their own site when set down in an empty yard,
+which a fresh copy and a memory-erased one did not; a copy given the same
+recorded life reproduced it exactly. With food that kept moving, memory cost
+meals instead of improving adaptation.
+[Read the continuity design and both studies](docs/INDIVIDUAL_CONTINUITY.md).
+
 ### A life three millimeters long
 
 [![A Life Three Millimeters Long — watch the 58-second illustrated fly film](docs/media/fly-film/poster.jpg)](https://lop-nur-twin.vercel.app/film/)
@@ -371,15 +381,15 @@ See [validation](docs/VALIDATION.md) and the
 
 ## Documentation
 
-| I want to…                        | Start here                                                                                                                                                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Understand the reconstruction     | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [white paper](docs/WHITE_PAPER.md)                                                                                                   |
-| Assess a claim                    | [Uncertainty](docs/UNCERTAINTY_MODEL.md), [temporal model](docs/TEMPORAL_MODEL.md), [spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md)                                |
-| Navigate the app                  | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md)                                                                                                    |
-| Work in the lab                   | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                        |
-| Study research over multiple runs | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                          |
-| Explore the other simulations     | [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md), [digital fly](docs/DIGITAL_FLY.md), [Project ECHO](docs/PROJECT_ECHO.md)                                  |
-| Run or evaluate a deployment      | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md) |
+| I want to…                        | Start here                                                                                                                                                                                                                           |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Understand the reconstruction     | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [white paper](docs/WHITE_PAPER.md)                                                                                                                          |
+| Assess a claim                    | [Uncertainty](docs/UNCERTAINTY_MODEL.md), [temporal model](docs/TEMPORAL_MODEL.md), [spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md)                                                       |
+| Navigate the app                  | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md)                                                                                                                           |
+| Work in the lab                   | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                               |
+| Study research over multiple runs | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                                                 |
+| Explore the other simulations     | [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md), [digital fly](docs/DIGITAL_FLY.md), [Project ECHO](docs/PROJECT_ECHO.md), [individual continuity](docs/INDIVIDUAL_CONTINUITY.md) |
+| Run or evaluate a deployment      | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md)                        |
 
 <details>
 <summary>Implementation lineage and reference investigations</summary>
