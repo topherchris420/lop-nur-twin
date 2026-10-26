@@ -373,6 +373,10 @@ re-detected. Each was found and checked on development data only.
   inconclusive by their frozen criteria; their minimum effects are large
   because each seed draws its own condition and the pilots' null arms vary
   widely. They were not lowered.
+- **The city's wind is mostly blamed on the sense.** In wind the self-model
+  concluded 80 of 106 inquiries in an hour as its own sense misleading it
+  ([In Bethesda](#in-bethesda)): its explanations have no wind, and its
+  drift cannot represent what the body's groundspeed hold leaves of one.
 - **Uncertainty of the numbers.** Intervals are bootstrap intervals over
   seeds of one deterministic simulator, and sign-test p-values say how
   consistently the arms differ across seeds. Neither says anything about a
@@ -409,8 +413,19 @@ bench at the city's current tick (`CityFly` with `controller: "echo"`); it
 never changes the fly that was living, and says that the new fly carries
 nothing over. Everything else is the city fly's: its senses, energy,
 feeding, navigation and the people who notice it. Nothing is perturbed in the
-city, so any change the self-model concludes there is a misreading of noise;
-in ten simulated minutes it concluded none.
+city, so in still air any change the self-model concludes there is a
+misreading of noise: in a simulated hour it opened one inquiry.
+
+From `digital-fly/8` the city has a wind ([the digital fly](DIGITAL_FLY.md#wind)),
+the first outside cause there, and the self-model mostly misreads it. Over
+the first simulated hour of the default city the ECHO fly flew for 163 s
+(1,076 s in still air), cautious for 131 s of them; it opened 106 inquiries
+and concluded 80 of them as its own sense misleading it, 11 as an outside
+push, 8 as both and 2 as its body. Its outside drift is one velocity fixed in
+the world, but its body holds its groundspeed along its heading, so only the
+crosswind part of the wind moves it, and that part turns as the fly turns: no
+belief it can hold explains it. It does not feel the wind either: airflow is
+not in its view (`view.ts`).
 
 The panel's **Self-Model** section is read-only and shows the fly's own
 estimates (predicted against sensed motion, prediction error, trust in its

@@ -15,8 +15,11 @@
  * 2019 (a linear term in angular velocity, as carried by LC4, plus a Gaussian
  * term in angular size, as carried by LPLC2); for static surfaces, time to
  * contact along a fan of rays, split left/right; and a light level and
- * direction. Odour, temperature, humidity, airflow, taste and sound are not
- * sensed at all and are listed as unsupported.
+ * direction. From the antennae it gets one food-odour level and, in a world
+ * with wind, the speed of the air moving past it and the bearing it comes
+ * from: a reduced-order stand-in for the antennae's airflow sense, not a model
+ * of Johnston's organ. Temperature, humidity and sound are not sensed at all;
+ * these and the senses' other limits are listed as unsupported.
  *
  * Moving things are only seen: they loom and can trigger an escape, but the
  * fly's body never collides with them (world.ts).
@@ -32,6 +35,7 @@ import {
   radToDeg,
   type V3,
   wrapAngle,
+  yawOf,
 } from "./units.js";
 import type { FlyWorld, Landmark, Mover, Perch } from "./world.js";
 
@@ -41,7 +45,7 @@ export const UNSUPPORTED_SENSES = [
   "taste beyond whether food is underfoot",
   "temperature",
   "humidity",
-  "airflow / wind",
+  "airflow beyond its speed and the bearing it comes from (no turbulence, no vertical air)",
   "sound",
 ] as const;
 
@@ -125,6 +129,14 @@ export interface SenseFrame {
    * Looked for with the landmarks; the samples between repeat it.
    */
   shadeBearing: number | null;
+  /**
+   * The air moving past the antennae (m/s, horizontal): the wind on a fly
+   * that stands, its own air speed on one that flies. 0 in a world without
+   * wind, which has no air to feel.
+   */
+  airflow: number;
+  /** The relative bearing (+ left) the air comes from, or null below `AIRFLOW_BEARING_MS`. */
+  airflowFrom: number | null;
 }
 
 export interface SeenLandmark {
@@ -132,6 +144,9 @@ export interface SeenLandmark {
   bearing: number;
   distance: number;
 }
+
+/** Below this airflow (m/s) the antennae give no bearing for it (a model choice). */
+export const AIRFLOW_BEARING_MS = 0.05;
 
 /** Landmarks are looked for every this many samples (10 Hz at the default 10 ms period). */
 export const LANDMARK_EVERY = 10;
@@ -146,6 +161,8 @@ export interface SenseInput {
   v: V3;
   yaw: number;
   flying: boolean;
+  /** The air's velocity relative to the fly (m/s), in a world with wind only. */
+  air?: V3;
 }
 
 const FAN_DEG = [-60, -30, -12, 0, 12, 30, 60];
@@ -285,6 +302,15 @@ export class Senses {
       lightElevation = Math.asin(Math.max(-1, Math.min(1, t[1])));
     }
     const below = this.world.perchAt(s.p[0], s.p[2], s.p[1]);
+    // Felt only where there is air to feel, so a world without wind draws no noise for it.
+    let airflow = 0,
+      airflowFrom: number | null = null;
+    if (s.air) {
+      const speed = Math.hypot(s.air[0], s.air[2]);
+      airflow = Math.max(0, this.jitter(speed));
+      if (speed >= AIRFLOW_BEARING_MS)
+        airflowFrom = this.jitterAngle(wrapAngle(yawOf(-s.air[0], -s.air[2]) - s.yaw));
+    }
     if (this.samples++ % LANDMARK_EVERY === 0) {
       this.seen = this.lookForLandmarks(s, fwd, lft);
       this.shade =
@@ -307,6 +333,8 @@ export class Senses {
       sky: light.sunlit !== undefined,
       landmarks: this.seen,
       shadeBearing: this.shade,
+      airflow,
+      airflowFrom,
     };
   }
 

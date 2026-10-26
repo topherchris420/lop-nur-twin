@@ -15,7 +15,7 @@ a reference layer: where, in a real fly, the functions the controller imitates
 are known to be processed. Everything the simulator reports describes the
 simulator, not a fly, and nothing in it is evidence of experience or awareness.
 
-Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/7`). Importers:
+Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/8`). Importers:
 `scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
 and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
@@ -230,8 +230,10 @@ rate and a size tuning, after Ache et al. 2019 and von Reyn et al. 2014), the
 number of moving things in view, times to contact ahead-left, ahead-right and
 ahead, clearance, a relative light level and its bearing, the surface below
 and the altitude, the food odour (a still-air proxy), whether it is under an
-open sky (its compass), the landmarks in view and, in flight under a sun, the
-bearing of the nearest shade on the ground. Nothing is special-cased by what
+open sky (its compass), the landmarks in view, in flight under a sun the
+bearing of the nearest shade on the ground and, in a world with wind, the
+speed of the air going by its antennae and the bearing it comes from
+([Wind](#wind)). Nothing is special-cased by what
 it is: a pedestrian, a car,
 the visitor and an arena stimulus are all moving things that loom or do not.
 Moving things are seen, never touched: they can set off an escape, but the
@@ -246,7 +248,8 @@ pass through the fly, and one that contains the fly is not seen at all.
 | Windows                | **unsupported**: not in the map data; facades are opaque                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | glass panes: invisible, solid                      |
 | Facade relief          | **unsupported**: drawn, not solid; a facade is a flat wall                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | none                                               |
 | Food and its odour     | **proxy**: a patch on the ground at the door of every mapped place that sells or serves food or drink; its odour falls off as e^(−d/5 m) in still air and does not pass through solids                                                                                                                                                                                                                                                                                                                                        | **unsupported**                                    |
-| Temperature, wind      | **unsupported**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **unsupported**                                    |
+| Wind                   | **proxy**: one seeded wind over the whole city (`weather.ts`), calm, breezy or windy by the half hour and stronger in a storm, with gusts; weaker near the ground, in a building's lee and in front of a wall; horizontal, with no flow round buildings, and it carries no odour ([Wind](#wind))                                                                                                                                                                                                                              | still air                                          |
+| Temperature            | **unsupported**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **unsupported**                                    |
 
 The street furniture and trees, and the rooftop units and awnings on the
 buildings, are placed and sized in one module, `src/bethesda/furniture.ts`,
@@ -298,6 +301,69 @@ building on the highest ground: a simulator constraint, named as such, where
 the fixed 18 m home range of `digital-fly/5` and earlier was. There is exactly
 one fly in the city; the lab's experiments use their own arena flies, which
 never appear in the city.
+
+## Wind
+
+`digital-fly/8` puts the fly in the city's wind. The wind (`weather.ts`) is a
+function of the city's seed and its clock, so it holds no state: the browser
+city and the headless life meet the same wind at the same city time, however
+the fly's advance is split, and a checkpoint needs nothing more for it. It
+reads from the city only when a storm blows, and the city never reads it.
+Every number in it is a model choice (`WIND_REGIMES` and `WEATHER_MODEL`), not
+measured Bethesda weather and not fitted.
+
+**The wind at 10 m.** Each half hour of city time draws a regime, calm
+(0.6 m/s mean), breezy (2.5 m/s) or windy (5.5 m/s), at shares of 0.3, 0.45
+and 0.25, and blends into the next half hour's over its last ten minutes.
+While the city has a storm the wind rises to the storm regime (9 m/s) over a
+minute and falls back over the storm's last minute. About the regime's mean
+the speed wanders smoothly by up to 25 % over 90 s and 10 % over 12 s, and the
+direction it comes from wanders about west-north-west (290°) by up to 0.7 rad
+over half an hour and 0.15 rad over a minute. Gusts come at the regime's rate
+(0.2, 0.8, 1.6 and 3 a minute), rise over 1–3 s and die away over 4–10 s; at
+its peak a gust adds 0.6–1.4 times the regime's gust excess (its gust factor,
+1.4, 1.5, 1.7 and 1.9, less one) to the speed.
+
+**Where the fly is.** The Bethesda world (`BethesdaFlyWorld.wind`) scales the
+10 m wind by a power law of the height above the bare-earth terrain,
+(h / 10 m)^0.35 with h at least 0.25 m (0.27 of it at that floor, 0.79 at
+5 m); by the shelter of a static surface a ray finds within 12 m upwind (a
+quarter of the wind right behind it, all of it at 12 m); and again in front
+of one within 3 m downwind (a quarter at the wall). The wind is horizontal: no
+updraft, no flow round a building, no turbulence finer than a gust. It
+carries no odour; the food odour is still the still-air proxy.
+
+**Flying in it.** Flies hold their groundspeed against the wind by what they
+see, and use their antennae to steady that control (Fuller et al. 2014); flies
+dispersing outdoors hold their groundspeed along their heading and let a
+crosswind carry them (Leitch et al. 2021). The fly here does the same, as a
+model of the behaviour and not of how its eyes measure it. In flight it holds
+its groundspeed along its body axis and the wind carries it sideways, never
+flying backward through the air to do it; hovering or approaching a landing it
+holds its ground velocity both ways (a model choice). Its horizontal air speed
+is at most `maxAirspeedCmS` (1.5 m/s), and past it the wind carries the fly.
+Then, or whenever the wind is faster than that, it drops toward the top it
+means to land on, or the one below it, as fast as a landing approach would: a
+model choice, since near the ground the wind is weaker. A surface stops the
+fly over the ground, not the air going by, so a fly the wind holds against a
+wall feels the wind; and in wind, touching one surface, another within reach
+is the same contact, so a fly held into a corner touches both walls at once
+instead of striking each in turn. Path integration counts the fly's travel
+over the ground, the wind's part included.
+
+**Feeling it.** The antennae sense the air going by: its speed and, above
+0.05 m/s, the bearing it comes from, with the senses' noise. A standing fly
+feels the wind where it stands; a flying fly feels its own air speed. Past
+`windFeltMS` (0.3 m/s) a standing fly's rate of voluntary takeoff falls by a
+factor of e for every `windTakeoffMS` (0.4 m/s) more, and a flying fly whose
+air speed reaches 95 % of `maxAirspeedCmS` gives up a long flight and lands
+where it can ("the wind outpaces its wings"). Both are model choices, not
+measured rates. The witness page shows the wind at 10 m and where the fly is
+([the continuous life](BETHESDA_CONTINUOUS_LIFE.md)).
+
+**Without wind.** A world without `wind`, every lab arena among them, has
+still air: the fly draws no noise for an airflow there, and moves, senses and
+decides exactly as at `digital-fly/7`.
 
 ## Energy, food, shelter and navigation
 
@@ -745,10 +811,10 @@ physics with the browser's plan as controller, not FlyBody's controller.
 ## Parameters
 
 `params.ts` holds the rates, thresholds, gains, time constants, speeds and
-sizes the behaviour is built on: 88 values, each with a kind, a unit, an
+sizes the behaviour is built on: 91 values, each with a kind, a unit, an
 inclusive range and, where there is one, a source. 10 are FlyBody's (its
 model's values: 7 cite the paper and 3 the code file at the pinned commit),
-11 are published values for real flies (each with its DOI), and 67 are model
+11 are published values for real flies (each with its DOI), and 70 are model
 choices (some informed or derived from a cited paper, which the note says). FlyBody and
 published values are fixed. Experiments may override **model** values only,
 each within its range; `resolveParams` refuses a FlyBody or published value,
@@ -791,6 +857,9 @@ The body (`fly.ts`):
   the feet within 1.5 mm of the target and a surface within 2 mm under them
   for a touchdown;
   a 0.1 m/s climb after an abort;
+- in wind: the fly held both ways in a hover or a landing approach; a drop
+  toward the surface below at most at the cruise speed; a surface within the
+  standing height plus 1 mm, while the fly touches another, no new contact;
 - the sites on offer: seen when the line from the eyes to a site's centre is
   clear to within 1 cm of it; a target's size, for extending the legs, taken
   from its smaller half-width and at least 1 cm;
@@ -828,7 +897,9 @@ The controller (`controller.ts`):
   steering at 2 /s times the shade's bearing;
 - long flights: steering at 2 /s times the goal's bearing; the dispersal speed
   beyond 5 m of the goal; a goal reached within 3 m; a 3 s detour after an
-  avoidance saccade; given up after 20 s without coming a metre closer.
+  avoidance saccade; given up after 20 s without coming a metre closer;
+- wind: a flying fly whose air speed reaches 95 % of `maxAirspeedCmS` gives up
+  a long flight and lands where it can.
 
 The people (`people.ts`), and how they are drawn (`Actors.tsx`):
 
@@ -872,7 +943,8 @@ The senses (`senses.ts`):
   0.3 m of it; shade at 0.5 and 1 times `landingSearchM`, in eight directions
   (0°, ±45°, ±90°, ±135°, 180°), the inner ring and the direction nearest ahead
   first, a point in view when the line to 1 cm above it is clear to within
-  5 cm.
+  5 cm;
+- the airflow's bearing given only above 0.05 m/s.
 
 The world queries (`world.ts`):
 
@@ -977,7 +1049,12 @@ materials disposed, and a mesh that finishes loading afterwards is dropped. A
 new city, with a new fly, restarts the drawing's interpolation, so the drawn
 fly does not slide over from where the old one was. Without WebGL the city's
 existing fallback applies and the fly still runs. No React state changes per
-frame: the panel reads the fly four times a second.
+frame: the panel reads the fly four times a second. Over six simulated hours
+of the default headless life on this laptop (one run each), a whole tick,
+city and fly, took 0.786 ms in wind against 0.727 ms in still air with the
+reduced-order controller, and 0.792 against 0.723 ms with ECHO's: each wind
+query casts two short rays, and the flies' days differ too (the wind kept
+them down more).
 
 ## Tests
 
@@ -1090,6 +1167,21 @@ frame: the panel reads the fly four times a second.
   looming hand through its giant-fiber proxy; without, nothing looms;
 - in the city, the same people for the same city, whoever reads them.
 
+`src/bethesda/fly/weather.test.ts`:
+
+- the city's wind a function of the seed and the time alone, never jumping,
+  its regimes at their shares, gusts at their rates, a storm's wind rising and
+  falling over its ramps, and the height and shelter shares;
+- in the city, the same wind at the same city time whenever the world was
+  made, blowing the way it comes from, weaker near the ground, in a lee and in
+  front of a wall;
+- the fly: no airflow in still air and the wind's speed and bearing in wind;
+  carried sideways by a crosswind with its groundspeed held, and into a
+  headwind faster through the air; its path integration following the wind;
+  dropping when the wind outruns its wings; taking off far less often in a
+  wind it feels; hovering on its station; held into a corner without striking
+  its walls in turn; landing when the wind outpaces its wings.
+
 `src/bethesda/fly/mushroomBody/mushroomBody.test.ts`:
 
 - published values fixed and model values in range;
@@ -1155,10 +1247,17 @@ frame: the panel reads the fly four times a second.
   Escape probability cannot show a dose-response in approach speed; the time
   to collision at the escape decision does
   ([the lab guide](RAIN_LAB_BETHESDA.md#the-digital-fly-backend)).
-- Light is a proxy without day, night or spectrum; storms only dim it.
+- Light is a proxy without day, night or spectrum; storms dim it (and raise
+  the wind).
 - Food is a patch at each food place's door, the same everywhere, and its
-  odour a still-air proxy: no wind, no plume, nothing round a building. Real
-  flies find food downwind over far greater distances.
+  odour a still-air proxy: the wind does not carry it, no plume, nothing round
+  a building. Real flies find food downwind over far greater distances.
+- The wind is one seeded process over the whole city, a sketch of urban wind
+  and not measured weather: horizontal, sheltered only by what a ray finds
+  upwind, with no flow round buildings, no updraft and no turbulence finer than
+  a gust. How the fly flies in it is a model of the behaviour, not of the eyes,
+  antennae or wings that produce it, and that wind keeps flies down is a model
+  choice, not a measured rate.
 - The energy reserve is carbohydrate only: no fat, no water, no starvation.
   Metabolic rates are derived from published figures for flight muscle, not
   measured on this fly; walking's is a model choice.

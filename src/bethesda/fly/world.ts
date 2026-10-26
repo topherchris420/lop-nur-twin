@@ -202,6 +202,11 @@ export interface FlyWorld {
    */
   movers(near: V3, radius: number, out: Mover[], t: number): void;
   light(p: V3): LightSample;
+  /**
+   * The air's velocity at `p` at fly time `t` (m/s, horizontal); the same at
+   * a time whenever it is asked for. A world without it has still air.
+   */
+  wind?(p: V3, t: number): V3;
   /** Candidate tops to land on within `radius`, in a stable order (food patches among them). */
   landingSites(near: V3, radius: number, out: LandingSite[]): void;
   /** The food patch a fly standing at `p` stands on, or null. */

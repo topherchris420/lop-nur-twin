@@ -87,7 +87,11 @@ drag against air-relative velocity, crosswind drift, gust recovery and
 timestep convergence before connecting it to decisions. A drawn wingbeat or
 a velocity tracker is not aerodynamic validation.
 
-Use the same wind field for forces and later odour transport. Model landing
+The city's reduced-order fly already flies in a seeded wind
+(`digital-fly/8`, [Wind](DIGITAL_FLY.md#wind)), but kinematically: it holds a
+groundspeed and is carried, with no forces, so it is no step toward this
+milestone's checks. Use that same wind field (`weather.ts`,
+`BethesdaFlyWorld.wind`) for forces and later odour transport. Model landing
 as approach, deceleration, leg extension, contact and settling, with explicit
 rejection or recovery for excessive impact speed, oblique contact and missing
 support. Compare touchdown speed, attitude, contact timing, rebound and

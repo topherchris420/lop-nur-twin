@@ -49,6 +49,13 @@ describe("observing the life", () => {
     expect(o.fly.recent.length).toBeGreaterThan(0);
     expect(o.flyController).toBe("reduced-order");
     expect(o.selfModel).toBeNull();
+    // The city's wind, at 10 m and (weaker near the ground) where the fly is.
+    const now = life.cityFly.world.windNow(life.cityFly.fly.state.t);
+    expect(o.weather?.regime).toBe(now.regime);
+    expect(o.weather?.speedMS).toBe(now.speedMS);
+    expect(o.weather!.fromDeg).toBeGreaterThanOrEqual(0);
+    expect(o.weather!.fromDeg).toBeLessThan(360);
+    expect(o.weather!.atFlyMS).toBeLessThan(now.speedMS);
     for (const n of o.nearby)
       expect(
         Math.hypot(n.x - o.fly.position[0], n.z - o.fly.position[2]),
@@ -104,6 +111,17 @@ describe("validating an observation", () => {
     );
     expect(bad("flyController", "echo")).toThrow(/selfModel/);
     expect(bad("checkpointing", "yes")).toThrow(/checkpointing/);
+    expect(bad("weather.regime", "hurricane")).toThrow(/weather.regime/);
+    expect(bad("weather.fromDeg", 360)).toThrow(/weather.fromDeg/);
+    expect(bad("weather.extra", 1)).toThrow(/unexpected extra/);
+  });
+
+  it("still reads an observation from a life older than the wind", () => {
+    const old = structuredClone(good) as Partial<LifeObservation>;
+    delete old.weather;
+    const parsed = parseObservation(old);
+    expect(parsed.weather).toBeUndefined();
+    expect("weather" in parsed).toBe(false);
   });
 });
 
