@@ -2,13 +2,13 @@
   "schema": "rain-fly-pilot/v1",
   "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
   "protocol": "echo_attribution",
-  "fly_version": "digital-fly/7",
-  "fly": "digital-fly/7 reduced-order-fsm/v1",
-  "fly_sha256": "1f4bac8d974fedb2d431462a95342952bf56997aeb848b7346ba385c9020961f",
-  "fly_source_sha256": "f24877bd26d4eaf17828aa623e4c6676e23c1f751cb1f58379fb909a38939c14",
-  "engine": "node 22.22.0 (V8 12.4.254.21-node.33)",
+  "fly_version": "digital-fly/8",
+  "fly": "digital-fly/8 reduced-order-fsm/v1",
+  "fly_sha256": "e2eb5e95c355777d19a210820fb203fc9ef47608031b98fa85882280e85cfdca",
+  "fly_source_sha256": "daad49019246c38c2673cd442ecaae50eba95994635676bdc333b5563cebfb78",
+  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
   "code": {
-    "commit": "737b9148ea27de52866f996feaef625a59123c15",
+    "commit": "104576148eae3211d52d70ec663dbc382d087ee3",
     "dirty": false
   },
   "definition": {
@@ -425,8 +425,8 @@
         "metrics": {
           "attribution_accuracy": 0.8333333333333334,
           "false_self_attribution": null,
-          "attribution_brier": 0.13684777958100927,
-          "attribution_path_error": 0.29689144548817337,
+          "attribution_brier": 0.13684777958100922,
+          "attribution_path_error": 0.29689144548818014,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8985826771653543
@@ -449,8 +449,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.004843276574718686,
-          "attribution_path_error": 0.19751262056265637,
+          "attribution_brier": 0.0048432765747186525,
+          "attribution_path_error": 0.1975126205626566,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8977932636469221
@@ -521,8 +521,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.002667513485284243,
-          "attribution_path_error": 0.07743580042261172,
+          "attribution_brier": 0.0026675134852843867,
+          "attribution_path_error": 0.07743580042260854,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9065027839058725
@@ -534,7 +534,7 @@
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
           "attribution_brier": 0.0011460929551257012,
-          "attribution_path_error": 0.1309123857168192,
+          "attribution_path_error": 0.13091238571681926,
           "missed_changes": 1,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.8985416010911762
@@ -545,8 +545,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.003301473328043287,
-          "attribution_path_error": 0.05043897652903891,
+          "attribution_brier": 0.0033014733280431925,
+          "attribution_path_error": 0.05043897652903886,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.9025851197982345
@@ -570,7 +570,7 @@
           "attribution_accuracy": 1,
           "false_self_attribution": null,
           "attribution_brier": 0.00032104565633521773,
-          "attribution_path_error": 0.0392892499018296,
+          "attribution_path_error": 0.039289249901829415,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9007707129094412
@@ -581,8 +581,8 @@
         "metrics": {
           "attribution_accuracy": 0.6666666666666666,
           "false_self_attribution": 0,
-          "attribution_brier": 0.2939514016939823,
-          "attribution_path_error": 0.07521500936880542,
+          "attribution_brier": 0.2939514016939871,
+          "attribution_path_error": 0.07521500936879509,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.8864018495166036
@@ -593,8 +593,8 @@
         "metrics": {
           "attribution_accuracy": 0.8333333333333334,
           "false_self_attribution": null,
-          "attribution_brier": 0.18172017654458045,
-          "attribution_path_error": 0.13051320918726553,
+          "attribution_brier": 0.18172017654458164,
+          "attribution_path_error": 0.13051320918727916,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8862918509159823
@@ -605,8 +605,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.000945718087848621,
-          "attribution_path_error": 0.10187884783359726,
+          "attribution_brier": 0.0009457180878486416,
+          "attribution_path_error": 0.10187884783359671,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.9037293107060549
@@ -641,8 +641,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.005200384786599769,
-          "attribution_path_error": 0.08540460535326759,
+          "attribution_brier": 0.0052003847866002135,
+          "attribution_path_error": 0.08540460535326791,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.8927636401717457
@@ -653,8 +653,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": null,
-          "attribution_brier": 0.04691124054106925,
-          "attribution_path_error": 0.030098318151983654,
+          "attribution_brier": 0.04691124054118987,
+          "attribution_path_error": 0.030098318151985187,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.8978086809945217
@@ -665,8 +665,8 @@
         "metrics": {
           "attribution_accuracy": 0.8571428571428571,
           "false_self_attribution": 0.3333333333333333,
-          "attribution_brier": 0.14408591991172245,
-          "attribution_path_error": 0.16182469099781577,
+          "attribution_brier": 0.14408591991172257,
+          "attribution_path_error": 0.16182469099781688,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9010400252127324
@@ -677,8 +677,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.003525428402358248,
-          "attribution_path_error": 0.08218964342512891,
+          "attribution_brier": 0.003525428402358587,
+          "attribution_path_error": 0.08218964342512883,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9056504322158971
@@ -689,7 +689,7 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": null,
-          "attribution_brier": 1.456340264624944e-8,
+          "attribution_brier": 1.4563402646261343e-8,
           "attribution_path_error": 0.024535931030621523,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
@@ -701,8 +701,8 @@
         "metrics": {
           "attribution_accuracy": 0.8333333333333334,
           "false_self_attribution": 0,
-          "attribution_brier": 0.14540445704132196,
-          "attribution_path_error": 0.09798383476997909,
+          "attribution_brier": 0.1454044570413187,
+          "attribution_path_error": 0.0979838347699816,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.896095717884131
@@ -713,8 +713,8 @@
         "metrics": {
           "attribution_accuracy": 0.75,
           "false_self_attribution": 0,
-          "attribution_brier": 0.2153819345965904,
-          "attribution_path_error": 0.18895196898197233,
+          "attribution_brier": 0.21538193459659688,
+          "attribution_path_error": 0.18895196898196245,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.894631789053472
@@ -725,8 +725,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.002754169033759865,
-          "attribution_path_error": 0.09765964225581371,
+          "attribution_brier": 0.00275416903375985,
+          "attribution_path_error": 0.09765964225581365,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.9008923884514436
@@ -737,8 +737,8 @@
         "metrics": {
           "attribution_accuracy": 0.6666666666666666,
           "false_self_attribution": 0,
-          "attribution_brier": 0.33242645270490445,
-          "attribution_path_error": 0.011439839892618459,
+          "attribution_brier": 0.3324264527049024,
+          "attribution_path_error": 0.011439839892617685,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.9032934759807006
@@ -750,7 +750,7 @@
           "attribution_accuracy": 0.6,
           "false_self_attribution": null,
           "attribution_brier": 0.4581562563937542,
-          "attribution_path_error": 0.038457157850422176,
+          "attribution_path_error": 0.03845715785042231,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8989192625556262
@@ -785,8 +785,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 5.66501251705895e-8,
-          "attribution_path_error": 0.15593332350918157,
+          "attribution_brier": 5.665012517054127e-8,
+          "attribution_path_error": 0.15593332350918165,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9012578616352201
@@ -797,8 +797,8 @@
         "metrics": {
           "attribution_accuracy": 0.7142857142857143,
           "false_self_attribution": 0,
-          "attribution_brier": 0.25558194716192373,
-          "attribution_path_error": 0.07071337241390924,
+          "attribution_brier": 0.2555819471619241,
+          "attribution_path_error": 0.07071337241390921,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.905317360235393
@@ -832,8 +832,8 @@
           "metrics": {
             "attribution_accuracy": 0.42857142857142855,
             "false_self_attribution": 1,
-            "attribution_brier": 0.5922255862551484,
-            "attribution_path_error": 0.06114047952102812,
+            "attribution_brier": 0.5922255862551425,
+            "attribution_path_error": 0.06114047952102768,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8986522338957869
@@ -869,7 +869,7 @@
             "attribution_accuracy": 0,
             "false_self_attribution": 1,
             "attribution_brier": 0.8602024170913796,
-            "attribution_path_error": 0.4387581653447324,
+            "attribution_path_error": 0.4387581653447325,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8568738229755178
@@ -892,7 +892,7 @@
           "metrics": {
             "attribution_accuracy": 0.25,
             "false_self_attribution": 1,
-            "attribution_brier": 0.6803358558971077,
+            "attribution_brier": 0.6803358558971131,
             "attribution_path_error": 0.15433269735347016,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
@@ -916,8 +916,8 @@
           "metrics": {
             "attribution_accuracy": 0.3333333333333333,
             "false_self_attribution": 0.6666666666666666,
-            "attribution_brier": 0.45350402113836824,
-            "attribution_path_error": 0.17026129927088776,
+            "attribution_brier": 0.45350402113836874,
+            "attribution_path_error": 0.17026129927088687,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8473442074445838
@@ -928,8 +928,8 @@
           "metrics": {
             "attribution_accuracy": 0.6,
             "false_self_attribution": 0.5,
-            "attribution_brier": 0.3584732991204224,
-            "attribution_path_error": 0.13506765822505104,
+            "attribution_brier": 0.3584732991204214,
+            "attribution_path_error": 0.13506765822505093,
             "missed_changes": 1,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8834330080789005
@@ -988,8 +988,8 @@
           "metrics": {
             "attribution_accuracy": 0.5,
             "false_self_attribution": null,
-            "attribution_brier": 0.5892137615051858,
-            "attribution_path_error": 0.16845670903839546,
+            "attribution_brier": 0.589213761505188,
+            "attribution_path_error": 0.16845670903839427,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8238499423661323
@@ -1012,8 +1012,8 @@
           "metrics": {
             "attribution_accuracy": 0,
             "false_self_attribution": 1,
-            "attribution_brier": 0.9420779196770637,
-            "attribution_path_error": 0.14008859221017222,
+            "attribution_brier": 0.9420779196770678,
+            "attribution_path_error": 0.1400885922101694,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.8759567998322324
@@ -1037,7 +1037,7 @@
             "attribution_accuracy": 0,
             "false_self_attribution": 1,
             "attribution_brier": 0.9194018583661173,
-            "attribution_path_error": 0.163032763310769,
+            "attribution_path_error": 0.16303276331076896,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8258503401360544
@@ -1048,8 +1048,8 @@
           "metrics": {
             "attribution_accuracy": 0.8,
             "false_self_attribution": null,
-            "attribution_brier": 0.19435865748201608,
-            "attribution_path_error": 0.08541704095521388,
+            "attribution_brier": 0.19435865748201614,
+            "attribution_path_error": 0.08541704095521431,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8984954439499894
@@ -1072,8 +1072,8 @@
           "metrics": {
             "attribution_accuracy": 0.6666666666666666,
             "false_self_attribution": 1,
-            "attribution_brier": 0.37435596180020536,
-            "attribution_path_error": 0.0848577037305523,
+            "attribution_brier": 0.37435596180020486,
+            "attribution_path_error": 0.08485770373055206,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.9063552188552189
@@ -1084,8 +1084,8 @@
           "metrics": {
             "attribution_accuracy": 0.8333333333333334,
             "false_self_attribution": null,
-            "attribution_brier": 0.1860481097628581,
-            "attribution_path_error": 0.04257375299854013,
+            "attribution_brier": 0.18604810976285618,
+            "attribution_path_error": 0.04257375299853952,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8545797922568461
@@ -1108,8 +1108,8 @@
           "metrics": {
             "attribution_accuracy": 0.5,
             "false_self_attribution": 1,
-            "attribution_brier": 0.4462863202469083,
-            "attribution_path_error": 0.1948525738544094,
+            "attribution_brier": 0.44628632024690806,
+            "attribution_path_error": 0.19485257385440935,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8835912009262183
@@ -1120,8 +1120,8 @@
           "metrics": {
             "attribution_accuracy": 0,
             "false_self_attribution": 0.6666666666666666,
-            "attribution_brier": 0.8931262541472751,
-            "attribution_path_error": 0.19557194597381355,
+            "attribution_brier": 0.8931262541472712,
+            "attribution_path_error": 0.1955719459738137,
             "missed_changes": 1,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8800544730777289
@@ -1180,8 +1180,8 @@
           "metrics": {
             "attribution_accuracy": 0.5,
             "false_self_attribution": 1,
-            "attribution_brier": 0.45571632687403413,
-            "attribution_path_error": 0.20828833642231695,
+            "attribution_brier": 0.45571632687403274,
+            "attribution_path_error": 0.2082883364223174,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8333856619570905
@@ -1226,10 +1226,10 @@
           "control_at_ceiling": 0
         },
         "attribution_brier": {
-          "control_mean": 0.09764685062421552,
+          "control_mean": 0.09764685062421956,
           "treatment_mean": 0.6467509852083768,
-          "mean_difference": 0.5491041345841613,
-          "sd_difference": 0.24103402774212426,
+          "mean_difference": 0.5491041345841572,
+          "sd_difference": 0.24103402774213142,
           "increase": 32,
           "decrease": 0,
           "tie": 0,
@@ -1238,10 +1238,10 @@
           "control_at_ceiling": 0
         },
         "attribution_path_error": {
-          "control_mean": 0.13021189322909754,
-          "treatment_mean": 0.18289061644202695,
-          "mean_difference": 0.05267872321292938,
-          "sd_difference": 0.06472870609300818,
+          "control_mean": 0.13021189322909762,
+          "treatment_mean": 0.1828906164420268,
+          "mean_difference": 0.05267872321292917,
+          "sd_difference": 0.06472870609300829,
           "increase": 28,
           "decrease": 4,
           "tie": 0,
@@ -1277,7 +1277,7 @@
             "attribution_accuracy": 0.5714285714285714,
             "false_self_attribution": 0.75,
             "attribution_brier": 0.5,
-            "attribution_path_error": 0.0457930298608262,
+            "attribution_path_error": 0.045793029860826305,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.9021397105097546
@@ -1313,7 +1313,7 @@
             "attribution_accuracy": 0.5,
             "false_self_attribution": 0.5,
             "attribution_brier": 0.5,
-            "attribution_path_error": 0.38244107420342244,
+            "attribution_path_error": 0.3824410742034233,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8808328102113413
@@ -1361,7 +1361,7 @@
             "attribution_accuracy": 0.5,
             "false_self_attribution": 0.6666666666666666,
             "attribution_brier": 0.5,
-            "attribution_path_error": 0.10865479855694882,
+            "attribution_path_error": 0.10865479855694848,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8617733166039314
@@ -1397,7 +1397,7 @@
             "attribution_accuracy": 0.2857142857142857,
             "false_self_attribution": 1,
             "attribution_brier": 0.7142857142857143,
-            "attribution_path_error": 0.26234699056879096,
+            "attribution_path_error": 0.2623469905687926,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8850538646585085
@@ -1409,7 +1409,7 @@
             "attribution_accuracy": 0.8333333333333334,
             "false_self_attribution": null,
             "attribution_brier": 0.2,
-            "attribution_path_error": 0.1102246131321437,
+            "attribution_path_error": 0.11022461313214338,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8203190596137699
@@ -1433,7 +1433,7 @@
             "attribution_accuracy": 0.5,
             "false_self_attribution": null,
             "attribution_brier": 0.6,
-            "attribution_path_error": 0.1360525177911254,
+            "attribution_path_error": 0.13605251779112676,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8263517060367455
@@ -1469,7 +1469,7 @@
             "attribution_accuracy": 0.25,
             "false_self_attribution": 0.75,
             "attribution_brier": 0.75,
-            "attribution_path_error": 0.2163057942561048,
+            "attribution_path_error": 0.21630579425610483,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8861303163628745
@@ -1481,7 +1481,7 @@
             "attribution_accuracy": 0,
             "false_self_attribution": 1,
             "attribution_brier": 1,
-            "attribution_path_error": 0.14778636603359252,
+            "attribution_path_error": 0.14778636603359238,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0.5,
             "attribution_coverage_90": 0.8301867002307531
@@ -1493,7 +1493,7 @@
             "attribution_accuracy": 0.8,
             "false_self_attribution": null,
             "attribution_brier": 0.2,
-            "attribution_path_error": 0.08780206611547797,
+            "attribution_path_error": 0.0878020661154774,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.9013434089000839
@@ -1517,7 +1517,7 @@
             "attribution_accuracy": 0.6666666666666666,
             "false_self_attribution": 1,
             "attribution_brier": 0.4,
-            "attribution_path_error": 0.08460507400121824,
+            "attribution_path_error": 0.08460507400122341,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.90625
@@ -1553,7 +1553,7 @@
             "attribution_accuracy": 0.5,
             "false_self_attribution": 1,
             "attribution_brier": 0.5,
-            "attribution_path_error": 0.1535457325702083,
+            "attribution_path_error": 0.15354573257020662,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8864841926586039
@@ -1565,7 +1565,7 @@
             "attribution_accuracy": 0.16666666666666666,
             "false_self_attribution": 0.8333333333333334,
             "attribution_brier": 0.8333333333333334,
-            "attribution_path_error": 0.1798932776958506,
+            "attribution_path_error": 0.17989327769585714,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8912633563796355
@@ -1577,7 +1577,7 @@
             "attribution_accuracy": 0.3333333333333333,
             "false_self_attribution": 0.6666666666666666,
             "attribution_brier": 0.6666666666666666,
-            "attribution_path_error": 0.14376836775889457,
+            "attribution_path_error": 0.14376836775889304,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.893492362418916
@@ -1601,7 +1601,7 @@
             "attribution_accuracy": 0.14285714285714285,
             "false_self_attribution": 0.8333333333333334,
             "attribution_brier": 0.8571428571428571,
-            "attribution_path_error": 0.15354747344606137,
+            "attribution_path_error": 0.1535474734460613,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8979506482643246
@@ -1613,7 +1613,7 @@
             "attribution_accuracy": 0.5,
             "false_self_attribution": 1,
             "attribution_brier": 1,
-            "attribution_path_error": 0.29568739856629733,
+            "attribution_path_error": 0.2956873985662942,
             "missed_changes": 1,
             "misleading_sense_blamed_self": 1,
             "attribution_coverage_90": 0.8829027515227893
@@ -1637,7 +1637,7 @@
             "attribution_accuracy": 0.42857142857142855,
             "false_self_attribution": 0.5,
             "attribution_brier": 0.5714285714285714,
-            "attribution_path_error": 0.0861523799941235,
+            "attribution_path_error": 0.08615237999412399,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8499790619765494
@@ -1670,10 +1670,10 @@
           "control_at_ceiling": 0
         },
         "attribution_brier": {
-          "control_mean": 0.09764685062421552,
+          "control_mean": 0.09764685062421956,
           "treatment_mean": 0.6263020833333335,
-          "mean_difference": 0.5286552327091177,
-          "sd_difference": 0.2541904120368593,
+          "mean_difference": 0.5286552327091137,
+          "sd_difference": 0.25419041203686543,
           "increase": 32,
           "decrease": 0,
           "tie": 0,
@@ -1682,10 +1682,10 @@
           "control_at_ceiling": 0
         },
         "attribution_path_error": {
-          "control_mean": 0.13021189322909754,
-          "treatment_mean": 0.1674289206123653,
-          "mean_difference": 0.037217027383267744,
-          "sd_difference": 0.059970545445716374,
+          "control_mean": 0.13021189322909762,
+          "treatment_mean": 0.1674289206123656,
+          "mean_difference": 0.03721702738326797,
+          "sd_difference": 0.05997054544571626,
           "increase": 24,
           "decrease": 8,
           "tie": 0,
@@ -2114,10 +2114,10 @@
           "control_at_ceiling": 0
         },
         "attribution_brier": {
-          "control_mean": 0.09764685062421552,
+          "control_mean": 0.09764685062421956,
           "treatment_mean": 0.792075892857143,
-          "mean_difference": 0.6944290422329275,
-          "sd_difference": 0.2689278126446531,
+          "mean_difference": 0.6944290422329232,
+          "sd_difference": 0.2689278126446494,
           "increase": 32,
           "decrease": 0,
           "tie": 0,
@@ -2126,10 +2126,10 @@
           "control_at_ceiling": 0
         },
         "attribution_path_error": {
-          "control_mean": 0.13021189322909754,
+          "control_mean": 0.13021189322909762,
           "treatment_mean": 0.15974315558357194,
-          "mean_difference": 0.02953126235447437,
-          "sd_difference": 0.04974237027155941,
+          "mean_difference": 0.029531262354474338,
+          "sd_difference": 0.04974237027155926,
           "increase": 27,
           "decrease": 5,
           "tie": 0,
@@ -2152,8 +2152,8 @@
           "metrics": {
             "attribution_accuracy": 0.8333333333333334,
             "false_self_attribution": null,
-            "attribution_brier": 0.13688178561699157,
-            "attribution_path_error": 0.28840564185060735,
+            "attribution_brier": 0.136881785616993,
+            "attribution_path_error": 0.28840564185061224,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8993175853018373
@@ -2176,8 +2176,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 0.004663467142474716,
-            "attribution_path_error": 0.20309282562275527,
+            "attribution_brier": 0.004663467142474678,
+            "attribution_path_error": 0.2030928256227554,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8977309044423138
@@ -2248,8 +2248,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 0.0026679747155850964,
-            "attribution_path_error": 0.07743580042261172,
+            "attribution_brier": 0.002667974715585239,
+            "attribution_path_error": 0.07743580042260854,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.9065027839058725
@@ -2261,7 +2261,7 @@
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
             "attribution_brier": 0.0011460929551257012,
-            "attribution_path_error": 0.1309123857168192,
+            "attribution_path_error": 0.13091238571681926,
             "missed_changes": 1,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.8985416010911762
@@ -2272,8 +2272,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 0.003312824408074666,
-            "attribution_path_error": 0.05043897652903891,
+            "attribution_brier": 0.003312824408074562,
+            "attribution_path_error": 0.05043897652903886,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.9025851197982345
@@ -2297,7 +2297,7 @@
             "attribution_accuracy": 1,
             "false_self_attribution": null,
             "attribution_brier": 0.0003210457820756362,
-            "attribution_path_error": 0.04020658141857326,
+            "attribution_path_error": 0.040206581418573493,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.9011719987329744
@@ -2308,8 +2308,8 @@
           "metrics": {
             "attribution_accuracy": 0.6666666666666666,
             "false_self_attribution": 0,
-            "attribution_brier": 0.30028514177300475,
-            "attribution_path_error": 0.06967466258193834,
+            "attribution_brier": 0.30028514177301774,
+            "attribution_path_error": 0.06967466258193444,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.8868935097668557
@@ -2320,8 +2320,8 @@
           "metrics": {
             "attribution_accuracy": 0.8333333333333334,
             "false_self_attribution": null,
-            "attribution_brier": 0.18172017654458045,
-            "attribution_path_error": 0.13051320918726553,
+            "attribution_brier": 0.18172017654458164,
+            "attribution_path_error": 0.13051320918727916,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8862918509159823
@@ -2332,8 +2332,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 0.000945718087848621,
-            "attribution_path_error": 0.10187884783359726,
+            "attribution_brier": 0.0009457180878486416,
+            "attribution_path_error": 0.10187884783359671,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.9037293107060549
@@ -2368,8 +2368,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 0.005200384786599769,
-            "attribution_path_error": 0.08540460535326759,
+            "attribution_brier": 0.0052003847866002135,
+            "attribution_path_error": 0.08540460535326791,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.8927636401717457
@@ -2380,8 +2380,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": null,
-            "attribution_brier": 0.059875541030310064,
-            "attribution_path_error": 0.030251525209190486,
+            "attribution_brier": 0.05987554103042675,
+            "attribution_path_error": 0.03025152520919235,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.8981247366203119
@@ -2392,8 +2392,8 @@
           "metrics": {
             "attribution_accuracy": 0.8571428571428571,
             "false_self_attribution": 0.3333333333333333,
-            "attribution_brier": 0.14402147307854055,
-            "attribution_path_error": 0.16162850108048088,
+            "attribution_brier": 0.1440214730785405,
+            "attribution_path_error": 0.16162850108047627,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.9012501313163147
@@ -2404,8 +2404,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 0.0035161661274029365,
-            "attribution_path_error": 0.08218964342512891,
+            "attribution_brier": 0.003516166127403278,
+            "attribution_path_error": 0.08218964342512883,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.9056504322158971
@@ -2416,7 +2416,7 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": null,
-            "attribution_brier": 9.407976927761179e-9,
+            "attribution_brier": 9.407976927770763e-9,
             "attribution_path_error": 0.02454315011062551,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
@@ -2428,8 +2428,8 @@
           "metrics": {
             "attribution_accuracy": 0.8333333333333334,
             "false_self_attribution": 0,
-            "attribution_brier": 0.14540445704132196,
-            "attribution_path_error": 0.09798383476997909,
+            "attribution_brier": 0.1454044570413187,
+            "attribution_path_error": 0.0979838347699816,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.896095717884131
@@ -2452,8 +2452,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 0.002754169033759865,
-            "attribution_path_error": 0.09765964225581371,
+            "attribution_brier": 0.00275416903375985,
+            "attribution_path_error": 0.09765964225581365,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.9008923884514436
@@ -2464,8 +2464,8 @@
           "metrics": {
             "attribution_accuracy": 0.6666666666666666,
             "false_self_attribution": 0,
-            "attribution_brier": 0.33242645270490445,
-            "attribution_path_error": 0.011439839892618459,
+            "attribution_brier": 0.3324264527049024,
+            "attribution_path_error": 0.011439839892617685,
             "missed_changes": 0,
             "misleading_sense_blamed_self": 0,
             "attribution_coverage_90": 0.9032934759807006
@@ -2477,7 +2477,7 @@
             "attribution_accuracy": 0.6,
             "false_self_attribution": null,
             "attribution_brier": 0.4581562563937542,
-            "attribution_path_error": 0.038457157850422176,
+            "attribution_path_error": 0.03845715785042231,
             "missed_changes": 1,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.8989192625556262
@@ -2512,8 +2512,8 @@
           "metrics": {
             "attribution_accuracy": 1,
             "false_self_attribution": 0,
-            "attribution_brier": 5.846016269967359e-8,
-            "attribution_path_error": 0.15596054626934316,
+            "attribution_brier": 5.846016269965436e-8,
+            "attribution_path_error": 0.155960546269343,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.9010482180293501
@@ -2524,8 +2524,8 @@
           "metrics": {
             "attribution_accuracy": 0.7142857142857143,
             "false_self_attribution": 0,
-            "attribution_brier": 0.255581436237031,
-            "attribution_path_error": 0.07249290631883677,
+            "attribution_brier": 0.2555814362370314,
+            "attribution_path_error": 0.07249290631883673,
             "missed_changes": 0,
             "misleading_sense_blamed_self": null,
             "attribution_coverage_90": 0.905317360235393
@@ -2558,10 +2558,10 @@
           "control_at_ceiling": 0
         },
         "attribution_brier": {
-          "control_mean": 0.09764685062421552,
-          "treatment_mean": 0.09841889325923506,
-          "mean_difference": 0.00077204263501955,
-          "sd_difference": 0.002667315018047367,
+          "control_mean": 0.09764685062421956,
+          "treatment_mean": 0.09841889325923907,
+          "mean_difference": 0.0007720426350195221,
+          "sd_difference": 0.0026673150180469497,
           "increase": 12,
           "decrease": 7,
           "tie": 13,
@@ -2570,10 +2570,10 @@
           "control_at_ceiling": 0
         },
         "attribution_path_error": {
-          "control_mean": 0.13021189322909754,
-          "treatment_mean": 0.1296882886321584,
-          "mean_difference": -0.0005236045969391461,
-          "sd_difference": 0.002780845473331101,
+          "control_mean": 0.13021189322909762,
+          "treatment_mean": 0.12968828863215875,
+          "mean_difference": -0.0005236045969388615,
+          "sd_difference": 0.002780845473329737,
           "increase": 6,
           "decrease": 6,
           "tie": 20,
@@ -2606,7 +2606,7 @@
         "metrics": {
           "attribution_accuracy": 0.8,
           "false_self_attribution": 0,
-          "attribution_brier": 0.1872805862011177,
+          "attribution_brier": 0.1872805862011173,
           "attribution_path_error": 0.20253362563410962,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
@@ -2642,8 +2642,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.000044196889856236204,
-          "attribution_path_error": 0.04329337466828473,
+          "attribution_brier": 0.00004419688985623567,
+          "attribution_path_error": 0.043293374668284625,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.8983317595215612
@@ -2666,8 +2666,8 @@
         "metrics": {
           "attribution_accuracy": 0.8333333333333334,
           "false_self_attribution": 0,
-          "attribution_brier": 0.16399620552356164,
-          "attribution_path_error": 0.260533487966727,
+          "attribution_brier": 0.16399620552356148,
+          "attribution_path_error": 0.26053348796672404,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.901393691711202
@@ -2678,8 +2678,8 @@
         "metrics": {
           "attribution_accuracy": 0.8571428571428571,
           "false_self_attribution": 0,
-          "attribution_brier": 0.14349767869645033,
-          "attribution_path_error": 0.04349446940328245,
+          "attribution_brier": 0.14349767869645075,
+          "attribution_path_error": 0.04349446940328387,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8865471322218728
@@ -2690,8 +2690,8 @@
         "metrics": {
           "attribution_accuracy": 0.6666666666666666,
           "false_self_attribution": 0,
-          "attribution_brier": 0.2761537126077615,
-          "attribution_path_error": 0.33132208109600375,
+          "attribution_brier": 0.27615371260776583,
+          "attribution_path_error": 0.33132208109600053,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.901393691711202
@@ -2703,7 +2703,7 @@
           "attribution_accuracy": 0.8333333333333334,
           "false_self_attribution": null,
           "attribution_brier": 0.16982978906152818,
-          "attribution_path_error": 0.17989093758569236,
+          "attribution_path_error": 0.1798909375856923,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.889943074003795
@@ -2715,7 +2715,7 @@
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
           "attribution_brier": 0.0000024275852586741187,
-          "attribution_path_error": 0.014376234357073966,
+          "attribution_path_error": 0.014376234357074167,
           "missed_changes": 3,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9034504590060146
@@ -2727,7 +2727,7 @@
           "attribution_accuracy": 0.6666666666666666,
           "false_self_attribution": 0,
           "attribution_brier": 0.340225650649268,
-          "attribution_path_error": 0.09982012188918818,
+          "attribution_path_error": 0.0998201218891883,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9006935687263556
@@ -2738,8 +2738,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": null,
-          "attribution_brier": 0.0012082846363016804,
-          "attribution_path_error": 0.022208824980384963,
+          "attribution_brier": 0.0012082846363018836,
+          "attribution_path_error": 0.022208824980369257,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8863755367054141
@@ -2751,7 +2751,7 @@
           "attribution_accuracy": 0.8333333333333334,
           "false_self_attribution": 0,
           "attribution_brier": 0.16717208347060386,
-          "attribution_path_error": 0.016143392064554923,
+          "attribution_path_error": 0.016143392064554937,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.902318749344245
@@ -2774,8 +2774,8 @@
         "metrics": {
           "attribution_accuracy": 0.8571428571428571,
           "false_self_attribution": 0,
-          "attribution_brier": 0.13629397318101402,
-          "attribution_path_error": 0.1512027749913931,
+          "attribution_brier": 0.136293973181014,
+          "attribution_path_error": 0.1512027749913957,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9019917799557382
@@ -2798,8 +2798,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": null,
-          "attribution_brier": 1.3630377759303315e-9,
-          "attribution_path_error": 0.022478508786618504,
+          "attribution_brier": 1.363037775930433e-9,
+          "attribution_path_error": 0.022478508786618754,
           "missed_changes": 2,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9051087185982689
@@ -2810,8 +2810,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.0021758442695186393,
-          "attribution_path_error": 0.1656667884934421,
+          "attribution_brier": 0.002175844269518644,
+          "attribution_path_error": 0.16566678849344296,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9018681780016793
@@ -2823,7 +2823,7 @@
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
           "attribution_brier": 0.005094548906204613,
-          "attribution_path_error": 0.030658643634341447,
+          "attribution_path_error": 0.030658643634341846,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.8992760465848284
@@ -2834,8 +2834,8 @@
         "metrics": {
           "attribution_accuracy": 0.8,
           "false_self_attribution": 0,
-          "attribution_brier": 0.1853392484776279,
-          "attribution_path_error": 0.20836272269863662,
+          "attribution_brier": 0.1853392484776293,
+          "attribution_path_error": 0.2083627226986311,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.893563579277865
@@ -2870,8 +2870,8 @@
         "metrics": {
           "attribution_accuracy": 0.8333333333333334,
           "false_self_attribution": 0,
-          "attribution_brier": 0.14040216690687654,
-          "attribution_path_error": 0.2005438514679444,
+          "attribution_brier": 0.14040216690687343,
+          "attribution_path_error": 0.2005438514679443,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9039228026012167
@@ -2907,7 +2907,7 @@
           "attribution_accuracy": 0.8,
           "false_self_attribution": null,
           "attribution_brier": 0.252350646042286,
-          "attribution_path_error": 0.059315533383738024,
+          "attribution_path_error": 0.059315533383738156,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8967345207803223
@@ -2918,8 +2918,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.0037698990678510427,
-          "attribution_path_error": 0.05509658019562471,
+          "attribution_brier": 0.003769899067850933,
+          "attribution_path_error": 0.055096580195624655,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.9039832285115303
@@ -2930,8 +2930,8 @@
         "metrics": {
           "attribution_accuracy": 1,
           "false_self_attribution": 0,
-          "attribution_brier": 0.0005698194981796931,
-          "attribution_path_error": 0.18198183616139865,
+          "attribution_brier": 0.0005698194981796046,
+          "attribution_path_error": 0.1819818361613987,
           "missed_changes": 1,
           "misleading_sense_blamed_self": null,
           "attribution_coverage_90": 0.8986522338957869
@@ -2942,7 +2942,7 @@
         "metrics": {
           "attribution_accuracy": 0.5714285714285714,
           "false_self_attribution": 0.2,
-          "attribution_brier": 0.37731702526193756,
+          "attribution_brier": 0.3773170252619376,
           "attribution_path_error": 0.3620055472477124,
           "missed_changes": 0,
           "misleading_sense_blamed_self": null,
@@ -2955,7 +2955,7 @@
           "attribution_accuracy": 1,
           "false_self_attribution": null,
           "attribution_brier": 0.0004073120599685274,
-          "attribution_path_error": 0.052977776308018594,
+          "attribution_path_error": 0.05297777630801682,
           "missed_changes": 0,
           "misleading_sense_blamed_self": 0,
           "attribution_coverage_90": 0.8875236294896031
@@ -3000,10 +3000,10 @@
         "control_at_ceiling": 0
       },
       "attribution_brier": {
-        "control_mean": 0.09764685062421552,
-        "treatment_mean": 0.12384937402477557,
-        "mean_difference": 0.02620252340056002,
-        "sd_difference": 0.1726206098987348,
+        "control_mean": 0.09764685062421956,
+        "treatment_mean": 0.12384937402477565,
+        "mean_difference": 0.02620252340055606,
+        "sd_difference": 0.17262060989873676,
         "increase": 17,
         "decrease": 15,
         "tie": 0,
@@ -3012,10 +3012,10 @@
         "control_at_ceiling": 0
       },
       "attribution_path_error": {
-        "control_mean": 0.13021189322909754,
-        "treatment_mean": 0.14340084092963515,
-        "mean_difference": 0.0131889477005376,
-        "sd_difference": 0.12486101490054231,
+        "control_mean": 0.13021189322909762,
+        "treatment_mean": 0.14340084092963445,
+        "mean_difference": 0.013188947700536826,
+        "sd_difference": 0.1248610149005422,
         "increase": 20,
         "decrease": 12,
         "tie": 0,
@@ -3063,20 +3063,20 @@
     {
       "metric": "attribution_brier",
       "resolution": 0,
-      "divergence_bound": 0.12206120383195303,
+      "divergence_bound": 0.12206120383195443,
       "floor": 0.2,
       "host_minimum_effect": 0.2
     },
     {
       "metric": "attribution_path_error",
       "resolution": 0,
-      "divergence_bound": 0.08829007034200802,
+      "divergence_bound": 0.08829007034200793,
       "floor": 0.09,
       "host_minimum_effect": 0.09
     }
   ],
-  "runs_sha256": "3de73c4b24668a85e805d9d5cb53e52ad0f15ea3bdbc11b7e952d34bf6a0951c",
-  "outputs_sha256": "a51ddf67957ab3e59443c0292d9f0dde008e7c6b580f24be66bfd1efd6f1c74f",
-  "generated_at": "2026-10-25T19:29:40.166Z",
-  "sha256": "4da5371b283fcd72301a9e03e6b3bfeb5d0a833067dd169c3304551cdfd5c435"
+  "runs_sha256": "afecc56f83767e51a71a56b51de889bf9de40bd6ab069c53a4fb906e10fa12d8",
+  "outputs_sha256": "b992e5bc658370e500d6b599f12a7604fe17232dcc9c52f78e99fccb44b586ea",
+  "generated_at": "2026-10-26T19:24:01.589Z",
+  "sha256": "2086d8e890c630da38b4684c6a62ed2c72c41f5a69a04eaaf13fee9cbaa2d390"
 }
