@@ -30,6 +30,10 @@ import {
   restoreLife,
   type LifeEvent,
 } from "../src/bethesda/life/continuity.js";
+import {
+  removeObservation,
+  writeObservation,
+} from "../src/bethesda/life/observationFile.js";
 import { LifeStore } from "../src/bethesda/life/store.js";
 import { PROFILES } from "../src/bethesda/simulation.js";
 
@@ -43,6 +47,10 @@ const TICK_MS = 100;
 const MAX_BACKLOG_TICKS = 1800;
 /** A durable life is checkpointed every this many ticks (five simulated minutes). */
 const CHECKPOINT_TICKS = 3000;
+/** The file the observer reads (observation.ts), named by the service; none without it. */
+const OBSERVE_ENV = "BETHESDA_LIFE_OBSERVE";
+/** A durable life is observed every this many ticks (one simulated second). */
+const OBSERVE_TICKS = 10;
 
 type Clock = { continuous: true } | { continuous: false; ticks: number };
 interface Mode {
@@ -171,9 +179,38 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
     });
     return;
   }
-  store.acquire();
+  const epoch = store.acquire();
   const { checkpoint, committedUtc } = store.headRecord();
   const life = restoreLife(BETHESDA_LIFE, checkpoint);
+  // What the observer may see (observation.ts), when the service names a file
+  // for it: written about once a second, beside the life and never into it. A
+  // failure to write it is reported once and never stops the life.
+  const observed = process.env[OBSERVE_ENV] || null;
+  let head = { sequence: checkpoint.sequence, tick: checkpoint.tick, committedUtc };
+  let observedTick = -Infinity,
+    observeError = "";
+  const observe = (checkpointing = false) => {
+    observedTick = life.city.tick;
+    if (!observed) return;
+    try {
+      writeObservation(
+        observed,
+        life.observation({
+          individual: checkpoint.birth.individual,
+          epoch,
+          checkpoint: head,
+          checkpointing,
+          observedUtc: new Date().toISOString(),
+        }),
+      );
+      observeError = "";
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (message !== observeError)
+        process.stderr.write(`observation not written: ${message}\n`);
+      observeError = message;
+    }
+  };
   // The life was paused while no process ran; those ticks were not computed and are not claimed.
   let pending: LifeEvent[] = [
     {
@@ -189,6 +226,8 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
   let previous = checkpoint;
   let sinceCheckpoint = 0;
   const commit = () => {
+    // The clock waits while it is made and verified: the observer is told so.
+    observe(true);
     const next = checkpointLife(BETHESDA_LIFE, life, {
       genesis: previous.genesis,
       birth: previous.birth,
@@ -199,19 +238,27 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
     restoreLife(BETHESDA_LIFE, next);
     // Making and verifying it can outlast a good part of the lease on a slow machine.
     store.renew();
-    store.commit(next);
+    head = { sequence: next.sequence, tick: next.tick, committedUtc: store.commit(next) };
     previous = next;
     pending = [];
     sinceCheckpoint = 0;
+    observe();
   };
   let lastTick = life.city.tick;
-  await live(life, mode.clock!, (l) => {
-    sinceCheckpoint += l.city.tick - lastTick;
-    lastTick = l.city.tick;
-    store.renew();
-    if (sinceCheckpoint >= CHECKPOINT_TICKS) commit();
-  });
-  if (life.city.tick !== previous.tick || pending.length) commit();
+  observe();
+  try {
+    await live(life, mode.clock!, (l) => {
+      sinceCheckpoint += l.city.tick - lastTick;
+      lastTick = l.city.tick;
+      store.renew();
+      if (sinceCheckpoint >= CHECKPOINT_TICKS) commit();
+      if (l.city.tick - observedTick >= OBSERVE_TICKS) observe();
+    });
+    if (life.city.tick !== previous.tick || pending.length) commit();
+  } finally {
+    // A stopped life is unavailable at once, not stale for a few seconds.
+    if (observed) removeObservation(observed);
+  }
   store.release();
   print(life, { individual: previous.birth.individual, checkpoint: previous.sequence });
 }

@@ -113,6 +113,18 @@ food kept moving it changed nothing, because no return flight reached the old
 site.
 [Read the continuity design and the three studies](docs/INDIVIDUAL_CONTINUITY.md).
 
+**Watch it live.** Since 2026-10-26 one individual has lived continuously on
+a server: a model of Bethesda with its people and one fly, computed ten ticks
+a second whether or not anyone watches. It is checkpointed every five minutes
+and resumes as the same individual after a restart, a reboot or an upgrade;
+an outage is recorded as a pause, never filled in. Anyone can watch it at
+**[lop-nur-twin.vercel.app/live](https://lop-nur-twin.vercel.app/live)**:
+the fly on the map, what it is doing, and the reason for each decision it
+makes. Watching only reads and changes nothing; the raw witness is served at
+`https://129-213-139-78.sslip.io/v1/now`. It is a reduced-order simulated
+fly, and its continuous life is not evidence of experience.
+[How it lives](docs/BETHESDA_CONTINUOUS_LIFE.md).
+
 ### A life three millimeters long
 
 [![A Life Three Millimeters Long — watch the 58-second illustrated fly film](docs/media/fly-film/poster.jpg)](https://lop-nur-twin.vercel.app/film/)

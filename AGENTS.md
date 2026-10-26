@@ -504,7 +504,9 @@ it adds `src/rain/` (the research runtime), `server/rain/` and `api/rain/`
 of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
 scripts. Individual continuity adds the files its own section lists. Its autonomous researcher adds `src/rain/autonomy/`,
-`tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`.
+`tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`. The unlisted
+`/live` page adds `src/routes/live.tsx` and the observer's origin in the
+`connect-src` of all three CSP copies.
 
 - **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
   pedestrian graphs; `data/streetscape.json` holds storefront names, monuments,
@@ -732,6 +734,7 @@ cause.**
 The headless life, its durable checkpoints, and the individuality studies.
 Read `docs/INDIVIDUAL_CONTINUITY.md` and `docs/BETHESDA_CONTINUOUS_LIFE.md`
 first. Outside `src/bethesda/` it adds `scripts/bethesda-life-headless.ts`,
+`scripts/bethesda-life-observer.ts`, `deploy/bethesda-life/`,
 `scripts/individuality-evaluate.ts`, `scripts/mushroom-body-evaluate.ts`,
 `docs/benchmarks/fly-individuality/`, `docs/benchmarks/fly-mushroom-body/`,
 and `streamPosition`/`seekStream` in `src/lib/noise.ts`. The rule it exists
@@ -759,6 +762,20 @@ verified to be; a copy is always someone else.**
   checkpoint by hand (compaction drops old graphs and keeps every header).
 - **Outages are gaps.** A resumed life records a `gap` event and computes no
   catch-up ticks; never claim ticks that were not computed.
+- **Watching changes nothing.** An observation (`observation.ts`) is made by
+  reading the life only, and written beside it, never into a checkpoint;
+  `observation.test.ts` steps a life observed every tick beside an unwatched
+  one. The observer (`observer.ts`) reads that file and nothing else: it
+  never opens the store, ticks, steps or restores, and serves no observation
+  it could not validate. A viewer shows the witness's status (live, stale or
+  unavailable) and never puts a fly of its own in the shared fly's place.
+  The runner takes the observation's path from `BETHESDA_LIFE_OBSERVE`, not
+  an argument, so the unit still starts a release from before it.
+- **`/live` is unlisted.** Nothing on the site links to it, so Bethesda stays
+  hidden to visitors who were not given the link. It follows the observer's
+  stream (`src/bethesda/live/witnessFeed.ts`) and only interpolates between
+  two observations it received; it never extrapolates, steps or predicts the
+  fly, and draws none when there is no observation.
 - **Exogenous inputs are life events.** Anything that changes a life other
   than its genesis is an event recorded in the checkpoint that follows it,
   so a life can be re-lived from its record. The city's headless life takes

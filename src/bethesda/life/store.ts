@@ -275,8 +275,11 @@ export class LifeStore<G, L> {
     );
   }
 
-  /** Commit the next checkpoint: it must continue the head, under this writer's lease. */
-  commit(c: LifeCheckpoint<G>): void {
+  /**
+   * Commit the next checkpoint: it must continue the head, under this
+   * writer's lease. Returns the UTC time it records the commit at.
+   */
+  commit(c: LifeCheckpoint<G>): string {
     this.fence();
     const head = this.head();
     if (c.birth.individual !== head.birth.individual)
@@ -289,11 +292,12 @@ export class LifeStore<G, L> {
       throw new Error("refused: a checkpoint's tick never goes back");
     const errors = checkpointErrors(this.kind, c);
     if (errors.length) throw new Error(`checkpoint refused: ${errors.join("; ")}`);
-    this.publish(c);
+    const committedUtc = this.publish(c);
     this.compact();
+    return committedUtc;
   }
 
-  private publish(c: LifeCheckpoint<G>): void {
+  private publish(c: LifeCheckpoint<G>): string {
     const stored: StoredCheckpoint<G> = {
       schema: LIFE_STORE_SCHEMA,
       epoch: this.fence(),
@@ -310,6 +314,7 @@ export class LifeStore<G, L> {
         cause: e,
       });
     }
+    return stored.committedUtc;
   }
 
   /** Drop the graphs of all but the newest `keepGraphs` checkpoints. */

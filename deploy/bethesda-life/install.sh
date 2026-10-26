@@ -12,7 +12,9 @@
 #   --skip-trial        skip it on --create
 #
 # Layout: Node and each release under /opt/bethesda-life, the store in
-# /var/lib/bethesda-life/store (the boot volume), logs in the journal.
+# /var/lib/bethesda-life/store (the boot volume), logs in the journal. The
+# read-only observer (bethesda-life-observer) is installed beside the life on
+# 127.0.0.1:8790; public.sh puts it on the internet.
 # "Running it on one VM" in docs/BETHESDA_CONTINUOUS_LIFE.md has the steps
 # around it: backup, recovery, and what each refusal means.
 set -euo pipefail
@@ -31,6 +33,8 @@ STORE=$STATE/store
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo=$(cd "$here/../.." && pwd)
 unit=$here/$SERVICE.service
+OBSERVER=bethesda-life-observer
+observer_unit=$here/$OBSERVER.service
 
 say() { printf '%s\n' "$*"; }
 die() {
@@ -149,7 +153,8 @@ build_release() {
   rm -rf "$tmp"
   mkdir -p "$tmp"
   git_ archive --format=tar HEAD package.json package-lock.json scripts/run-ts.mjs \
-    scripts/ts-hooks.mjs scripts/bethesda-life-headless.ts src | tar -x -C "$tmp"
+    scripts/ts-hooks.mjs scripts/bethesda-life-headless.ts scripts/bethesda-life-observer.ts \
+    src | tar -x -C "$tmp"
   say "release: $commit (installing its production dependencies)"
   (cd "$tmp" && PATH=$node_dir/bin:$PATH PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev \
     --ignore-scripts --no-audit --no-fund --loglevel=error)
@@ -185,8 +190,15 @@ switch_to() {
   ln -sfn "$1" "$PREFIX/current.new" && mv -T "$PREFIX/current.new" "$PREFIX/current"
   ln -sfn "$node_dir" "$PREFIX/node.new" && mv -T "$PREFIX/node.new" "$PREFIX/node"
   install -m 0644 "$unit" "/etc/systemd/system/$SERVICE.service"
+  install -m 0644 "$observer_unit" "/etc/systemd/system/$OBSERVER.service"
   systemctl daemon-reload
   systemctl enable --quiet "$SERVICE"
+  # A release from before the observer has nothing for it to run.
+  if [ -f "$1/scripts/$OBSERVER.ts" ]; then
+    systemctl enable --quiet "$OBSERVER"
+  else
+    systemctl disable --now --quiet "$OBSERVER" 2>/dev/null || true
+  fi
 }
 
 # Starts the service and watches it resume: a failed restore stops it at once.
@@ -199,6 +211,11 @@ start_and_watch() {
   if running && [ "$(systemctl show -p NRestarts --value "$SERVICE")" = "$before" ]; then
     say "$SERVICE is living. Follow it with: journalctl -u $SERVICE -f"
     journalctl -u "$SERVICE" -n 2 --no-pager -o cat || true
+    if systemctl is-enabled --quiet "$OBSERVER" 2>/dev/null; then
+      systemctl restart "$OBSERVER"
+      sleep 3
+      say "$OBSERVER: $(curl -s http://127.0.0.1:8790/v1/health 2>/dev/null || echo "not answering yet (journalctl -u $OBSERVER)")"
+    fi
   else
     journalctl -u "$SERVICE" -n 30 --no-pager || true
     die "$SERVICE did not stay up (journal above)"
