@@ -4,8 +4,10 @@
 # file; read "Running it on one VM" in docs/BETHESDA_CONTINUOUS_LIFE.md.
 #
 # It is not the production service that document describes: the store is a
-# local directory, there is no observer API, and nothing reads the life but
-# its own status lines in the journal (journalctl -u bethesda-life).
+# local directory. About once a second it writes what an observer may see to
+# /run/bethesda-life/observation.json, which systemd removes when it stops;
+# bethesda-life-observer.service serves that, read-only, and nothing else
+# reads the life but its own status lines in the journal.
 
 [Unit]
 Description=Bethesda headless life (one city, one digital fly)
@@ -22,6 +24,9 @@ WorkingDirectory=/opt/bethesda-life/current
 # The heap a resume and a verified checkpoint need (install.sh reads this
 # value for its trial and its checks; change it in a drop-in, not here).
 Environment=NODE_OPTIONS=--max-old-space-size=2560
+# The observation file (src/bethesda/life/observation.ts). An environment
+# variable, not an argument, so a release from before it ignores it on rollback.
+Environment=BETHESDA_LIFE_OBSERVE=/run/bethesda-life/observation.json
 ExecStart=/opt/bethesda-life/node/bin/node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /var/lib/bethesda-life/store --continuous
 # On SIGTERM the runner commits a last verified checkpoint and releases its lease.
 KillSignal=SIGTERM
@@ -32,6 +37,9 @@ Restart=always
 RestartSec=75
 StateDirectory=bethesda-life
 StateDirectoryMode=0750
+# The observation's directory: readable by the observer, removed on every stop.
+RuntimeDirectory=bethesda-life
+RuntimeDirectoryMode=0755
 UMask=0027
 StandardOutput=journal
 StandardError=journal
@@ -39,7 +47,8 @@ SyslogIdentifier=bethesda-life
 # If memory runs out, the kernel stops this before it stops sshd.
 OOMScoreAdjust=500
 
-# It needs no network, no device, no privilege and no write access outside its store.
+# It needs no network, no device, no privilege and no write access outside
+# its store and its observation's directory.
 NoNewPrivileges=yes
 CapabilityBoundingSet=
 PrivateNetwork=yes

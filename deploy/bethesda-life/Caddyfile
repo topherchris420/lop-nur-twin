@@ -1,0 +1,20 @@
+# The observer on the internet (public.sh writes this to /etc/caddy/Caddyfile
+# with HOST replaced): HTTPS with a certificate Caddy obtains and renews
+# itself, in front of the read-only observer on 127.0.0.1:8790.
+HOST {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+	handle /v1/* {
+		# Unbuffered, so the stream reaches viewers as it is written.
+		reverse_proxy 127.0.0.1:8790 {
+			flush_interval -1
+		}
+	}
+	handle {
+		respond "The Bethesda life's read-only observer: GET /v1/now, /v1/stream, /v1/health" 404
+	}
+}
