@@ -9,9 +9,11 @@ the fly does; this page reads its state and draws it.
 **Status: live since 2026-10-26.** At 20:27 UTC (4:27 PM in Bethesda) the live
 garden began serving this page as release `garden-20261026-65635e04cc63`,
 built from commit `5957f4d`, in place of its 2D page
-(`ui-20261025-9abcdf40d541`). The fly was not restarted, reset or replaced.
-The [deployment record](#deployment-record-2026-10-26) lists what was checked
-before and after.
+(`ui-20261025-9abcdf40d541`). At 21:24 UTC the same day, release
+`garden-20261026-f0b215e4a835` (commit `195f497`) added the fly's name, Eva.
+Neither deploy restarted, reset or replaced the fly. The
+[deployment record](#deployment-record-2026-10-26) lists what was checked
+before and after each.
 
 | The live page before (11:09 AM, 2026-10-26)                         | The clay garden, on a recorded live state from 11:27 AM the same day |
 | ------------------------------------------------------------------- | -------------------------------------------------------------------- |
@@ -24,14 +26,14 @@ before and after.
 | **Evening**                                                             | **Night**                                                 |
 | ![The garden at dusk](media/live-garden/dusk.webp)                      | ![The saucer by moonlight](media/live-garden/night.webp)  |
 
-![The live garden after the deploy: the fly feeding on the asters at 4:28 PM, beside the observation panel](media/live-garden/live.webp)
+![The live garden after the second deploy: Eva feeding on the asters at 5:25 PM, her name in the observation panel](media/live-garden/live.webp)
 
-The clay pictures above the last are local renders of this release, replaying
-live states recorded read-only on 2026-10-26; the dusk and night pictures move
-the clock to 6:21 PM and 9:30 PM to show the light. The last is the live site
-itself a minute after the deploy, at 4:28 PM, photographed through a local
-proxy because Chrome refuses the bare address: the fly feeding on the asters,
-205 journeys and 832 memories into its life.
+The clay pictures above the last are local renders of the page, replaying live
+states recorded read-only on 2026-10-26; the dusk and night pictures move the
+clock to 6:21 PM and 9:30 PM to show the light. The last is the live site
+itself after the second deploy, at 5:25 PM, photographed through a local proxy
+because Chrome refuses the bare address: Eva feeding on the asters, 217
+journeys and 866 memories into her life.
 
 ## What the page may and may not do
 
@@ -365,9 +367,9 @@ writes `report.json` and the photographs to `garden-check/` (ignored by git).
 
 ## Deploying
 
-Each step needs the owner's go-ahead. The first deploy followed these steps on
-2026-10-26 ([record](#deployment-record-2026-10-26)). The tooling reads the
-server and its credentials from the environment, never from the repository:
+Each step needs the owner's go-ahead. Both deploys on 2026-10-26 followed these
+steps ([record](#deployment-record-2026-10-26)). The tooling reads the server
+and its credentials from the environment, never from the repository:
 
 ```sh
 export GARDEN_SSH=ubuntu@150.136.49.49
@@ -437,6 +439,8 @@ each needs the owner's approval:
 
 ### Deployment record: 2026-10-26
 
+**First deploy, 20:27 UTC: the clay page.**
+
 | Step        | Result                                                                                                                                                                                                                            |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Inspect     | Live index `0a65c8f6…` (`ui-20261025-9abcdf40d541`). Service active, PID 8320, no restarts. Life `5cf42cd6`, 830 memories.                                                                                                        |
@@ -446,7 +450,20 @@ each needs the owner's approval:
 | Verify      | 9 of 9 files served byte for byte; the CSP unchanged; the life the same, and advancing.                                                                                                                                           |
 | Proxy check | Passed (the "Live site" column under [Performance](#performance)).                                                                                                                                                                |
 
-To undo it: `node deploy/garden/deploy.mjs rollback garden-20261026-65635e04cc63`.
+**Second deploy, 21:24 UTC: the name.**
+
+| Step        | Result                                                                                                                                                                                                                                              |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inspect     | Live index `9615246d…` (`garden-20261026-65635e04cc63`). Service active, PID 8320, no restarts. Life `5cf42cd6`, 847 memories.                                                                                                                      |
+| Backup      | Both existing snapshots copied off the server first. Then `bethesda-fly-backup.service` succeeded: a new `day-0.sqlite3` (73 728 bytes, SHA-256 `79a44e83…`) passed the integrity check and holds the same life with all 864 memories.              |
+| Build       | From `195f497`: `garden-20261026-f0b215e4a835`, byte for byte the release the replay check ran on.                                                                                                                                                  |
+| Publish     | Index `9615246d…` → `8c089e4e…`, the old one saved in `/var/backups/bethesda-fly-ui/garden-20261026-f0b215e4a835/`. The same life in the same process (PID 8320, not restarted), 866 memories before and after.                                     |
+| Verify      | 9 of 9 files served byte for byte; the CSP unchanged; the life the same, and advancing.                                                                                                                                                             |
+| Proxy check | Passed: two observers 0.019 s apart, the same individual after a reload, an outage shown as Reconnecting and recovered, heap +0.85 MB, 64 same-origin GETs, no console errors, warnings or CSP violations. The panel and the locator show the name. |
+
+To undo the name, `node deploy/garden/deploy.mjs rollback garden-20261026-f0b215e4a835`
+puts back the first clay page. To go back to the 2D page,
+`node deploy/garden/deploy.mjs rollback garden-20261026-65635e04cc63`.
 
 ## Asset provenance
 
