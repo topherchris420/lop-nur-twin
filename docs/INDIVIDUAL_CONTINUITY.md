@@ -35,12 +35,25 @@ The short answer, from the seeded report
   where food no longer was stayed remembered (1.4 per epoch on average). Its
   repertoire is fixed and its memory bounded; it adapts as long as it lives,
   within a capacity that does not grow.
+- **A learning circuit makes the history count, where the fly meets
+  omission.** With the mushroom-body controller, a rate model of the
+  circuit's associative learning
+  ([docs/benchmarks/fly-mushroom-body/](benchmarks/fly-mushroom-body/README.md)),
+  a fly whose food was taken away flew back to the empty site once if it had
+  fed there once, and twice if it had fed there three times (more in 23 of 24
+  individuals; the rule it replaces flew back twice either way). Blocking the
+  circuit's omission signal kept the fly coming back, 6.5 times in the hour.
+  Where food kept moving, the circuit changed nothing: every return flight
+  was given up for the new food's odour before it arrived, so there was
+  nothing to unlearn, and all 24 lives were identical.
 
-Everything here is the reduced-order controller of
-[the digital fly](DIGITAL_FLY.md), unchanged. It is not a neural simulation,
-and a distinct history is not evidence of a self, of awareness or of
-consciousness. The fly remembers where it fed and acts on it; that is all
-these words claim.
+Studies A and B use the reduced-order controller of
+[the digital fly](DIGITAL_FLY.md), unchanged; it simulates no neuron. Study C
+compares it with the mushroom-body controller, whose units are the rate units
+of one learning circuit, not spiking neurons or a connectome. A distinct
+history is not evidence of a self, of awareness or of consciousness, and
+neither is a learned prediction. The fly remembers where it fed, learns what
+each place is worth, and acts on it; that is all these words claim.
 
 ## Part 1: durable individual continuity
 
@@ -140,7 +153,11 @@ Code: `src/bethesda/life/individuality.ts` (the yard, the lives, the probe),
 `src/bethesda/life/individualityReport.ts` and
 `scripts/individuality-evaluate.ts`, which writes
 [docs/benchmarks/fly-individuality/](benchmarks/fly-individuality/README.md)
-from a clean commit (`--check` reproduces it). These are seeded studies of
+from a clean commit (`--check` reproduces it); for Study C,
+`src/bethesda/life/mushroomBodyStudy.ts` and
+`scripts/mushroom-body-evaluate.ts`, which write
+[docs/benchmarks/fly-mushroom-body/](benchmarks/fly-mushroom-body/README.md)
+the same way. These are seeded studies of
 one deterministic simulator, not registered R.A.I.N. experiments: no
 preregistration, no host-drawn seeds, no operator authorization. Their
 intervals are 95% bootstrap intervals over 24 individuals of one genesis,
@@ -149,7 +166,8 @@ and say nothing about a population of flies.
 ### The apparatus
 
 - **One genesis.** Every fly: seed 0x1d1e5, placed at the centre of the yard
-  facing east, at half a full reserve (hungry), reduced-order controller.
+  facing east, at half a full reserve (hungry), reduced-order controller
+  (Study C also builds it with others).
 - **The yard.** 16 m square, open sky (the sun holds the compass), four
   feeding sites 5.5 m out at the compass points, each with a 2 m pole beside
   it that the fly can see from the centre. One food patch at a time.
@@ -271,7 +289,113 @@ What it shows:
   there as often or more); the cost is in what it went looking for. In this
   world the lesioned fly ate more. Memory that
   helps a fly return to a place that stays put (Study A) is a liability when
-  places do not.
+  places do not. Study C found why the stale places stay: in these lives no
+  return flight reached the place it was aimed at, because the new food's
+  odour took over first, so the rule for giving a place up never fired.
+
+### Study C: learning from omission, the mushroom body
+
+**Question.** Can a circuit of the fly's own learn from what the world does
+to it, so that what the fly has lived through decides what it does when the
+world changes; and is that learning what makes the difference?
+
+**The controller.** The mushroom-body controller
+([the digital fly](DIGITAL_FLY.md#the-mushroom-body-controller)) is the
+reduced-order controller with one rule replaced. The bookkeeping gives up a
+remembered food place after two returns that find nothing, however often the
+fly fed there. The replacement is a rate model of the mushroom body's
+associative learning (Bennett, Philippides & Nowotny 2021): Kenyon cells
+coding the landmark the place is recognized by, approach and avoidance
+output neurons, and dopaminergic neurons whose difference is the reward
+prediction error. A meal is a rewarded trial, a fruitless return an
+unrewarded one, and a hungry fly flies back only to places whose prediction
+is above a threshold.
+
+**Design.** Designed after a pilot on six individuals, so its contrasts are
+not preregistered. The pilot found that Study B's relocation lives give the
+circuit nothing to learn from (below), so the main experiment is extinction.
+
+- **C1. Extinction.** 24 individuals (their own seed domain), each fed at
+  east or west, alternating. The food is taken away as the fly begins its
+  first meal there, or its third, so its circuit has had exactly one or three
+  rewarded trials. The fly then lives for 60 min in the empty yard. Each life
+  is lived by four controllers on the same events: the bookkeeping (two
+  fruitless returns), the mushroom body, the mushroom body with its
+  dopaminergic neurons' output blocked in fruitless returns (the lesion), and
+  the bookkeeping with one fruitless return instead of two (the simplest way
+  to give up sooner without learning anything). The measure is return
+  flights: long flights the controller aims at the remembered place.
+- **C2. Relocation.** Study B's 24 lives, lived by the bookkeeping and the
+  mushroom-body controllers.
+
+**Results** (return flights in the empty hour, per individual):
+
+| Controller                          | Food taken at meal 1 | At meal 3         |
+| ----------------------------------- | -------------------- | ----------------- |
+| bookkeeping (two fruitless returns) | 2 [2, 2]             | 1.96 [1.88, 2]    |
+| mushroom body                       | 1 [1, 1]             | 1.96 [1.88, 2]    |
+| mushroom body, omission blocked     | 6.46 [5.71, 7.25]    | 6.17 [5.29, 7.13] |
+| bookkeeping (one fruitless return)  | 1 [1, 1]             | 1 [1, 1]          |
+
+- **History.** Three meals minus one: +0.96 [0.88, 1] return flights with
+  the mushroom body (more in 23 individuals, fewer in none; exact sign test
+  p = 2.4 × 10⁻⁷), −0.04 with the bookkeeping (fewer in 1). Taking the
+  bookkeeping's difference as what three meals change anyway (hunger,
+  timing), the mushroom body's learning adds one return flight in every one
+  of the 24 individuals (p = 1.2 × 10⁻⁷).
+- **Lesion.** Blocking the omission signal kept the fly coming back: 5.46
+  [4.71, 6.29] more return flights than the intact circuit after one meal (24
+  of 24) and 4.21 [3.29, 5.13] after three (23, one tie). Its last return
+  flight came 51 min [48, 54] after the food went, against 7.4 min
+  [5.3, 9.7] for the intact circuit fed once. The blocked circuit's
+  prediction stayed at 0.46 (one meal) and 0.81 (three), above the threshold
+  of 0.3, and its place still drew every fly at the hour's end. The intact
+  circuit's fell to 0.23 and 0.21; its place drew no fly fed once, and one
+  of 24 fed three times (that fly made only one return flight in the hour).
+- **Relocation.** The two controllers lived all 24 lives identically, epoch
+  for epoch (10.67 meals per life each). Each life had 4.75 [3.58, 5.83]
+  return flights, and every one of the 114 was given up on the way, when the
+  fly smelled the new food: no return flight reached the place it was aimed
+  at, so neither controller ever registered a fruitless return.
+
+What it shows:
+
+- **What the fly does depends on what its circuit learned from its own
+  life.** Two flies of one genesis, set down in the same empty yard, differ
+  in how long they keep flying back by how often each fed there, and the
+  difference is the circuit's prediction: the bookkeeping with the same
+  meals does not show it.
+- **Persistence grows with experience, but only from one meal to two.** With
+  a meal's reinforcement of 1 the prediction stays below 1, and two fruitless
+  returns bring any of it below 0.3, so no history makes this fly try a third
+  time. The steps are the parameters' arithmetic (learning rate, threshold),
+  stated in `mushroomBody/params.ts`.
+- **The lesion checks the loop, not a fact about flies.** That blocking the
+  update stops the unlearning is true by construction. What the lesion shows
+  is that the closed loop works: fruitless returns reach the circuit, and its
+  prediction is what governs the return flights. That extinction in flies
+  needs dopaminergic neurons is Felsenberg et al.'s finding (2017, 2018), not
+  this study's.
+- **Where food keeps moving, the circuit changes nothing.** Study B's cost of
+  memory is not the rule for giving a place up; it is that the fly never
+  tests a stale place, because the new food's odour takes over every return
+  flight before it arrives. A rule that learns from fruitless returns cannot
+  act on returns that never happen. Open-ended adaptation remains
+  undemonstrated.
+
+Limitations of this study:
+
+- Designed after a pilot, one genesis, one yard, 24 individuals. The steps
+  of one and two return flights follow from model choices (the learning
+  rate, the meal's reinforcement, the threshold), not measurements.
+- The cue is a landmark's identity, where Bennett et al.'s cues are odours;
+  visual place learning in flies needs the ellipsoid body, not the mushroom
+  bodies (Ofstad et al. 2011), so where a place is stays the bookkeeping's.
+- A meal is one trial with one reinforcement whatever its length, and taking
+  the food away as a meal begins leaves that meal at most one decision long.
+- Flies fed three times were less hungry in the empty hour; the
+  bookkeeping's difference between the two conditions (−0.04) bounds what
+  that changed.
 
 ### Assumptions and limitations
 
@@ -281,9 +405,10 @@ What it shows:
 - The probe's transfer resets the body and keeps the mind. A real transfer
   would also disturb a fly; here the only thing the transfer changes is the
   body's state, and every arm is transferred alike.
-- The history-carrying memory is the controller's bookkeeping
-  (`navigation.ts`), a model choice with stated errors, not a model of the
-  mushroom body or central complex.
+- In Studies A and B the history-carrying memory is the controller's
+  bookkeeping (`navigation.ts`), a model choice with stated errors. Study C
+  replaces only its rule for giving a place up with a mushroom-body model;
+  where a place is stays bookkeeping, not a model of the central complex.
 - "Distinct" is measured against the copies this study can build: a fresh
   copy, a lesioned self and a replay. The strongest copy, the replay,
   reproduces the history exactly. In a deterministic simulator that is
@@ -295,7 +420,8 @@ What it shows:
 
 ```sh
 npx vitest run src/bethesda/life
-node scripts/run-ts.mjs scripts/individuality-evaluate.ts --check   # about 13 minutes
+node scripts/run-ts.mjs scripts/individuality-evaluate.ts --check   # about 6 to 13 minutes
+node scripts/run-ts.mjs scripts/mushroom-body-evaluate.ts --check   # about 15 minutes
 node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --create
 node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --ticks 6000
 node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --verify

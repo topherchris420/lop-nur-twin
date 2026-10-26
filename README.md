@@ -106,8 +106,12 @@ as someone else. In a seeded study, flies built identically but fed at
 different sites went back to their own site when set down in an empty yard,
 which a fresh copy and a memory-erased one did not; a copy given the same
 recorded life reproduced it exactly. With food that kept moving, memory cost
-meals instead of improving adaptation.
-[Read the continuity design and both studies](docs/INDIVIDUAL_CONTINUITY.md).
+meals instead of improving adaptation. An opt-in learning circuit, a rate
+model of the mushroom body (Bennett et al. 2021), made how long a fly kept
+flying back to an emptied site depend on how often it had fed there; where
+food kept moving it changed nothing, because no return flight reached the old
+site.
+[Read the continuity design and the three studies](docs/INDIVIDUAL_CONTINUITY.md).
 
 ### A life three millimeters long
 
