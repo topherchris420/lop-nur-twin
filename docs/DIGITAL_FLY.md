@@ -5,10 +5,15 @@ true size, driven by a reduced-order behavioural controller, sensing the city it
 is in and inspectable from a panel. It is also an experiment substrate for the
 R.A.I.N. Lab, in enclosed arenas (see [the lab guide](RAIN_LAB_BETHESDA.md)).
 
-It is **not a neural simulation**. No neuron, synapse, connectome or muscle is
-simulated. The brain regions the panel names are a reference layer: where, in a
-real fly, the functions the controller imitates are known to be processed.
-Everything the simulator reports describes the simulator, not a fly.
+It is **not a simulation of the fly's nervous system**. Its reduced-order and
+circuit-informed controllers simulate no neuron, synapse, connectome or muscle;
+the opt-in mushroom-body controller, used only in the yard studies, simulates
+the rate units of one learning circuit (2,000 Kenyon cells, two output and two
+dopaminergic neurons), not spiking neurons or a connectome
+([below](#the-mushroom-body-controller)). The brain regions the panel names are
+a reference layer: where, in a real fly, the functions the controller imitates
+are known to be processed. Everything the simulator reports describes the
+simulator, not a fly, and nothing in it is evidence of experience or awareness.
 
 Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/7`). Importers:
 `scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
@@ -613,6 +618,58 @@ inside it is handed each sample 30 ms late, as before. Its three fitted values
 come from the calibration's fit; everything else in `circuits/params.ts` is
 published, imported or a stated model choice.
 
+## The mushroom-body controller
+
+`src/bethesda/fly/mushroomBody/` replaces one more of the reduced-order
+controller's proxies with a published model, so it too can be compared with
+the proxy it replaced. The proxy is the navigation bookkeeping's rule for
+giving up a remembered food place: two returns that find neither the food nor
+its odour forget it, however often the fly fed there. The replacement is
+Bennett, Philippides & Nowotny 2021's mixed-valence model of the mushroom
+body's associative learning, which learns a reinforcement prediction for each
+cue by minimising the prediction error its dopaminergic neurons compute. It is
+a `FlyNeuralAdapter` (`MUSHROOM_BODY_DESCRIPTOR`, `mushroom-body/v1`): the
+reduced-order controller with a `PlaceValuation` (`navigation.ts`) handed to
+its navigator, so everything else (escape, grooming, walking, flight,
+landing, foraging by odour, path integration) is unchanged and every command
+passes the same gate.
+
+- **The units** (`circuit.ts`), all rate units. 2,000 Kenyon cells; a cue
+  drives each with probability 0.05, drawn from the fly's own seed, all at one
+  rate summing to 10 Hz. Two output neurons, m± = max(0, w±·k), whose
+  difference m̂ is the prediction. Two dopaminergic neurons,
+  d± = max(0, ±r̂ ∓ m̂ + Σk) (the paper's eq. 14 with wM = γ = 1), whose
+  difference is twice the prediction error r̂ − m̂. Plasticity at the Kenyon
+  cell to output synapses, Δw± = (η/2) k (d± − d∓) (eq. 8), weights kept at
+  or above zero. Every value but three is the paper's, quoted in
+  `mushroomBody/params.ts`; the learning rate (0.25), the meal's reinforcement
+  (1) and the approach threshold (0.3) are this model's, with their reasons.
+- **The cue** is the landmark a remembered place is recognized by: the
+  nearest of the up to three it was remembered with (in the yard, the site's
+  own pole). One landmark per cue keeps the paper's coding level; a union of
+  three would code 14% of the cells and learn at a third of the speed.
+- **Trials.** A meal is a rewarded trial; coming back to a remembered place
+  and finding neither its food nor its odour is an unrewarded one, whose
+  negative prediction error devalues the place, as extinction does in flies
+  (Felsenberg et al. 2017, 2018). A hungry fly goes back only to places whose
+  prediction exceeds the threshold: a place fed at once is given up after one
+  fruitless return, a place fed at more than once after two. A devalued place
+  stays remembered, so a later meal there revalues it from where it was.
+- **Lesion.** `blockOmission` blocks the dopaminergic neurons' output in
+  fruitless returns only, so nothing is learned from them.
+
+What it is not. Its cue is a landmark's identity, a visual feature; the
+mushroom body is needed for appetitive visual memories (Vogt et al. 2014), but
+visual place learning in flies needs the ellipsoid body and not the mushroom
+bodies (Ofstad et al. 2011), so it is not a model of place learning: where a
+place is stays the bookkeeping's. It skips everything upstream of the Kenyon
+cells, as the paper does. Its units stand for populations, not identified
+neurons. It runs only in the yard studies (`src/bethesda/life/`), never in the
+city or in R.A.I.N. experiments, and it changes no other controller: a
+navigator without a valuation runs exactly as before, and a reduced-order
+fly's checkpoint keeps its bytes. What it changes, and where it changes
+nothing, is measured in [Study C](INDIVIDUAL_CONTINUITY.md#study-c-learning-from-omission-the-mushroom-body).
+
 ## Calibration against real flies
 
 `src/bethesda/fly/calibration/` sets the fly beside published recordings of
@@ -1031,6 +1088,23 @@ frame: the panel reads the fly four times a second.
   looming hand through its giant-fiber proxy; without, nothing looms;
 - in the city, the same people for the same city, whoever reads them.
 
+`src/bethesda/fly/mushroomBody/mushroomBody.test.ts`:
+
+- published values fixed and model values in range;
+- a cue's code: about 5% of the Kenyon cells, summing to 10 Hz, the same for
+  one fly and different for another, and little shared between two cues;
+- the dopaminergic neurons' difference is twice the prediction error, and a
+  trial moves the prediction toward the reinforcement by no more than
+  2η|k|² of the way;
+- one meal makes a place worth a return and one fruitless return undoes it;
+  two meals outlast one fruitless return but not two; with omission blocked,
+  nothing is learned from a fruitless return; a place with no landmark keeps
+  the bookkeeping's rule;
+- the navigator skips devalued places and keeps them remembered, and a
+  reduced-order fly's graph holds no valuation;
+- a fly foraging with it learns from every meal, and a checkpointed fly lives
+  on exactly as the uninterrupted one.
+
 `src/bethesda/fly/calibration/calibration.test.ts`:
 
 - every observation named once, in a rebuilt paradigm, with its words or its
@@ -1053,8 +1127,10 @@ frame: the panel reads the fly four times a second.
 
 - every FlyBody output hash and the licence hash;
 - that every mesh decodes and its counts match;
-- that the VFB reference holds every term either controller cites;
-- that neither controller claims to simulate neurons;
+- that the VFB reference holds every term any controller cites;
+- that the reduced-order and circuit-informed controllers claim no neurons,
+  that the mushroom-body controller declares its units and that they are rate
+  units, and that no controller's description speaks of the fly's experience;
 - the grooming reference, parsed strictly, retrieved in the past;
 - that the fly's source digest, which every fly plan and record binds
   (`src/rain/scientific/flySource.ts`), matches the code; after a change to the

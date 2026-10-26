@@ -17,7 +17,9 @@
  *   the ids of the landmarks then in view (upright posts, poles, trunks).
  *   Seeing one of them again tells the fly where it is: its estimate is reset
  *   to the truth, as recognizing a place would (Ofstad et al. 2011 for visual
- *   place memory). A place is forgotten after `placeMemoryS`.
+ *   place memory). A place is forgotten after `placeMemoryS`, and after
+ *   `PLACE_MISSES` fruitless returns unless a controller's `PlaceValuation`
+ *   decides which places still draw the fly back.
  * - Visited cells: the 10 m squares of its own estimate the fly has been in,
  *   with when. A long flight goes toward the direction it has visited least
  *   (a model choice: no cited study shows flies avoiding where they have been).
@@ -69,6 +71,28 @@ export interface Place {
 export const PLACE_MISSES = 2;
 /** A remembered place nearer than this (by the estimate) is searched for, not flown to (m). */
 export const RETURN_MIN_M = 5;
+
+/**
+ * What decides whether a remembered food place still draws the fly back,
+ * for a controller that learns it (the mushroom body's, `mushroomBody/`).
+ * Without one the bookkeeping's own rule holds: every remembered place
+ * draws a hungry fly, and `PLACE_MISSES` fruitless returns forget it.
+ */
+export interface PlaceValuation {
+  /** Whether a hungry fly goes back to `place`. */
+  worth(place: Place): boolean;
+  /** The fly started a meal at `place` (just remembered, or remembered again). */
+  fed(place: Place): void;
+  /** The fly came back to `place` and found neither its food nor its odour; true forgets it. */
+  missed(place: Place): boolean;
+}
+
+/**
+ * Each navigator's valuation, kept beside it rather than in it, so a
+ * navigator without one (the reduced-order controller's) keeps the object
+ * graph, and its checkpoints the bytes, it had before valuations existed.
+ */
+const VALUATION = new WeakMap<Navigator, PlaceValuation>();
 
 export interface Goal {
   kind: "explore" | "return";
@@ -126,9 +150,18 @@ const cellKey = (x: number, z: number) =>
 export class Navigator {
   readonly state: NavigationState;
   private rng: () => number;
-  constructor(state: NavigationState, rng: () => number) {
+  constructor(
+    state: NavigationState,
+    rng: () => number,
+    valuation: PlaceValuation | null = null,
+  ) {
     this.state = state;
     this.rng = rng;
+    if (valuation) VALUATION.set(this, valuation);
+  }
+
+  private get valuation(): PlaceValuation | null {
+    return VALUATION.get(this) ?? null;
   }
 
   /**
@@ -210,26 +243,34 @@ export class Navigator {
       near.what = what;
       near.at = [S.est[0], S.est[1]];
       if (ids.length) near.landmarks = ids;
+      this.valuation?.fed(near);
       return;
     }
-    S.places.push({
+    const place: Place = {
       kind: "food",
       what,
       at: [S.est[0], S.est[1]],
       landmarks: ids,
       t,
       misses: 0,
-    });
+    };
+    S.places.push(place);
     if (S.places.length > PLACES_KEPT) S.places.shift();
+    this.valuation?.fed(place);
   }
 
-  /** The remembered food place nearest the estimate, or null. */
+  /** The remembered food place nearest the estimate that still draws the fly back, or null. */
   foodPlace(): Place | null {
+    return this.nearestFood(true);
+  }
+
+  private nearestFood(drawing: boolean): Place | null {
     const S = this.state;
     let best: Place | null = null,
       bestD = Infinity;
     for (const p of S.places) {
       if (p.kind !== "food") continue;
+      if (drawing && this.valuation && !this.valuation.worth(p)) continue;
       const d = Math.hypot(p.at[0] - S.est[0], p.at[1] - S.est[1]);
       if (d < bestD) {
         best = p;
@@ -320,14 +361,17 @@ export class Navigator {
 
   /**
    * Back at a remembered food place without finding its food: one more miss,
-   * and the place is forgotten after `PLACE_MISSES`.
+   * and the place is forgotten after `PLACE_MISSES` (or when the valuation
+   * says so).
    */
   missed(): void {
     const S = this.state;
-    const place = this.foodPlace();
+    const place = this.nearestFood(false);
     if (!place) return;
-    place.misses++;
-    if (place.misses >= PLACE_MISSES) S.places = S.places.filter((p) => p !== place);
+    const forget = this.valuation
+      ? this.valuation.missed(place)
+      : ++place.misses >= PLACE_MISSES;
+    if (forget) S.places = S.places.filter((p) => p !== place);
   }
 
   /** A draw from the navigation stream, for choices made with it (meal lengths, shade). */

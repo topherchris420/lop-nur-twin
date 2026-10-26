@@ -565,12 +565,22 @@ checks in `scripts/validate-bethesda.ts`, its entries in `NOTICE`, the
 `.prettierignore`, the `scripts/**/*.test.ts` include in `vitest.config.ts`,
 and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 
-- **Not a neural simulation, and never worded as one.** No neuron or synapse
-  is simulated; the VFB regions are a reference layer, and the circuit models
-  (`fly/circuits/`) are published functions of the stimulus and of dust, with
-  thresholds. `REDUCED_ORDER_DESCRIPTOR.simulatesNeurons` and
+- **Not a neural simulation, and never worded as one, except the mushroom
+  body's rate units.** The reduced-order and circuit controllers simulate no
+  neuron or synapse; the VFB regions are a reference layer, and the circuit
+  models (`fly/circuits/`) are published functions of the stimulus and of
+  dust, with thresholds. `REDUCED_ORDER_DESCRIPTOR.simulatesNeurons` and
   `CIRCUIT_DESCRIPTOR.simulatesNeurons` are false and the build validator
-  fails if either is not.
+  fails if either is not. The mushroom-body controller (`fly/mushroomBody/`)
+  simulates rate units (Kenyon cells, output and dopaminergic neurons, and
+  their plastic synapses) from Bennett, Philippides & Nowotny 2021's
+  mixed-valence model: its descriptor says so and that they are rate units,
+  not spiking neurons or a connectome, and the validator fails if it does
+  not. Say what the units compute (a reward prediction, its error, which
+  places draw the fly back); never call it a brain, a connectome or a
+  simulation of the fly's nervous system, and no descriptor may describe the
+  fly's experience (the validator checks the words). The authors' code is
+  GPL-3.0: never copy it.
 - **Imported data only.** `src/bethesda/fly/data/` is written by the three
   importers with real retrieval times and hashes; never hand-edit it. FlyBody's
   figshare release (trained policies, trajectories) is GPL-3.0 and VFB's
@@ -580,7 +590,8 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 - **Every number has a class.** `params.ts` marks each parameter `flybody`,
   `published` or `model`, with its source; `circuits/params.ts` marks the
   circuit models' `published`, `imported` (read from an importer's data),
-  `fitted` or `model`. Experiments override `model` values only. A `fitted`
+  `fitted` or `model`, and `mushroomBody/params.ts` the mushroom body's
+  `published` (the paper's model values, quoted) or `model`. Experiments override `model` values only. A `fitted`
   value is the one `docs/benchmarks/fly-calibration/fit.json` records, written
   by `node scripts/run-ts.mjs scripts/fly-calibration.ts --fit`, and a test
   holds it there; never type one in or tune one by hand.
@@ -721,7 +732,8 @@ cause.**
 The headless life, its durable checkpoints, and the individuality studies.
 Read `docs/INDIVIDUAL_CONTINUITY.md` and `docs/BETHESDA_CONTINUOUS_LIFE.md`
 first. Outside `src/bethesda/` it adds `scripts/bethesda-life-headless.ts`,
-`scripts/individuality-evaluate.ts`, `docs/benchmarks/fly-individuality/`,
+`scripts/individuality-evaluate.ts`, `scripts/mushroom-body-evaluate.ts`,
+`docs/benchmarks/fly-individuality/`, `docs/benchmarks/fly-mushroom-body/`,
 and `streamPosition`/`seekStream` in `src/lib/noise.ts`. The rule it exists
 to keep: **a restored life is the same individual only because it is
 verified to be; a copy is always someone else.**
@@ -757,7 +769,17 @@ verified to be; a copy is always someone else.**
   `node scripts/run-ts.mjs scripts/individuality-evaluate.ts` from a clean
   commit and commit what it writes (`--check` reproduces it). Never edit
   `docs/benchmarks/fly-individuality/` by hand. It is a seeded study, not a
-  registered R.A.I.N. experiment: never word it as one.
+  registered R.A.I.N. experiment: never word it as one. Study C
+  (`mushroomBodyStudy.ts`, `scripts/mushroom-body-evaluate.ts`,
+  `docs/benchmarks/fly-mushroom-body/`) follows the same rules, and also
+  after a change to `fly/mushroomBody/`; bump `MUSHROOM_BODY_STUDY` if its
+  design changed. It was designed after a pilot: never call its contrasts
+  preregistered.
+- **A controller that is not the reduced-order one stays off its graph.** A
+  yard life's controller kind and a navigator's `PlaceValuation` are kept in
+  `WeakMap`s beside the objects, so a reduced-order life's checkpoint keeps
+  the bytes it had before they existed (Study A records them, and stores
+  written before must restore). Keep it that way for any new option.
 - **Functional words only**, as for ECHO: the fly remembers where it fed and
   acts on it. Never present continuity or a distinct history as evidence of a
   self, awareness or consciousness.

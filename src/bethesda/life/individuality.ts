@@ -35,9 +35,14 @@
  * measurements of flies. Nothing here is a neural simulation.
  */
 import { mulberry32 } from "../../lib/noise";
-import { DigitalFly, FLY_VERSION } from "../fly/fly";
-import { type ReducedOrderController } from "../fly/controller";
-import type { NavigationState } from "../fly/navigation";
+import { DigitalFly, FLY_VERSION, type DigitalFlyOptions } from "../fly/fly";
+import { ReducedOrderController } from "../fly/controller";
+import type { FlyNeuralAdapter } from "../fly/neural";
+import type { NavigationState, Place, PlaceValuation } from "../fly/navigation";
+import {
+  MushroomBodyController,
+  mushroomBodyAdapter,
+} from "../fly/mushroomBody/controller";
 import {
   PrimitiveWorld,
   type FlyWorld,
@@ -183,21 +188,72 @@ export interface YardGenesis {
   startReserve: number;
   /** Heading it is placed at (rad), at the yard's centre. */
   yaw: number;
+  /** Its controller; the reduced-order one when absent, as in studies A and B. */
+  mind?: YardMind;
 }
 /** Every individual's genesis: one fly, hungry, at the centre facing east. */
 export const GENESIS: YardGenesis = { seed: 0x1d1e5, startReserve: 0.5, yaw: 0 };
+
+/**
+ * The controllers a yard fly can be built with. Studies A and B use the
+ * reduced-order controller; the mushroom-body study (`mushroomBodyStudy.ts`)
+ * compares the others with it.
+ */
+export const YARD_MINDS = [
+  "reduced-order",
+  "mushroom-body",
+  "mushroom-body, omission blocked",
+  "one fruitless return",
+] as const;
+export type YardMind = (typeof YARD_MINDS)[number];
+
+/**
+ * The bookkeeping's rule with one fruitless return instead of two: the
+ * simplest way to give up stale places faster, without learning anything.
+ */
+export class OneFruitlessReturn implements PlaceValuation {
+  worth(): boolean {
+    return true;
+  }
+  fed(): void {}
+  missed(place: Place): boolean {
+    return ++place.misses >= 1;
+  }
+}
+
+function yardAdapter(g: YardGenesis): DigitalFlyOptions["adapter"] {
+  switch (g.mind ?? "reduced-order") {
+    case "reduced-order":
+      return undefined;
+    case "mushroom-body":
+      return mushroomBodyAdapter({ seed: g.seed });
+    case "mushroom-body, omission blocked":
+      return mushroomBodyAdapter({ seed: g.seed, blockOmission: true });
+    case "one fruitless return":
+      return (rng, streams) =>
+        new ReducedOrderController(rng, streams.navigation, new OneFruitlessReturn());
+  }
+}
+
+/**
+ * Each life's controller, kept beside the life rather than in it, so a
+ * reduced-order life's graph (and its checkpoints' bytes) stays what it was.
+ */
+const MIND_OF = new WeakMap<YardLife, YardMind>();
 
 export class YardLife {
   readonly world: FoodYard;
   readonly fly: DigitalFly;
   tick = 0;
   constructor(g: YardGenesis) {
+    if (g.mind) MIND_OF.set(this, g.mind);
     this.world = new FoodYard();
     this.fly = new DigitalFly({
       seed: g.seed,
       world: this.world,
       start: { p: [0, 0.0011, 0], yaw: g.yaw },
       config: { startReserve: g.startReserve },
+      adapter: yardAdapter(g),
     });
   }
   step(ticks: number): void {
@@ -206,8 +262,19 @@ export class YardLife {
       this.tick++;
     }
   }
-  get mind(): ReducedOrderController {
-    return this.fly.adapter as ReducedOrderController;
+  /** Which controller the fly was built with. */
+  get kind(): YardMind {
+    return MIND_OF.get(this) ?? "reduced-order";
+  }
+  /** The fly's controller: what a study carries from one fly to another. */
+  get mind(): FlyNeuralAdapter {
+    return this.fly.adapter;
+  }
+  /** Where the fly believes it is, and the places it remembers. */
+  get nav(): NavigationState {
+    const a = this.fly.adapter;
+    return (a instanceof MushroomBodyController ? a.inner : (a as ReducedOrderController))
+      .state.nav;
   }
 }
 
@@ -317,7 +384,8 @@ export function eraseMemory(nav: NavigationState): void {
 
 /** The mind of `life` (its controller, with its streams and memory), as a graph snapshot. */
 export function mindOf(life: YardLife) {
-  return snapshotGraph(life.mind, indexGraph(new YardLife(GENESIS).mind));
+  const fresh = new YardLife({ ...GENESIS, mind: life.kind });
+  return snapshotGraph(life.mind, indexGraph(fresh.mind));
 }
 
 /** sha256 of a mind, to say whether two minds are the same bytes. */
@@ -344,13 +412,20 @@ export interface ProbeResult {
 /**
  * Probe a mind: a fly placed fresh at the centre at heading `yaw`, with no
  * food, carrying `mind` (or its own innate mind when null), for `PROBE_S`.
+ * `kind` is the controller the mind is of.
  */
 export function probe(
   mind: ReturnType<typeof mindOf> | null,
   yaw: number,
   seconds = PROBE_S,
+  kind?: YardMind,
 ): ProbeResult {
-  const life = new YardLife({ ...GENESIS, startReserve: PROBE_RESERVE, yaw });
+  const life = new YardLife({
+    ...GENESIS,
+    startReserve: PROBE_RESERVE,
+    yaw,
+    mind: kind,
+  });
   if (mind) restoreGraph(structuredClone(mind), life.mind);
   // A carried mind keeps its own estimate of where it is: nothing tells it it was moved.
   // Seeing a pole it remembers puts it right, as recognizing a place does (navigation.ts).
@@ -405,17 +480,23 @@ export interface EpochResult {
   staleRemembered: number;
 }
 
-/**
- * Live a relocation life, measuring each epoch. `amnesic` erases the fly's
- * memory after every tick (the lesion applied throughout).
- */
+export interface RelocationOptions {
+  /** Erase the fly's memory after every tick: the lesion applied throughout. */
+  amnesic?: boolean;
+  /** The controller; the reduced-order one when absent. */
+  mind?: YardMind;
+  /** Called after every tick, and at the end of epoch `k`. */
+  onTick?: (life: YardLife) => void;
+  onEpochEnd?: (life: YardLife, k: number) => void;
+}
+
+/** Live a relocation life, measuring each epoch. */
 export function relocationRun(
   epochs: readonly Epoch[],
   journal: readonly LifeEvent[],
-  amnesic: boolean,
-  onEpochEnd?: (life: YardLife, k: number) => void,
+  o: RelocationOptions = {},
 ): EpochResult[] {
-  const life = new YardLife(GENESIS);
+  const life = new YardLife({ ...GENESIS, mind: o.mind });
   const out: EpochResult[] = [];
   let ev = 0;
   for (const [k, ep] of epochs.entries()) {
@@ -429,7 +510,8 @@ export function relocationRun(
       while (ev < journal.length && journal[ev]!.tick === life.tick)
         YARD_LIFE.apply!(life, journal[ev++]!);
       life.step(1);
-      if (amnesic) eraseMemory(life.mind.state.nav);
+      if (o.amnesic) eraseMemory(life.nav);
+      o.onTick?.(life);
       const s = life.fly.state;
       const at = (site: SiteName) =>
         Math.hypot(s.p[0] - SITES[site][0], s.p[2] - SITES[site][1]) < AT_SITE_M;
@@ -441,7 +523,7 @@ export function relocationRun(
         wasAtPrev = here;
       }
     }
-    const places = life.mind.state.nav.places;
+    const places = life.nav.places;
     const [fx, fz] = life.world.food?.at ?? [NaN, NaN];
     out.push({
       site: ep.site,
@@ -454,7 +536,7 @@ export function relocationRun(
         (p) => Math.hypot(p.at[0] - fx, p.at[1] - fz) > AT_SITE_M,
       ).length,
     });
-    onEpochEnd?.(life, k);
+    o.onEpochEnd?.(life, k);
   }
   return out;
 }

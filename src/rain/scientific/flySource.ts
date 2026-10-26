@@ -10,12 +10,12 @@ export const FLY_SOURCE: {
   readonly sha256: string;
   readonly files: Readonly<Record<string, string>>;
 } = {
-  sha256: "b9abf944d6d246ff622184e4b0d29ccdf4e3966665643958ab4585d67f4b0aff",
+  sha256: "b794ba087d2c9dbb0d589758d6d2e0a89d958b3f2b626d50ab3388266513a682",
   files: {
     "src/bethesda/fly/arena.ts":
       "b89bba26c9d984ffd69d7718af2728c3efe0a34af9652d6c609086464f74d786",
     "src/bethesda/fly/controller.ts":
-      "449b0493158f9027edf2bad43dc4ad051d42e50188da21e376f8f2d3b17aec1f",
+      "f1f9afd06e2611b8b48b9d9b4c650bb94c181a589ad7da0988b7d46a67553e86",
     "src/bethesda/fly/data/flybody-skeleton.json":
       "e412333429c70dfe518a907b7aa270cd59627affa91b170a12b58d835262400d",
     "src/bethesda/fly/echo/adapter.ts":
@@ -47,7 +47,7 @@ export const FLY_SOURCE: {
     "src/bethesda/fly/kinematics.ts":
       "4739358834ce8a0018179db53670299946e24c063c3ab9a5504eba51a5596a33",
     "src/bethesda/fly/navigation.ts":
-      "dd6156ecd29c54938639ccb007d40b28e3132023b2daed2926c8a0c47e331d00",
+      "3f31c42e4deec6e59f1c3645b77d32e57cfa27ba38794b3f99e8512158d6afd9",
     "src/bethesda/fly/neural.ts":
       "83c147857172989a3013b547119d771a6985b18713a6d753eb9b79db1163ad7e",
     "src/bethesda/fly/params.ts":

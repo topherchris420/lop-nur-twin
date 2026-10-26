@@ -30,7 +30,12 @@ import {
   type GroomSite,
   type MotorCommand,
 } from "./neural.js";
-import { initialNavigation, Navigator, type NavigationState } from "./navigation.js";
+import {
+  initialNavigation,
+  Navigator,
+  type NavigationState,
+  type PlaceValuation,
+} from "./navigation.js";
 import type { ResolvedParams } from "./params.js";
 import { degToRad, forward, radToDeg, type V3, wrapAngle, yawOf } from "./units.js";
 import { outsideExtent } from "./world.js";
@@ -186,11 +191,16 @@ export class ReducedOrderController implements FlyNeuralAdapter {
   /**
    * `navigation` is a stream of its own for path integration and long
    * flights; without one (a controller built outside a fly) a fixed stream is
-   * used.
+   * used. `valuation` decides which remembered food places still draw the
+   * fly back (`navigation.ts`); without one, the bookkeeping's own rule.
    */
-  constructor(rng: () => number, navigation: () => number = mulberry32(0x27d4eb2f)) {
+  constructor(
+    rng: () => number,
+    navigation: () => number = mulberry32(0x27d4eb2f),
+    valuation: PlaceValuation | null = null,
+  ) {
     this.rng = rng;
-    this.nav = new Navigator(this.state.nav, navigation);
+    this.nav = new Navigator(this.state.nav, navigation, valuation);
   }
 
   /** A fly placed in flight starts its controller in flight too; its estimate starts where it is. */
