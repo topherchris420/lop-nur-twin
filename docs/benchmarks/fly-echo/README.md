@@ -1,11 +1,11 @@
 # Project ECHO evaluation: simulated characterization
 
 > **SIMULATED CHARACTERIZATION: a seeded run of a reduced-order simulator's functional self-model; not preregistered evidence, not evidence about Drosophila, not evidence of awareness or subjective experience.** Written by `node scripts/run-ts.mjs scripts/echo-evaluate.ts`
-> from `5e2b999`; `--check` reproduces it byte for byte. Never edit it by hand.
+> from `a3fe260`; `--check` reproduces it byte for byte. Never edit it by hand.
 > What the numbers mean, and what they do not, is in
 > [docs/PROJECT_ECHO.md](../../PROJECT_ECHO.md).
 
-Fly digital-fly/8, self-model echo-self-model/v1, fly source `daad49019246`.
+Fly digital-fly/8, self-model echo-self-model/v2, fly source `86708015e47c`.
 24 evaluation seeds (SHA-256("echo-evaluation/v1|" + counter))
 and 24 development seeds (SHA-256("echo-development/v1|" + counter)),
 each drawing its own hidden schedule; both arms of a comparison share seeds,
@@ -250,7 +250,7 @@ it holds all of it):
 
 | seed       | same body at the end | same self-model at the end | checkpoint bytes | replacements on record |
 | :--------- | :------------------- | :------------------------- | ---------------: | ---------------------: |
-| 4200709029 | yes                  | yes                        |           148033 |                      1 |
-| 829062260  | yes                  | yes                        |           148305 |                      1 |
-| 2330923229 | yes                  | yes                        |           147683 |                      1 |
-| 2414131789 | yes                  | yes                        |           148649 |                      1 |
+| 4200709029 | yes                  | yes                        |           166294 |                      1 |
+| 829062260  | yes                  | yes                        |           166582 |                      1 |
+| 2330923229 | yes                  | yes                        |           165960 |                      1 |
+| 2414131789 | yes                  | yes                        |           166942 |                      1 |
