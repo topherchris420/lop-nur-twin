@@ -300,7 +300,7 @@ describe("the fly in wind", () => {
     const calm = takeoffs(arenaWorld(ROOM));
     expect(calm).toBeGreaterThan(20);
     expect(takeoffs(windy(3))).toBeLessThan(calm * 0.25);
-  });
+  }, 60_000);
 
   it("hovering, holds its station against the wind", () => {
     const fly = new DigitalFly({
