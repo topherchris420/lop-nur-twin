@@ -261,16 +261,12 @@ export class Navigator {
 
   /** The remembered food place nearest the estimate that still draws the fly back, or null. */
   foodPlace(): Place | null {
-    return this.nearestFood(true);
-  }
-
-  private nearestFood(drawing: boolean): Place | null {
     const S = this.state;
     let best: Place | null = null,
       bestD = Infinity;
     for (const p of S.places) {
       if (p.kind !== "food") continue;
-      if (drawing && this.valuation && !this.valuation.worth(p)) continue;
+      if (this.valuation && !this.valuation.worth(p)) continue;
       const d = Math.hypot(p.at[0] - S.est[0], p.at[1] - S.est[1]);
       if (d < bestD) {
         best = p;
@@ -362,11 +358,12 @@ export class Navigator {
   /**
    * Back at a remembered food place without finding its food: one more miss,
    * and the place is forgotten after `PLACE_MISSES` (or when the valuation
-   * says so).
+   * says so). The miss is the place a return is aimed at, the nearest that
+   * still draws the fly, not a nearer one the valuation has given up.
    */
   missed(): void {
     const S = this.state;
-    const place = this.nearestFood(false);
+    const place = this.foodPlace();
     if (!place) return;
     const forget = this.valuation
       ? this.valuation.missed(place)

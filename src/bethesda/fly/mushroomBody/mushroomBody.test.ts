@@ -134,6 +134,29 @@ describe("mushroom body: the navigator's valuation", () => {
     expect(nav.foodPlace()).toBeNull();
   });
 
+  it("charges a fruitless return to the place it was aimed at, not a nearer given-up one", () => {
+    const mb = new MushroomBody(P, 10);
+    const state = initialNavigation(0, 0);
+    const nav = new Navigator(state, mulberry32(1), mb);
+    const given = { ...place(["pole-north"]), at: [3.5, 0] as [number, number] },
+      aimed = { ...place(["pole-east"]), at: [6, 0] as [number, number] };
+    state.places.push(given, aimed);
+    mb.fed(given);
+    mb.missed(given);
+    mb.fed(aimed);
+    expect(nav.foodPlace()).toBe(aimed);
+    const north = mb.predict("pole-north"),
+      east = mb.predict("pole-east");
+    // Within 3 m of the goal, and nearer the given-up place.
+    state.est = [3.6, 0];
+    nav.missed();
+    expect(mb.state.last!.cue).toBe("pole-east");
+    // The cues share a few Kenyon cells, so the other prediction moves a little.
+    const fell = east - mb.predict("pole-east");
+    expect(Math.abs(mb.predict("pole-north") - north)).toBeLessThan(0.1 * fell);
+    expect(nav.foodPlace()).toBeNull();
+  });
+
   it("leaves the reduced-order controller's graph as it was", () => {
     const life = new YardLife(GENESIS);
     expect(JSON.stringify(mindOf(life))).not.toMatch(/valuation|circuit/);

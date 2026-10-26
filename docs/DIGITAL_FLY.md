@@ -654,7 +654,9 @@ passes the same gate.
   (Felsenberg et al. 2017, 2018). A hungry fly goes back only to places whose
   prediction exceeds the threshold: a place fed at once is given up after one
   fruitless return, a place fed at more than once after two. A devalued place
-  stays remembered, so a later meal there revalues it from where it was.
+  stays remembered, so a later meal there revalues it from where it was, and
+  a fruitless return counts against the place it was aimed at (the nearest
+  that still draws the fly), not a nearer devalued one.
 - **Lesion.** `blockOmission` blocks the dopaminergic neurons' output in
   fruitless returns only, so nothing is learned from them.
 
@@ -1100,8 +1102,9 @@ frame: the panel reads the fly four times a second.
   two meals outlast one fruitless return but not two; with omission blocked,
   nothing is learned from a fruitless return; a place with no landmark keeps
   the bookkeeping's rule;
-- the navigator skips devalued places and keeps them remembered, and a
-  reduced-order fly's graph holds no valuation;
+- the navigator skips devalued places and keeps them remembered, charges a
+  fruitless return to the place it was aimed at and not a nearer devalued
+  one, and a reduced-order fly's graph holds no valuation;
 - a fly foraging with it learns from every meal, and a checkpointed fly lives
   on exactly as the uninterrupted one.
 
