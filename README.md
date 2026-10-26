@@ -152,6 +152,11 @@ The garden currently uses a plain-HTTP address, which some browsers or
 networks may block. The [hosted film page](https://lop-nur-twin.vercel.app/film/)
 is a separate viewing option, not the live garden.
 
+Since 2026-10-26 the live garden has shown its fly, Eva, in clay: the same server
+state, drawn as a 3D stop-motion garden by a page (`src/garden/`) that only
+reads `GET /api/state`.
+[How it works, and how it was deployed](docs/LIVE_GARDEN.md).
+
 ## One lab, four experiment backends
 
 | Backend               | Question it can investigate                                                                           | Boundary                                                        |
@@ -387,6 +392,7 @@ See [validation](docs/VALIDATION.md) and the
 | `src/components/`, `src/routes/` | 3D presentation, controls, and application routes.                                      |
 | `src/game/`                      | Blacksite, player controls, model seats, and evaluation.                                |
 | `src/bethesda/`                  | City simulation, digital fly, and the lab's browser interface.                          |
+| `src/garden/`                    | The live fly garden's clay exhibit page; it reads the garden's server and never writes. |
 | `src/rain/`                      | Research corpus, meetings, autonomy, experiment backends, and registry.                 |
 | `src/noeterra/`, `noeterra/`     | Civilization browser interface, Rust engine, scenarios, and local workbench.            |
 | `server/`, `api/`                | Server-side research and decision endpoints.                                            |
