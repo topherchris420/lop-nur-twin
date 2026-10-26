@@ -10,8 +10,10 @@ import { CitySimulation, DT, PROFILES, SIM_VERSION, type Config } from "../simul
 import { CityFly, type CityController } from "../fly/cityFly.js";
 import type { EchoCheckpoint } from "../fly/echo/checkpoint.js";
 import { EchoAdapter } from "../fly/echo/adapter.js";
+import { ECHO_VERSION } from "../fly/echo/params.js";
 import { FLY_VERSION } from "../fly/fly.js";
 import type { Mode } from "../fly/neural.js";
+import type { LifeKind } from "./continuity.js";
 
 /** v2: the fly's controller, and with the ECHO controller a summary of its self-model. */
 export const HEADLESS_LIFE_SCHEMA = "bethesda-headless-life/v2" as const;
@@ -45,11 +47,12 @@ export interface HeadlessLifeStatus {
 /**
  * One authority within this process. No second fly is made for an observer.
  *
- * Important: this class intentionally has NO production persistence API.
- * A daemon must not deploy it as a "persistent fly" until versioned snapshots,
- * random-stream restoration, durable transactional storage, and a single-writer
- * lease are implemented and tested. Replaying from genesis indefinitely is
- * not an acceptable substitute for durable checkpoints.
+ * Its whole state is checkpointed and restored through `BETHESDA_LIFE`
+ * (continuity.ts) and kept by a `LifeStore` (store.ts): versioned snapshots
+ * with every random stream's position, a verified restore, an append-only
+ * chain and a single-writer lease on one machine's filesystem. That is not
+ * yet the production service docs/BETHESDA_CONTINUOUS_LIFE.md describes: no
+ * transactional database, no observer API, no deployment.
  */
 export class HeadlessBethesdaLife {
   readonly city: CitySimulation;
@@ -125,3 +128,32 @@ export class HeadlessBethesdaLife {
     };
   }
 }
+
+/** What a headless Bethesda life is built from: plain data, all of it. */
+export interface HeadlessGenesis {
+  config: Config;
+  flyController: CityController;
+}
+
+export const headlessGenesis = (
+  config: Config = PROFILES[1]!,
+  flyController: CityController = "reduced-order",
+): HeadlessGenesis => ({ config: { ...config }, flyController });
+
+/** The city and its fly as one life, for `continuity.ts`. It takes no events. */
+export const BETHESDA_LIFE: LifeKind<HeadlessGenesis, HeadlessBethesdaLife> = {
+  id: "bethesda-headless-life",
+  versions: {
+    headless: HEADLESS_LIFE_SCHEMA,
+    city: SIM_VERSION,
+    fly: FLY_VERSION,
+    echo: ECHO_VERSION,
+  },
+  build: (g) => new HeadlessBethesdaLife(g.config, { flyController: g.flyController }),
+  step: (life, ticks) => {
+    for (let left = ticks; left > 0; left -= 10_000)
+      life.advanceTicks(Math.min(left, 10_000));
+  },
+  tick: (life) => life.city.tick,
+  hash: (life) => `${life.city.stateHash()}|${life.cityFly.stateHash()}`,
+};
