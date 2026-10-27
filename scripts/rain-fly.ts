@@ -403,6 +403,16 @@ async function main() {
         false,
       ],
       [
+        "scripted: ECHO-04, attention: a workspace and a model of it",
+        flyExample("echo_attention"),
+        false,
+      ],
+      [
+        "scripted: ECHO-05, a second look at its own conclusions",
+        flyExample("echo_metacognition"),
+        false,
+      ],
+      [
         "scripted: a minimum effect below the host's minimum for its metric, which the host must refuse",
         flyExample("visual_threat", { minimumEffect: 0.01 }),
         true,

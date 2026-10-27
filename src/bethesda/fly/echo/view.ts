@@ -36,6 +36,8 @@ export interface SelfModelView {
    * still air, or no air to feel).
    */
   air: { speedMS: number; from: number } | null;
+  /** Interoception: the energy reserve as a share of full, the fly's own sense of how fed it is. */
+  reserve: number;
   /** The body schema: the decision period, the physics step, the walking speed's time constant and top speed, the wings' top air speed and the flight velocity's time constant. */
   schema: {
     decisionS: number;
@@ -64,6 +66,7 @@ export function selfModelView(input: DecisionInput): SelfModelView {
       input.frame.airflowFrom !== null
         ? { speedMS: input.frame.airflow, from: input.frame.airflowFrom }
         : null,
+    reserve: body.reserve,
     schema: {
       decisionS: params.decisionPeriodMs / 1000,
       stepS: params.physicsStepMs / 1000,

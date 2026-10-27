@@ -68,6 +68,11 @@ export interface Inquiry {
   candidates: Candidate[];
   probes: number;
   lastProbe: number;
+  /**
+   * The second look: the claim the fly acts on before it commits, and how
+   * many periods of evidence it had then; null until it first could conclude.
+   */
+  check: { claim: string; from: number } | null;
   /** Sums over the evidence, for the episode record. */
   sums: {
     y: [number, number, number];
@@ -204,6 +209,7 @@ export function openInquiry(
     candidates,
     probes: 0,
     lastProbe: -1e9,
+    check: null,
     sums: {
       y: [0, 0, 0],
       predicted: [0, 0, 0],

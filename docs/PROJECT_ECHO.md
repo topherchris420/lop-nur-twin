@@ -13,7 +13,19 @@ result below describes a functional self-model in a reduced-order simulator
 (see [Functional self-modelling is not consciousness](#functional-self-modelling-is-not-consciousness)).
 The fly makes no first-person statement, and none would count as evidence.
 
-Code: `src/bethesda/fly/echo/` (`ECHO_VERSION` is `echo-self-model/v2`), the
+From `echo-self-model/v3` the self-model also has simple functional analogues
+of three indicator properties from the assessment of Butlin, Long et al. 2023
+(arXiv:2308.08708): a workspace that holds one content at a time and
+broadcasts it to what acts, a model of its own attention that it uses to
+control that attention, and a second look at its own conclusions before it
+commits to them ([Indicator properties](#indicator-properties)). They were
+built so that what they do can be measured and ablated (ECHO-04, ECHO-05).
+That assessment treats such properties as evidence only under computational
+functionalism, a contested view, and holds that no current system is a
+strong candidate. A few hundred lines of arithmetic in a reduced-order
+simulator are not one either.
+
+Code: `src/bethesda/fly/echo/` (`ECHO_VERSION` is `echo-self-model/v3`), the
 body's opt-in hooks `src/bethesda/fly/perturbation.ts` and
 `src/bethesda/fly/selfMotion.ts`, the experiment rig
 `src/rain/scientific/flyEcho.ts`, the evaluation report
@@ -178,16 +190,21 @@ in `ECHO_PARAMS`, not fitted.
    body is back to the innate one; or a change it remembers has come back.
    Each is scored by its marginal likelihood, which charges an explanation for
    freedom it does not need. Explanations that end as the same claim about the
-   body and world pool their posterior. An inquiry concludes when one claim
+   body and world pool their posterior. An inquiry may conclude when one claim
    passes a posterior of 0.9 after at least 8 periods (0.4 s), or unresolved
-   after 8 s.
+   after 8 s. It then takes a second look: it acts on the claim at once
+   (adopting its beliefs) but weighs it again on 20 fresh periods (1 s) before
+   it commits. It commits if the same claim still wins, revises if another
+   does, and keeps asking if none does. The conclusion it states carries the
+   posterior after the second look.
 5. **Probe when the evidence cannot decide.** Walking straight, a slower step
    and a backward push predict the same thing, and so do a turning bias and a
    turning surface. When the leading explanation and its best rival on the
    other side of "is it me?" fit the evidence equally well, the fly does not
    conclude: it stops (if walking) or takes a short straight walk (if
    standing), because its own gains act only through what it commands and the
-   world does not, and then weighs again.
+   world does not, and then weighs again. With a workspace it asks only
+   while its inquiry holds the workspace.
 6. **Remember.** `echo/memory.ts` keeps three stores apart: the short-term
    history (the last 80 periods, 4 s); the learned beliefs (the filter); and
    episodic memory (at most 24 episodes: what was observed, commanded,
@@ -196,14 +213,24 @@ in `ECHO_PARAMS`, not fitted.
    full, the least informative episode is forgotten. A remembered
    self-change becomes a hypothesis (with tight prior) the next time
    something changes.
-7. **Act.** The reduced-order controller's command is the fly's intention.
+7. **Attend.** `echo/workspace.ts`: the open inquiry, the legs' touch, a
+   sudden change in the air and the controller's intention (an efference
+   copy, with the fly's hunger behind its pursuit of food) each bid for the
+   workspace, and one content holds it ([Indicator properties](#indicator-properties)).
+   `echo/attentionSchema.ts` learns how the fly's attention behaves and
+   shields an inquiry it expects to be interrupted.
+8. **Act.** The reduced-order controller's command is the fly's intention.
+   While the fly's inquiry holds its workspace, the controller's routine
+   changes of activity wait: a walking fly keeps walking, and a standing fly
+   neither grooms nor takes off (it may start to walk, which is how its steps
+   are seen).
    While the fly doubts itself (an inquiry open, a gain uncertain by more than
    0.12, or its sense distrusted threefold) it walks and flies at 0.6 of the
    intended speed and takes off only to escape. It may replace the intention
    with a probe. It then compensates: a leg believed half as effective is
    asked for twice the speed, up to the body's 4 cm/s; a believed turning bias
    is subtracted. The giant-fiber reflex passes through untouched.
-8. **Predict.** The forward model's expectation for the coming period, from
+9. **Predict.** The forward model's expectation for the coming period, from
    the revised beliefs, is held for step 1.
 
 Every command still passes the fly's own gate (`validateCommand`); a test
@@ -214,15 +241,86 @@ drives the self-model with absurd beliefs and the gate refuses nothing.
 `ECHO_VARIANTS` (`echo/selfModel.ts`), each a `FlyNeuralAdapter`
 (`echo/adapter.ts`, `EchoAdapter`) over the same reduced-order controller:
 
-| Variant          | What it removes                                                                                                           |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `full`           | nothing                                                                                                                   |
-| `reactive`       | the self-model altogether; reads no self-motion sense; runs step for step as the reduced-order controller (a test checks) |
-| `no_learning`    | predictive learning: beliefs never revised (it still predicts, errs, notices and asks)                                    |
-| `no_memory`      | episodic memory: no episodes, no recall                                                                                   |
-| `no_uncertainty` | uncertainty estimation: fixed trust in its sense, explanations chosen by best fit at 8 periods, no caution, no probes     |
-| `naive_self`     | a simpler baseline: no outside or sensor explanations, so every unexplained change is its own                             |
-| `motion_gated`   | a simpler sensorimotor baseline: a change met while moving is its own, one met standing is the world's                    |
+| Variant               | What it removes                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `full`                | nothing                                                                                                                   |
+| `reactive`            | the self-model altogether; reads no self-motion sense; runs step for step as the reduced-order controller (a test checks) |
+| `no_learning`         | predictive learning: beliefs never revised (it still predicts, errs, notices and asks)                                    |
+| `no_memory`           | episodic memory: no episodes, no recall                                                                                   |
+| `no_uncertainty`      | uncertainty estimation: fixed trust in its sense, explanations chosen by best fit at 8 periods, no caution, no probes     |
+| `naive_self`          | a simpler baseline: no outside or sensor explanations, so every unexplained change is its own                             |
+| `motion_gated`        | a simpler sensorimotor baseline: a change met while moving is its own, one met standing is the world's                    |
+| `no_workspace`        | the workspace: each process acts on its own, nothing is broadcast or held, and so no attention schema                     |
+| `no_metacognition`    | the second look: it commits to a conclusion as soon as its posterior is high enough                                       |
+| `no_attention_schema` | the model of its own attention: the workspace runs on its bids alone and never shields an inquiry                         |
+
+### Indicator properties
+
+Butlin, Long et al. 2023 derive indicator properties from scientific theories
+of consciousness and ask which an artificial system has. ECHO implements
+simplified versions of a few. "Functional analogue" below means a mechanism
+that does, in this simulator, what the property describes, at the scale of a
+few parameters. It is never a claim that the property is met in the sense
+the theories intend, or that it makes the fly aware of anything.
+
+**The workspace** (`echo/workspace.ts`; GWT, Baars 1988, Dehaene & Naccache
+2001). Every decision, these bid with a salience:
+
+| Content                                                        |     Salience |
+| :------------------------------------------------------------- | -----------: |
+| a hazard (a surface ahead, an escape)                          |            3 |
+| touch (an edge or a solid)                                     |          1.5 |
+| a landing                                                      |          1.3 |
+| a sudden change in the air, felt standing or in settled flight |          1.2 |
+| a voluntary takeoff                                            |          1.1 |
+| the open inquiry into its own movement                         |            1 |
+| grooming                                                       |          0.7 |
+| flying                                                         |          0.6 |
+| food                                                           | 0.5 + hunger |
+| walking or resting                                             |          0.3 |
+
+The values are model choices: hazards above everything, the fly's senses'
+news above its inquiry, and a takeoff just above it, so that an urge to fly
+interrupts self-examination unless the fly controls its attention. A bid
+enters an empty workspace at 0.5 or more, and takes it from what holds it
+only by more than 5%. What holds it lets go below 0.25. Holding the
+workspace is broadcast to what acts: the inquiry asks its questions only
+while it holds the workspace, and the controller's routine changes wait.
+
+**The attention schema** (`echo/attentionSchema.ts`; AST, Graziano & Webb
+2015). From its own experience the fly learns, over about a minute, how often
+each kind of content takes its workspace, and how long each holds it. From
+that it predicts how long its focus will last and what will take it next. It
+shields an inquiry when it expects at least a 20% chance that something it
+could hold off takes the workspace before the inquiry is done. "Done" means
+the longer of the time its inquiries tend to hold its attention and the
+evidence still needed. Shielded, a rival it may hold off needs twice the
+inquiry's bid. Hazards, touch and the air are never held off.
+
+**The second look** (`selfModel.ts`, step 4; metacognitive monitoring, HOT-2;
+Fleming & Lau 2014). Its one parameter (20 periods) is the span after which
+an undecided inquiry already asks for a probe. It was set by that principle,
+not tuned ([Scientific validation](#scientific-validation)).
+
+What it holds of each indicator property, by our reading:
+
+| Property                                                         | ECHO                                                                                                                 |
+| :--------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
+| AE-2, a model of output-input contingencies used in control      | the forward model of its own movement, used to compensate (since v1): its main function                              |
+| PP-1, input modules using predictive coding                      | partly: it predicts its self-motion sense and learns from the error, but no input module is built that way           |
+| HOT-2, metacognitive monitoring of perceptual reliability        | partly: it estimates how far to trust its sense (since v1), and takes a second look at its conclusions (v3)          |
+| HOT-3, belief formation guided by that monitoring                | partly: distrust of its sense makes it cautious, and a second look can revise a conclusion                           |
+| GWT-1, specialized systems in parallel                           | partly: four kinds of process bid, but the controller below is one program                                           |
+| GWT-2, a limited-capacity workspace with selective attention     | a functional analogue: one content, by salience, with ignition and hysteresis                                        |
+| GWT-3, global broadcast                                          | partly: what holds the workspace reaches action selection and the inquiry, not navigation or the senses              |
+| GWT-4, state-dependent attention, querying modules in succession | partly: the inquiry's probes run in turn only while it holds the workspace, and the attention schema shields it      |
+| AST-1, a predictive model of its attention that controls it      | a functional analogue: learned capture rates and dwell, used to shield                                               |
+| AE-1, agency: learning from feedback to pursue competing goals   | partly: the controller pursues food and shade, and the mushroom body learns odours (Study C), but ECHO adds no goals |
+| RPT-1/2, HOT-1, HOT-4                                            | absent: no recurrent or generative perception, no quality space                                                      |
+
+**Where it shows.** The fly panel's Self-Model section and `/live` show what
+the fly attends to, whether it is shielding that, its open inquiry, and its
+last conclusion with its stated confidence and what a second look made of it.
 
 ### Determinism, cost and bounds
 
@@ -236,7 +334,7 @@ millisecond). Its state stays under 400 KB however long it lives (a test runs
 
 ## Experiments
 
-Three protocols in the R.A.I.N. Lab's digital-fly backend
+Five protocols in the R.A.I.N. Lab's digital-fly backend
 (`digital-fly-behavior/v3`), with the backend's whole discipline: a closed
 design, host-written question and hypothesis, preregistration, a person's
 authorization (or, for the demonstration's own designs only, the script's,
@@ -247,12 +345,12 @@ committed code. Each is a lesion study: the control arm runs the full
 self-model, the treatment removes one mechanism, on matched seeds (same fly,
 same placement, same hidden schedule).
 
-All three run in the **held-out arena** (3 m across with four posts; the
+All five run in the **held-out arena** (3 m across with four posts; the
 self-model was developed in an open 4 m room) on the **held-out evaluation
 conditions** (`ECHO_EVALUATION_CONDITIONS`, `flyEcho.ts`): strengths drawn
 from bands either side of the development values, combinations of causes, a
 temporary obstacle and a misleading sense. The fly walks in bouts and rests
-between them; it does not fly or groom in these arenas.
+between them; it does not fly or groom in these arenas, except in ECHO-04's.
 
 **Path error**, the main behavioural measure: over 1 s windows in which the
 fly walked, intended to walk and met no edge, the distance between where it
@@ -327,6 +425,58 @@ start would have ended, over that intended path's length.
   largest seed count (16) and the host's minimum effect (4 s), labelled
   under-powered before it ran. Inconclusive, as expected (above).
 
+### ECHO-04: attention, a workspace and a model of it
+
+- **Question.** Does holding one content in a workspace, broadcasting it and
+  modelling its own attention let a fly with competing urges find out sooner
+  what changed in its body?
+- **Hypothesis (registered).** Without its workspace, a fly that often takes
+  off and grooms takes longer to conclude that it changed itself after a
+  hidden held-out impairment. Competing: its inquiry gets the evidence it
+  needs whenever the fly walks, so a workspace changes nothing.
+- **Protocol.** ECHO-01's schedule and held-out impairments, on a busy fly
+  (`busy` block): voluntary takeoff and grooming at 0.5 per second each
+  (otherwise off in these arenas). The rates were set on the development
+  conditions, far above the controller's own (a takeoff at 0.03 per second),
+  so that urges meet the fly's inquiries often enough to measure.
+- **Measures.** Time from the onset to concluding "self" (primary); a fly
+  that never does counts the rest of the run, so a failure is never left
+  out. Also the identification error, and the path error after the onset.
+- **Doses.** No workspace (the demonstration's treatment), or no attention
+  schema. In development (48 seeds) the workspace saved 1.3 s on average
+  (23 seeds faster, 1 slower, 24 tied). The attention schema saved 0.03 s
+  (4 faster, 1 slower, 43 tied): there the inquiry already outbids every
+  content the schema could hold off except a takeoff (these arenas have no
+  food). It is tested as built, not tuned toward an effect.
+- **Registered demonstration.** Treatment: no workspace, sized by its pilot.
+  Written before the pilot ran: other ECHO latencies have host minimums of
+  3–4 s, because each seed draws its own condition, so a 1.3 s effect may
+  leave it under-powered.
+
+### ECHO-05: a second look at its own conclusions
+
+- **Question.** Does weighing a conclusion again on fresh evidence before
+  committing to it make the fly's stated confidence more accurate?
+- **Hypothesis (registered).** A fly that commits at once has a higher Brier
+  score on hidden held-out changes than one that takes a second look.
+  Competing: the evidence that made the first answer likely also makes the
+  second look agree, so it only delays the same answers.
+- **Protocol.** ECHO-02's block, schedule and scoring.
+- **Measures.** The Brier score (primary); accuracy, and the calibration
+  table of each arm in the evaluation report.
+- **Disclosure.** The second look was designed after ECHO-02's held-out
+  results were published (overconfident on combined causes: expected
+  calibration error 0.21). These conditions are therefore not naive for it,
+  though nothing was tuned on them. On development data (16 seeds) it raised
+  accuracy from 0.991 to 1.000 and lowered the Brier score from 0.009 to
+  0.001, by asking again when the second look did not agree (0.56 times a
+  run). Each conclusion it commits to comes at least 1 s later.
+- **Registered demonstration.** Treatment: no second look, sized by its
+  pilot. Written before the pilot ran: the host's minimum effect for the
+  Brier score is 0.2 (from ECHO-02's pilot) against 0.008 in development, so
+  it is expected to come out inconclusive. The evaluation report's
+  calibration tables are its measure.
+
 ### Checkpoint recovery
 
 The persistent-identity question is answered narrowly. The self-model's
@@ -353,7 +503,7 @@ lists what that would need), and nothing here claims it is.
    criteria are the backend's frozen sign-test criteria.
 2. **Deterministic baselines.** The reactive variant runs step for step as the
    reduced-order controller; the default fly is byte-identical with the new
-   hooks (all seven pilots reproduce).
+   hooks (every pilot of the non-ECHO protocols reproduces).
 3. **Development and evaluation separated.** The self-model was built on the
    development conditions (one strength each: speed gain 0.55, turning gain
    0.6, turning bias 0.8 rad/s, a 0.9 cm/s push, a 0.6 rad/s spin, a sense ×4
@@ -363,15 +513,14 @@ lists what that would need), and nothing here claims it is.
    exclude the development values (a test checks), plus combinations, an
    obstacle and a misleading sense that development never used, in another
    arena, on other seeds.
-4. **Frozen configuration.** The self-model was frozen at commit `422f1df`,
-   before any held-out run. Nothing in `src/bethesda/fly/echo/`, the body or
-   the sense has changed since (`git diff 422f1df -- src/bethesda/fly/echo
-src/bethesda/fly/fly.ts src/bethesda/fly/perturbation.ts
-src/bethesda/fly/selfMotion.ts` is empty). After it, only the host
-   minimum effects (set from the pilots' floors, the backend's rule), the
-   demonstration sizes (the pilots') and a checkpoint hook in the rig changed.
-   The pilots ran on held-out conditions and public pilot seeds; they sized,
-   they did not tune.
+4. **Frozen configuration.** `echo-self-model/v1` was frozen at commit
+   `422f1df`, before any held-out run; after it, only the host minimum effects
+   (set from the pilots' floors, the backend's rule), the demonstration sizes
+   (the pilots') and a checkpoint hook in the rig changed. `v2` (the air) and
+   `v3` (the indicator properties) changed the self-model after held-out
+   results were published; what each was developed on, and what it had seen,
+   is below. The pilots ran on held-out conditions and public pilot seeds;
+   they sized, they did not tune.
 5. **Independent seeded trials.** Registered runs on host-drawn seeds; the
    report on 24 declared evaluation seeds, two simulations per registered run.
 6. **Failures recorded.** Below, and in the report and the archive, which
@@ -402,6 +551,18 @@ the air was built: with a first rough version, and with the version before
 the lag was read from the antennae. Every change after those looks was
 found and checked on the development cities, but they were made knowing how
 the default city had gone, so its result is not a clean held-out test.
+
+The indicator properties (`echo-self-model/v3`) were developed with
+`scripts/echo-develop.ts` on the development conditions, arena and seeds,
+including its `busy` schedule. The workspace first held a standing fly
+still while it asked; that hid its steps, and a start into walking was
+allowed after a retention run showed it. A takeoff during a probe slipped
+past the hold until the hold was moved ahead of the probe. The second look was motivated by
+ECHO-02's published held-out overconfidence. Its one parameter was set by a
+principle, and nothing was run on held-out conditions before the pilots.
+The busy block's urge rates were set on development conditions, after the
+default rates gave the attention schema almost nothing to do. The schema's
+development result was then near-null, and it was left as built.
 
 ## Failures, negative findings and uncertainty
 
@@ -450,6 +611,12 @@ the default city had gone, so its result is not a clean held-out test.
   was developed on, and from a default city it was seen in. A perched fly
   sometimes concludes that its surface turned (`external:spin`), in still air
   as in wind; that predates the air.
+- **The attention schema does little here.** In development it changed the
+  time to conclude by 0.03 s on average and tied on 43 of 48 seeds. Its
+  control acts only on what the fly may hold off, and in these arenas that is
+  almost only a takeoff.
+- **The second look costs time.** Each conclusion it commits to comes at
+  least 1 s later, and the fly acts on the claim in the meantime.
 - **Uncertainty of the numbers.** Intervals are bootstrap intervals over
   seeds of one deterministic simulator, and sign-test p-values say how
   consistently the arms differ across seeds. Neither says anything about a
@@ -511,9 +678,10 @@ default city's result is not a clean held-out test
 city's ECHO fly still opens one inquiry in an hour.
 
 The panel's **Self-Model** section is read-only and shows the fly's own
-estimates (predicted against sensed motion, prediction error, trust in its
+estimates (what it attends to and its model of its own attention, predicted
+against sensed motion, prediction error, trust in its
 sense and calibration, its believed gains and capability, the open inquiry
-with its leading explanations, recently revised beliefs, remembered
+with its leading explanations and any second look, recently revised beliefs, remembered
 episodes, the active configuration and any replacement of the self-model)
 apart from **ground truth only researchers see** (actual movement, the
 perturbation in force). Opening it changes nothing the fly does.
@@ -535,6 +703,15 @@ experience, feeling or a point of view, and the project does not test for
 those: no measurement here could distinguish a system that has them from one
 that does not. "Self" in this document means the variables the program
 attributes changes to, nothing more.
+
+The same holds for the indicator properties of `v3`. A workspace, a model of
+its own attention and a second look are what some theories say a conscious
+system would have. That a program has simple versions of them says nothing
+about whether it experiences anything. Butlin, Long et al. 2023 take them as
+evidence only under computational functionalism. Even under that view they
+weigh far less here than in a system built at the scale those theories
+describe. Words like "attending", "sure" and "a second look" on the panel and
+`/live` name these mechanisms, nothing more.
 
 ## Reproduce
 
@@ -582,9 +759,22 @@ npm run rain:fly:verify                                                    # re-
   0.1 m/s (`echo-self-model/v1` opened 41 inquiries there and blamed its sense
   in 34); and a self-model that cannot learn leaves the air alone.
 
+`src/bethesda/fly/echo/indicators.test.ts`: the workspace lets in one
+content, keeps it against an equal, gives it up to a clearly stronger one and
+lets go below its release level; shielded, it holds off what it may but never
+a hazard, touch or the air; the controller's intention read as a bid, with
+hunger behind food; the attention schema learning capture rates and dwell,
+expecting interruption only from what it could hold off, and predicting its
+focus; in a busy fly, routine changes held and probes asked only while the
+inquiry holds the workspace; shielding only with the schema; nothing held
+without a workspace; a second look that commits 20 periods after the first
+verdict and says so; and a second look that revises.
+`src/bethesda/life/observation.test.ts` reads, refuses malformed and does
+without the attention, conclusion and inquiry an ECHO life writes.
+
 `src/rain/scientific/flyEcho.test.ts`: evaluation bands that exclude the
 development values; registered blocks on evaluation conditions only, in the
-held-out arena; one schedule per seed; the three demonstrations compiling,
+held-out arena; one schedule per seed; the five demonstrations compiling,
 with their limitations, and an unknown variant refused; an ECHO block run
 deterministically with no gate refusals; no path error for an unimpaired
 body; scoring by the fly's own conclusions; the temporary obstacle; the
@@ -606,5 +796,10 @@ visuomotor processing (Kim, Fitzgerald & Maimon 2015,
 doi:10.1038/nn.4083), cited for the existence of the principle in flies,
 not for this implementation; the Kalman filter (Kalman 1960,
 doi:10.1115/1.3662552); and the cumulative-sum test (Page 1954,
-doi:10.1093/biomet/41.1-2.100). None of them is evidence that a fly works the
+doi:10.1093/biomet/41.1-2.100). The indicator properties follow Butlin, Long
+et al. 2023 (doi:10.48550/arXiv.2308.08708); the workspace, global workspace
+theory (Baars 1988; Dehaene & Naccache 2001, doi:10.1016/S0010-0277(00)00123-2);
+the attention schema, Graziano & Webb 2015 (doi:10.3389/fpsyg.2015.00500); the
+second look, metacognition as Fleming & Lau 2014 review it
+(doi:10.3389/fnhum.2014.00443). None of them is evidence that a fly works the
 way ECHO does.

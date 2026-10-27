@@ -62,7 +62,7 @@ describe("ECHO conditions: development and evaluation never mixed", () => {
   });
 
   it("registers only the held-out conditions, in the held-out arena", () => {
-    for (const id of ["impairment", "attribution", "retention"] as const) {
+    for (const id of ["impairment", "attribution", "retention", "busy"] as const) {
       const b = FLY_APPARATUS[id];
       expect(b.echo!.conditions).toBe("evaluation");
       expect(b.arena.size).not.toEqual([4, 2.5, 4]);
@@ -87,11 +87,31 @@ describe("ECHO conditions: development and evaluation never mixed", () => {
     expect(retention[2]!.condition).toBe(retention[0]!.condition);
     expect(retention[1]!.condition).not.toBe(retention[0]!.condition);
   });
+
+  it("gives ECHO-04 the impairment schedule on a fly with urges", () => {
+    const busy = FLY_APPARATUS.busy;
+    expect(busy.echo!.schedule).toBe("impairment");
+    expect(busy.echo!.condition_set).toEqual(
+      FLY_APPARATUS.impairment.echo!.condition_set,
+    );
+    expect(busy.duration_s).toBe(FLY_APPARATUS.impairment.duration_s);
+    expect(busy.fixed_config).toMatchObject({ takeoffHz: 0.5, groomHz: 0.5 });
+    expect(FLY_APPARATUS.impairment.fixed_config).toMatchObject({
+      takeoffHz: 0,
+      groomHz: 0,
+    });
+  });
 });
 
 describe("the ECHO protocols compile through the backend", () => {
-  it("compiles the three demonstrations, binds the arms, and refuses an unknown variant", () => {
-    for (const p of ["echo_impairment", "echo_attribution", "echo_retention"] as const) {
+  it("compiles the five demonstrations, binds the arms, and refuses an unknown variant", () => {
+    for (const p of [
+      "echo_impairment",
+      "echo_attribution",
+      "echo_retention",
+      "echo_attention",
+      "echo_metacognition",
+    ] as const) {
       const c = compileFlyExperiment(flyExample(p));
       expect(c.ok, p).toBe(true);
       if (!c.ok) continue;
@@ -114,7 +134,7 @@ describe("the ECHO protocols compile through the backend", () => {
     expect([...FLY_ECHO_VARIANTS]).toEqual([...ECHO_VARIANTS]);
     // Every ECHO metric belongs to an ECHO block.
     for (const m of FLY_METRICS)
-      if (["impairment", "attribution", "retention"].includes(m.block))
+      if (["impairment", "attribution", "retention", "busy"].includes(m.block))
         expect(FLY_APPARATUS[m.block as "impairment"].echo).toBeDefined();
   });
 

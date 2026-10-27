@@ -686,7 +686,7 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 
 ### Project ECHO (`src/bethesda/fly/echo/`)
 
-The fly's computational self-model, its ablations and their three R.A.I.N.
+The fly's computational self-model, its ablations and their five R.A.I.N.
 protocols. Read `docs/PROJECT_ECHO.md` first. Outside `echo/` it adds the
 body's opt-in hooks (`fly/perturbation.ts`, `fly/selfMotion.ts`), the rig
 `src/rain/scientific/flyEcho.ts` and its report `flyEchoReport.ts`,

@@ -20,7 +20,7 @@ interface Example {
 /**
  * One scripted demonstration per protocol. The treatment, metric and
  * direction are the script's choices, not a model's. For the four redesigned
- * protocols and the three ECHO ones the minimum effect and the seed count are the pilot's
+ * protocols and the five ECHO ones the minimum effect and the seed count are the pilot's
  * (docs/benchmarks/fly-pilots/<protocol>.json, `sized`): the seed count is
  * the smallest that passes G3, G4 and the sign test with margin under the
  * pilot's outcomes, and the minimum effect the pilot's mean paired difference
@@ -165,6 +165,32 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
       "[scripted] A self-model reset to an innate one before a remembered held-out impairment returns takes longer to conclude that it changed itself than one with its memory intact.",
     competing:
       "[scripted] Learning an impairment from scratch is as fast as recognizing it, so memory does not shorten the time to conclude.",
+  },
+  echo_attention: {
+    treatment: { kind: "echo_attention", variant: "no_workspace" },
+    metric: "busy_attribution_latency_s",
+    direction: "increase",
+    minimumEffect: 1, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attention.json
+    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attention.json
+    question:
+      "[scripted] ECHO-04: does holding one content in a workspace and broadcasting it let a fly with urges find out sooner that its body changed?",
+    hypothesis:
+      "[scripted] Without its workspace, a fly that often takes off and grooms takes longer to conclude that it changed itself after a hidden held-out impairment than with it.",
+    competing:
+      "[scripted] Its inquiry gets the evidence it needs whenever the fly walks, whatever else the fly does, so a workspace changes nothing.",
+  },
+  echo_metacognition: {
+    treatment: { kind: "echo_metacognition", variant: "no_metacognition" },
+    metric: "attribution_brier",
+    direction: "increase",
+    minimumEffect: 0.2, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_metacognition.json
+    seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_metacognition.json
+    question:
+      "[scripted] ECHO-05: does weighing a conclusion again on fresh evidence before committing to it make the fly's stated confidence in its explanations more accurate?",
+    hypothesis:
+      "[scripted] A fly that commits to a conclusion at once has a higher Brier score on hidden held-out changes than one that takes a second look first.",
+    competing:
+      "[scripted] The evidence that made the first answer likely also makes the second look agree, so it only delays the same answers.",
   },
 };
 

@@ -777,6 +777,33 @@ export function impairmentMetrics(
   };
 }
 
+export interface EchoBusyMetrics {
+  busy_attribution_latency_s: number | null;
+  busy_identification_error: number | null;
+  busy_impaired_path_error: number | null;
+}
+
+/**
+ * ECHO-04: the impairment schedule's measures on a fly with urges. The time to
+ * conclude that it changed itself counts a fly that never does as the rest of
+ * the run, so failing to conclude is never left out.
+ */
+export function busyMetrics(
+  trial: EchoTrial,
+  a: EchoApparatus,
+  durationS: number,
+): EchoBusyMetrics {
+  const m = impairmentMetrics(trial, a, durationS);
+  const onset = trial.truth[0]!.from;
+  return {
+    busy_attribution_latency_s: trial.adapter.model
+      ? (m.attribution_latency_s ?? durationS - onset)
+      : null,
+    busy_identification_error: m.identification_error,
+    busy_impaired_path_error: m.impaired_path_error,
+  };
+}
+
 export interface EchoAttributionMetrics {
   attribution_accuracy: number | null;
   false_self_attribution: number | null;
@@ -951,6 +978,7 @@ export function runEchoBlock(
   );
   const metrics: Record<string, number | null> = {
     ...(() => {
+      if (block.id === "busy") return busyMetrics(trial, apparatus, block.duration_s);
       switch (apparatus.schedule) {
         case "impairment":
           return impairmentMetrics(trial, apparatus, block.duration_s);

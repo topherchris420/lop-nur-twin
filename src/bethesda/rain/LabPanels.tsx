@@ -986,12 +986,12 @@ export function ResearchPanel({
         </h3>
         <p className="mt-1 leading-relaxed">
           One fly on FlyBody&apos;s anatomy, moved by a reduced-order controller that
-          simulates no neurons. Six protocols run it in a closed arena with npm run
-          rain:fly: a plan is preregistered first, a person at a terminal authorizes it
-          once, and only then does the host draw its seeds. An exact sign test on the
-          matched seeds decides, and the registry admits a record only when it
-          re-simulates from committed code. Results describe the simulator, never real
-          flies.
+          simulates no neurons. The {FLY_PROTOCOLS.length} protocols below run it in a
+          closed arena with npm run rain:fly: a plan is preregistered first, a person at a
+          terminal authorizes it once, and only then does the host draw its seeds. An
+          exact sign test on the matched seeds decides, and the registry admits a record
+          only when it re-simulates from committed code. Results describe the simulator,
+          never real flies.
         </p>
         <ul className="mt-1 list-disc pl-4 text-[11px] text-slate-300">
           {FLY_PROTOCOLS.map((p) => (

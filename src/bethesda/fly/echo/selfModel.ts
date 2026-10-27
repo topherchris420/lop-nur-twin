@@ -66,17 +66,34 @@ import {
 import {
   openInquiry,
   posterior,
+  sameClaim,
   verdict,
   wantsProbe,
   weigh,
   type Inquiry,
   type InquiryRule,
 } from "./inquiry.js";
+import {
+  freshSchema,
+  interruptionRisk,
+  learn as learnAttention,
+  predict as predictAttention,
+  type AttentionSchema,
+} from "./attentionSchema.js";
+import {
+  compete,
+  freshWorkspace,
+  intentionBid,
+  selfHolds,
+  type Bid,
+  type Source,
+  type Workspace,
+} from "./workspace.js";
 import { detect, freshDetector, type Detector } from "./detector.js";
 import { ECHO_VERSION, EP } from "./params.js";
 import type { SelfModelView } from "./view.js";
 
-export const ECHO_STATE = "echo-state/v2" as const;
+export const ECHO_STATE = "echo-state/v3" as const;
 
 /**
  * The self-model and its ablations. `reactive` has none at all (the
@@ -91,6 +108,9 @@ export const ECHO_VARIANTS = [
   "no_uncertainty",
   "naive_self",
   "motion_gated",
+  "no_workspace",
+  "no_metacognition",
+  "no_attention_schema",
 ] as const;
 export type EchoVariant = (typeof ECHO_VARIANTS)[number];
 
@@ -104,6 +124,11 @@ export const VARIANT_LABELS: Readonly<Record<EchoVariant, string>> = {
   naive_self: "a self-only baseline (every unexplained change is its own)",
   motion_gated:
     "a motion-gated baseline (a change met while moving is its own, one met standing is the world's)",
+  no_workspace:
+    "workspace disabled (each process acts on its own, nothing is broadcast, and so no attention schema)",
+  no_metacognition: "the second look disabled (it commits to a conclusion at once)",
+  no_attention_schema:
+    "attention schema disabled (the workspace runs on its bids alone, never shielded)",
 };
 
 const RULES: Record<Exclude<EchoVariant, "reactive">, InquiryRule> = {
@@ -113,6 +138,9 @@ const RULES: Record<Exclude<EchoVariant, "reactive">, InquiryRule> = {
   no_uncertainty: "best-fit",
   naive_self: "self-only",
   motion_gated: "motion-gated",
+  no_workspace: "bayesian",
+  no_metacognition: "bayesian",
+  no_attention_schema: "bayesian",
 };
 
 export interface EchoEvent {
@@ -125,6 +153,8 @@ export interface EchoEvent {
   probability?: number;
   resolved?: boolean;
   probe?: "stop" | "walk";
+  /** Concluded after a second look: the claim it acted on held up, or another replaced it. */
+  checked?: "confirmed" | "revised";
 }
 
 export interface EchoState {
@@ -180,6 +210,12 @@ export interface EchoState {
   flight: { speed: number; hover: boolean; held: number };
   probe: { kind: "stop" | "walk"; until: number } | null;
   caution: boolean;
+  /** What holds the fly's workspace, and what has (workspace.ts); null without one. */
+  workspace: Workspace | null;
+  /** The fly's model of its own attention (attentionSchema.ts); null without one. */
+  attention: AttentionSchema | null;
+  /** Whether the air going by changed suddenly over the last period (more than airSettleMS). */
+  airStep: boolean;
   history: Period[];
   episodes: Episode[];
   nextEpisode: number;
@@ -198,6 +234,13 @@ export interface EchoState {
     probes: number;
     cautious: number;
     compensated: number;
+    /** Second looks: the claim held up, another replaced it, or it was no longer sure. */
+    confirmed: number;
+    revised: number;
+    doubted: number;
+    /** Decisions with its inquiry shielded, and routine changes of activity it held while attending to itself. */
+    shielded: number;
+    held: number;
   };
 }
 
@@ -290,6 +333,12 @@ export function initialEchoState(
     flight: { speed: 0, hover: false, held: 0 },
     probe: null,
     caution: false,
+    workspace: variant === "no_workspace" ? null : freshWorkspace(),
+    attention:
+      variant === "no_workspace" || variant === "no_attention_schema"
+        ? null
+        : freshSchema(),
+    airStep: false,
     history: [],
     episodes: [],
     nextEpisode: 1,
@@ -307,6 +356,11 @@ export function initialEchoState(
       probes: 0,
       cautious: 0,
       compensated: 0,
+      confirmed: 0,
+      revised: 0,
+      doubted: 0,
+      shielded: 0,
+      held: 0,
     },
   };
 }
@@ -334,6 +388,12 @@ export class SelfModel {
   }
   private get doubts(): boolean {
     return this.state.variant !== "no_uncertainty";
+  }
+  /** Whether the fly takes a second look at a conclusion before it commits to it. */
+  private get checks(): boolean {
+    return (
+      this.rule === "bayesian" && this.doubts && this.state.variant !== "no_metacognition"
+    );
   }
 
   private event(e: EchoEvent): void {
@@ -395,14 +455,19 @@ export class SelfModel {
     const feltSd = reading ? reading.sd : EP.airQuietMS;
     const start =
       W.air && Math.abs(W.air.t - (sample.t - sample.dt)) < 1e-6 ? W.air : null;
+    const change = start ? Math.hypot(felt[0] - start.v[0], felt[1] - start.v[1]) : 0;
+    // News from the air: a sudden change the fly's own movement cannot have made, felt perched or in settled flight.
+    S.airStep =
+      change > EP.airSettleMS &&
+      context.learnable &&
+      (context.kind === "still" || context.kind === "flight");
     let settled = true;
     if (context.wind && context.kind === "flight") {
       if (start) {
         const tau = context.flightTau;
         context.airLag = [tau * (felt[0] - start.v[0]), tau * (felt[1] - start.v[1])];
         context.airLagSd = tau * Math.hypot(start.sd, feltSd);
-        settled =
-          Math.hypot(felt[0] - start.v[0], felt[1] - start.v[1]) <= EP.airSettleMS;
+        settled = change <= EP.airSettleMS;
       } else context.learnable = false;
     }
     W.air = { t: sample.t, v: felt, sd: feltSd };
@@ -576,22 +641,53 @@ export class SelfModel {
     const S = this.state;
     const inq = S.inquiry!;
     const v = verdict(inq, this.rule);
-    if (v.done) {
-      this.conclude(inq, v.winner.id, v.probability, v.resolved, v.posterior);
+    if (inq.check) {
+      // The second look: the fly acts on the claim, and commits only once fresh evidence is in.
+      const looked = inq.periods - inq.check.from;
+      if (looked < EP.checkPeriods && inq.periods < EP.inquiryMaxPeriods) {
+        this.query(view, inq);
+        return;
+      }
+      if (v.done) {
+        const first = inq.candidates.find((c) => c.id === inq.check!.claim);
+        const same =
+          v.winner.id === inq.check.claim ||
+          (first !== undefined && sameClaim(first, v.winner));
+        const checked = v.resolved ? (same ? "confirmed" : "revised") : null;
+        if (checked) S.counts[checked]++;
+        this.conclude(inq, v.winner.id, v.probability, v.resolved, v.posterior, checked);
+        return;
+      }
+      // No longer sure: it keeps asking.
+      S.counts.doubted++;
+      inq.check = null;
+    } else if (v.done) {
+      if (v.resolved && this.checks) {
+        inq.check = { claim: v.winner.id, from: inq.periods };
+        if (this.learns) S.belief = cloneBelief(v.winner.belief);
+        return;
+      }
+      this.conclude(inq, v.winner.id, v.probability, v.resolved, v.posterior, null);
       return;
     }
-    if (
-      this.doubts &&
-      (view.mode === "walk" || view.mode === "rest") &&
-      wantsProbe(inq, this.rule, S.t)
-    ) {
-      inq.probes++;
-      inq.lastProbe = S.t;
-      S.counts.probes++;
-      const kind = view.mode === "walk" ? "stop" : "walk";
-      S.probe = { kind, until: S.t + EP.probeS };
-      this.event({ t: S.t, kind: "probe", probe: kind });
-    }
+    this.query(view, inq);
+  }
+
+  /**
+   * A probe, when walking or standing cannot tell the leading explanations
+   * apart. With a workspace, only while the inquiry holds it.
+   */
+  private query(view: SelfModelView, inq: Inquiry): void {
+    const S = this.state;
+    if (!this.doubts || (view.mode !== "walk" && view.mode !== "rest")) return;
+    if (S.workspace && !selfHolds(S.workspace)) return;
+    if (!wantsProbe(inq, this.rule, S.t)) return;
+    inq.probes++;
+    inq.lastProbe = S.t;
+    S.counts.probes++;
+    const kind = view.mode === "walk" ? "stop" : "walk";
+    S.probe = { kind, until: S.t + EP.probeS };
+    this.event({ t: S.t, kind: "probe", probe: kind });
   }
 
   private conclude(
@@ -600,6 +696,7 @@ export class SelfModel {
     probability: number,
     resolved: boolean,
     post: Record<string, number>,
+    checked: "confirmed" | "revised" | null,
   ): void {
     const S = this.state;
     const winner = inq.candidates.find((c) => c.id === id)!;
@@ -689,6 +786,7 @@ export class SelfModel {
       candidate: winner.id,
       probability,
       resolved,
+      ...(checked ? { checked } : {}),
     });
   }
 
@@ -726,8 +824,45 @@ export class SelfModel {
     const S = this.state;
     let intent: MotorCommand = { ...intention };
     if (intention.velocity) intent.velocity = [...intention.velocity];
+    const bid = intentionBid(intention, view);
+    const ws = S.workspace;
+    if (ws) {
+      if (intention.mode === "walk")
+        ws.lastWalk = {
+          walkSpeed: intention.walkSpeed ?? view.legSpeedCmS,
+          yawRate: intention.yawRate ?? 0,
+        };
+      this.attend(bid, view);
+    }
+    // Attending to its own movement, the fly keeps walking, or keeps its
+    // feet, rather than turn to something else.
+    if (ws && selfHolds(ws) && bid.source === "routine") {
+      if (view.mode === "walk" && intent.mode !== "walk") {
+        S.counts.held++;
+        intent = {
+          mode: "walk",
+          walkSpeed: ws.lastWalk?.walkSpeed ?? EP.probeSpeedCmS,
+          yawRate: ws.lastWalk?.yawRate ?? 0,
+          reason: "attending to its own movement: it keeps walking while it finds out",
+        };
+      } else if (
+        view.mode === "rest" &&
+        intent.mode !== "rest" &&
+        intent.mode !== "walk"
+      ) {
+        // A start into walking it allows: that is how its steps are seen.
+        S.counts.held++;
+        intent = {
+          mode: "rest",
+          reason:
+            "attending to its own movement: it stays on its feet while it finds out",
+        };
+      }
+    }
     // A probe: an experiment of the fly's own, a stop or a short walk.
     if (S.probe && S.t >= S.probe.until) S.probe = null;
+    // While something else holds the workspace, the inquiry's questions wait.
+    if (S.probe && ws && !selfHolds(ws)) S.probe = null;
     if (S.probe) {
       if (S.probe.kind === "stop" && view.mode === "walk" && intent.mode === "walk")
         intent = {
@@ -767,6 +902,67 @@ export class SelfModel {
     if (command.velocity) command.velocity = [...command.velocity];
     this.expect(command, view);
     return { intention: intent, command };
+  }
+
+  /**
+   * The workspace's competition for this decision, and the fly's model of
+   * its own attention: it shields an inquiry it expects to be interrupted
+   * before it can finish.
+   */
+  private attend(bid: Bid, view: SelfModelView): void {
+    const S = this.state;
+    const ws = S.workspace!;
+    const A = S.attention;
+    const T = view.schema.decisionS;
+    const bids: Bid[] = [bid];
+    if (S.inquiry)
+      bids.push({
+        source: "self",
+        salience: EP.inquirySalience,
+        what: "why its predictions fail",
+      });
+    if (view.edge)
+      bids.push({
+        source: "touch",
+        salience: EP.touchSalience,
+        what: "an edge or a solid",
+      });
+    if (S.airStep)
+      bids.push({
+        source: "air",
+        salience: EP.airSalience,
+        what: "a sudden change in the air",
+      });
+    let shield = false;
+    const inq = S.inquiry;
+    if (A && inq && ws.holder?.source === "self") {
+      // How much longer it expects to need: as long as its inquiries tend to
+      // hold its attention, by its model of it, and never less than the
+      // evidence an answer still needs.
+      const toCheck = !this.checks
+        ? 0
+        : inq.check
+          ? Math.max(0, EP.checkPeriods - (inq.periods - inq.check.from))
+          : EP.checkPeriods;
+      const evidence = (Math.max(0, EP.inquiryMinPeriods - inq.periods) + toCheck) * T;
+      const need = Math.max(evidence, A.dwell.self - (S.t - ws.holder.since));
+      shield = interruptionRisk(A, "self", need) >= EP.shieldRisk;
+      if (shield) S.counts.shielded++;
+    }
+    const before = ws.holder
+      ? { source: ws.holder.source, since: ws.holder.since }
+      : null;
+    const entered = compete(ws, bids, S.t, T, shield);
+    if (!A) return;
+    const changed = before !== null && ws.holder?.since !== before.since;
+    learnAttention(
+      A,
+      entered?.source ?? null,
+      changed ? { source: before.source, heldS: S.t - before.since } : null,
+      T,
+    );
+    A.shield = shield;
+    predictAttention(A, ws, S.t);
   }
 
   /** The command that, by the fly's beliefs, would do what it intends. */
@@ -894,6 +1090,71 @@ export class SelfModel {
       };
     S.pending = { context, y: predict(S.belief.x, context).y };
   }
+}
+
+/**
+ * What the fly attends to now and expects of its own attention, what it last
+ * concluded and how sure it said it was, and what it is asking now: for
+ * display only, and never read back.
+ */
+export interface SelfReport {
+  /** What holds its workspace, since when (s), and whether it is shielding it; null when nothing is broadcast or it has no workspace. */
+  attending: {
+    source: Source;
+    what: string;
+    since: number;
+    shielded: boolean;
+    /** By its model of its own attention, what is likely to take it next. */
+    expectsNext: Source | null;
+  } | null;
+  /** Its latest conclusion about a change; `checked` says whether a second look confirmed or revised it. */
+  lastConclusion: {
+    t: number;
+    explanation: Explanation;
+    candidate: string;
+    confidence: number;
+    resolved: boolean;
+    checked: "confirmed" | "revised" | null;
+  } | null;
+  /** An inquiry open now: since when, its leading explanation and its probability, and whether it is taking a second look. */
+  openInquiry: { since: number; leading: string; p: number; secondLook: boolean } | null;
+}
+
+export function selfReport(model: SelfModel): SelfReport {
+  const S = model.state;
+  const h = S.workspace?.holder ?? null;
+  const last = [...S.events].reverse().find((e) => e.kind === "concluded");
+  const lead = model.leading()[0];
+  return {
+    attending: h
+      ? {
+          source: h.source,
+          what: h.what,
+          since: h.since,
+          shielded: S.attention?.shield === true && h.source === "self",
+          expectsNext: S.attention?.expect.next ?? null,
+        }
+      : null,
+    lastConclusion: last
+      ? {
+          t: last.t,
+          explanation: last.explanation!,
+          candidate: last.candidate!,
+          confidence: last.probability!,
+          resolved: last.resolved !== false,
+          checked: last.checked ?? null,
+        }
+      : null,
+    openInquiry:
+      S.inquiry && lead
+        ? {
+            since: S.inquiry.since,
+            leading: lead.id,
+            p: lead.p,
+            secondLook: S.inquiry.check !== null,
+          }
+        : null,
+  };
 }
 
 /** The fly's capability as it believes it now: its top walking speed and how sure it is of it. */
