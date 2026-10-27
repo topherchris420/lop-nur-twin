@@ -1,0 +1,627 @@
+{
+  "schema": "fly-locomotion-readiness/v1",
+  "status": "blocked",
+  "scope": "initial five-plan flat-floor gate only; not robustness or biological validation",
+  "identity": {
+    "fly_version": "digital-fly/8",
+    "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b"
+  },
+  "execution": "lag-compensated",
+  "limits": {
+    "ratio_min": 0.8,
+    "ratio_max": 1.2,
+    "heading_drift_max_deg": 10.0,
+    "path_deviation_max_cm": 0.1,
+    "stance_slip_max_mm": 0.1,
+    "swing_claws_touching_max": 0.1,
+    "body_contact_max_s": 0.01,
+    "minimum_duration_s": 2.0
+  },
+  "results": [
+    {
+      "id": "walk-1cms--lag-compensated",
+      "sha256": "89b83d6e2c08f7a9443e48aa6d7c528035e6de8869118a79cd213dfeee2a75dd"
+    },
+    {
+      "id": "walk-2cms--lag-compensated",
+      "sha256": "c87951ab70fc22058ea571234fa7cac352638548c30b7eea4281dd2c68f1a4a2"
+    },
+    {
+      "id": "walk-3cms--lag-compensated",
+      "sha256": "476040a672ec632464b7d2926901c8fa1f326970e075b7d783cb3482baa50f18"
+    },
+    {
+      "id": "turn-on-the-spot--lag-compensated",
+      "sha256": "6f7df4e5a8b0f66cadbad4473b45623043f1e16fab1acdf93e1a5e483ba55ab7"
+    },
+    {
+      "id": "walk-and-turn--lag-compensated",
+      "sha256": "963e2ce93203c1e7059f3b50700e6af2cb81f10ca26e2f9661f952fd81937364"
+    }
+  ],
+  "checks": [
+    {
+      "check": "walk-1cms--lag-compensated:present_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:plan",
+      "actual": "walk-1cms",
+      "expected": "walk-1cms",
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:current_fly",
+      "actual": {
+        "fly_version": "digital-fly/4",
+        "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e"
+      },
+      "expected": {
+        "fly_version": "digital-fly/8",
+        "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b"
+      },
+      "passed": false
+    },
+    {
+      "check": "walk-1cms--lag-compensated:clean_commit",
+      "actual": {
+        "commit": "2296c7b675f015fed22d34024e32973b0fda9e5e",
+        "dirty": false
+      },
+      "expected": "full commit, dirty=false",
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:flat_floor",
+      "actual": {
+        "settle_s": 0.2,
+        "target_lead_s": "model",
+        "adhesion_lead_s": "model",
+        "adhesion": "stance",
+        "incline": null,
+        "friction": null,
+        "push": null,
+        "step": null,
+        "suspended": false
+      },
+      "expected": "unsuspended, unperturbed, stance adhesion",
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:complete",
+      "actual": {
+        "plan_duration_s": 2.0,
+        "simulated_s": 2.0,
+        "analysed_s": 2.0,
+        "terminated_at_s": null
+      },
+      "expected": "full plan, at least 2 s, no termination",
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:no_fall",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:speed_ratio",
+      "actual": 0.4684,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-1cms--lag-compensated:progress_ratio",
+      "actual": 0.4143,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-1cms--lag-compensated:heading_drift_deg",
+      "actual": -23.9101,
+      "expected": [-10.0, 10.0],
+      "passed": false
+    },
+    {
+      "check": "walk-1cms--lag-compensated:path_deviation_max_cm",
+      "actual": 0.0989,
+      "expected": [0.0, 0.1],
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:stance_slip_max_mm",
+      "actual": 0.0837,
+      "expected": [0.0, 0.1],
+      "passed": true
+    },
+    {
+      "check": "walk-1cms--lag-compensated:swing_claws_touching",
+      "actual": 0.554,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-1cms--lag-compensated:body_contact_s",
+      "actual": 0.044,
+      "expected": [0.0, 0.01],
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:present_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "check": "walk-2cms--lag-compensated:plan",
+      "actual": "walk-2cms",
+      "expected": "walk-2cms",
+      "passed": true
+    },
+    {
+      "check": "walk-2cms--lag-compensated:current_fly",
+      "actual": {
+        "fly_version": "digital-fly/4",
+        "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e"
+      },
+      "expected": {
+        "fly_version": "digital-fly/8",
+        "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b"
+      },
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:clean_commit",
+      "actual": {
+        "commit": "2296c7b675f015fed22d34024e32973b0fda9e5e",
+        "dirty": false
+      },
+      "expected": "full commit, dirty=false",
+      "passed": true
+    },
+    {
+      "check": "walk-2cms--lag-compensated:flat_floor",
+      "actual": {
+        "settle_s": 0.2,
+        "target_lead_s": "model",
+        "adhesion_lead_s": "model",
+        "adhesion": "stance",
+        "incline": null,
+        "friction": null,
+        "push": null,
+        "step": null,
+        "suspended": false
+      },
+      "expected": "unsuspended, unperturbed, stance adhesion",
+      "passed": true
+    },
+    {
+      "check": "walk-2cms--lag-compensated:complete",
+      "actual": {
+        "plan_duration_s": 2.0,
+        "simulated_s": 2.0,
+        "analysed_s": 2.0,
+        "terminated_at_s": null
+      },
+      "expected": "full plan, at least 2 s, no termination",
+      "passed": true
+    },
+    {
+      "check": "walk-2cms--lag-compensated:no_fall",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "check": "walk-2cms--lag-compensated:speed_ratio",
+      "actual": 0.4099,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:progress_ratio",
+      "actual": 0.3791,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:heading_drift_deg",
+      "actual": -20.4594,
+      "expected": [-10.0, 10.0],
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:path_deviation_max_cm",
+      "actual": 0.3703,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:stance_slip_max_mm",
+      "actual": 0.1241,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:swing_claws_touching",
+      "actual": 0.504,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-2cms--lag-compensated:body_contact_s",
+      "actual": 0.01,
+      "expected": [0.0, 0.01],
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:present_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:plan",
+      "actual": "walk-3cms",
+      "expected": "walk-3cms",
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:current_fly",
+      "actual": {
+        "fly_version": "digital-fly/4",
+        "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e"
+      },
+      "expected": {
+        "fly_version": "digital-fly/8",
+        "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b"
+      },
+      "passed": false
+    },
+    {
+      "check": "walk-3cms--lag-compensated:clean_commit",
+      "actual": {
+        "commit": "2296c7b675f015fed22d34024e32973b0fda9e5e",
+        "dirty": false
+      },
+      "expected": "full commit, dirty=false",
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:flat_floor",
+      "actual": {
+        "settle_s": 0.2,
+        "target_lead_s": "model",
+        "adhesion_lead_s": "model",
+        "adhesion": "stance",
+        "incline": null,
+        "friction": null,
+        "push": null,
+        "step": null,
+        "suspended": false
+      },
+      "expected": "unsuspended, unperturbed, stance adhesion",
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:complete",
+      "actual": {
+        "plan_duration_s": 2.0,
+        "simulated_s": 2.0,
+        "analysed_s": 2.0,
+        "terminated_at_s": null
+      },
+      "expected": "full plan, at least 2 s, no termination",
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:no_fall",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:speed_ratio",
+      "actual": 0.3625,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-3cms--lag-compensated:progress_ratio",
+      "actual": 0.3754,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-3cms--lag-compensated:heading_drift_deg",
+      "actual": -0.1916,
+      "expected": [-10.0, 10.0],
+      "passed": true
+    },
+    {
+      "check": "walk-3cms--lag-compensated:path_deviation_max_cm",
+      "actual": 0.1614,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-3cms--lag-compensated:stance_slip_max_mm",
+      "actual": 0.1331,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-3cms--lag-compensated:swing_claws_touching",
+      "actual": 0.496,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-3cms--lag-compensated:body_contact_s",
+      "actual": 0.026,
+      "expected": [0.0, 0.01],
+      "passed": false
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:present_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:plan",
+      "actual": "turn-on-the-spot",
+      "expected": "turn-on-the-spot",
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:current_fly",
+      "actual": {
+        "fly_version": "digital-fly/4",
+        "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e"
+      },
+      "expected": {
+        "fly_version": "digital-fly/8",
+        "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b"
+      },
+      "passed": false
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:clean_commit",
+      "actual": {
+        "commit": "2296c7b675f015fed22d34024e32973b0fda9e5e",
+        "dirty": false
+      },
+      "expected": "full commit, dirty=false",
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:flat_floor",
+      "actual": {
+        "settle_s": 0.2,
+        "target_lead_s": "model",
+        "adhesion_lead_s": "model",
+        "adhesion": "stance",
+        "incline": null,
+        "friction": null,
+        "push": null,
+        "step": null,
+        "suspended": false
+      },
+      "expected": "unsuspended, unperturbed, stance adhesion",
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:complete",
+      "actual": {
+        "plan_duration_s": 2.0,
+        "simulated_s": 2.0,
+        "analysed_s": 2.0,
+        "terminated_at_s": null
+      },
+      "expected": "full plan, at least 2 s, no termination",
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:no_fall",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:turn_ratio",
+      "actual": 0.0133,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:heading_drift_deg",
+      "actual": -222.7265,
+      "expected": [-10.0, 10.0],
+      "passed": false
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:path_deviation_max_cm",
+      "actual": 0.0131,
+      "expected": [0.0, 0.1],
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:stance_slip_max_mm",
+      "actual": 0.0038,
+      "expected": [0.0, 0.1],
+      "passed": true
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:swing_claws_touching",
+      "actual": 0.969,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "turn-on-the-spot--lag-compensated:body_contact_s",
+      "actual": 0.0,
+      "expected": [0.0, 0.01],
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:present_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:plan",
+      "actual": "walk-and-turn",
+      "expected": "walk-and-turn",
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:current_fly",
+      "actual": {
+        "fly_version": "digital-fly/4",
+        "fly_source_sha256": "69a28d5897711f339ac6fe76bbd486a76310346b93b62093ce8874c12331380e"
+      },
+      "expected": {
+        "fly_version": "digital-fly/8",
+        "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b"
+      },
+      "passed": false
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:clean_commit",
+      "actual": {
+        "commit": "2296c7b675f015fed22d34024e32973b0fda9e5e",
+        "dirty": false
+      },
+      "expected": "full commit, dirty=false",
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:flat_floor",
+      "actual": {
+        "settle_s": 0.2,
+        "target_lead_s": "model",
+        "adhesion_lead_s": "model",
+        "adhesion": "stance",
+        "incline": null,
+        "friction": null,
+        "push": null,
+        "step": null,
+        "suspended": false
+      },
+      "expected": "unsuspended, unperturbed, stance adhesion",
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:complete",
+      "actual": {
+        "plan_duration_s": 2.0,
+        "simulated_s": 2.0,
+        "analysed_s": 2.0,
+        "terminated_at_s": null
+      },
+      "expected": "full plan, at least 2 s, no termination",
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:no_fall",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:speed_ratio",
+      "actual": 0.4013,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:progress_ratio",
+      "actual": 0.285,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:turn_ratio",
+      "actual": 0.2097,
+      "expected": [0.8, 1.2],
+      "passed": false
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:heading_drift_deg",
+      "actual": -89.5854,
+      "expected": [-10.0, 10.0],
+      "passed": false
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:path_deviation_max_cm",
+      "actual": 0.4227,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:stance_slip_max_mm",
+      "actual": 0.0959,
+      "expected": [0.0, 0.1],
+      "passed": true
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:swing_claws_touching",
+      "actual": 0.51,
+      "expected": [0.0, 0.1],
+      "passed": false
+    },
+    {
+      "check": "walk-and-turn--lag-compensated:body_contact_s",
+      "actual": 0.01,
+      "expected": [0.0, 0.01],
+      "passed": true
+    },
+    {
+      "check": "one_physics_configuration",
+      "actual": {
+        "code": {
+          "commit": "2296c7b675f015fed22d34024e32973b0fda9e5e",
+          "dirty": false
+        },
+        "flybody": {
+          "repository": "TuragaLab/flybody",
+          "url": "https://github.com/TuragaLab/flybody",
+          "commit": "d015e9bfe441bd90ae431bac24c55cb74bdbce26",
+          "license": "Apache-2.0",
+          "inputs_checked": 87,
+          "inputs_byte_identical": 0,
+          "inputs_identical_as_crlf": 87
+        },
+        "environment": {
+          "python": "3.12.3",
+          "implementation": "cpython",
+          "platform": "linux x86_64",
+          "mujoco": "3.17.0",
+          "dm_control": "1.0.50",
+          "numpy": "1.26.4",
+          "scipy": "1.17.1"
+        },
+        "task": {
+          "factory": "flybody.fly_envs.template_task",
+          "physics_timestep_s": 0.0002,
+          "control_timestep_s": 0.002,
+          "gravity_cm_s2": 981.0,
+          "mass_g": 0.0009846214691323193,
+          "weight_dyn": 0.9659136612188053,
+          "requested_joint_filter_s": 0.01,
+          "requested_adhesion_filter_s": 0.007,
+          "joint_filter_s": 0.01,
+          "joint_lag_s": 0.01369639093216329,
+          "adhesion_filter_s": 0.0,
+          "adhesion_dyntype": ["mjDYN_NONE"]
+        }
+      },
+      "expected": "one code commit, FlyBody, environment and task across all plans",
+      "passed": true
+    }
+  ]
+}
