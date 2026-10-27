@@ -233,7 +233,11 @@ runs `--check` with the new release. If the new release can resume the
 individual it switches to it and starts it; if it cannot, it starts the old
 release again and exits with the reason. `sudo deploy/bethesda-life/install.sh --rollback`
 returns to the previous release, after the same check. The two newest
-releases are kept.
+releases are kept, and so is every release a recorded continuation names as
+its source (the `*_SOURCE` commits in `src/bethesda/life/`) or that
+`/opt/bethesda-life/pinned` lists, one commit per line: those replay the
+history the store holds. A release pruned before this rule, such as
+`c8b5fb1`, is rebuilt from git as `build_release` builds any release.
 
 A checkpoint is refused by any other city, fly, ECHO, headless or graph
 version, so **an ordinary release that bumps any of those cannot continue this
@@ -339,6 +343,43 @@ Then stop the service, back up with the v2 release, run it against the live
 store with `--commit`, and run `install.sh` normally. The store's history
 then holds three engines, each change attested by its own event, and the v2
 release can no longer resume it.
+
+### Continue the ECHO v3 individual as the organism
+
+`scripts/bethesda-life-continue-organism.ts` supports the third explicit
+transition: the individual on release
+`d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592` (ECHO v3) to the organism
+(`bethesda-echo-organism/v1`; [the continuation](ECHO_ORGANISM_CONTINUATION.md)).
+The same individual keeps its whole graph: its city, body, controller,
+navigation memory, self-model and every random stream. Beside its own
+controller and self-model it gains an innate mushroom body, odor filters at
+rest, rested tissue under the recoverable physiology, and an archive of what
+its bounded memories let go. Removing exactly those additions, and putting
+back the adapter's class and descriptor, must reproduce the v3 graph's
+SHA-256, or nothing is committed. The `organism-continuation` event records
+the source release, the exact parent, the old state and graph hashes, the
+preserved-graph digest, the descriptor it replaced, what was kept, what was
+introduced, and the pause. Nothing before it is credited to the new parts.
+
+Before continuing, `--check` steps the v3 fly 600 ticks in memory on the
+deployed engine and on this release and requires identical hashes; after,
+it requires the new checkpoint to restore and continue identically for 611
+ticks. The procedure is the one above, with this script and the v3 release:
+
+```sh
+sudo deploy/bethesda-life/install.sh --prepare
+# In the prepared release, as bethesda-life:
+node --max-old-space-size=4096 scripts/run-ts.mjs scripts/bethesda-life-continue-organism.ts \
+  --store /path/to/unpacked-backup/store \
+  --from-release /opt/bethesda-life/releases/d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592 --check
+```
+
+Then stop the service, back up with the v3 release, run it against the live
+store with `--commit`, and run `install.sh` normally; the exact steps and
+their checks are in [the cutover plan](ECHO_ORGANISM_CONTINUATION.md#cutover-plan).
+The runner then commits the archive with its checkpoints (early, if it
+fills) and stops rather than drop a record. The store's history holds four
+engines, and the v3 release can no longer resume it.
 
 ### Backup
 

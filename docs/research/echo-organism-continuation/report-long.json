@@ -1,0 +1,217 @@
+{
+ "tickExact": true,
+ "flyClockS": 131100,
+ "expectedS": 131100,
+ "extremes": {
+  "minReserve": 0.08012073054815291,
+  "minWater": 0.4102549887249673,
+  "minAtp": 0.30516703819336405,
+  "maxFatigue": 0.5039405402744033,
+  "maxSleepPressure": 0.17476505083776106,
+  "maxStress": 0.5905075357351391
+ },
+ "archiveKinds": {
+  "associative-update": 15,
+  "echo-episode-archived": 217,
+  "recovery-enter": 5,
+  "recovery-exit": 5
+ },
+ "runs": [
+  {
+   "ticks": 1000,
+   "livedTicks": 1000,
+   "simulatedHours": 0.028,
+   "msPerTick": 2.913,
+   "sequence": 2,
+   "archived": 0,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "reserveFraction": 0.5967,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.9543990715143484,
+     "water": 0.998625482552676,
+     "fatigue": 0.008450364984511904,
+     "sleepPressure": 0.003127754086992618,
+     "stress": 0,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 0,
+     "maintenanceJ": 0
+    },
+    "mushroomBody": {
+     "trials": 0,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0.25283753282173543,
+     "off": 0.00029658061962672955,
+     "modulatedDecisions": 673,
+     "searchTurns": 0
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "episodesKept": 0,
+   "places": 0,
+   "meals": 0,
+   "fedJ": 0,
+   "spentJ": 0.0046,
+   "rejected": 0,
+   "failed": null,
+   "checkpointBytes": 8168441,
+   "maxRssMB": 1276,
+   "wallS": 9.8
+  },
+  {
+   "ticks": 10000,
+   "livedTicks": 11000,
+   "simulatedHours": 0.306,
+   "msPerTick": 1.108,
+   "sequence": 3,
+   "archived": 3,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "reserveFraction": 0.7958,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.9716901798185098,
+     "water": 0.9842847474555001,
+     "fatigue": 0.04288593586607303,
+     "sleepPressure": 0.018553006671267025,
+     "stress": 0,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 0,
+     "maintenanceJ": 0
+    },
+    "mushroomBody": {
+     "trials": 3,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0.43297098499648057,
+     "off": 0.00021677749671689117,
+     "modulatedDecisions": 1621,
+     "searchTurns": 0
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "episodesKept": 0,
+   "places": 1,
+   "meals": 3,
+   "fedJ": 0.3387,
+   "spentJ": 0.0627,
+   "rejected": 0,
+   "failed": null,
+   "checkpointBytes": 8362340,
+   "maxRssMB": 1404,
+   "wallS": 20.9
+  },
+  {
+   "ticks": 100000,
+   "livedTicks": 111000,
+   "simulatedHours": 3.083,
+   "msPerTick": 0.85,
+   "sequence": 4,
+   "archived": 1,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "reserveFraction": 0.7026,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.9716424582859209,
+     "water": 0.853191464707348,
+     "fatigue": 0.04859951929598156,
+     "sleepPressure": 0.03763984677285803,
+     "stress": 0,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 0,
+     "maintenanceJ": 0
+    },
+    "mushroomBody": {
+     "trials": 4,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0.14129924386451104,
+     "off": 0,
+     "modulatedDecisions": 12384,
+     "searchTurns": 0
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "episodesKept": 16,
+   "places": 1,
+   "meals": 6,
+   "fedJ": 0.7172,
+   "spentJ": 0.5726,
+   "rejected": 0,
+   "failed": null,
+   "checkpointBytes": 9093075,
+   "maxRssMB": 1424,
+   "wallS": 106
+  },
+  {
+   "ticks": 1200000,
+   "livedTicks": 1311000,
+   "simulatedHours": 36.417,
+   "msPerTick": 0.749,
+   "sequence": 5,
+   "archived": 238,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "reserveFraction": 0.7855,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.919325221393505,
+     "water": 0.4102549887249673,
+     "fatigue": 0.12757913866331438,
+     "sleepPressure": 0.04323101458809209,
+     "stress": 1.48e-321,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 5,
+     "maintenanceJ": 1.9523999999998503
+    },
+    "mushroomBody": {
+     "trials": 15,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0.41623100427997434,
+     "off": 0.0004156250133084405,
+     "modulatedDecisions": 435894,
+     "searchTurns": 6
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "episodesKept": 24,
+   "places": 1,
+   "meals": 58,
+   "fedJ": 6.5846,
+   "spentJ": 8.2755,
+   "rejected": 0,
+   "failed": null,
+   "checkpointBytes": 14078921,
+   "maxRssMB": 1507,
+   "wallS": 1004.5
+  }
+ ]
+}

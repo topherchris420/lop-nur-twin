@@ -8,6 +8,14 @@ pauses computation; it cannot satisfy an uninterrupted-computation promise.
 An approved pause must be recorded, and no uncomputed experience attributed
 to it. Do not attempt an unapproved hot swap or a second live writer.
 
+**Later on October 27, 2026:** the integration this plan defers now exists
+for review as [the organism continuation](ECHO_ORGANISM_CONTINUATION.md). It
+composes mushroom-body learning, olfactory navigation and recoverable
+physiology onto the deployed individual's own adapter and adds the runner
+support, archival path, installer changes and backup rehearsal that stage 6
+and the section on further integration below call for. It has not been
+deployed. Its cutover needs its own explicit approval, like everything here.
+
 ## Reviewable stages
 
 1. Review the audit, physiology model, limitations, tests and generated
@@ -96,6 +104,10 @@ byte-verified reverse projection, the new MB state explicitly introduced at
 the migration boundary, and both code releases retained for replay.
 There is no such original-specific neural migration in this change. Do not
 replace the original adapter with a freshly initialized research adapter.
+A later change adds one by a different route: it keeps the original
+adapter's whole graph, byte for byte, and adds the new components beside it
+instead of transplanting old state into a research adapter
+([organism continuation](ECHO_ORGANISM_CONTINUATION.md)).
 
 ## Archival replay gate discovered during olfactory research
 
@@ -107,3 +119,11 @@ thresholds were rewritten. See [the verification record](research/echo-foraging/
 Resolve that discrepancy and validate the original's actual backup on the
 intended runtime/hardware before treating historical replay as a rollout gate
 that has passed. This finding grants no permission to touch the live fly.
+
+The cause has since been found and recorded in
+[cross-platform replay of the fly pilots](research/echo-replay/README.md):
+the pilots reproduce exactly on the Windows ARM64 machine that recorded them.
+On Linux x64 they differ by one platform `Math.pow`; on Linux arm64, the
+production platform, all nine differ. Historical replay is therefore a
+same-platform property, and checks that gate the deployed individual must
+run on the VM itself.

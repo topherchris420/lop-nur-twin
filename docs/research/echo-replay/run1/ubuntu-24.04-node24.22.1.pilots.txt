@@ -1,0 +1,9 @@
+same     obstacle_avoidance: runs 6e4f49d552ab and outputs 97b352b3a0b4 reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 28.0 s
+same     visual_threat: runs d6398bac6d76 and outputs 0e4e54818d99 reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 2.3 s
+same     noisy_sensing: runs 9959291514c3 and outputs 3bf02c19ae9d reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 29.6 s
+same     adaptation: runs 26dec5e045bf and outputs e2882f456e4a reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 31.2 s
+CHANGED  echo_impairment: runs efda7baf7464 became f16a46812e0b; outputs 8fb4d492b75e became be0e64ee0c50; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 24.6 s
+CHANGED  echo_attribution: runs 8ddd96235633 became d9a2a7520c0d; outputs c47520962571 became 8dc7c26e7600; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 37.6 s
+CHANGED  echo_retention: runs 0a429fb46981 became d168ded98ece; outputs c88cd043784d became 3efbd7252e31; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 52.6 s
+CHANGED  echo_attention: runs b93abbccb2ac became 46370c2719fe; outputs a09db1ba20e3 became b5efa9b42bc2; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 16.3 s
+CHANGED  echo_metacognition: runs ebf5b16f2ead became e8ef58430f19; outputs d78aa588853d became d66a66e82c38; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 17.8 s

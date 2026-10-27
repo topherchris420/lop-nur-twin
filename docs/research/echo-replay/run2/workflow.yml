@@ -1,0 +1,49 @@
+name: ECHO pilot replay diagnosis (temporary)
+
+# Temporary and diagnostic only: this file exists on the diag/echo-pilot-replay
+# branch, never on main. It asks why the five archived ECHO pilots (recorded on
+# Windows ARM64, Node 24.19.0) reproduce on Windows but not on Linux x64, and
+# what Linux arm64 (the production VM's platform) does. Nothing here is evidence
+# and nothing here touches an archive, a threshold or the live fly.
+on:
+  push:
+    branches: [diag/echo-pilot-replay]
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    name: ${{ matrix.os }} node ${{ matrix.node }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, node: "24.22.1" }
+          - { os: ubuntu-24.04-arm, node: "24.22.1" }
+          - { os: ubuntu-24.04-arm, node: "24.19.0" }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.11"
+      - run: bun install --frozen-lockfile
+      - name: Platform
+        run: |
+          mkdir -p out
+          { node -p "process.version+' '+process.platform+' '+process.arch+' v8 '+process.versions.v8"; ldd --version | head -1; lscpu | grep -E 'Model name|Architecture|Flags' | cut -c1-200; } | tee out/platform.txt
+      - name: Numerics census on pow-free inputs
+        run: node diag/census2.mjs | tee out/census2.json
+      - name: Three ECHO pilots with the self-model's fractional power computed as exp(y log x)
+        continue-on-error: true
+        run: POW_FREE_LOG=1 node --import ./diag/pow-free.mjs scripts/run-ts.mjs scripts/rain-fly.ts --pilot --check --protocol echo_impairment,echo_attention,echo_metacognition 2>&1 | tee out/pilots-pow-free.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: replay-${{ matrix.os }}-node${{ matrix.node }}
+          path: out/

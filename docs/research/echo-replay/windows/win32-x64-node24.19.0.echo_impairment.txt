@@ -1,0 +1,5 @@
+same     echo_impairment: runs efda7baf7464 and outputs 8fb4d492b75e reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 51.7 s
+
+real	0m54.595s
+user	0m0.016s
+sys	0m0.015s

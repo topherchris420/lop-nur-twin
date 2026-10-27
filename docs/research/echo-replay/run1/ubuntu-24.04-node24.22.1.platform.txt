@@ -1,0 +1,5 @@
+v24.22.1 linux x64 v8 13.6.233.17-node.58
+ldd (Ubuntu GLIBC 2.39-0ubuntu8.9) 2.39
+Architecture:                            x86_64
+Model name:                              AMD EPYC 9V45 96-Core Processor
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc 

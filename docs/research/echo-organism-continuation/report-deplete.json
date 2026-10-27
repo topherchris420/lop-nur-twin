@@ -1,0 +1,46 @@
+{
+ "node": "v24.19.0",
+ "platform": "win32 arm64",
+ "heapLimitMB": 3264,
+ "deplete": {
+  "ticks": 2000,
+  "kinds": [
+   "recovery-enter@1",
+   "recovery-exit@1172"
+  ],
+  "physiology": {
+   "atp": 0.9906232913775138,
+   "water": 0.9987870787769104,
+   "fatigue": 0.008968540012010973,
+   "sleepPressure": 0.0019435600862083829,
+   "stress": 0,
+   "protective": false,
+   "sleeping": false,
+   "recoveryBouts": 1,
+   "maintenanceJ": 0.4684000000000093
+  },
+  "reserveFraction": 0.3464,
+  "fedJ": 0,
+  "sameSelfModelObject": true,
+  "replaced": 0,
+  "failed": null,
+  "rememberedPlaces": [
+   0,
+   0
+  ],
+  "inquiries": [
+   78,
+   78
+  ],
+  "episodes": [
+   24,
+   24
+  ],
+  "rejectedCommands": 0,
+  "label": "deplete",
+  "wallS": 15.3,
+  "cpuS": 19.5,
+  "maxRssMB": 1761,
+  "heapUsedMB": 983
+ }
+}

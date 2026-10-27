@@ -1,0 +1,28 @@
+{
+ "platform": "win32 arm64",
+ "node": "v24.19.0",
+ "n": 1000000,
+ "fns": {
+  "sin": "f0807bc7e2aaa3fb",
+  "cos": "f511c8dd620af472",
+  "tan": "99abc0dc7725b145",
+  "exp": "fe90a485b9ea9efe",
+  "expm1": "60061169edeeee77",
+  "log": "c009f4496cd391c4",
+  "log1p": "5489228afdef623c",
+  "log2": "2ebe09b7524c2fa2",
+  "log10": "a5e78765788d89b1",
+  "asin": "d4f900eb6a38924f",
+  "acos": "88677e16e3d83663",
+  "atan": "e3c96bd5e0964169",
+  "sinh": "dedb614fad6aeac0",
+  "cosh": "7a1a8f4cd193cd21",
+  "tanh": "c3e86a532a64c395",
+  "cbrt": "3ec672b385e032dc",
+  "sqrt": "50ea74650c86036d",
+  "atan2": "6d5c542aaf8e44ad",
+  "pow": "54a8665063d9ac51",
+  "hypot": "c18038064f678731"
+ },
+ "differFromExpLog": 54632
+}

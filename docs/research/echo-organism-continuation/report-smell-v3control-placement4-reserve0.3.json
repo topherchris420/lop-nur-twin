@@ -1,0 +1,69 @@
+{
+ "node": "v24.19.0",
+ "platform": "win32 arm64",
+ "heapLimitMB": 3264,
+ "whereItIs": {
+  "p": [
+   459.05,
+   12.26,
+   690.02
+  ],
+  "mode": "walk",
+  "reserveFraction": 0.7652,
+  "patches": 140,
+  "nearestFood": {
+   "id": "food supermarket 3291531680",
+   "kind": "supermarket",
+   "surface": "ground",
+   "distanceM": 108.4
+  },
+  "odourHere": 0
+ },
+ "placed": {
+  "patch": "food restaurant 12345317745",
+  "kind": "restaurant",
+  "surface": "ground",
+  "radiusM": 12,
+  "odour": 0.1032,
+  "p": [
+   267.18,
+   4.22,
+   591.32
+  ],
+  "reserveFraction": 0.3
+ },
+ "smell": {
+  "kind": "ECHO v3 control: no olfaction",
+  "ticks": 18000,
+  "startPatchM": 12,
+  "minPatchM": 12,
+  "finalPatchM": 103.29,
+  "minAnyFoodM": 12,
+  "finalMode": "rest",
+  "maxOdour": 0.1032,
+  "maxOn": 0,
+  "maxOff": 0,
+  "modulatedDecisions": null,
+  "searchTurns": null,
+  "walkingTicks": 4188,
+  "feedTicks": 0,
+  "firstMealTick": null,
+  "meals": 0,
+  "fedJ": 0,
+  "mushroomBodyTrials": null,
+  "lastTrial": null,
+  "rememberedPlaces": 0,
+  "landmarkPlaces": 0,
+  "flownM": 190.63,
+  "walkedM": 8.32,
+  "rejectedCommands": 0,
+  "collisions": 0,
+  "archive": [],
+  "failed": null,
+  "label": "smell",
+  "wallS": 43.5,
+  "cpuS": 47.8,
+  "maxRssMB": 2036,
+  "heapUsedMB": 651
+ }
+}

@@ -75,6 +75,22 @@ docs/benchmarks/fly-behavior/
 # `npm run rain:fly -- --pilot` and checked byte for byte by `--pilot --check`.
 docs/benchmarks/fly-pilots/
 
+# Why those pilots replay only on their recording platform: the diagnostic
+# workflows, scripts and outputs, kept byte for byte as they ran. Only the
+# README there is written by hand.
+docs/research/echo-replay/run1/
+docs/research/echo-replay/run2/
+docs/research/echo-replay/windows/
+
+# The organism continuation's rehearsal on the deployed individual's backup:
+# its scripts and outputs as they ran, paths aside. Only the README there is
+# written by hand.
+docs/research/echo-organism-continuation/*.ts
+docs/research/echo-organism-continuation/*.mjs
+docs/research/echo-organism-continuation/*.sh
+docs/research/echo-organism-continuation/*.json
+docs/research/echo-organism-continuation/*.txt
+
 # FlyBody physics on the digital fly's plan: results and the README written from
 # them by `python -m fly_physics run` (fly-physics/), each result sealed by its
 # own SHA-256.

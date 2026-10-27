@@ -1,0 +1,66 @@
+{
+ "node": "v24.19.0",
+ "platform": "win32 arm64",
+ "heapLimitMB": 3264,
+ "restoredOnOwnEngine": {
+  "sequence": 269,
+  "tick": 794842,
+  "label": "269 on 3db627b",
+  "wallS": 9.8,
+  "cpuS": 11.9,
+  "maxRssMB": 2094,
+  "heapUsedMB": 811
+ },
+ "v3Continuation": {
+  "sequence": 270,
+  "tick": 794842,
+  "graphDigest": "29ef122c0f1fec81f8f313bb53124d87b36024e9249e74db2c3ab17d562c5527",
+  "events": [
+   "self-model-upgrade"
+  ],
+  "label": "270 by d25e1f3",
+  "wallS": 35.3,
+  "cpuS": 47.1,
+  "maxRssMB": 2562,
+  "heapUsedMB": 1724
+ },
+ "v3Lived": {
+  "ticks": 36000,
+  "msPerTick": 1.583,
+  "label": "lived on d25e1f3",
+  "wallS": 95,
+  "cpuS": 109.2,
+  "maxRssMB": 2758,
+  "heapUsedMB": 1069
+ },
+ "v3Learned": {
+  "tick": 830842,
+  "rememberedPlaces": 0,
+  "landmarkPlaces": 0,
+  "placesDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "controllerDigest": "d3eb776d99142ebd4686021d703a4ce5454af67fb01533a410c67d7aa4d9b420",
+  "selfModelDigest": "0578d234702a0db7afb015f409eccb25d72d5399dcee134c382992f0aa1cdc4b",
+  "replaced": 0,
+  "episodesKept": 24,
+  "lastEpisode": 78,
+  "inquiries": 78,
+  "inquiryOpen": false,
+  "beliefs": 12,
+  "bodyDigest": "9fca662819ccdba2280a09813f181bd759f7e283374ddbe4ac60818d9e69a4de",
+  "logDigest": "3ccf73b1fc52c89d98d4768d703d9ce193163cfb0025bcf854ec7e41da167674",
+  "cityHash": "8d86a87d632ad007",
+  "reserveFraction": 0.7652,
+  "rejectedCommands": 0,
+  "failed": null
+ },
+ "v3Checkpoint": {
+  "sequence": 271,
+  "tick": 830842,
+  "bytes": 64025555,
+  "label": "written",
+  "wallS": 95.7,
+  "cpuS": 109.8,
+  "maxRssMB": 2906,
+  "heapUsedMB": 1159
+ }
+}

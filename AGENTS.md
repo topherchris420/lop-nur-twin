@@ -658,6 +658,11 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
     does in the arenas changed, run `npm run rain:fly -- --pilot` and re-size
     the demonstrations from what it writes. Never edit a pilot file, a
     demonstration threshold or a pilot-sized host minimum by hand.
+    The check is exact only on the platform the pilots were recorded on
+    (Windows on ARM64, Node 24.19.0): platform `Math` rounds differently on
+    Linux, and on Linux arm64 no pilot reproduces
+    (`docs/research/echo-replay/README.md`). A failure elsewhere says nothing
+    about the archive; never re-record pilots to make another platform pass.
   - Commit, then run `npm run rain:fly:demo` from the clean commit. A dirty tree
     makes development records, which the registry never admits.
   - Older records stay in the archive. They are listed as made by other code,
@@ -730,13 +735,16 @@ cause.**
   version, variant or byte, and every replacement is recorded in the
   adapter's state. Choosing ECHO in the city places a new fly. Never present
   either as the same persistent individual.
-  The dedicated `scripts/bethesda-life-upgrade-echo.ts` and
-  `scripts/bethesda-life-continue-echo.ts` are a different path: each appends
-  a verified upgrade checkpoint to the original birth and history (the
-  engine's, then the self-model's from v2 to v3). Never replace them with the
-  panel's new-fly path or `--create`. An `ECHO_VERSION` bump that changes the
-  self-model's state needs its own recorded continuation for the deployed
-  individual, in `src/bethesda/life/echoUpgrade.ts`.
+  The dedicated `scripts/bethesda-life-upgrade-echo.ts`,
+  `scripts/bethesda-life-continue-echo.ts` and
+  `scripts/bethesda-life-continue-organism.ts` are a different path: each
+  appends a verified continuation checkpoint to the original birth and
+  history (the engine's, the self-model's from v2 to v3, then the organism's
+  additions beside it). Never replace them with the panel's new-fly path or
+  `--create`. An `ECHO_VERSION` bump that changes the self-model's state
+  needs its own recorded continuation for the deployed individual, from
+  whatever kind it is then (`src/bethesda/life/echoUpgrade.ts`, then
+  `organism.ts` and `organismContinuation.ts`).
 - **The panel reads; the fly decides.** `SelfModelPanel.tsx` reads the
   adapter's state and calls nothing that changes it, and keeps the fly's
   estimates apart from ground truth only researchers see.
@@ -800,6 +808,22 @@ verified to be; a copy is always someone else.**
   reproduction across that boundary requires both engine releases and the
   migration. Historical header verification never permits restoring an old
   graph on a mismatched engine.
+- **The organism adds and never resets** (`organism.ts`,
+  `organismContinuation.ts`). It puts an innate mushroom body, olfactory
+  navigation and recoverable physiology beside the deployed v3 adapter's own
+  controller and self-model, and the one way the deployed individual becomes
+  one is the recorded continuation, whose projection (`organismProjection`)
+  must give back the v3 graph's digest. Maintenance restores energy, water
+  and tissue variables only: never let it touch synapses, places, the
+  self-model or identity, and keep its artificial supply metered apart from
+  food (`maintenanceJ`). Every command still passes the body's gate; the
+  physiology gate only rests a perched fly, and olfaction only modulates a
+  walk the body already allows. The archive is part of the life: the runner
+  commits it with its checkpoints, and a full archive stops the clock rather
+  than drop a record. Add a later component the same way: declared
+  additions, a projection that removes them, a recorded continuation, and
+  the old release kept for replay (`install.sh` keeps every `*_SOURCE`
+  release and any commit in `/opt/bethesda-life/pinned`).
 - **The individuality report is generated.** After a change to the fly, the
   controller or `individuality.ts`, bump `INDIVIDUALITY_VERSION` if the
   study's design changed, then run

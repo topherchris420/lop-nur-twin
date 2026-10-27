@@ -1,0 +1,42 @@
+
+== a synthetic store with the deployed lineage
+{"dir":"<scratch>/rehearsal/rollback-store","individual":"50c5baee25dcadedde868fd81c623cb53dc4fc58789ce97b06bd28b71ebee8bc","head":3,"tick":620}
+
+== this release's runner continues the v3 fly (the release upgrade, no continuation yet)
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":920,"simulatedSeconds":92,"cityHash":"630ae906fa105b87","flyHash":"17d6431357d2c95b:2d0db32382e373e3","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":0,"episodes":0,"legGain":1.0015770624465385,"trustInSense":1,"attending":null,"lastConclusion":null,"openInqu
+exit 0
+
+== rollback of the release: the deployed d25e1f3 runner resumes what this release committed
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1020,"simulatedSeconds":102,"cityHash":"f647bd16dafd6589","flyHash":"ed749a030cea04f7:8a4ce21a5a44e520","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":0,"episodes":0,"legGain":0.9984404598272512,"trustInSense":0.960505302142606,"attending":null,"lastConclusi
+exit 0
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1120,"simulatedSeconds":112,"cityHash":"2116d49b3991828e","flyHash":"8b001c6d17a7541e:39541f85589f0068","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":0,"episodes":0,"legGain":0.9983963091137948,"trustInSense":0.9998675720918667,"attending":null,"lastConclus
+exit 0
+
+== the continuation's --check changes no file
+{"mode":"--check","individual":"50c5baee25dcadedde868fd81c623cb53dc4fc58789ce97b06bd28b71ebee8bc","tick":1120,"previousSequence":6,"sequence":7,"parent":"b36a20df94ebf42e4fd1fb7f9ed344c22bf6846cdc7c1a130661b9e8a1627df3","genesisDigest":"7e1f432c6c0331a5322cbe73e84b686e6d9d3d5f730ae36c26218aadb8c106bd","sourceGraphDigest":"8d094a16f3676372894c947b69691f1bef21154c877483de7c08fb86a8d5e803","preserved
+exit 0
+store files before fb256fa8bdcfb7e1 after fb256fa8bdcfb7e1 same=yes
+
+== after --check the deployed release still resumes the store
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1220,"simulatedSeconds":122,"cityHash":"bffed532df35e595","flyHash":"f24c4688470a6324:a6540c1c9c229430","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":0,"episodes":0,"legGain":0.9983961739264592,"trustInSense":0.9918796740687836,"attending":{"source":"routin
+exit 0
+
+== --commit
+{"mode":"--commit","individual":"50c5baee25dcadedde868fd81c623cb53dc4fc58789ce97b06bd28b71ebee8bc","tick":1220,"previousSequence":7,"sequence":8,"parent":"9f8d744ba3a896daf4999213267939f41377c62b17443387847469ff815e47fc","genesisDigest":"7e1f432c6c0331a5322cbe73e84b686e6d9d3d5f730ae36c26218aadb8c106bd","sourceGraphDigest":"f50279fd905071ab7f10fbaaae15c78d22be3c490c2df74149640d387f7f009a","preserve
+exit 0
+
+== after --commit the deployed release refuses the store, failing closed and changing nothing
+checkpoint 8 is corrupt: made with organism, which this engine does not have; made with mushroomBody, which this engine does not have; made with olfaction, which this engine does not have; made with physiology, which this engine does not have
+exit 1
+store files before 7f1e5d06b01206ed after 7f1e5d06b01206ed same=yes
+
+== this release lives on as the organism, and verifies the whole chain
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1520,"simulatedSeconds":152,"cityHash":"dfaa71dec1ad760b","flyHash":"1ee3cdc8d9d19e19:95d94153b331b0fd","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":0,"episodes":0,"legGain":0.9967995664146172,"trustInSense":0.9930316503300832,"attending":{"source":"routin
+exit 0
+{"checkpoints":10,"head":9,"events":8}
+exit 0
+
+== a second continuation is refused
+Error: this individual already continued as the organism; nothing was changed
+exit 1
+script exit 0

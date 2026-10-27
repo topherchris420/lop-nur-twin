@@ -1,0 +1,9 @@
+CHANGED  obstacle_avoidance: runs 6e4f49d552ab became 772d46e18b70; outputs 97b352b3a0b4 became d4298416cbcc; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 50.1 s
+CHANGED  visual_threat: runs d6398bac6d76 became 92611238d9f1; outputs 0e4e54818d99 became ef928d8b2922; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 3.9 s
+CHANGED  noisy_sensing: runs 9959291514c3 became 633b83234670; outputs 3bf02c19ae9d became 3c881925f7bf; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 52.4 s
+CHANGED  adaptation: runs 26dec5e045bf became eba68a2e10c9; outputs e2882f456e4a became d6fb8c9c1605; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 54.4 s
+CHANGED  echo_impairment: runs efda7baf7464 became b64d8cdc7862; outputs 8fb4d492b75e became d2a847db9acf; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 45.6 s
+CHANGED  echo_attribution: runs 8ddd96235633 became 7939c13c63b4; outputs c47520962571 became 0336afa0047a; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 70.8 s
+CHANGED  echo_retention: runs 0a429fb46981 became 33f3e371338c; outputs c88cd043784d became 4bf760bef2a8; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 98.6 s
+CHANGED  echo_attention: runs b93abbccb2ac became 60471d00fd96; outputs a09db1ba20e3 became 7d29d9089d85; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 29.4 s
+CHANGED  echo_metacognition: runs ebf5b16f2ead became 378adc756bc9; outputs d78aa588853d became 069df226002c; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 33.6 s

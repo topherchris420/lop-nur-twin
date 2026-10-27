@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ECHO_UPGRADE, ECHO_UPGRADED_LIFE } from "./echoUpgrade";
 import { BETHESDA_LIFE } from "./headless";
+import { ORGANISM_LIFE, ORGANISM_VERSION } from "./organism";
 
 export function bethesdaStoreKind(dir: string): typeof BETHESDA_LIFE {
   const latest = readdirSync(join(dir, "checkpoints"))
@@ -11,9 +12,9 @@ export function bethesdaStoreKind(dir: string): typeof BETHESDA_LIFE {
     .at(-1);
   if (!latest) throw new Error(`${dir} holds no checkpoint`);
   const record = JSON.parse(readFileSync(join(dir, "checkpoints", latest), "utf8")) as {
-    checkpoint?: { versions?: { upgrade?: unknown } };
+    checkpoint?: { versions?: { upgrade?: unknown; organism?: unknown } };
   };
-  return record.checkpoint?.versions?.upgrade === ECHO_UPGRADE
-    ? ECHO_UPGRADED_LIFE
-    : BETHESDA_LIFE;
+  const versions = record.checkpoint?.versions;
+  if (versions?.organism === ORGANISM_VERSION) return ORGANISM_LIFE;
+  return versions?.upgrade === ECHO_UPGRADE ? ECHO_UPGRADED_LIFE : BETHESDA_LIFE;
 }

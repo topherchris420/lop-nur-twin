@@ -71,7 +71,11 @@ recoverable tissue proxies in separate research individuals. A smaller
 maintenance-only continuation preserves an existing ECHO adapter exactly.
 Neither is selected by the live runner; see the
 [original-individual migration plan](ECHO_IMMORTAL_MIGRATION.md) and the
-extension's explicit scientific limitations.
+extension's explicit scientific limitations. The
+[organism continuation](ECHO_ORGANISM_CONTINUATION.md) is the reviewed path
+for the deployed individual itself: its own v3 self-model and controller,
+kept byte for byte, with the mushroom body, olfaction and physiology added
+beside them. It is not deployed until its cutover is approved.
 
 ### What the fly may know, and what it may not
 

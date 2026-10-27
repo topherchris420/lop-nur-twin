@@ -151,9 +151,14 @@ it is therefore reproducible tick for tick on its original engine. A supported
 adds a recorded engine-upgrade event: the same birth, genesis, clock and
 preserved state continue in a new checkpoint. The
 [ECHO v3 continuation](BETHESDA_CONTINUOUS_LIFE.md#continue-the-echo-v2-individual-on-echo-v3)
-adds a second, `self-model-upgrade`, keeping the self-model it had.
+adds a second, `self-model-upgrade`, keeping the self-model it had. The
+[organism continuation](BETHESDA_CONTINUOUS_LIFE.md#continue-the-echo-v3-individual-as-the-organism)
+would add a third, `organism-continuation`, keeping the whole v3 graph and
+adding a mushroom body, olfaction and physiology beside it.
 Reproducing that life across each boundary requires the recorded migration
-and the engine releases on either side of it.
+and the engine releases on either side of it, on the platform that computed
+it: exact replay of these numerics is a same-platform property
+([cross-platform replay](research/echo-replay/README.md)).
 
 ## Part 2: controlled experiments
 
