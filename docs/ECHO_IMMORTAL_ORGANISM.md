@@ -258,3 +258,11 @@ not a guarantee of literal eternal operation.
 
 See [the operational migration plan](ECHO_IMMORTAL_MIGRATION.md) before any
 production action.
+
+## Increment: odor-history-guided walking
+
+The separately versioned [olfactory research extension](ECHO_OLFACTORY_NAVIGATION.md)
+adds published behavioral ON/OFF filters and hunger-gated walking modulation.
+It reuses this composition's physiology, learning, ECHO prediction and archive
+transaction. Its flag is off by default and its life kind cannot open the live
+individual's store. Sensory adaptation is not a new associative-learning claim.
