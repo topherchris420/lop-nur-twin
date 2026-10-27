@@ -1,0 +1,2 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+CHANGED  echo_impairment: runs efda7baf7464 became f16a46812e0b; outputs 8fb4d492b75e became be0e64ee0c50; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 46.7 s
