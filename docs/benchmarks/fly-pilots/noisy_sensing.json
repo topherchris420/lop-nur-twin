@@ -4,11 +4,11 @@
   "protocol": "noisy_sensing",
   "fly_version": "digital-fly/8",
   "fly": "digital-fly/8 reduced-order-fsm/v1",
-  "fly_sha256": "8d86753f0ca7a7395da5a6b7f3902bd120428b515dc616340ef12e9ae0489eed",
-  "fly_source_sha256": "86708015e47c271602b7856459ea1d6ff513ea0f1df0bb8587c3f192a417f022",
+  "fly_sha256": "c2254d64d2950c9dac480f1991a71f4db6936acd44c066f5dfa02aee51cc7d3b",
+  "fly_source_sha256": "0cece29de2127e843f6cee245964775cf5e42dfaa8d09ff3e5c1f52745eee00d",
   "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
   "code": {
-    "commit": "0a2c9fed8eaa3b98ee6a341dd8a0b2a2cce6e039",
+    "commit": "6680a49e9233b79ab9f33141eafcd108b4e22a9b",
     "dirty": false
   },
   "definition": {
@@ -4210,6 +4210,6 @@
   ],
   "runs_sha256": "9959291514c3a300918b2b614cd743190d8b31c12f94c867a95cb55d8f1e4b93",
   "outputs_sha256": "3bf02c19ae9d2ced0b57e726e542c7d0338f9477976fb340d6544a22798e37dd",
-  "generated_at": "2026-10-26T22:35:38.134Z",
-  "sha256": "525aad528a328e38862fbd834c4c4e08a4ab8f1786cbf8b1672e1731de2af3ea"
+  "generated_at": "2026-10-27T00:49:59.193Z",
+  "sha256": "fb93577e94fccf6d31ab416ddf8f17a72342ab8e451b22b7cf3885df78d9bf33"
 }
