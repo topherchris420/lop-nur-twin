@@ -29,6 +29,7 @@ import { BethesdaFlyWorld, homeSeat } from "./bethesdaWorld.js";
 import { EchoAdapter } from "./echo/adapter.js";
 import { DigitalFly } from "./fly.js";
 import { People } from "./people.js";
+import type { DigitalFlyOptions } from "./fly.js";
 import type { V3 } from "./units.js";
 
 /** The city's fly is placed somewhat hungry, so that it forages (a model choice; `startReserve`). */
@@ -42,6 +43,8 @@ export type CityController = (typeof CITY_CONTROLLERS)[number];
 export interface CityFlyOptions {
   /** The reduced-order controller unless set. */
   controller?: CityController;
+  /** Research-only injection through the existing command gate. Not selectable by the live runner. */
+  researchAdapter?: DigitalFlyOptions["adapter"];
 }
 
 export class CityFly {
@@ -82,9 +85,11 @@ export class CityFly {
       world: this.world,
       start: { p: [at.x, groundAt(at) + top + 0.002, at.z], yaw: Math.PI / 2 },
       config: { startReserve: CITY_START_RESERVE },
-      ...(this.controller === "echo"
-        ? { adapter: EchoAdapter.factory({ variant: "full", seed: this.seed }) }
-        : {}),
+      ...(options.researchAdapter
+        ? { adapter: options.researchAdapter }
+        : this.controller === "echo"
+          ? { adapter: EchoAdapter.factory({ variant: "full", seed: this.seed }) }
+          : {}),
     });
     this.people = new People({
       seed: this.seed,

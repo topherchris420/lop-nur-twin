@@ -1,0 +1,19 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> desert-airfield-twin@0.1.0 rain:fly
+> node scripts/run-ts.mjs scripts/rain-fly.ts --pilot --check
+
+same     obstacle_avoidance: runs 6e4f49d552ab and outputs 97b352b3a0b4 reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 52.3 s
+same     visual_threat: runs d6398bac6d76 and outputs 0e4e54818d99 reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 3.5 s
+same     noisy_sensing: runs 9959291514c3 and outputs 3bf02c19ae9d reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 52.1 s
+same     adaptation: runs 26dec5e045bf and outputs e2882f456e4a reproduced exactly; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 54.9 s
+CHANGED  echo_impairment: runs efda7baf7464 became f16a46812e0b; outputs 8fb4d492b75e became be0e64ee0c50; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 47.4 s
+CHANGED  echo_attribution: runs 8ddd96235633 became d9a2a7520c0d; outputs c47520962571 became 8dc7c26e7600; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 68.7 s
+CHANGED  echo_retention: runs 0a429fb46981 became d168ded98ece; outputs c88cd043784d became 3efbd7252e31; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 102.0 s
+CHANGED  echo_attention: runs b93abbccb2ac became 46370c2719fe; outputs a09db1ba20e3 became b5efa9b42bc2; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 32.9 s
+CHANGED  echo_metacognition: runs ebf5b16f2ead became e8ef58430f19; outputs d78aa588853d became d66a66e82c38; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 34.7 s
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

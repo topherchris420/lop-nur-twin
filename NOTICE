@@ -153,3 +153,15 @@ summary statistics; no per-frame data are kept, and the file records each
 source file's hash and the retrieval time. The paper it accompanies: Zhang N,
 Guo L, Simpson JH. Curr Biol 30:988-1001 (2020),
 https://doi.org/10.1016/j.cub.2020.01.045.
+
+ECHO olfactory research extension (src/bethesda/life/foraging/)
+------------------------------------------------------------
+The behavioral odor ON/OFF filters independently implement equations 8–13
+and Table 1 ACF time constants from:
+Álvarez-Salvado E, Licata AM, Connor EG, McHugh MK, King BMN, Stavropoulos N,
+Victor JD, Crimaldi JP, Nagel KI. Elementary sensory-motor transformations
+underlying olfactory navigation in walking fruit-flies. eLife 7:e37815 (2018).
+https://doi.org/10.7554/eLife.37815
+No authors' source code, figures, trajectories or datasets are included.
+Motor integration and ECHO odor normalization are separately identified model
+choices. This is a behavioral filter implementation, not a neuron reconstruction.

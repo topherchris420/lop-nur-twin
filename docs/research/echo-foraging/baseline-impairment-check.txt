@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> desert-airfield-twin@0.1.0 rain:fly
+> node scripts/run-ts.mjs scripts/rain-fly.ts --pilot --check --protocol echo_impairment
+
+CHANGED  echo_impairment: runs efda7baf7464 became f16a46812e0b; outputs 8fb4d492b75e became be0e64ee0c50; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 47.1 s
