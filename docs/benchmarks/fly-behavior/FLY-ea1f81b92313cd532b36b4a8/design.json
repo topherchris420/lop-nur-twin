@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
+  "hypothesis": "[scripted] A motion-gated rule (a change met while moving is its own, one met standing is the world's) explains fewer hidden held-out changes correctly than the full self-model.",
+  "competing_hypothesis": "[scripted] Whether the fly was moving when a change began is all the evidence there is, so the rule does as well as the self-model.",
+  "parameters": {
+    "seed_count": 12,
+    "treatment": {
+      "kind": "echo_attribution",
+      "variant": "motion_gated"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "attribution_accuracy",
+    "expected_direction": "decrease",
+    "minimum_effect": 0.36
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

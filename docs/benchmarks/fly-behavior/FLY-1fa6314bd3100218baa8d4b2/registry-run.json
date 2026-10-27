@@ -1,0 +1,1089 @@
+{
+  "schema_version": "rain-experiment-run/v1",
+  "experiment_id": "V3D-EXP-0056",
+  "run_id": "V3D-EXP-0056-RUN-0001",
+  "kind": "external",
+  "reproduces": null,
+  "status": "passed",
+  "hypothesis_verdict": "supported",
+  "evidence_class": "simulated",
+  "started_at": "2026-10-27T04:09:04.884Z",
+  "finished_at": "2026-10-27T04:09:18.020Z",
+  "duration_ms": 13136,
+  "seed": null,
+  "parameters": {
+    "scientific_plan_sha256": "1fa6314bd3100218baa8d4b2123acf3a40f0c3bf9fcddb2b63abf19d656686ec"
+  },
+  "definition": {
+    "created_at": "2026-10-27T04:09:04.751Z",
+    "created_by": "R.A.I.N.Host",
+    "criteria": {
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "note": "Exact one-sided sign test finds the opposite direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ],
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "note": "Every matched run completes",
+          "op": ">=",
+          "value": 24
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "note": "An independent re-simulation reproduces every state hash and measurement",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "note": "Enough seeds differ between the arms for the sign test",
+          "op": ">=",
+          "value": 6
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "note": "The fly's gate refused no command in any run",
+          "op": "<=",
+          "value": 0
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "note": "Mean paired difference beyond the minimum effect",
+          "op": "<=",
+          "value": -0.1
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "note": "Exact one-sided sign test in the expected direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ]
+    },
+    "data_policy": {
+      "classification": "internal",
+      "store_artifacts": false
+    },
+    "dependencies": [],
+    "evidence_class": "simulated",
+    "experiment_id": "V3D-EXP-0056",
+    "experiment_version": 1,
+    "hypothesis": "A point light of relative intensity 2 above one quadrant of the arena will decrease mean_light_distance_m by at least 0.1 m on average over 12 matched seeds drawn after preregistration, compared with no point light (ambient only), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "Light level also scales this controller's spontaneous walking and takeoff rates, so a lit arena makes the fly move more as well as steer toward the light.",
+      "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+      "Seeds are replicates of one model, not samples of real flies."
+    ],
+    "metrics": [
+      {
+        "description": "matched runs (seed x arm x block) that completed",
+        "deterministic": true,
+        "name": "runs_completed",
+        "unit": "count"
+      },
+      {
+        "description": "a second simulation reached every recorded state hash and measurement",
+        "deterministic": true,
+        "name": "determinism_check",
+        "unit": "1 if reproduced"
+      },
+      {
+        "description": "matched seeds, drawn by the host after preregistration",
+        "deterministic": true,
+        "name": "seeds",
+        "unit": "count"
+      },
+      {
+        "description": "fly-seconds simulated across all runs",
+        "deterministic": true,
+        "name": "simulated_seconds",
+        "unit": "s"
+      },
+      {
+        "description": "commands the fly's gate refused, over every run",
+        "deterministic": true,
+        "name": "gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the control arm",
+        "deterministic": true,
+        "name": "control_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the treatment arm",
+        "deterministic": true,
+        "name": "treatment_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "mean mean_light_distance_m in the control arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "control_mean",
+        "unit": "m"
+      },
+      {
+        "description": "mean mean_light_distance_m in the treatment arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "treatment_mean",
+        "unit": "m"
+      },
+      {
+        "description": "treatment minus control mean_light_distance_m, averaged over seeds defined in both arms",
+        "deterministic": true,
+        "name": "mean_paired_delta",
+        "unit": "m"
+      },
+      {
+        "description": "seeds whose difference lies in the expected direction",
+        "deterministic": true,
+        "name": "seeds_expected_direction",
+        "unit": "count"
+      },
+      {
+        "description": "seeds whose difference lies in the opposite direction",
+        "deterministic": true,
+        "name": "seeds_opposite",
+        "unit": "count"
+      },
+      {
+        "description": "seeds with no difference (ties)",
+        "deterministic": true,
+        "name": "seeds_unchanged",
+        "unit": "count"
+      },
+      {
+        "description": "seeds where the metric is undefined in an arm; they drop out of the test",
+        "deterministic": true,
+        "name": "seeds_undefined",
+        "unit": "count"
+      },
+      {
+        "description": "seeds that differ between the arms",
+        "deterministic": true,
+        "name": "untied_pairs",
+        "unit": "count"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the expected direction",
+        "deterministic": true,
+        "name": "sign_test_p_expected",
+        "unit": "probability"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the opposite direction",
+        "deterministic": true,
+        "name": "sign_test_p_opposite",
+        "unit": "probability"
+      },
+      {
+        "description": "0 when the control arm sits at the metric's floor or ceiling in every seed",
+        "deterministic": true,
+        "name": "control_informative",
+        "unit": "1 if informative"
+      },
+      {
+        "description": "control arm, mean over seeds: mean horizontal distance from the fly to the point below the light position",
+        "deterministic": true,
+        "name": "control_mean_light_distance_m",
+        "unit": "m"
+      },
+      {
+        "description": "treatment arm, mean over seeds: mean horizontal distance from the fly to the point below the light position",
+        "deterministic": true,
+        "name": "treatment_mean_light_distance_m",
+        "unit": "m"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of time within 1 m (horizontally) of the point below the light position",
+        "deterministic": true,
+        "name": "control_time_near_light",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of time within 1 m (horizontally) of the point below the light position",
+        "deterministic": true,
+        "name": "treatment_time_near_light",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of time walking, taking off or flying rather than resting or grooming",
+        "deterministic": true,
+        "name": "control_active_fraction",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of time walking, taking off or flying rather than resting or grooming",
+        "deterministic": true,
+        "name": "treatment_active_fraction",
+        "unit": "fraction"
+      }
+    ],
+    "parameters": {
+      "scientific_plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "sign_test_p_opposite",
+              "note": "Exact one-sided sign test finds the opposite direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "runs_completed",
+              "note": "Every matched run completes",
+              "op": ">=",
+              "value": 24
+            },
+            {
+              "id": "G2",
+              "metric": "determinism_check",
+              "note": "An independent re-simulation reproduces every state hash and measurement",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G3",
+              "metric": "control_informative",
+              "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G4",
+              "metric": "untied_pairs",
+              "note": "Enough seeds differ between the arms for the sign test",
+              "op": ">=",
+              "value": 6
+            },
+            {
+              "id": "G5",
+              "metric": "gate_refusals",
+              "note": "The fly's gate refused no command in any run",
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "mean_paired_delta",
+              "note": "Mean paired difference beyond the minimum effect",
+              "op": "<=",
+              "value": -0.1
+            },
+            {
+              "id": "S2",
+              "metric": "sign_test_p_expected",
+              "note": "Exact one-sided sign test in the expected direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ]
+        },
+        "definition_sha256": "1fa6314bd3100218baa8d4b2123acf3a40f0c3bf9fcddb2b63abf19d656686ec",
+        "design": {
+          "analysis": {
+            "expected_direction": "decrease",
+            "method": "matched_seed_sign_test",
+            "metric": "mean_light_distance_m",
+            "minimum_effect": 0.1
+          },
+          "budget": {
+            "max_simulated_seconds": 16000
+          },
+          "competing_hypothesis": "[scripted] The phototaxis term is too weak against the fly's other drives to move where it spends its time.",
+          "hypothesis": "[scripted] With a point light on, the fly's mean horizontal distance to the point below it falls.",
+          "parameters": {
+            "seed_count": 12,
+            "treatment": {
+              "kind": "light_preference",
+              "light_intensity": 2
+            }
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "[scripted] Does a point light draw the simulated fly toward the quadrant below it?",
+          "schema": "rain-fly-design/v3"
+        },
+        "experiment": {
+          "arms": [
+            {
+              "config": {},
+              "id": "control",
+              "isi_s": 90,
+              "l_over_v_ms": 40,
+              "light_intensity": 0,
+              "noise": 0
+            },
+            {
+              "config": {},
+              "id": "treatment",
+              "isi_s": 90,
+              "l_over_v_ms": 40,
+              "light_intensity": 2,
+              "noise": 0
+            }
+          ],
+          "blocks": [
+            {
+              "arena": {
+                "ambient": 0.3,
+                "pillars": [],
+                "size": [
+                  4,
+                  2.5,
+                  4
+                ]
+              },
+              "duration_s": 120,
+              "fixed_config": {},
+              "id": "light",
+              "light_at": [
+                1,
+                2.3,
+                -1
+              ],
+              "near_miss_m": null,
+              "start_half_width_m": 0.3,
+              "stimulus": null,
+              "tick_s": 0.05,
+              "trials": 1
+            }
+          ],
+          "protocol": "light_preference",
+          "schema": "digital-fly-experiment/v3",
+          "seed_count": 12
+        },
+        "experiment_id": "FLY-1fa6314bd3100218baa8d4b2",
+        "fly": "digital-fly/8 reduced-order-fsm/v1",
+        "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+        "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+        "ir": {
+          "backend": "digital-fly",
+          "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+          "controls": [
+            "baseline arm: no point light (ambient only)",
+            "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+            "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+            "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+          ],
+          "dependent_variables": [
+            "mean_light_distance_m"
+          ],
+          "domain": "fly-behavior-simulation",
+          "falsification": {
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "unit": "probability",
+            "value": 0.05
+          },
+          "hypothesis": "A point light of relative intensity 2 above one quadrant of the arena will decrease mean_light_distance_m by at least 0.1 m on average over 12 matched seeds drawn after preregistration, compared with no point light (ambient only), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+          "independent_variables": [
+            "a point light of relative intensity 2 above one quadrant of the arena"
+          ],
+          "limitations": [
+            "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+            "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+            "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+            "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+            "Light level also scales this controller's spontaneous walking and takeoff rates, so a lit arena makes the fly move more as well as steer toward the light.",
+            "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+            "A result characterizes the simulator and is never empirical evidence about Drosophila."
+          ],
+          "observables": [
+            {
+              "description": "mean horizontal distance from the fly to the point below the light position",
+              "id": "mean_light_distance_m",
+              "unit": "m"
+            },
+            {
+              "description": "fraction of time within 1 m (horizontally) of the point below the light position",
+              "id": "time_near_light",
+              "unit": "fraction"
+            },
+            {
+              "description": "fraction of time walking, taking off or flying rather than resting or grooming",
+              "id": "active_fraction",
+              "unit": "fraction"
+            },
+            {
+              "description": "treatment minus control mean_light_distance_m, averaged over the seeds where both are defined",
+              "id": "mean_paired_delta",
+              "unit": "m"
+            },
+            {
+              "description": "exact one-sided sign test p-value for a decrease, over untied seeds",
+              "id": "sign_test_p_expected",
+              "unit": "probability"
+            },
+            {
+              "description": "the same test in the opposite direction",
+              "id": "sign_test_p_opposite",
+              "unit": "probability"
+            }
+          ],
+          "parameter_constraints": [
+            "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+            "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+            "the integration settings (physics, sensing and decision periods) are never varied",
+            "at most 16000 simulated fly-seconds per experiment",
+            "8-16 seeds, drawn by the host after preregistration",
+            "a minimum effect at or above the host's 0.1 m for mean_light_distance_m"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "In the digital fly simulator, how does a point light of relative intensity 2 above one quadrant of the arena change mean horizontal distance from the fly to the point below the light position, against no point light (ambient only) on matched seeds?",
+          "resource_budget": {
+            "execution_steps": 576000,
+            "max_samples": 24,
+            "replay_steps": 576000
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 12,
+            "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+            "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+          }
+        },
+        "schema": "rain-fly-plan/v2",
+        "simulated_seconds": 2880
+      }
+    },
+    "procedure": [
+      "Preregister the exact fly plan; the registry's receipt fixes when.",
+      "A person at a terminal (or, for the host's demonstration designs, the demonstration script) authorizes the plan once; the authorization binds the receipt and draws a random nonce.",
+      "Derive the seeds from SHA-256 of the receipt digest and the nonce, and refuse any this fly has already run.",
+      "Run every seed in both arms on the host-built arenas and stimuli of the protocol, counting the gate's refusals.",
+      "Simulate every run a second time and require each state hash and measurement.",
+      "Recompile and re-simulate again before registry admission, from committed code only."
+    ],
+    "question": "In the digital fly simulator, how does a point light of relative intensity 2 above one quadrant of the arena change mean horizontal distance from the fly to the point below the light position, against no point light (ambient only) on matched seeds?",
+    "rationale": "Bounded experiment on the digital fly's reduced-order controller in a closed arena: seeds drawn by the host after preregistration, an exact one-sided sign test at alpha 0.05 on at least 6 untied seeds, and independent re-simulation.",
+    "runner": {
+      "adapter": "digital-fly-behavior/v3",
+      "kind": "external",
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "schema_version": "rain-experiment/v1",
+    "seed": null,
+    "subsystem": {
+      "component": "digital-fly",
+      "paths": [],
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "title": "Matched-seed digital fly behaviour",
+    "variables": {
+      "controls": [
+        "baseline arm: no point light (ambient only)",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "dependent": [
+        "mean_light_distance_m"
+      ],
+      "independent": [
+        "a point light of relative intensity 2 above one quadrant of the arena"
+      ]
+    }
+  },
+  "definition_sha256": "bd94b7a7ed6863d32048d5675e00fad9652a4df4fcef727c2ea165696a265923",
+  "inputs": {
+    "scientific_plan": {
+      "schema": "rain-fly-plan/v2",
+      "design": {
+        "schema": "rain-fly-design/v3",
+        "question": "[scripted] Does a point light draw the simulated fly toward the quadrant below it?",
+        "hypothesis": "[scripted] With a point light on, the fly's mean horizontal distance to the point below it falls.",
+        "competing_hypothesis": "[scripted] The phototaxis term is too weak against the fly's other drives to move where it spends its time.",
+        "parameters": {
+          "seed_count": 12,
+          "treatment": {
+            "kind": "light_preference",
+            "light_intensity": 2
+          }
+        },
+        "analysis": {
+          "method": "matched_seed_sign_test",
+          "metric": "mean_light_distance_m",
+          "expected_direction": "decrease",
+          "minimum_effect": 0.1
+        },
+        "budget": {
+          "max_simulated_seconds": 16000
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        }
+      },
+      "ir": {
+        "schema": "rain-scientific-experiment/v1",
+        "domain": "fly-behavior-simulation",
+        "backend": "digital-fly",
+        "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+        "question": "In the digital fly simulator, how does a point light of relative intensity 2 above one quadrant of the arena change mean horizontal distance from the fly to the point below the light position, against no point light (ambient only) on matched seeds?",
+        "hypothesis": "A point light of relative intensity 2 above one quadrant of the arena will decrease mean_light_distance_m by at least 0.1 m on average over 12 matched seeds drawn after preregistration, compared with no point light (ambient only), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+        "observables": [
+          {
+            "id": "mean_light_distance_m",
+            "unit": "m",
+            "description": "mean horizontal distance from the fly to the point below the light position"
+          },
+          {
+            "id": "time_near_light",
+            "unit": "fraction",
+            "description": "fraction of time within 1 m (horizontally) of the point below the light position"
+          },
+          {
+            "id": "active_fraction",
+            "unit": "fraction",
+            "description": "fraction of time walking, taking off or flying rather than resting or grooming"
+          },
+          {
+            "id": "mean_paired_delta",
+            "unit": "m",
+            "description": "treatment minus control mean_light_distance_m, averaged over the seeds where both are defined"
+          },
+          {
+            "id": "sign_test_p_expected",
+            "unit": "probability",
+            "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+          },
+          {
+            "id": "sign_test_p_opposite",
+            "unit": "probability",
+            "description": "the same test in the opposite direction"
+          }
+        ],
+        "independent_variables": [
+          "a point light of relative intensity 2 above one quadrant of the arena"
+        ],
+        "dependent_variables": [
+          "mean_light_distance_m"
+        ],
+        "controls": [
+          "baseline arm: no point light (ambient only)",
+          "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+          "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+          "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+        ],
+        "parameter_constraints": [
+          "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+          "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+          "the integration settings (physics, sensing and decision periods) are never varied",
+          "at most 16000 simulated fly-seconds per experiment",
+          "8-16 seeds, drawn by the host after preregistration",
+          "a minimum effect at or above the host's 0.1 m for mean_light_distance_m"
+        ],
+        "resource_budget": {
+          "execution_steps": 576000,
+          "replay_steps": 576000,
+          "max_samples": 24
+        },
+        "statistical_analysis": {
+          "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+          "independent_replicates": 12,
+          "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+        },
+        "falsification": {
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "unit": "probability"
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        },
+        "limitations": [
+          "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+          "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+          "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+          "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+          "Light level also scales this controller's spontaneous walking and takeoff rates, so a lit arena makes the fly move more as well as steer toward the light.",
+          "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+          "A result characterizes the simulator and is never empirical evidence about Drosophila."
+        ]
+      },
+      "fly": "digital-fly/8 reduced-order-fsm/v1",
+      "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+      "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+      "experiment": {
+        "schema": "digital-fly-experiment/v3",
+        "protocol": "light_preference",
+        "seed_count": 12,
+        "blocks": [
+          {
+            "id": "light",
+            "arena": {
+              "size": [
+                4,
+                2.5,
+                4
+              ],
+              "ambient": 0.3,
+              "pillars": []
+            },
+            "fixed_config": {},
+            "start_half_width_m": 0.3,
+            "tick_s": 0.05,
+            "duration_s": 120,
+            "trials": 1,
+            "light_at": [
+              1,
+              2.3,
+              -1
+            ],
+            "near_miss_m": null,
+            "stimulus": null
+          }
+        ],
+        "arms": [
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 0,
+            "l_over_v_ms": 40,
+            "isi_s": 90,
+            "id": "control"
+          },
+          {
+            "config": {},
+            "noise": 0,
+            "light_intensity": 2,
+            "l_over_v_ms": 40,
+            "isi_s": 90,
+            "id": "treatment"
+          }
+        ]
+      },
+      "simulated_seconds": 2880,
+      "criteria": {
+        "guards": [
+          {
+            "id": "G1",
+            "metric": "runs_completed",
+            "op": ">=",
+            "value": 24,
+            "note": "Every matched run completes"
+          },
+          {
+            "id": "G2",
+            "metric": "determinism_check",
+            "op": ">=",
+            "value": 1,
+            "note": "An independent re-simulation reproduces every state hash and measurement"
+          },
+          {
+            "id": "G3",
+            "metric": "control_informative",
+            "op": ">=",
+            "value": 1,
+            "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+          },
+          {
+            "id": "G4",
+            "metric": "untied_pairs",
+            "op": ">=",
+            "value": 6,
+            "note": "Enough seeds differ between the arms for the sign test"
+          },
+          {
+            "id": "G5",
+            "metric": "gate_refusals",
+            "op": "<=",
+            "value": 0,
+            "note": "The fly's gate refused no command in any run"
+          }
+        ],
+        "success": [
+          {
+            "id": "S1",
+            "metric": "mean_paired_delta",
+            "op": "<=",
+            "value": -0.1,
+            "note": "Mean paired difference beyond the minimum effect"
+          },
+          {
+            "id": "S2",
+            "metric": "sign_test_p_expected",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test in the expected direction"
+          }
+        ],
+        "failure": [
+          {
+            "id": "F1",
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test finds the opposite direction"
+          }
+        ]
+      },
+      "definition_sha256": "1fa6314bd3100218baa8d4b2123acf3a40f0c3bf9fcddb2b63abf19d656686ec",
+      "experiment_id": "FLY-1fa6314bd3100218baa8d4b2"
+    },
+    "preregistration": {
+      "experiment_id": "V3D-EXP-0056",
+      "registry_definition_sha256": "bd94b7a7ed6863d32048d5675e00fad9652a4df4fcef727c2ea165696a265923",
+      "plan_sha256": "1fa6314bd3100218baa8d4b2123acf3a40f0c3bf9fcddb2b63abf19d656686ec",
+      "created_at": "2026-10-27T04:09:04.751Z"
+    },
+    "authorization": {
+      "schema": "rain-fly-authorization/v2",
+      "experiment_id": "FLY-1fa6314bd3100218baa8d4b2",
+      "definition_sha256": "1fa6314bd3100218baa8d4b2123acf3a40f0c3bf9fcddb2b63abf19d656686ec",
+      "registry_experiment_id": "V3D-EXP-0056",
+      "preregistration_sha256": "778c2d4e41097ee125816c54407f962990c339289c6c424e516e3f08de1f904f",
+      "registered_at": "2026-10-27T04:09:04.751Z",
+      "nonce": "9a53b55722a5a12b46f7c190a462a8845a79ff051d4579c4d607aa21b8c1cd0a",
+      "channel": "script",
+      "operator": "Scripted.DemoOperator",
+      "attestation": "demonstration-script",
+      "identity_verified": false,
+      "human_design_attested": false,
+      "scope": "fly-behavior-simulation",
+      "confirmed_prefix": "1fa6314b",
+      "authorized_at": "2026-10-27T04:09:04.879Z",
+      "expires_at": "2026-10-27T05:09:04.879Z",
+      "authorization_sha256": "[REDACTED]"
+    },
+    "seeds": [
+      4165864896,
+      1762987282,
+      276610854,
+      627522384,
+      2417557962,
+      2656610500,
+      2539920483,
+      2589880268,
+      595165825,
+      2912942681,
+      1034553253,
+      1081383254
+    ],
+    "engine": {
+      "runtime": "node",
+      "version": "24.19.0",
+      "js": "V8 13.6.233.17-node.51"
+    },
+    "replay_sha256": "d00fc86f4e78a6e36564bca3ef2ecb61d9c72dfa41ecfe38cdb9edf91837f02e",
+    "final_state_hashes": [
+      "light/control/4165864896/d73417d96c3a20c879e1aa9b0246515a0c464f2c9c1259904a8ebbd67224f0ec",
+      "light/treatment/4165864896/16bce81892cfadd5d8cf8302e3edb95b06f2c92a33699aa7232c66356a1e305a",
+      "light/control/1762987282/39513ec824a935e3a473447555f2c2d9cd8543e7a44c4bc7e4e8d03d68d5b801",
+      "light/treatment/1762987282/3c8421bb8eda28bbd009a067051ec4020f4a60e640d2d6fea853965ffb97e729",
+      "light/control/276610854/59651bec5434797370e1ed91bcf4555904b714980a63b9f3913ab9d5e567b47f",
+      "light/treatment/276610854/1a73a50a13040c9ced4001d7dcc796adf42c0d4b72a1983c9f36a72b564bd8a3",
+      "light/control/627522384/c14441b583c670bf76ea1aed17f829f97abef12c49fb9d41ca877a4a73d6f766",
+      "light/treatment/627522384/862ef99a2c150f6cd18acdcaf636e3a9662d54bf8cc3f1ba002a3f34acf1892b",
+      "light/control/2417557962/4f944fba1aad64705d998cf335cfbaeca3d1e3d0a3acb1ff8f9bd310227de9c5",
+      "light/treatment/2417557962/1165c61c22e1b5c71c466a1f324c66bd806f591b8fdeaaea544019b5e1cb2347",
+      "light/control/2656610500/902fbea9291309fc595a036960d16cfc9ba6bc3788ff5eafe2c117e5d8628027",
+      "light/treatment/2656610500/b933ccc02e846c69012e419a25129c54fba42a710a4399644d69a807760f09e2",
+      "light/control/2539920483/679bb5dad4f120e10e00c3c976f068d738231b42960bd27ae76af27f3883c9cf",
+      "light/treatment/2539920483/af9b98cfca915e079f04008465f288aaada2c1cf117482832734ed2475fb7153",
+      "light/control/2589880268/46afeffbb920c23c225bfd83660630ba6ba976ebd9b4290c660ca2aab6063ed0",
+      "light/treatment/2589880268/9ad76b09a1dc0f8e24f6a8df73cc3f3568b06cb75e72f822c9ac75f544a13cb9",
+      "light/control/595165825/1456530a2648f29116950a26a6f7358dd66da8b215336276ad4005d95819967e",
+      "light/treatment/595165825/ca1d6f4b0d7e3f57f06727e61b2a4757f652891e3637f8a241999831ee5f91b4",
+      "light/control/2912942681/2045c7771bf90484f8150089d16d23c90656de8ad941bd4af556df87fe078f04",
+      "light/treatment/2912942681/d1476057d832d32dec15f4cfdb75d4edaad1ca3b67e071732a098619efe6ad88",
+      "light/control/1034553253/af07d9753e647745fe33b83664e6d71e49b77ccebea489ab4b88f960334ce317",
+      "light/treatment/1034553253/c41e69936b828c638def78228e53bbfd47276087d684b1910cb3194616c66bcd",
+      "light/control/1081383254/ddacb40c428059eccb59d3b30f190e4d3d1f1a9d1dd16ae886f87ce4635f53e1",
+      "light/treatment/1081383254/fc02fde65338c4e893efe0b71899b9654d29fff4c277182a244a8ab494c78f34"
+    ]
+  },
+  "measurements": {
+    "control_active_fraction": 0.19968750000000002,
+    "control_gate_refusals": 0,
+    "control_informative": 1,
+    "control_mean": 1.611355145076293,
+    "control_mean_light_distance_m": 1.611355145076293,
+    "control_time_near_light": 0.000625,
+    "determinism_check": 1,
+    "gate_refusals": 0,
+    "mean_paired_delta": -0.24443322739614348,
+    "runs_completed": 24,
+    "seeds": 12,
+    "seeds_expected_direction": 11,
+    "seeds_opposite": 1,
+    "seeds_unchanged": 0,
+    "seeds_undefined": 0,
+    "sign_test_p_expected": 0.003173828125,
+    "sign_test_p_opposite": 0.999755859375,
+    "simulated_seconds": 2880,
+    "treatment_active_fraction": 0.3010416666666667,
+    "treatment_gate_refusals": 0,
+    "treatment_mean": 1.36692191768015,
+    "treatment_mean_light_distance_m": 1.36692191768015,
+    "treatment_time_near_light": 0.07159722222222221,
+    "untied_pairs": 12
+  },
+  "series": {
+    "control_primary": [
+      1.559164787121901,
+      1.3218382420674732,
+      1.4796962934910391,
+      1.9277920914650122,
+      1.6037794112107395,
+      1.7213063905118273,
+      1.407382764350706,
+      2.6798142810963776,
+      1.4194814737143655,
+      1.2866884043514561,
+      1.195388769057512,
+      1.7339288324771094
+    ],
+    "paired_delta": [
+      -0.18410899206785647,
+      0.0002546990035579011,
+      -0.5233872201774489,
+      -0.34520883886715015,
+      -0.19825769307065522,
+      -0.05456245938499693,
+      -0.003795057024307491,
+      -1.3767181022150683,
+      -0.007940659137553485,
+      -0.0013090177462451447,
+      -0.016904964852290982,
+      -0.2212604232137072
+    ],
+    "treatment_primary": [
+      1.3750557950540445,
+      1.3220929410710311,
+      0.9563090733135903,
+      1.582583252597862,
+      1.4055217181400843,
+      1.6667439311268304,
+      1.4035877073263985,
+      1.3030961788813094,
+      1.411540814576812,
+      1.285379386605211,
+      1.178483804205221,
+      1.5126684092634022
+    ]
+  },
+  "statistics": {
+    "control_primary": {
+      "n": 12,
+      "mean": 1.611355145,
+      "median": 1.51943054,
+      "min": 1.195388769,
+      "max": 2.679814281,
+      "stdev": 0.396535327,
+      "variance": 0.157240266,
+      "note": null
+    },
+    "paired_delta": {
+      "n": 12,
+      "mean": -0.244433227,
+      "median": -0.119335726,
+      "min": -1.376718102,
+      "max": 0.000254699,
+      "stdev": 0.39277397,
+      "variance": 0.154271392,
+      "note": null
+    },
+    "treatment_primary": {
+      "n": 12,
+      "mean": 1.366921918,
+      "median": 1.389321751,
+      "min": 0.956309073,
+      "max": 1.666743931,
+      "stdev": 0.185712583,
+      "variance": 0.034489164,
+      "note": null
+    }
+  },
+  "evaluation": {
+    "rule": "rain-criteria/v1",
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 24,
+        "observed": 24,
+        "holds": true
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G3",
+        "metric": "control_informative",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G4",
+        "metric": "untied_pairs",
+        "op": ">=",
+        "value": 6,
+        "observed": 12,
+        "holds": true
+      },
+      {
+        "id": "G5",
+        "metric": "gate_refusals",
+        "op": "<=",
+        "value": 0,
+        "observed": 0,
+        "holds": true
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -0.1,
+        "observed": -0.24443322739614348,
+        "holds": true
+      },
+      {
+        "id": "S2",
+        "metric": "sign_test_p_expected",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 0.003173828125,
+        "holds": true
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 0.999755859375,
+        "holds": false
+      }
+    ],
+    "summary": "All 2 success criteria held and no failure criterion triggered."
+  },
+  "observations": [
+    "Every arm is an output of the digital fly simulator (a reduced-order controller that simulates no neurons) in a closed arena; no animal was observed.",
+    "Seeds drawn by the host after preregistration; authorized by the demonstration script (Scripted.DemoOperator), not a person.",
+    "Independent re-simulation reproduced every state hash and measurement: d00fc86f4e78a6e36564bca3ef2ecb61d9c72dfa41ecfe38cdb9edf91837f02e"
+  ],
+  "interpretation": {
+    "deterministic": "All 2 success criteria held and no failure criterion triggered. Simulated data: this characterizes the simulator and analysis pipeline, not a physical system.",
+    "model": null
+  },
+  "limitations": [
+    "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+    "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+    "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+    "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+    "Light level also scales this controller's spontaneous walking and takeoff rates, so a lit arena makes the fly move more as well as steer toward the light.",
+    "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+    "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+    "Seeds are replicates of one model, not samples of real flies.",
+    "Matched seeds of one model; the sign test's p-values describe consistency across this simulator's seeds, not a population."
+  ],
+  "artifacts": [
+    {
+      "name": "fly-record.json",
+      "sha256": "06adf0dd1dc56b3e7501b40ba86e0fe981da1b07a7e8d5bdcb494c6319842708",
+      "bytes": 16321,
+      "kind": "fly-simulation-record",
+      "stored": false,
+      "note": "external artifact; referenced by hash, never fetched"
+    }
+  ],
+  "models": [],
+  "reproduction": null,
+  "error": null,
+  "provenance": {
+    "source": "external_submission",
+    "submission_sha256": "7ae3c515353b61fa0fb9c0c3ab58fca15a1ac5bfe835c981941fe9564062bccb",
+    "producer": {
+      "producer": "R.A.I.N.FlyHost",
+      "repository": "topherchris420/lop-nur-twin",
+      "commit": "352fafda07d29c0d7f4f412073dc129fc5ac7a63",
+      "dirty": false,
+      "fly_record_sha256": "270f977754437bc56bd5cf3586dded83972518a0fb999421a2b4fa048c83c15b",
+      "fly_run_id": "FR-b5ac42fc020c60696f6456f7",
+      "fly": "digital-fly/8 reduced-order-fsm/v1",
+      "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+      "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+      "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+      "approval_channel": "script"
+    },
+    "recorded_by": {
+      "git": {
+        "commit": "352fafda07d29c0d7f4f412073dc129fc5ac7a63",
+        "branch": "feat/echo-indicators",
+        "dirty": false,
+        "changed_paths": 0,
+        "note": null
+      },
+      "environment": {
+        "runtime": "node",
+        "node": "24.19.0",
+        "os": "win32",
+        "os_release": "10.0.26200",
+        "machine": "arm64",
+        "cpu_count": 8
+      }
+    },
+    "recorded_at": "2026-10-27T04:09:47.276Z"
+  }
+}

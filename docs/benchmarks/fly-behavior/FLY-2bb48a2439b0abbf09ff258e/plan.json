@@ -1,0 +1,271 @@
+{
+  "schema": "rain-fly-plan/v2",
+  "design": {
+    "schema": "rain-fly-design/v3",
+    "question": "[scripted] Does the simulated fly's escape response habituate when the looming stimulus repeats every 10 s on a fixed schedule?",
+    "hypothesis": "[scripted] Repeating the stimuli every 10 s lowers the fraction answered by an escape, compared with the same stimuli every 90 s.",
+    "competing_hypothesis": "[scripted] Responsiveness recovers within 10 s, so the interval leaves the escape probability unchanged.",
+    "parameters": {
+      "seed_count": 13,
+      "treatment": {
+        "kind": "adaptation",
+        "isi_s": 10
+      }
+    },
+    "analysis": {
+      "method": "matched_seed_sign_test",
+      "metric": "repeat_escape_probability",
+      "expected_direction": "decrease",
+      "minimum_effect": 0.13
+    },
+    "budget": {
+      "max_simulated_seconds": 16000
+    },
+    "provenance": {
+      "generation": "scripted",
+      "decision_sha256": null,
+      "source_ids": [],
+      "parent_record_sha256": null
+    }
+  },
+  "ir": {
+    "schema": "rain-scientific-experiment/v1",
+    "domain": "fly-behavior-simulation",
+    "backend": "digital-fly",
+    "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+    "question": "In the digital fly simulator, how does repeating a looming stimulus every 10 s on a fixed schedule change fraction of the presentations shown to the standing fly that it answered by an escape, against the same stimuli every 90 s on the same schedule on matched seeds?",
+    "hypothesis": "Repeating a looming stimulus every 10 s on a fixed schedule will decrease repeat_escape_probability by at least 0.13 fraction on average over 13 matched seeds drawn after preregistration, compared with the same stimuli every 90 s on the same schedule, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+    "observables": [
+      {
+        "id": "repeat_escape_probability",
+        "unit": "fraction",
+        "description": "fraction of the presentations shown to the standing fly that it answered by an escape"
+      },
+      {
+        "id": "late_escape_probability",
+        "unit": "fraction",
+        "description": "the same fraction over the second half of the schedule's presentations"
+      },
+      {
+        "id": "presentations",
+        "unit": "count",
+        "description": "presentations shown, each on the schedule while the fly stood"
+      },
+      {
+        "id": "airborne_presentations",
+        "unit": "count",
+        "description": "presentations the schedule skipped because the fly was still in the air when they were due"
+      },
+      {
+        "id": "repeat_size_at_escape_deg",
+        "unit": "deg",
+        "description": "mean angular size of the repeated stimulus at the escape decision"
+      },
+      {
+        "id": "mean_paired_delta",
+        "unit": "fraction",
+        "description": "treatment minus control repeat_escape_probability, averaged over the seeds where both are defined"
+      },
+      {
+        "id": "sign_test_p_expected",
+        "unit": "probability",
+        "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+      },
+      {
+        "id": "sign_test_p_opposite",
+        "unit": "probability",
+        "description": "the same test in the opposite direction"
+      }
+    ],
+    "independent_variables": [
+      "repeating a looming stimulus every 10 s on a fixed schedule"
+    ],
+    "dependent_variables": [
+      "repeat_escape_probability"
+    ],
+    "controls": [
+      "baseline arm: the same stimuli every 90 s on the same schedule",
+      "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+      "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+      "fixed apparatus settings, both arms — repeat block: flightBoutMeanS = 0.5, groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+      "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+    ],
+    "parameter_constraints": [
+      "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+      "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+      "the integration settings (physics, sensing and decision periods) are never varied",
+      "at most 16000 simulated fly-seconds per experiment",
+      "8-16 seeds, drawn by the host after preregistration",
+      "a minimum effect at or above the host's 0.1 fraction for repeat_escape_probability"
+    ],
+    "resource_budget": {
+      "execution_steps": 2876400,
+      "replay_steps": 2876400,
+      "max_samples": 26
+    },
+    "statistical_analysis": {
+      "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+      "independent_replicates": 13,
+      "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+    },
+    "falsification": {
+      "metric": "sign_test_p_opposite",
+      "op": "<=",
+      "value": 0.05,
+      "unit": "probability"
+    },
+    "provenance": {
+      "generation": "scripted",
+      "decision_sha256": null,
+      "source_ids": [],
+      "parent_record_sha256": null
+    },
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "This controller's responsiveness falls only after an escape, so the protocol measures habituation that follows responses; a presentation that falls due while the fly is still in the air is skipped and counted (airborne_presentations), never delayed.",
+      "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+      "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila."
+    ]
+  },
+  "fly": "digital-fly/8 reduced-order-fsm/v1",
+  "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+  "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+  "experiment": {
+    "schema": "digital-fly-experiment/v3",
+    "protocol": "adaptation",
+    "seed_count": 13,
+    "blocks": [
+      {
+        "id": "repeat",
+        "arena": {
+          "size": [
+            4,
+            1,
+            4
+          ],
+          "ambient": 0.6,
+          "pillars": []
+        },
+        "fixed_config": {
+          "takeoffHz": 0,
+          "walkStartHz": 0,
+          "groomHz": 0,
+          "flightBoutMeanS": 0.5
+        },
+        "start_half_width_m": 0.5,
+        "tick_s": 0.005,
+        "duration_s": 0.3,
+        "trials": 12,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": {
+          "radius_m": 0.04,
+          "start_distance_m": 1,
+          "final_size_deg": [
+            30,
+            55
+          ],
+          "elevation_deg": [
+            10,
+            30
+          ],
+          "azimuth_deg": [
+            -90,
+            90
+          ],
+          "onset_s": 1,
+          "l_over_v_ms": 80
+        }
+      }
+    ],
+    "arms": [
+      {
+        "config": {},
+        "noise": 0,
+        "light_intensity": 2,
+        "l_over_v_ms": 40,
+        "isi_s": 90,
+        "id": "control"
+      },
+      {
+        "config": {},
+        "noise": 0,
+        "light_intensity": 2,
+        "l_over_v_ms": 40,
+        "isi_s": 10,
+        "id": "treatment"
+      }
+    ]
+  },
+  "simulated_seconds": 14382,
+  "criteria": {
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 26,
+        "note": "Every matched run completes"
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "note": "An independent re-simulation reproduces every state hash and measurement"
+      },
+      {
+        "id": "G3",
+        "metric": "control_informative",
+        "op": ">=",
+        "value": 1,
+        "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+      },
+      {
+        "id": "G4",
+        "metric": "untied_pairs",
+        "op": ">=",
+        "value": 6,
+        "note": "Enough seeds differ between the arms for the sign test"
+      },
+      {
+        "id": "G5",
+        "metric": "gate_refusals",
+        "op": "<=",
+        "value": 0,
+        "note": "The fly's gate refused no command in any run"
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -0.13,
+        "note": "Mean paired difference beyond the minimum effect"
+      },
+      {
+        "id": "S2",
+        "metric": "sign_test_p_expected",
+        "op": "<=",
+        "value": 0.05,
+        "note": "Exact one-sided sign test in the expected direction"
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "note": "Exact one-sided sign test finds the opposite direction"
+      }
+    ]
+  },
+  "definition_sha256": "2bb48a2439b0abbf09ff258e53599d1d524e2156cfcba0b3c2b3f376e56ecd77",
+  "experiment_id": "FLY-2bb48a2439b0abbf09ff258e"
+}

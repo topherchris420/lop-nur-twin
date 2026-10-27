@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] ECHO-05: does weighing a conclusion again on fresh evidence before committing to it make the fly's stated confidence in its explanations more accurate?",
+  "hypothesis": "[scripted] A fly that commits to a conclusion at once has a higher Brier score on hidden held-out changes than one that takes a second look first.",
+  "competing_hypothesis": "[scripted] The evidence that made the first answer likely also makes the second look agree, so it only delays the same answers.",
+  "parameters": {
+    "seed_count": 16,
+    "treatment": {
+      "kind": "echo_metacognition",
+      "variant": "no_metacognition"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "attribution_brier",
+    "expected_direction": "increase",
+    "minimum_effect": 0.2
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}
