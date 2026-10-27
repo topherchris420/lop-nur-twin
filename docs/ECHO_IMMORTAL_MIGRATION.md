@@ -15,6 +15,9 @@ to it. Do not attempt an unapproved hot swap or a second live writer.
    while their independent gates remain unmet.
 2. Build a release beside the running service. Verify its exact source
    commit, dependencies, tests, headless startup and memory/CPU envelope.
+   Retain the production runtime, V8 version, operating-system/container image
+   and CPU architecture with that release. Verify future replay on the actual
+   target environment; matching application version strings alone is insufficient.
    This change does not edit `install.sh`, the systemd units, or their
    selection of `bethesdaStoreKind`.
 3. With read-only access to a verified backup, restore it under its exact
@@ -93,3 +96,14 @@ byte-verified reverse projection, the new MB state explicitly introduced at
 the migration boundary, and both code releases retained for replay.
 There is no such original-specific neural migration in this change. Do not
 replace the original adapter with a freshly initialized research adapter.
+
+## Archival replay gate discovered during olfactory research
+
+The later olfactory extension passed 247 regression tests and reproduced its
+new research reports, but five older ECHO pilot records failed exact replay.
+A representative failure is identical on the unchanged baseline and with the
+archived Node version. Its cause remains unresolved; no pilot records or
+thresholds were rewritten. See [the verification record](research/echo-foraging/verification.md#existing-archive-replay-gap).
+Resolve that discrepancy and validate the original's actual backup on the
+intended runtime/hardware before treating historical replay as a rollout gate
+that has passed. This finding grants no permission to touch the live fly.
