@@ -99,7 +99,9 @@
     "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
     "validate:model-history": "node scripts/run-ts.mjs scripts/validate-model-history.ts",
     "verify:bethesda": "node tools/bethesda.mjs",
-    "verify:rain-lab": "node tools/rain-lab.mjs"
+    "verify:rain-lab": "node tools/rain-lab.mjs",
+    "echo:foraging:test": "vitest run src/bethesda/life/foraging --maxWorkers=1",
+    "echo:foraging:evaluate": "node scripts/run-ts.mjs scripts/echo-foraging-evaluate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
