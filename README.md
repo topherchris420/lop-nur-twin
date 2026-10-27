@@ -10,7 +10,7 @@ Created by **Christopher Woodyard** at **[Vers3Dynamics](https://vers3dynamics.c
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Explore](https://img.shields.io/badge/explore-R.A.I.N.%20Lab-0B5D63)](https://lop-nur-twin.vercel.app/)
+[![Explore](https://img.shields.io/badge/explore-Eva%20today-0B5D63)](http://150.136.49.49/)
 
 **[Watch the Bethesda fly](https://lop-nur-twin.vercel.app/live)** ·
 **[Explore the twin](https://lop-nur-twin.vercel.app/)** ·
