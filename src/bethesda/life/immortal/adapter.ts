@@ -86,11 +86,15 @@ export class ImmortalAdapter implements FlyNeuralAdapter {
   start(body: BodySnapshot): void {
     this.inner.start(body);
   }
+  /** Research extensions modify the intention before physiology and ECHO predict it. */
+  protected intention(input: DecisionInput): MotorCommand {
+    return this.inner.decide(input);
+  }
   decide(input: DecisionInput): MotorCommand {
     this.decisions++;
     const view = selfModelView(input);
     this.model?.observe(view);
-    let intention = this.inner.decide(input);
+    let intention = this.intention(input);
     const p = this.physiology.state;
     // Escape reflexes retain priority. Never request an illegal airborne-to-rest transition.
     if (
