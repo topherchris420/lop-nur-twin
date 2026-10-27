@@ -1,6 +1,7 @@
 /** Research-only lives. The production runner never imports this module or selects this kind. */
 import { sha256Json } from "../../../rain/sha256.js";
 import { DigitalFly, FLY_VERSION } from "../../fly/fly.js";
+import type { AdapterStreams } from "../../fly/neural.js";
 import { ECHO_VERSION } from "../../fly/echo/params.js";
 import { initialEchoState } from "../../fly/echo/selfModel.js";
 import { MushroomBody } from "../../fly/mushroomBody/circuit.js";
@@ -54,7 +55,10 @@ export class ImmortalLife {
   outbox: LifeEvent[] = [];
   readonly totals: Record<string, number> = {};
   lastTrial = 0;
-  constructor(g: ImmortalGenesis) {
+  constructor(
+    g: ImmortalGenesis,
+    adapterFactory?: (rng: () => number, streams: AdapterStreams) => ImmortalAdapter,
+  ) {
     if (
       !Number.isInteger(g.seed) ||
       g.seed < 0 ||
@@ -72,8 +76,9 @@ export class ImmortalLife {
       // This is a separately born research individual. No live checkpoint is read here.
       this.home = new HeadlessBethesdaLife(g.home.config, {
         flyController: g.home.flyController,
-        researchAdapter: (rng, streams) =>
-          new ImmortalAdapter(rng, streams, g.seed, g.flags),
+        researchAdapter:
+          adapterFactory ??
+          ((rng, streams) => new ImmortalAdapter(rng, streams, g.seed, g.flags)),
       });
       this.yard = null;
       this.fly = this.home.cityFly.fly;
@@ -86,7 +91,9 @@ export class ImmortalLife {
         start: { p: [0, 0.002, 0], yaw: 0 },
         config: { startReserve: g.startReserve },
         perturbation: g.perturbation,
-        adapter: (rng, streams) => new ImmortalAdapter(rng, streams, g.seed, g.flags),
+        adapter:
+          adapterFactory ??
+          ((rng, streams) => new ImmortalAdapter(rng, streams, g.seed, g.flags)),
       });
     }
   }
