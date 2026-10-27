@@ -6,6 +6,7 @@
 #   sudo deploy/bethesda-life/install.sh --create     first install: a trial life, then the individual's birth
 #   sudo deploy/bethesda-life/install.sh              upgrade: the same individual lives on, or nothing changes
 #   sudo deploy/bethesda-life/install.sh --rollback   back to the release before the last upgrade
+#   sudo deploy/bethesda-life/install.sh --prepare    build HEAD without stopping or switching the life
 #
 #   --controller echo   with --create: the fly runs Project ECHO's controller
 #   --trial             run the trial life on an upgrade too (the life is paused meanwhile)
@@ -48,6 +49,7 @@ while [ $# -gt 0 ]; do
   case $1 in
     --create) action=create ;;
     --rollback) action=rollback ;;
+    --prepare) action=prepare ;;
     --controller)
       [ $# -ge 2 ] || die "--controller needs a value"
       controller=$2
@@ -154,6 +156,7 @@ build_release() {
   mkdir -p "$tmp"
   git_ archive --format=tar HEAD package.json package-lock.json scripts/run-ts.mjs \
     scripts/ts-hooks.mjs scripts/bethesda-life-headless.ts scripts/bethesda-life-observer.ts \
+    scripts/bethesda-life-upgrade-echo.ts \
     src | tar -x -C "$tmp"
   say "release: $commit (installing its production dependencies)"
   (cd "$tmp" && PATH=$node_dir/bin:$PATH PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev \
@@ -258,6 +261,11 @@ was_running=no
 if running; then was_running=yes; fi
 
 case $action in
+  prepare)
+    build_release
+    say "prepared $release; the running release and individual were not changed"
+    exit 0
+    ;;
   create)
     if [ -e "$STORE" ] && [ -n "$(ls -A "$STORE")" ]; then
       die "$STORE already holds an individual; one store holds one. To start another,
