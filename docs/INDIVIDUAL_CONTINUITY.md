@@ -149,8 +149,11 @@ The city's ordinary headless life takes no exogenous input. From its genesis
 it is therefore reproducible tick for tick on its original engine. A supported
 [ECHO v2 continuation](BETHESDA_CONTINUOUS_LIFE.md#preserve-the-deployed-individual-while-enabling-echo-v2)
 adds a recorded engine-upgrade event: the same birth, genesis, clock and
-preserved state continue in a new checkpoint. Reproducing that life across
-the boundary requires the recorded migration and both engine releases.
+preserved state continue in a new checkpoint. The
+[ECHO v3 continuation](BETHESDA_CONTINUOUS_LIFE.md#continue-the-echo-v2-individual-on-echo-v3)
+adds a second, `self-model-upgrade`, keeping the self-model it had.
+Reproducing that life across each boundary requires the recorded migration
+and the engine releases on either side of it.
 
 ## Part 2: controlled experiments
 

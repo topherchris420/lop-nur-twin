@@ -243,7 +243,7 @@ Either stay on the release that is running, or end this individual's life
 on this machine: stop the service, move the store aside and keep it (it is
 the individual's whole record), and run `install.sh --create` for a new
 individual on the new release. Never edit a checkpoint's versions to make it
-load. The explicit ECHO v2 continuation below is a narrowly verified exception,
+load. The explicit ECHO continuations below are narrowly verified exceptions,
 not permission to relabel an older checkpoint.
 
 ### Preserve the deployed individual while enabling ECHO v2
@@ -251,7 +251,9 @@ not permission to relabel an older checkpoint.
 `scripts/bethesda-life-upgrade-echo.ts` supports one explicit transition:
 the reduced-order individual on release
 `c8b5fb163b22381fb08c3c0f4a18d5b92bfc2f4b` (`digital-fly/7`, ECHO v1)
-to `digital-fly/8` with ECHO v2. It does not create a birth, change the
+to `digital-fly/8` with ECHO v2 (the deployed individual made it on
+2026-10-27; on a release with ECHO v3 a reduced-order individual goes to v3
+directly, since ECHO starts innate). It does not create a birth, change the
 genesis, erase navigation memory, reset age, or replace the old controller's
 state or random streams. It appends a checkpoint at the same tick and with
 the same birth, linked to the previous checkpoint's digest.
@@ -303,6 +305,40 @@ The ordinary `restoreLife` path continues to refuse all version mismatches.
 After this transition, the old release cannot resume the upgraded head:
 rollback across the boundary is refused, and a backup must never be used to
 rewind an individual that has since continued.
+
+### Continue the ECHO v2 individual on ECHO v3
+
+`scripts/bethesda-life-continue-echo.ts` supports the next explicit
+transition: the individual on release
+`3db627bc125415093d6507988a2d8f61949f5240` (ECHO v2, after the upgrade
+above) to ECHO v3 ([Project ECHO](PROJECT_ECHO.md#indicator-properties)).
+The same individual keeps its whole self-model: its beliefs and their
+uncertainty, its trust in its senses, its change detectors, an open inquiry,
+its remembered episodes and its counts. Nothing else in the city or the fly
+changes. v3 adds an empty workspace, an attention schema that has learned
+nothing yet, the second look (an inquiry open at the upgrade starts without
+one) and five counters at zero. Removing only these, and putting back the
+self-model's three version labels, must reproduce the old graph's SHA-256
+exactly, or nothing is committed. The `self-model-upgrade` life event
+records the source release, the versions it goes from and to, the exact
+parent, the old state and graph hashes, the preserved-state digest, whether
+an inquiry was open, and the pause. Nothing before the upgrade is credited to
+the new mechanisms.
+
+The procedure is the one above, with this script and the v2 release:
+
+```sh
+sudo deploy/bethesda-life/install.sh --prepare
+# In the prepared release, as bethesda-life, with a 4096 MB heap:
+node scripts/run-ts.mjs scripts/bethesda-life-continue-echo.ts \
+  --store /path/to/unpacked-backup/store \
+  --from-release /opt/bethesda-life/releases/3db627bc125415093d6507988a2d8f61949f5240 --check
+```
+
+Then stop the service, back up with the v2 release, run it against the live
+store with `--commit`, and run `install.sh` normally. The store's history
+then holds three engines, each change attested by its own event, and the v2
+release can no longer resume it.
 
 ### Backup
 

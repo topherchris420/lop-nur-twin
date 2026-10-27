@@ -730,9 +730,13 @@ cause.**
   version, variant or byte, and every replacement is recorded in the
   adapter's state. Choosing ECHO in the city places a new fly. Never present
   either as the same persistent individual.
-  The dedicated `scripts/bethesda-life-upgrade-echo.ts` is a different path:
-  it appends a verified engine-upgrade checkpoint to the original birth and
-  history. Never replace it with the panel's new-fly path or `--create`.
+  The dedicated `scripts/bethesda-life-upgrade-echo.ts` and
+  `scripts/bethesda-life-continue-echo.ts` are a different path: each appends
+  a verified upgrade checkpoint to the original birth and history (the
+  engine's, then the self-model's from v2 to v3). Never replace them with the
+  panel's new-fly path or `--create`. An `ECHO_VERSION` bump that changes the
+  self-model's state needs its own recorded continuation for the deployed
+  individual, in `src/bethesda/life/echoUpgrade.ts`.
 - **The panel reads; the fly decides.** `SelfModelPanel.tsx` reads the
   adapter's state and calls nothing that changes it, and keeps the fly's
   estimates apart from ground truth only researchers see.
