@@ -33,7 +33,7 @@ of it.
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `rehearse.ts`                     | The rehearsal, one phase per run (`verify`, `source`, `v3`, `organism`, `restart`, `deplete`, `smell`); its header says what each does       |
 | `report-<phase>.json`             | Each phase's output, as written                                                                                                              |
-| `report-smell*.json`              | The placed copy, as found and with its reserve set to 30%, at six placements, each also run on ECHO v3 without the organism as a control      |
+| `report-smell*.json`              | The placed copy, as found and with its reserve set to 30%, at six placements, each also run on ECHO v3 without the organism as a control     |
 | `pairs.mjs`, `pairs.txt`          | The six placements at 30%, organism beside control, and their totals                                                                         |
 | `long.ts`, `report-long.json`     | Increasingly long runs of an organism on the small test city (not the deployed individual), each run ending in a checkpoint restored exactly |
 | `make-v3-store.ts`, `rollback.sh` | The rollback rehearsal: a synthetic store with the deployed lineage, resumed by this release and by the real `d25e1f3` runner                |

@@ -150,6 +150,23 @@ its landmark and keeps episodes), and checks:
   after committing, the continuation stands, is never made again, and the
   runner resumes it once the lease is gone.
 
+### Checks
+
+The repository's checks, run one at a time on this branch (its code at
+`cf3ced2`) on Windows 11 on ARM64 with Node 24.19.0 and Bun 1.4.2:
+
+| Check                                                        | Outcome                                                                                                                                                                                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npx vitest run --maxWorkers=2`                              | 173 files and 2,118 tests passed. The 11 skipped are all in `src/rain/scientific/civilization.test.ts`, which needs the Noeterra engine built with Rust                                                       |
+| `bun run test:evidence`                                      | Passed: 37 validator rules fire as documented                                                                                                                                                                 |
+| `npx tsc --noEmit`, `npx eslint .`, `npx prettier --check .` | Passed                                                                                                                                                                                                        |
+| `bun run build`                                              | Passed: the data and Bethesda validators, manifest and model history, the bundle and the distribution secret scan (219 files clean). The Noeterra engine was not built, so `/noeterra` reports it unavailable |
+| `node scripts/run-ts.mjs scripts/fly-source.ts --check`      | The 34-file fingerprint is unchanged: `a96a496c4c00…`                                                                                                                                                         |
+| `npm run rain:fly -- --pilot --check`                        | All nine pilots reproduced exactly                                                                                                                                                                            |
+| `npm run echo:immortal:evaluate -- --check`                  | **Failed**, as on `main`: recorded on Linux x64; the same source fingerprint, and the last digits of 24 numbers differ ([details](research/echo-replay/README.md#the-two-echo-research-evaluations))          |
+| `npm run echo:foraging:evaluate -- --check`                  | **Failed** the same way, as on `main`: 477 numbers                                                                                                                                                            |
+| `cargo clippy`, `cargo test` (Noeterra)                      | Not run: no Rust toolchain on this laptop. This branch changes nothing under `noeterra/`; CI runs both                                                                                                        |
+
 ### Rehearsal on the deployed individual's backup
 
 The backup is `bethesda-life-20261027T121504Z-3db627bc1254.tar.gz`, the
@@ -267,6 +284,13 @@ arm64, the VM's platform, all nine pilots differ. No record, threshold or
 parameter changed. For this continuation it means: every check that gates a
 commit to the deployed store must run on the VM itself, and this laptop's
 forward runs are a different continuation, never the fly's.
+
+The research evaluations of the immortal organism and of olfactory
+navigation were recorded on Linux x64, and their `--check` fails on this
+laptop the same way, on `main` as on this branch: the same source, rounded
+differently in the last digits, with every count, status and conclusion
+unchanged ([details](research/echo-replay/README.md#the-two-echo-research-evaluations)).
+Their records were not regenerated.
 
 ### Long-term continuity
 

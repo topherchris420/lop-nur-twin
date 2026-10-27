@@ -105,6 +105,33 @@ build-level explanation was not confirmed.
   `--check` must also pass on the VM before any `--commit`
   ([cutover plan](../../ECHO_ORGANISM_CONTINUATION.md#cutover-plan)).
 
+## The two ECHO research evaluations
+
+The same holds, the other way round, for the research reports of
+`npm run echo:immortal:evaluate` and `npm run echo:foraging:evaluate`. They
+were recorded on Linux x64 with Node 24.22.1
+([their verification record](../echo-foraging/verification.md)), and on
+this laptop (Windows on ARM64, Node 24.19.0) both `--check` commands fail
+with `report.json does not reproduce`, on a clean `main` (`e2b2c3e`) as on
+the organism branch. Each report was regenerated on `main` in a temporary
+worktree and compared with its record value by value
+([compare-reports.mjs](windows/compare-reports.mjs),
+[output](windows/win32-arm64-node24.19.0.evaluations.txt)):
+
+| Report          | Source fingerprint                  | Numbers that differ                                                                                         | Largest difference                 |
+| --------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `echo-immortal` | `a6b031c5e682…`, same as the record | 24 of 1,155 values: phase endpoints and two endpoint distances                                              | 4.9e-14 absolute, 2.5e-12 relative |
+| `echo-foraging` | `4acf7bba15a4…`, same as the record | 477 of 13,940 values: trace positions, ON and OFF filter outputs, odour, closest distances, alignment terms | 2.4e-15 absolute, 5.2e-12 relative |
+
+Nothing else differs: no count, status, criterion or conclusion, only the
+last digits of floating-point numbers. (`sourceCommit` also differs, because
+generating a report records the current commit; `--check` takes it from the
+record.) On the organism branch (`cf3ced2`) both reports come out identical
+to `main`'s, number for number, so the branch changes neither. The functions
+responsible were not traced, and neither check runs in CI. The records were
+not regenerated: they remain the Linux x64 results, and their record says
+both reproduced byte for byte there, which was not rechecked here.
+
 ## How the evidence was produced
 
 A temporary branch, `diag/echo-pilot-replay`, ran two diagnostic workflows on
@@ -114,6 +141,7 @@ and scripts are kept byte for byte as they ran
 ([run 1](run1/workflow.yml): all nine pilots unchanged, then with exact
 squares; [run 2](run2/workflow.yml): the census on pow-free inputs, then
 three ECHO pilots without the fractional power). The Windows results were run
-on the recording laptop. The branch was deleted afterwards; nothing from it
-was merged. Every file in `run1/`, `run2/` and `windows/` is output kept as
-it was written.
+on the recording laptop; so was the evaluation comparison, in a temporary
+worktree since removed. The diagnostic branch was deleted afterwards; nothing
+from it was merged. Every file in `run1/`, `run2/` and `windows/` is output
+kept as it was written, or a script kept byte for byte as it ran.
