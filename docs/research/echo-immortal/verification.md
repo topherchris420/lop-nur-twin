@@ -1,5 +1,7 @@
 # Verification record
 
+Update: the olfactory-extension interface refactor regenerated the current report with new source metadata and identical outcome objects. The initial report and this initial verification narrative are preserved in `archive-v1/`. See [the current extension verification](../echo-foraging/verification.md) for the 247-test regression and reproducibility checks.
+
 Implementation source: `f7283da505cc36379c4c028c7a8e30fe22fbb9c6`.
 The generated [results](results.md) and [full report](report.json) identify
 the source fingerprint and prespecified protocol. No parameters or success
