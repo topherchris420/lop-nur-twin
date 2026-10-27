@@ -16,6 +16,8 @@
     "benchmark:random": "node tools/jev-benchmark.mjs --brain random --control direct",
     "benchmark:random:precision": "node tools/jev-benchmark.mjs --brain random --control precision",
     "bethesda:life:smoke": "node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100",
+    "echo:immortal:test": "vitest run src/bethesda/life/immortal --maxWorkers=1",
+    "echo:immortal:evaluate": "node scripts/run-ts.mjs scripts/echo-immortal-evaluate.ts",
     "build": "node scripts/copy-noeterra-wasm.mjs && node scripts/run-ts.mjs scripts/validate-data.ts && node scripts/run-ts.mjs scripts/validate-bethesda.ts && node scripts/run-ts.mjs scripts/generate-manifest.ts && node scripts/run-ts.mjs scripts/validate-model-history.ts && vite build && node scripts/copy-fly-film.mjs && tsc --noEmit && node tools/jev-secret-scan.mjs dist",
     "check": "bun run format:check && bun run lint && bun run test:run && bun run test:evidence && bun run build",
     "closeup": "node tools/closeup.mjs",
