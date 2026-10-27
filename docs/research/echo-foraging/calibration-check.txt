@@ -1,0 +1,19 @@
+[fly-calibration] giant fiber: 500 trials at r/v 8 ms, silenced
+[fly-calibration] giant fiber: 500 trials at r/v 14 ms, silenced
+[fly-calibration] giant fiber: 500 trials at r/v 40 ms, silenced
+[fly-calibration] giant fiber: likelihood over 951 × 201 grid points
+[fly-calibration] giant fiber: median 3.73 mV, spread 0.42; full run at the fitted values
+[fly-calibration] grooming: drive threshold 1 dust units → 1.0000 of frames grooming
+[fly-calibration] grooming: drive threshold 2000 dust units → 0.1729 of frames grooming
+[fly-calibration] grooming: drive threshold 1000 dust units → 0.3221 of frames grooming
+[fly-calibration] grooming: drive threshold 500 dust units → 0.7009 of frames grooming
+[fly-calibration] grooming: drive threshold 250 dust units → 0.9972 of frames grooming
+[fly-calibration] grooming: drive threshold 375 dust units → 0.8798 of frames grooming
+[fly-calibration] grooming: drive threshold 437 dust units → 0.7892 of frames grooming
+[fly-calibration] grooming: drive threshold 468 dust units → 0.7463 of frames grooming
+[fly-calibration] grooming: drive threshold 484 dust units → 0.7275 of frames grooming
+[fly-calibration] grooming: drive threshold 492 dust units → 0.7090 of frames grooming
+[fly-calibration] grooming: drive threshold 488 dust units → 0.7183 of frames grooming
+[fly-calibration] grooming: drive threshold 486 dust units → 0.7210 of frames grooming
+[fly-calibration] grooming: drive threshold 485 dust units → 0.7207 of frames grooming
+[fly-calibration] fit.json reproduces
