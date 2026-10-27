@@ -403,12 +403,12 @@ async function main() {
         false,
       ],
       [
-        "scripted: ECHO-04, attention: a workspace and a model of it",
+        "scripted: ECHO-04, attention: a workspace and a model of it (under-powered by its pilot)",
         flyExample("echo_attention"),
         false,
       ],
       [
-        "scripted: ECHO-05, a second look at its own conclusions",
+        "scripted: ECHO-05, a second look at its own conclusions (under-powered by its pilot)",
         flyExample("echo_metacognition"),
         false,
       ],

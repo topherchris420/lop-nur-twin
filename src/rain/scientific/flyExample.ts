@@ -141,8 +141,8 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     treatment: { kind: "echo_attribution", variant: "motion_gated" },
     metric: "attribution_accuracy",
     direction: "decrease",
-    minimumEffect: 0.34, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
-    seedCount: 10, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    minimumEffect: 0.36, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
+    seedCount: 12, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attribution.json
     question:
       "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
     hypothesis:
@@ -157,7 +157,7 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     // UNDER-POWERED: its pilot found no seed count that passes with 0.9
     // probability, so it runs at the host's largest seed count and the host's
     // minimum effect, and is expected to come out inconclusive or failed.
-    minimumEffect: 4, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
+    minimumEffect: 3, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
     seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_retention.json
     question:
       "[scripted] ECHO-03: does what the fly learned about an earlier impairment let it recognize the same impairment sooner when it returns?",
@@ -170,7 +170,10 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     treatment: { kind: "echo_attention", variant: "no_workspace" },
     metric: "busy_attribution_latency_s",
     direction: "increase",
-    minimumEffect: 1, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attention.json
+    // UNDER-POWERED: its pilot found no seed count that passes with 0.9
+    // probability, so it runs at the host's largest seed count and the host's
+    // minimum effect, and is expected to come out inconclusive or failed.
+    minimumEffect: 30, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attention.json
     seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_attention.json
     question:
       "[scripted] ECHO-04: does holding one content in a workspace and broadcasting it let a fly with urges find out sooner that its body changed?",
@@ -183,6 +186,9 @@ const EXAMPLES: Record<FlyProtocolId, Example> = {
     treatment: { kind: "echo_metacognition", variant: "no_metacognition" },
     metric: "attribution_brier",
     direction: "increase",
+    // UNDER-POWERED: its pilot found no seed count that passes with 0.9
+    // probability, so it runs at the host's largest seed count and the host's
+    // minimum effect, and is expected to come out inconclusive or failed.
     minimumEffect: 0.2, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_metacognition.json
     seedCount: 16, // PILOT-SIZED: docs/benchmarks/fly-pilots/echo_metacognition.json
     question:
