@@ -7,7 +7,7 @@
  * CityFly observes CitySimulation, and CitySimulation never observes CityFly.
  */
 import { CitySimulation, DT, PROFILES, SIM_VERSION, type Config } from "../simulation.js";
-import { CityFly, type CityController } from "../fly/cityFly.js";
+import { CityFly, type CityController, type CityFlyOptions } from "../fly/cityFly.js";
 import type { EchoCheckpoint } from "../fly/echo/checkpoint.js";
 import { EchoAdapter } from "../fly/echo/adapter.js";
 import { ECHO_VERSION } from "../fly/echo/params.js";
@@ -73,10 +73,16 @@ export class HeadlessBethesdaLife {
 
   constructor(
     config: Config = PROFILES[1]!,
-    options: { flyController?: CityController } = {},
+    options: {
+      flyController?: CityController;
+      researchAdapter?: CityFlyOptions["researchAdapter"];
+    } = {},
   ) {
     this.city = new CitySimulation({ ...config });
-    this.cityFly = new CityFly(this.city, { controller: options.flyController });
+    this.cityFly = new CityFly(this.city, {
+      controller: options.flyController,
+      researchAdapter: options.researchAdapter,
+    });
   }
 
   /**
