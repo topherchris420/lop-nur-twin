@@ -37,7 +37,12 @@ import {
   writeSync,
 } from "node:fs";
 import { join } from "node:path";
-import { checkpointErrors, type LifeCheckpoint, type LifeKind } from "./continuity";
+import {
+  checkpointErrors,
+  historicalCheckpointErrors,
+  type LifeCheckpoint,
+  type LifeKind,
+} from "./continuity";
 
 export const LIFE_STORE_SCHEMA = "life-store/v1" as const;
 /** A lease lasts this long unless renewed (ms). */
@@ -151,6 +156,7 @@ export class LifeStore<G, L> {
   ): LifeStore<G, L> {
     if (first.sequence !== 0) throw new Error("a store starts at an individual's birth");
     const errors = checkpointErrors(kind, first);
+    errors.push(...(kind.history?.transition(null, first) ?? []));
     if (errors.length) throw new Error(`checkpoint refused: ${errors.join("; ")}`);
     mkdirSync(dir, { recursive: true });
     if (readdirSync(dir).length)
@@ -284,6 +290,8 @@ export class LifeStore<G, L> {
     const head = this.head();
     if (c.birth.individual !== head.birth.individual)
       throw new Error("refused: that checkpoint is another individual's");
+    if (c.genesisDigest !== head.genesisDigest)
+      throw new Error("refused: a continuation cannot change its genesis");
     if (c.sequence !== head.sequence + 1 || c.parent !== head.digest)
       throw new Error(
         `refused as a fork: it continues sequence ${c.sequence - 1} (${String(c.parent).slice(0, 12)}), the head is ${head.sequence} (${head.digest.slice(0, 12)})`,
@@ -291,6 +299,7 @@ export class LifeStore<G, L> {
     if (c.tick < head.tick)
       throw new Error("refused: a checkpoint's tick never goes back");
     const errors = checkpointErrors(this.kind, c);
+    errors.push(...(this.kind.history?.transition(head, c) ?? []));
     if (errors.length) throw new Error(`checkpoint refused: ${errors.join("; ")}`);
     const committedUtc = this.publish(c);
     this.compact();
@@ -349,13 +358,16 @@ export class LifeStore<G, L> {
       if (seq !== i) throw new Error(`checkpoint ${i} is missing`);
       const stored = this.read(seq);
       const c = stored.checkpoint;
-      const errors = checkpointErrors(this.kind, c);
+      const errors = historicalCheckpointErrors(this.kind, c);
+      errors.push(...(this.kind.history?.transition(prev, c) ?? []));
       if (errors.length)
         throw new Error(`checkpoint ${seq} is corrupt: ${errors.join("; ")}`);
       if (c.sequence !== seq)
         throw new Error(`checkpoint ${seq} says it is ${c.sequence}`);
       if (c.birth.individual !== id.individual)
         throw new Error(`checkpoint ${seq} is another individual's`);
+      if (c.genesisDigest !== id.genesisDigest)
+        throw new Error(`checkpoint ${seq} changed the individual's genesis`);
       if (c.parent !== (prev ? prev.digest : null))
         throw new Error(`checkpoint ${seq} does not continue checkpoint ${seq - 1}`);
       if (prev && c.tick < prev.tick)

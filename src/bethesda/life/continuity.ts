@@ -54,6 +54,11 @@ export interface LifeKind<G, L> {
   readonly id: string;
   /** Every engine version the life's behaviour depends on. */
   readonly versions: Readonly<Record<string, string>>;
+  /** Historical headers only. Restores still require this engine's exact versions. */
+  readonly history?: {
+    versions: readonly Readonly<Record<string, string>>[];
+    transition(previous: LifeCheckpoint<G> | null, next: LifeCheckpoint<G>): string[];
+  };
   build(genesis: G): L;
   step(life: L, ticks: number): void;
   tick(life: L): number;
@@ -216,6 +221,27 @@ export function checkpointErrors<G, L>(kind: LifeKind<G, L>, c: unknown): string
       errors.push("its graph does not match its digest: a byte was changed");
   }
   return errors;
+}
+
+/** Verify an explicitly supported historical header without restoring it on this engine. */
+export function historicalCheckpointErrors<G, L>(
+  kind: LifeKind<G, L>,
+  c: LifeCheckpoint<G>,
+): string[] {
+  const versions = kind.history?.versions.find((v) =>
+    sameVersions({ ...v, graph: GRAPH_SCHEMA }, c.versions),
+  );
+  return checkpointErrors(versions ? { ...kind, versions } : kind, c);
+}
+
+export function sameVersions(
+  a: Readonly<Record<string, string>>,
+  b: Readonly<Record<string, string>>,
+): boolean {
+  return (
+    Object.keys(a).length === Object.keys(b).length &&
+    Object.entries(a).every(([key, value]) => b[key] === value)
+  );
 }
 
 /**

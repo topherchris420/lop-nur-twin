@@ -730,6 +730,9 @@ cause.**
   version, variant or byte, and every replacement is recorded in the
   adapter's state. Choosing ECHO in the city places a new fly. Never present
   either as the same persistent individual.
+  The dedicated `scripts/bethesda-life-upgrade-echo.ts` is a different path:
+  it appends a verified engine-upgrade checkpoint to the original birth and
+  history. Never replace it with the panel's new-fly path or `--create`.
 - **The panel reads; the fly decides.** `SelfModelPanel.tsx` reads the
   adapter's state and calls nothing that changes it, and keeps the fly's
   estimates apart from ground truth only researchers see.
@@ -788,7 +791,11 @@ verified to be; a copy is always someone else.**
 - **Exogenous inputs are life events.** Anything that changes a life other
   than its genesis is an event recorded in the checkpoint that follows it,
   so a life can be re-lived from its record. The city's headless life takes
-  none, so from its genesis it is reproducible tick for tick: say so.
+  none in its ordinary runner. An explicit engine migration is recorded as
+  an `engine-upgrade` event, preserving the birth, genesis and parent link;
+  reproduction across that boundary requires both engine releases and the
+  migration. Historical header verification never permits restoring an old
+  graph on a mismatched engine.
 - **The individuality report is generated.** After a change to the fly, the
   controller or `individuality.ts`, bump `INDIVIDUALITY_VERSION` if the
   study's design changed, then run
