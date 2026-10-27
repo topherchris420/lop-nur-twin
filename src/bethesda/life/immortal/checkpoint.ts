@@ -1,5 +1,10 @@
 /** Node-only archive transaction. Reuses LifeStore; no alternative persistence system. */
-import { checkpointLife, restoreLife, type LifeCheckpoint } from "../continuity.js";
+import {
+  checkpointLife,
+  restoreLife,
+  type LifeCheckpoint,
+  type LifeKind,
+} from "../continuity.js";
 import type { LifeStore } from "../store.js";
 import {
   IMMORTAL_RESEARCH_LIFE,
@@ -14,16 +19,26 @@ export function checkpointResearch(
   store: LifeStore<ImmortalGenesis, ImmortalLife>,
   previous: LifeCheckpoint<ImmortalGenesis>,
 ): LifeCheckpoint<ImmortalGenesis> {
+  return checkpointWithEvents(IMMORTAL_RESEARCH_LIFE, life, store, previous);
+}
+
+/** Same transaction for explicitly versioned research extensions. */
+export function checkpointWithEvents<G, L extends ImmortalLife>(
+  kind: LifeKind<G, L>,
+  life: L,
+  store: LifeStore<G, L>,
+  previous: LifeCheckpoint<G>,
+): LifeCheckpoint<G> {
   const records = life.outbox;
   life.outbox = [];
   try {
-    const checkpoint = checkpointLife(IMMORTAL_RESEARCH_LIFE, life, {
+    const checkpoint = checkpointLife(kind, life, {
       genesis: previous.genesis,
       birth: previous.birth,
       previous,
       events: records,
     });
-    restoreLife(IMMORTAL_RESEARCH_LIFE, checkpoint);
+    restoreLife(kind, checkpoint);
     store.renew();
     store.commit(checkpoint);
     return checkpoint;
