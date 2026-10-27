@@ -39,21 +39,28 @@ ECHO adds no anatomical claim.
 
 From the registered R.A.I.N. demonstrations (sealed, preregistered, seeds
 drawn after preregistration, re-simulated before admission) and the seeded
-evaluation report ([docs/benchmarks/fly-echo/](benchmarks/fly-echo/README.md)).
-All figures are from held-out conditions unless marked otherwise.
+evaluation report ([docs/benchmarks/fly-echo/](benchmarks/fly-echo/README.md)),
+both of `echo-self-model/v3`; the registered runs are from `352fafd`, and the
+archive keeps every earlier run. All figures are from held-out conditions
+unless marked otherwise.
 
-| Experiment | Registered result (frozen criteria)                                                                                                                                                                                                                                                          | Evaluation report (24 seeds, 95% bootstrap intervals)                                                                                                                                                                                                    |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ECHO-01    | **Supported.** Without the self-model, path error after a hidden impairment rose from 0.036 to 0.399 (+0.362; 9 of 9 seeds; p = 0.002) ([FLY-f62ab31f…](benchmarks/fly-behavior/FLY-f62ab31f91ee122d9de1e76c/report.md))                                                                     | Path error 0.077 [0.044, 0.115] with the self-model, 0.385 [0.303, 0.463] without (24 of 24 seeds); identification error 0.9%; impairment noticed after 0.69 s on average                                                                                |
-| ECHO-02    | **Inconclusive.** A motion-gated rule explained 0.567 of hidden changes correctly against the self-model's 0.891 (−0.324; 6 of 6 untied seeds; p = 0.016), short of the pilot-sized minimum effect of 0.34 ([FLY-4f0d5f10…](benchmarks/fly-behavior/FLY-4f0d5f100e1051bcfe2c8424/report.md)) | Accuracy 0.78 [0.70, 0.86] against 0.41 (motion-gated), 0.36 (self-only) and 0.32 (uncertainty disabled); false self-attribution 0.14 against 0.81–0.92; but overconfident on held-out data (expected calibration error 0.21; 0.006 on development data) |
-| ECHO-03    | **Inconclusive (under-powered by design).** A reset memory concluded a returning impairment 0.82 s later (2.52 → 3.34 s; 10 of 11 untied seeds; p = 0.006), far below the host's 4 s minimum effect ([FLY-3285f03c…](benchmarks/fly-behavior/FLY-3285f03c6180b224ef22cf97/report.md))        | Reset memory: +0.65 s [0.06, 1.25] to re-identify; no benefit in path error (−0.009 [−0.041, 0.015]); with episodic memory disabled, re-identification is 0.26 s [−0.05, 0.57] slower, an interval that includes no difference                           |
+| Experiment | Registered result (frozen criteria)                                                                                                                                                                                                                                                                                                                                                                                   | Evaluation report (24 seeds, 95% bootstrap intervals)                                                                                                                                                                                                             |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ECHO-01    | **Supported.** Without the self-model, path error after a hidden impairment rose from 0.073 to 0.370 (+0.297; 9 of 9 seeds; p = 0.002) ([FLY-3dedfd1e…](benchmarks/fly-behavior/FLY-3dedfd1e08238befa3a2cd09/report.md))                                                                                                                                                                                              | Path error 0.083 [0.047, 0.125] with the self-model, 0.385 [0.303, 0.463] without (24 of 24 seeds); identification error 0.9%; impairment noticed after 0.69 s on average                                                                                         |
+| ECHO-02    | **Supported.** A motion-gated rule explained 0.537 of hidden changes correctly against the self-model's 0.919 (−0.381; 10 of 10 untied seeds; p = 0.001), beyond the pilot-sized minimum effect of 0.36 ([FLY-ea1f81b9…](benchmarks/fly-behavior/FLY-ea1f81b92313cd532b36b4a8/report.md)). Its first run, on `v1`, was inconclusive ([FLY-4f0d5f10…](benchmarks/fly-behavior/FLY-4f0d5f100e1051bcfe2c8424/report.md)) | Accuracy 0.89 [0.83, 0.94] against 0.42 (motion-gated), 0.34 (self-only) and 0.32 (uncertainty disabled); false self-attribution 0.08 against 0.81–0.85; still overconfident on held-out data (expected calibration error 0.12; 0.013 on development data)        |
+| ECHO-03    | **Inconclusive (under-powered by design).** A reset memory concluded a returning impairment 1.60 s later (3.49 → 5.08 s; 11 of 12 untied seeds; p = 0.003), below the host's 3 s minimum effect ([FLY-aff10dec…](benchmarks/fly-behavior/FLY-aff10dec2ec287b28e76c74e/report.md))                                                                                                                                     | Reset memory: +0.22 s [−0.42, 0.73] to re-identify; no clear effect on path error (+0.006 [−0.027, 0.039]); with episodic memory disabled, re-identification is 0.54 s [0.23, 0.95] slower                                                                        |
+| ECHO-04    | **Inconclusive (under-powered by its pilot).** Without the workspace the busy fly concluded 0.69 s sooner on average (18.26 → 17.58 s; 2 seeds slower, 3 faster, 11 tied; p = 0.81), against the host's 30 s minimum effect ([FLY-14084ba1…](benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/report.md))                                                                                                         | Without the workspace: 1.00 s [0.29, 1.79] slower to conclude (8 seeds slower, 1 faster, 15 tied); without the attention schema 0.09 s [0, 0.25]                                                                                                                  |
+| ECHO-05    | **Inconclusive (under-powered by its pilot).** Without the second look the Brier score was 0.132 against 0.099 (+0.032; 11 of 16 seeds; p = 0.105), below the host's 0.2 minimum effect ([FLY-bdfb8327…](benchmarks/fly-behavior/FLY-bdfb8327413f5007cc987738/report.md))                                                                                                                                             | Without it: Brier score +0.088 [0.022, 0.163] (19 of 24 seeds), accuracy −0.097 [−0.175, −0.029], expected calibration error 0.20 against 0.12; on the report's development seeds it did slightly worse ([Failures](#failures-negative-findings-and-uncertainty)) |
 
 The self-model's main measured value is compensation for impairments to
 its own body that it is never told about (ECHO-01). Its causal attribution
 generalizes partly: it is accurate and calibrated on development data, much
-more accurate than simpler rules on held-out data, and overconfident there
-(ECHO-02). What it remembers measurably speeds re-identification, slightly,
-and does not improve the movement that follows (ECHO-03). Failures and
+more accurate than simpler rules on held-out data (ECHO-02), and still
+overconfident there, less so with its second look (ECHO-05). What it
+remembers measurably speeds re-identification, slightly, and does not improve
+the movement that follows (ECHO-03). Its workspace saves about a second on a
+busy fly in the evaluation report, too little for its registered test, which
+went the other way; its attention schema does almost nothing here (ECHO-04). Failures and
 negative findings are listed in [Failures, negative findings and uncertainty](#failures-negative-findings-and-uncertainty).
 
 ## Architecture
@@ -401,8 +408,9 @@ start would have ended, over that intended path's length.
 - **Measures.** Attribution accuracy (primary), false self-attribution of
   external changes, the Brier score of its stated confidence, path error over
   the run, missed changes, the 90% interval coverage of its predictions.
-- **Registered demonstration.** Treatment: motion-gated. 10 seeds, minimum
-  effect 0.34 (pilot-sized). Inconclusive (above).
+- **Registered demonstration.** Treatment: motion-gated. 12 seeds, minimum
+  effect 0.36 (both pilot-sized). Supported (above). Its first run, on `v1`
+  with 10 seeds and a minimum of 0.34, was inconclusive.
 
 ### ECHO-03: learning retained through time
 
@@ -422,8 +430,9 @@ start would have ended, over that intended path's length.
   recalls concluded during C (which nothing matches).
 - **Registered demonstration.** Treatment: memory reset. Its pilot found no
   seed count that passes with 0.9 probability, so it runs at the host's
-  largest seed count (16) and the host's minimum effect (4 s), labelled
-  under-powered before it ran. Inconclusive, as expected (above).
+  largest seed count (16) and the host's minimum effect (3 s; 4 s before
+  `v3`), labelled under-powered before it ran. Inconclusive, as expected
+  (above).
 
 ### ECHO-04: attention, a workspace and a model of it
 
@@ -451,7 +460,10 @@ start would have ended, over that intended path's length.
 - **Registered demonstration.** Treatment: no workspace, sized by its pilot.
   Written before the pilot ran: other ECHO latencies have host minimums of
   3–4 s, because each seed draws its own condition, so a 1.3 s effect may
-  leave it under-powered.
+  leave it under-powered. Its pilot found no seed count that passes with 0.9
+  probability (a floor of 30 s), so it ran at 16 seeds and the host's 30 s
+  minimum effect. Inconclusive (above), and the other way: 3 of its 5 untied
+  seeds concluded sooner without the workspace.
 
 ### ECHO-05: a second look at its own conclusions
 
@@ -470,12 +482,17 @@ start would have ended, over that intended path's length.
   though nothing was tuned on them. On development data (16 seeds) it raised
   accuracy from 0.991 to 1.000 and lowered the Brier score from 0.009 to
   0.001, by asking again when the second look did not agree (0.56 times a
-  run). Each conclusion it commits to comes at least 1 s later.
+  run). The evaluation report's 24 development seeds disagree: there the
+  Brier score was 0.017 with it and 0.011 without (see
+  [Failures](#failures-negative-findings-and-uncertainty)). Each conclusion
+  it commits to comes at least 1 s later.
 - **Registered demonstration.** Treatment: no second look, sized by its
   pilot. Written before the pilot ran: the host's minimum effect for the
   Brier score is 0.2 (from ECHO-02's pilot) against 0.008 in development, so
   it is expected to come out inconclusive. The evaluation report's
-  calibration tables are its measure.
+  calibration tables are its measure. Its pilot found no seed count that
+  passes with 0.9 probability, so it ran at 16 seeds and the 0.2 minimum.
+  Inconclusive (above), in the expected direction on 11 of 16 seeds.
 
 ### Checkpoint recovery
 
@@ -566,43 +583,59 @@ development result was then near-null, and it was left as built.
 
 ## Failures, negative findings and uncertainty
 
-- **Overconfidence on held-out causes (ECHO-02).** On development data the
-  self-model's stated confidence matched its accuracy (expected calibration
-  error 0.006). On held-out data it did not (0.21): conclusions stated at
-  0.90–0.97 were right 62% of the time. Most errors are the combined
-  self-and-push condition answered as a push alone (26 of 33), and external
-  changes answered as body and surroundings together (6 of 52). Accuracy fell
-  from 0.99 (development) to 0.78 (held-out).
-- **Compensation is bounded by the body (ECHO-01).** With speed and turning
-  impaired together, the fly identified its gains to about 1% and still
-  strayed by 0.12–0.19 of its path, because the leg speed its compensation
-  asks for exceeds the body's 4 cm/s. Identification and compensation are
-  different things, and the report keeps them apart.
+- **Overconfidence on held-out causes (ECHO-02, ECHO-05).** On development
+  data the self-model's stated confidence matches its accuracy (expected
+  calibration error 0.013 in v3). On held-out data it does not: `v2` had
+  0.21; `v3`, with its second look, has 0.12, and without the second look
+  0.20. Conclusions stated at 0.90–0.97 are still right only 59% of the time.
+  Most errors are the combined self-and-push condition answered as a push
+  alone (13 of 33, against 26 of 33 in `v2`), and external changes answered
+  as body and surroundings together (5 of 52). Accuracy falls from 0.98
+  (development) to 0.89 (held-out).
+- **The second look did not help on development data.** On the evaluation
+  report's 24 development seeds, without it the fly was as accurate (0.989
+  against 0.982) and its Brier score was lower (0.011 against 0.017; lower on
+  20 of 24 seeds), the reverse of `scripts/echo-develop.ts`'s 16 seeds. Its
+  benefit is on held-out combined causes, which it was designed after.
+- **Compensation is bounded by the body (ECHO-01).** With two impairments
+  together, the fly identified them to within 2% and still strayed by more
+  than 0.14 of its path in 7 of 10 such seeds (up to 0.30), because the leg
+  speed its compensation asks for exceeds the body's 4 cm/s. Identification
+  and compensation are different things, and the report keeps them apart.
 - **A cost of learning when nothing is wrong.** Before any impairment the
   self-model's path error is 0.013 against the reactive controller's 0.0005:
   its beliefs wander within their noise, and it compensates for the wander.
 - **Memory helps little (ECHO-03).** Episodic memory shortens re-identification
   by a fraction of a second and does not improve the movement that follows; in
   10 of 24 held-out seeds the reset self-model's early path error was lower.
-  A recalled episode's tight prior can also win confounded evidence, which the
-  pooled claims and probes mitigate but do not remove; 0.21 recalls per run
-  were concluded during the unfamiliar change, which nothing matched.
+  In `v3` a reset costs 0.22 s [−0.42, 0.73], an interval that includes no
+  difference, and disabling episodic memory 0.54 s [0.23, 0.95]; in `v2` it
+  was the other way round (0.65 s and 0.26 s). A recalled episode's tight
+  prior can also win confounded evidence, which the pooled claims and probes
+  mitigate but do not remove; 0.13 recalls per run were concluded during the
+  unfamiliar change, which nothing matched.
 - **Uncertainty earns little in ECHO-01, much in ECHO-02.** Disabling
-  uncertainty estimation raised impaired path error by only 0.008 [0.001,
-  0.019], but dropped attribution accuracy to 0.32 and made the fly blame
+  uncertainty estimation changed impaired path error by only 0.002 [−0.003,
+  0.007], but dropped attribution accuracy to 0.32 and made the fly blame
   itself for 83% of external changes.
 - **A misleading sense is not detected.** A constant motion read that is not
   there was explained as a push in all 7 held-out onsets (never as its own
   body). With one self-motion sense, a sensor offset and an outside drift are
   observationally equivalent; the protocol scores it apart for that reason.
 - **The held-out arena was a weak test of a new environment.** The walking fly
-  seldom reached its walls or posts: the arena changed the outcome in 2, 3 and
-  9 of 24 seeds of the three schedules. Generalization to unseen strengths and
+  seldom reached its walls or posts: the arena changed the outcome in 3, 7 and
+  9 of 24 seeds of the three walking schedules (in all 24 for ECHO-04's busy
+  fly, which flies). Generalization to unseen strengths and
   combinations is tested; generalization to unseen environments mostly is not.
-- **Registered effects below their minimum.** ECHO-02 and ECHO-03 came out
-  inconclusive by their frozen criteria; their minimum effects are large
-  because each seed draws its own condition and the pilots' null arms vary
-  widely. They were not lowered.
+- **Registered effects below their minimum.** ECHO-03, ECHO-04 and ECHO-05
+  came out inconclusive by their frozen criteria, as their pilots predicted;
+  their minimum effects are large because each seed draws its own condition
+  and the pilots' null arms vary widely. They were not lowered. ECHO-02's
+  first run was inconclusive too, and the archive keeps it.
+- **The workspace's registered run went the other way (ECHO-04).** On its 16
+  registered seeds the busy fly concluded 0.69 s sooner without it on average
+  (3 of 5 untied seeds); on the report's 24 it concluded 1.0 s later without
+  it (8 of 9). Most seeds tie: 11 of 16, and 15 of 24.
 - **The air is this simulator's air.** The self-model's account of the wind
   is the body's own rule for it, exact only for its velocity tracker short of
   its acceleration limit, with no turbulence and no vertical air, and it
@@ -612,7 +645,8 @@ development result was then near-null, and it was left as built.
   sometimes concludes that its surface turned (`external:spin`), in still air
   as in wind; that predates the air.
 - **The attention schema does little here.** In development it changed the
-  time to conclude by 0.03 s on average and tied on 43 of 48 seeds. Its
+  time to conclude by 0.03 s on average and tied on 43 of 48 seeds; held out,
+  0.09 s [0, 0.25], tied on 22 of 24. Its
   control acts only on what the fly may hold off, and in these arenas that is
   almost only a takeoff.
 - **The second look costs time.** Each conclusion it commits to comes at
@@ -685,6 +719,15 @@ with its leading explanations and any second look, recently revised beliefs, rem
 episodes, the active configuration and any replacement of the self-model)
 apart from **ground truth only researchers see** (actual movement, the
 perturbation in force). Opening it changes nothing the fly does.
+
+The living individual on the public VM
+([continuous life](BETHESDA_CONTINUOUS_LIFE.md)) is another path. It was
+upgraded in place to ECHO `v2` on 2026-10-27, keeping its birth and history,
+and moves to `v3` only through a second recorded continuation
+([runbook](BETHESDA_CONTINUOUS_LIFE.md#continue-the-echo-v2-individual-on-echo-v3))
+that keeps everything its self-model held and adds the workspace, the
+attention schema and the second look empty. Nothing it did before is
+credited to them.
 
 The headless runner takes the same choice:
 `node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100 --controller echo`,
