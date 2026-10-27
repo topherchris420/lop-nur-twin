@@ -145,9 +145,12 @@ lease lapsed (60 s), from the last committed checkpoint, under the next
 epoch, with a `gap` event recording the outage. Ticks that were not computed
 are not claimed: the world is paused while no process runs it.
 
-The city's headless life takes no exogenous input. From its genesis it is
-therefore reproducible tick for tick by anyone: its individuality, so far,
-is only its birth.
+The city's ordinary headless life takes no exogenous input. From its genesis
+it is therefore reproducible tick for tick on its original engine. A supported
+[ECHO v2 continuation](BETHESDA_CONTINUOUS_LIFE.md#preserve-the-deployed-individual-while-enabling-echo-v2)
+adds a recorded engine-upgrade event: the same birth, genesis, clock and
+preserved state continue in a new checkpoint. Reproducing that life across
+the boundary requires the recorded migration and both engine releases.
 
 ## Part 2: controlled experiments
 

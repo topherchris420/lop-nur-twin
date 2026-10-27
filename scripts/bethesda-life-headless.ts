@@ -35,6 +35,7 @@ import {
   writeObservation,
 } from "../src/bethesda/life/observationFile.js";
 import { LifeStore } from "../src/bethesda/life/store.js";
+import { bethesdaStoreKind } from "../src/bethesda/life/bethesdaStore.js";
 import { PROFILES } from "../src/bethesda/simulation.js";
 
 const TICK_MS = 100;
@@ -160,10 +161,8 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
     print(life, { individual: b.individual, checkpoint: 0 });
     return;
   }
-  const store = LifeStore.open<HeadlessGenesis, HeadlessBethesdaLife>(
-    mode.store,
-    BETHESDA_LIFE,
-  );
+  const kind = bethesdaStoreKind(mode.store);
+  const store = LifeStore.open<HeadlessGenesis, HeadlessBethesdaLife>(mode.store, kind);
   if (mode.verify) {
     process.stdout.write(JSON.stringify(store.verify()) + "\n");
     return;
@@ -171,7 +170,7 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
   if (mode.check) {
     // What a resume would do first, without the lease: restoreLife throws on any mismatch.
     const { checkpoint } = store.headRecord();
-    const life = restoreLife(BETHESDA_LIFE, checkpoint);
+    const life = restoreLife(kind, checkpoint);
     print(life, {
       individual: checkpoint.birth.individual,
       checkpoint: checkpoint.sequence,
@@ -181,7 +180,7 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
   }
   const epoch = store.acquire();
   const { checkpoint, committedUtc } = store.headRecord();
-  const life = restoreLife(BETHESDA_LIFE, checkpoint);
+  const life = restoreLife(kind, checkpoint);
   // What the observer may see (observation.ts), when the service names a file
   // for it: written about once a second, beside the life and never into it. A
   // failure to write it is reported once and never stops the life.
@@ -212,12 +211,14 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
     }
   };
   // The life was paused while no process ran; those ticks were not computed and are not claimed.
+  const upgrade = checkpoint.events.find((e) => e.kind === "engine-upgrade");
+  const pausedFrom = upgrade?.data.pausedFromUtc;
   let pending: LifeEvent[] = [
     {
       tick: life.city.tick,
       kind: "gap",
       data: {
-        stoppedUtc: committedUtc,
+        stoppedUtc: typeof pausedFrom === "string" ? pausedFrom : committedUtc,
         resumedUtc: new Date().toISOString(),
         policy: "paused",
       },
@@ -228,14 +229,14 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
   const commit = () => {
     // The clock waits while it is made and verified: the observer is told so.
     observe(true);
-    const next = checkpointLife(BETHESDA_LIFE, life, {
+    const next = checkpointLife(kind, life, {
       genesis: previous.genesis,
       birth: previous.birth,
       previous,
       events: pending,
     });
     // Verified before it is committed: it must restore to this very life.
-    restoreLife(BETHESDA_LIFE, next);
+    restoreLife(kind, next);
     // Making and verifying it can outlast a good part of the lease on a slow machine.
     store.renew();
     head = { sequence: next.sequence, tick: next.tick, committedUtc: store.commit(next) };

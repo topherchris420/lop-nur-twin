@@ -236,14 +236,73 @@ returns to the previous release, after the same check. The two newest
 releases are kept.
 
 A checkpoint is refused by any other city, fly, ECHO, headless or graph
-version, so **a release that bumps any of those cannot continue this
+version, so **an ordinary release that bumps any of those cannot continue this
 individual**, and `install.sh` says so (for example
 `checkpoint 0 is corrupt: made by fly digital-fly/7; this is digital-fly/8`).
 Either stay on the release that is running, or end this individual's life
 on this machine: stop the service, move the store aside and keep it (it is
 the individual's whole record), and run `install.sh --create` for a new
 individual on the new release. Never edit a checkpoint's versions to make it
-load.
+load. The explicit ECHO v2 continuation below is a narrowly verified exception,
+not permission to relabel an older checkpoint.
+
+### Preserve the deployed individual while enabling ECHO v2
+
+`scripts/bethesda-life-upgrade-echo.ts` supports one explicit transition:
+the reduced-order individual on release
+`c8b5fb163b22381fb08c3c0f4a18d5b92bfc2f4b` (`digital-fly/7`, ECHO v1)
+to `digital-fly/8` with ECHO v2. It does not create a birth, change the
+genesis, erase navigation memory, reset age, or replace the old controller's
+state or random streams. It appends a checkpoint at the same tick and with
+the same birth, linked to the previous checkpoint's digest.
+
+The old engine first verifies and restores the source checkpoint. The
+migration wraps the existing reduced-order controller in a new ECHO adapter,
+adds its self-motion sense and the new wind fields/parameters, and fills
+delayed sensory frames with the still-air readings valid before the upgrade.
+In flight, old ground velocity is converted to the new air-velocity frame
+without changing position or ground velocity. Removing only these declared
+additions must reproduce the old graph's SHA-256 exactly, or nothing is
+committed. The new checkpoint must restore byte for byte and continue
+identically for 611 ticks after restore.
+
+The `engine-upgrade` life event records the source release, exact parent,
+old state/graph hashes, preserved-state digest, velocity conversion and UTC.
+ECHO starts with innate beliefs **at the upgrade**, with no invented earlier
+self-model memories. Existing navigation memories remain in the original
+controller inside it. The next runner records the entire pause, including
+migration time, as a gap. Future recovery remains exact under the new engine;
+reproducing a life across this boundary also requires the recorded migration
+and both engine releases, rather than replaying all ages on one engine.
+
+Prepare and test against a verified backup first, while production keeps running:
+
+```sh
+sudo deploy/bethesda-life/install.sh --prepare
+# In the prepared release, as bethesda-life, with a 4096 MB heap:
+node scripts/run-ts.mjs scripts/bethesda-life-upgrade-echo.ts \
+  --store /path/to/unpacked-backup/store \
+  --from-release /opt/bethesda-life/releases/c8b5fb163b22381fb08c3c0f4a18d5b92bfc2f4b --check
+```
+
+`--check` is read-only: it never takes a writer lease or commits a copy of
+the individual. After the backup test passes, stop `bethesda-life` gracefully,
+make another verified backup with its old installed release, and run the
+same command against `/var/lib/bethesda-life/store` with `--commit`.
+It acquires the normal fenced lease only after all checks, refuses if the
+head changed meanwhile, and publishes through `LifeStore`. Run `install.sh`
+normally to check the upgraded head and switch to the prepared release.
+Keep the final pre-upgrade backup and the old compatible release off-machine.
+Never use `--create` for this operation.
+
+Historical headers are checked against their exact registered versions and
+seals. A version change without the matching upgrade event, a repeated
+upgrade, an altered genesis, a backwards tick or a fork is refused. Old
+checkpoints retain their seals; normal graph compaction still applies.
+The ordinary `restoreLife` path continues to refuse all version mismatches.
+After this transition, the old release cannot resume the upgraded head:
+rollback across the boundary is refused, and a backup must never be used to
+rewind an individual that has since continued.
 
 ### Backup
 
