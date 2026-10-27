@@ -84,7 +84,7 @@ class Steady implements FlyNeuralAdapter {
 
 describe("ECHO self-model: version, parameters and vocabulary", () => {
   it("names one version, fixes every number as a model choice, and shares its variants with the contract", () => {
-    expect(ECHO_VERSION).toBe("echo-self-model/v2");
+    expect(ECHO_VERSION).toBe("echo-self-model/v3");
     for (const [name, p] of Object.entries(ECHO_PARAMS)) {
       expect(p.kind, name).toBe("model");
       expect(p.min, name).toBe(p.value);

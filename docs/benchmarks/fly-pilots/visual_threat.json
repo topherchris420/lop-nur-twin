@@ -4,11 +4,11 @@
   "protocol": "visual_threat",
   "fly_version": "digital-fly/8",
   "fly": "digital-fly/8 reduced-order-fsm/v1",
-  "fly_sha256": "8d86753f0ca7a7395da5a6b7f3902bd120428b515dc616340ef12e9ae0489eed",
-  "fly_source_sha256": "86708015e47c271602b7856459ea1d6ff513ea0f1df0bb8587c3f192a417f022",
+  "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+  "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
   "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
   "code": {
-    "commit": "0a2c9fed8eaa3b98ee6a341dd8a0b2a2cce6e039",
+    "commit": "0967b3956bc36319a25d49a2e93c92c78586717e",
     "dirty": false
   },
   "definition": {
@@ -2718,6 +2718,6 @@
   ],
   "runs_sha256": "d6398bac6d76a164d87deaaa97b8b70d31824388068dd799183a33143c5774ab",
   "outputs_sha256": "0e4e54818d992c22fab3d48697b840cbf5ec7f08db49a842766e5b7160e33ada",
-  "generated_at": "2026-10-26T22:35:25.168Z",
-  "sha256": "21586473bfd578e017b92f10d6ce3247895e0bb570ddcda39c0f779a4382fcd1"
+  "generated_at": "2026-10-27T01:06:36.467Z",
+  "sha256": "d24ae8246775413ac5b48f6485ce3a67fb3642515401699d0d310c6f9271bec3"
 }

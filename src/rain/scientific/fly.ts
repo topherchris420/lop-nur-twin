@@ -3,7 +3,7 @@
  * fly (src/bethesda/fly/) in closed arenas.
  *
  * The rule is the lab's: models propose, the host writes. A design is a closed
- * object naming one of six protocols and how many seeds; the host builds the
+ * object naming one of eleven protocols and how many seeds; the host builds the
  * arenas, stimuli and both arms, writes the question and hypothesis, freezes
  * the criteria and binds the fly's version, parameter table and source digest.
  *
@@ -139,6 +139,12 @@ const WALKING: FlyControllerConfig = {
   walkStartHz: 1,
   walkStopHz: 0.1,
 };
+/**
+ * ECHO-04's fly: it walks as WALKING does, but often takes off and grooms, so
+ * that its urges meet its inquiries into itself often enough to measure what
+ * its attention does (a block choice, set on the development conditions).
+ */
+const BUSY: FlyControllerConfig = { ...WALKING, takeoffHz: 0.5, groomHz: 0.5 };
 /** Timing shared by the ECHO schedules (each uses its own part). */
 const ECHO_TIMING = {
   onset_s: [30, 40] as [number, number],
@@ -151,13 +157,16 @@ const ECHO_TIMING = {
   reexposure_s: 10,
 };
 const echoBlock = (
-  id: "impairment" | "attribution" | "retention",
+  id: "impairment" | "attribution" | "retention" | "busy",
   duration: number,
   conditions: (keyof typeof HELD_OUT)[],
+  schedule: NonNullable<FlyBlockSpec["echo"]>["schedule"] = id === "busy"
+    ? "impairment"
+    : id,
 ): FlyBlockSpec => ({
   id,
   arena: ECHO_ARENA,
-  fixed_config: WALKING,
+  fixed_config: id === "busy" ? BUSY : WALKING,
   start_half_width_m: 0.4,
   tick_s: ECHO_TICK_S,
   duration_s: duration,
@@ -166,7 +175,7 @@ const echoBlock = (
   near_miss_m: null,
   stimulus: null,
   echo: {
-    schedule: id,
+    schedule,
     conditions: "evaluation",
     condition_set: conditions.map((c) => structuredClone(HELD_OUT[c])),
     ...structuredClone(ECHO_TIMING),
@@ -287,6 +296,14 @@ export const FLY_APPARATUS: Readonly<Record<FlyBlockId, FlyBlockSpec>> = {
     "speed_and_turn_gain",
     "speed_gain_and_turn_bias",
   ]),
+  // The impairment schedule and conditions, on a fly with urges.
+  busy: echoBlock("busy", 120, [
+    "speed_gain",
+    "turn_gain",
+    "turn_bias",
+    "speed_and_turn_gain",
+    "speed_gain_and_turn_bias",
+  ]),
 };
 /** ECHO-03's reset falls this long before the remembered change returns (s). */
 const RESET_BEFORE_S = 5;
@@ -360,6 +377,9 @@ export function describeFlyTreatment(t: FlyTreatment): string {
       return t.variant === "memory_reset"
         ? `the full ECHO self-model reset to an innate one ${RESET_BEFORE_S} s before a remembered change returns`
         : `the ECHO controller with ${VARIANT_LABELS[t.variant]}`;
+    case "echo_attention":
+    case "echo_metacognition":
+      return `the ECHO controller with ${VARIANT_LABELS[t.variant]}`;
   }
 }
 
@@ -382,6 +402,10 @@ export function describeFlyBaseline(t: FlyTreatment): string {
       return "the full ECHO self-model under the same hidden conditions";
     case "echo_retention":
       return "the full ECHO self-model with its memory intact, on the same schedule";
+    case "echo_attention":
+      return "the full ECHO self-model, with its workspace and its model of its own attention, under the same hidden conditions";
+    case "echo_metacognition":
+      return "the full ECHO self-model, which takes a second look before it commits, under the same hidden conditions";
   }
 }
 
@@ -418,6 +442,8 @@ function armsOf(t: FlyTreatment): FlyArm[] {
       );
     case "echo_impairment":
     case "echo_attribution":
+    case "echo_attention":
+    case "echo_metacognition":
       return arms(
         { echo: { variant: "full", reset_s: null } },
         { echo: { variant: t.variant, reset_s: null } },
@@ -460,6 +486,7 @@ function runSeconds(block: FlyBlockSpec, arm: FlyArm): number {
     case "impairment":
     case "attribution":
     case "retention":
+    case "busy":
       return block.duration_s;
     case "escape":
       return (
@@ -1262,6 +1289,7 @@ const BLOCK_SALT: Record<FlyBlockId, number> = {
   impairment: 0x696d70,
   attribution: 0x617474,
   retention: 0x726574,
+  busy: 0x627573,
 };
 
 const finite = (x: number | null): number | null =>
@@ -1659,6 +1687,7 @@ const RUNNERS: Record<FlyBlockId, (b: FlyBlockSpec, a: FlyArm, seed: number) => 
     impairment: (b, a, seed) => runEchoBlock(b, a, seed, BLOCK_SALT.impairment),
     attribution: (b, a, seed) => runEchoBlock(b, a, seed, BLOCK_SALT.attribution),
     retention: (b, a, seed) => runEchoBlock(b, a, seed, BLOCK_SALT.retention),
+    busy: (b, a, seed) => runEchoBlock(b, a, seed, BLOCK_SALT.busy),
   };
 
 /**

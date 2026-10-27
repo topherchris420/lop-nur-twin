@@ -21,9 +21,9 @@ regexTarget = "secret"
 regexes = ['''^soldier-shade-v\d+$''']
 paths = ['''(^|/)src/game/characters/soldierShade\.ts$''']
 
-# The migration pins the public Git commit of the engine that wrote the
-# deployed checkpoint. Gitleaks mistakes this bare 40-hex SHA for a
-# Sourcegraph token. Permit only this exact public SHA in this exact file.
+# The migrations pin the public Git commits of the engines that wrote the
+# deployed checkpoints. Gitleaks mistakes a bare 40-hex SHA for a
+# Sourcegraph token. Permit only these exact public SHAs in this exact file.
 [[rules]]
 id = "sourcegraph-access-token"
 
@@ -32,4 +32,11 @@ description = "Public c8b5fb1 engine commit pinned by the ECHO migration, not a 
 condition = "AND"
 regexTarget = "secret"
 regexes = ['''^c8b5fb163b22381fb08c3c0f4a18d5b92bfc2f4b$''']
+paths = ['''(^|/)src/bethesda/life/echoUpgrade\.ts$''']
+
+[[rules.allowlists]]
+description = "Public 3db627b engine commit pinned by the ECHO v3 continuation, not a credential."
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^3db627bc125415093d6507988a2d8f61949f5240$''']
 paths = ['''(^|/)src/bethesda/life/echoUpgrade\.ts$''']

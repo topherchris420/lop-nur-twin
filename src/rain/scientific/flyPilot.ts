@@ -73,6 +73,7 @@ export const FLY_PILOT_SIZED_METRICS: readonly FlyMetricId[] = [
   "reexposure_path_error",
   "reexposure_latency_s",
   "unfamiliar_path_error",
+  "busy_attribution_latency_s",
 ];
 
 /** The doses a pilot runs against the control, the demonstration's among them. */
@@ -101,6 +102,11 @@ export const FLY_PILOT_SERIES: Partial<Record<FlyProtocolId, FlyTreatment[]>> = 
   echo_retention: (["memory_reset", "no_memory", "no_learning", "reactive"] as const).map(
     (variant) => ({ kind: "echo_retention" as const, variant }),
   ),
+  echo_attention: (["no_workspace", "no_attention_schema"] as const).map((variant) => ({
+    kind: "echo_attention" as const,
+    variant,
+  })),
+  echo_metacognition: [{ kind: "echo_metacognition", variant: "no_metacognition" }],
 };
 
 /** What a pilot runs, recorded in full so that it can be re-run exactly. */
@@ -699,7 +705,7 @@ eight 32-bit seeds per digest), a null arm (the control again on the next
 ${FLY_PILOT_SEEDS_USED} pilot seeds, paired in order: the same code and arm with every random
 stream independent, the apparatus's draws included, so an upper bound on what
 trajectory divergence alone can produce), and what the pilot sized. The scripted demonstrations of the four redesigned
-protocols and the three Project ECHO ones (\`src/rain/scientific/flyExample.ts\`) take their seed counts and
+protocols and the five Project ECHO ones (\`src/rain/scientific/flyExample.ts\`) take their seed counts and
 minimum effects from \`sized\`, and the host's minimum effects for the metrics
 the redesign and ECHO added (FLY_METRICS) come from \`floors\`;
 \`src/rain/scientific/fly.test.ts\` checks both against these files.

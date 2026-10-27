@@ -9,7 +9,8 @@ import type { ReactNode } from "react";
 import type { EchoAdapter } from "./echo/adapter";
 import { BELIEF_NAMES, N, X } from "./echo/forward";
 import { ECHO_VERSION, EP } from "./echo/params";
-import { believedCapability, VARIANT_LABELS } from "./echo/selfModel";
+import { believedCapability, selfReport, VARIANT_LABELS } from "./echo/selfModel";
+import { SOURCE_LABELS } from "./echo/workspace";
 import type { DigitalFly } from "./fly";
 
 function Row({
@@ -59,6 +60,9 @@ export function SelfModelPanel({ fly, echo }: { fly: DigitalFly; echo: EchoAdapt
   const pert = fly.activePerturbation();
   const episodes = m.episodes.slice(-4).reverse();
   const beliefs = m.beliefs.slice(-4).reverse();
+  const report = selfReport(model);
+  const a = report.attending;
+  const A = m.attention;
   return (
     <>
       <p className="text-slate-300">
@@ -73,6 +77,18 @@ export function SelfModelPanel({ fly, echo }: { fly: DigitalFly; echo: EchoAdapt
           {echo.state.replaced.length
             ? `Self-model replaced ${echo.state.replaced.length} times (${echo.state.replaced.map((r) => `${r.how} at ${r.t.toFixed(1)} s`).join(", ")}).`
             : "Self-model never replaced since this fly was placed."}
+        </Row>
+        <Row label="Attending to" tag="fly's workspace">
+          {!m.workspace
+            ? "This variant has no workspace: each process acts on its own."
+            : a
+              ? `${a.what} (${SOURCE_LABELS[a.source]}), for ${(m.t - a.since).toFixed(1)} s${a.shielded ? "; shielding it from the urges it expects" : ""}.`
+              : "Nothing: no content is strong enough to be broadcast."}
+          {A
+            ? ` Its model of its own attention: ${A.expect.next ? `${SOURCE_LABELS[A.expect.next]} is likely to take it next` : "nothing has taken it yet"}${A.expect.remainingS !== null ? `, its present focus to last about ${A.expect.remainingS.toFixed(1)} s more` : ""}.`
+            : m.workspace
+              ? " It keeps no model of its own attention in this variant."
+              : ""}
         </Row>
         <Row label="Predicted vs sensed" tag="fly's estimate">
           {last ? (
@@ -120,8 +136,8 @@ export function SelfModelPanel({ fly, echo }: { fly: DigitalFly; echo: EchoAdapt
         </Row>
         <Row label="Inquiry" tag="fly's estimate">
           {m.inquiry
-            ? `Asking why its predictions fail since ${m.inquiry.since.toFixed(1)} s (${m.inquiry.periods} periods of evidence): ${leading.map((l) => `${l.id} ${(l.p * 100).toFixed(0)}%`).join(", ")}.`
-            : `None open. ${m.counts.inquiries} so far; concluded self ${m.counts.concluded.self}, outside ${m.counts.concluded.external}, both ${m.counts.concluded.both}, sense ${m.counts.concluded.sensor}, nothing ${m.counts.concluded.none}; ${m.counts.recalls} by recalling an episode; ${m.counts.unresolved} unresolved.`}
+            ? `Asking why its predictions fail since ${m.inquiry.since.toFixed(1)} s (${m.inquiry.periods} periods of evidence): ${leading.map((l) => `${l.id} ${(l.p * 100).toFixed(0)}%`).join(", ")}${m.inquiry.check ? `; acting on ${m.inquiry.check.claim} and taking a second look before it commits` : ""}.`
+            : `None open. ${m.counts.inquiries} so far; concluded self ${m.counts.concluded.self}, outside ${m.counts.concluded.external}, both ${m.counts.concluded.both}, sense ${m.counts.concluded.sensor}, nothing ${m.counts.concluded.none}; ${m.counts.recalls} by recalling an episode; ${m.counts.unresolved} unresolved. Second looks confirmed ${m.counts.confirmed}, revised ${m.counts.revised}, and left it unsure ${m.counts.doubted} times.`}
         </Row>
         <Row label="Revised beliefs" tag="fly's estimate">
           {beliefs.length ? (

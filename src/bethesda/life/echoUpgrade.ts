@@ -1,15 +1,19 @@
 /**
- * The one supported, recorded continuation from the deployed reduced-order
- * digital-fly/7 to ECHO v2. Old checkpoints are never edited or restored on
- * new rules. A new checkpoint continues their digest, birth and genesis.
- * The migration preserves the old graph by a checked, reversible projection;
- * only the new wind fields, sense and ECHO wrapper are introduced.
+ * The supported, recorded continuations of the deployed individual: from the
+ * reduced-order digital-fly/7 to ECHO (deployed as ECHO v2; on this engine a
+ * legacy fly goes to v3 directly), and from ECHO v2 to v3, which keeps the
+ * self-model and adds its workspace, attention schema and second look. Old
+ * checkpoints are never edited or restored on new rules. A new checkpoint
+ * continues their digest, birth and genesis. Each migration preserves the old
+ * graph by a checked, reversible projection; only its declared additions are
+ * introduced.
  */
 import { sha256 } from "../../rain/sha256";
 import { DT } from "../simulation";
 import {
   checkpointErrors,
   checkpointLife,
+  historicalCheckpointErrors,
   restoreLife,
   sameVersions,
   type LifeCheckpoint,
@@ -40,10 +44,27 @@ export const LEGACY_VERSIONS = {
 } as const;
 const LEGACY = { ...LEGACY_VERSIONS, graph: GRAPH_SCHEMA };
 const EVENT = "engine-upgrade";
+/** The engine the deployed individual ran on after that upgrade, whose self-model continues into v3. */
+export const ECHO_V2_VERSIONS = {
+  headless: "bethesda-headless-life/v2",
+  city: "bethesda-city/4",
+  fly: "digital-fly/8",
+  echo: "echo-self-model/v2",
+  upgrade: ECHO_UPGRADE,
+} as const;
+const V2 = { ...ECHO_V2_VERSIONS, graph: GRAPH_SCHEMA };
+export const SELF_MODEL_UPGRADE = "bethesda-echo-self-model-upgrade/v1";
+/** The deployed release whose engine wrote the ECHO v2 checkpoints. */
+export const SELF_MODEL_UPGRADE_SOURCE = "3db627bc125415093d6507988a2d8f61949f5240";
+const SELF_MODEL_EVENT = "self-model-upgrade";
 const ROOT = ["cityFly", "fly"];
 const ADAPTER = [...ROOT, "adapter"];
 const WORLD = ["cityFly", "world"];
 const WIND_PARAMS = ["windFeltMS", "windTakeoffMS", "maxAirspeedCmS"];
+const STATE = [...ADAPTER, "model", "state"];
+/** What ECHO v3 adds to a v2 self-model's state, each fresh at the upgrade. */
+const V3_STATE = ["workspace", "attention", "airStep"];
+const V3_COUNTS = ["confirmed", "revised", "doubted", "shielded", "held"];
 type Checkpoint = LifeCheckpoint<HeadlessGenesis>;
 
 /** Same kind and immutable birth; its genesis still says which controller it was born with. */
@@ -52,33 +73,39 @@ export const ECHO_UPGRADED_LIFE: LifeKind<HeadlessGenesis, HeadlessBethesdaLife>
   versions: { ...BETHESDA_LIFE.versions, upgrade: ECHO_UPGRADE },
   build: (g) => BETHESDA_LIFE.build({ ...g, flyController: "echo" }),
   history: {
-    versions: [LEGACY_VERSIONS],
+    versions: [LEGACY_VERSIONS, ECHO_V2_VERSIONS],
     transition: (previous, next) => {
       const errors: string[] = [];
-      const legacy = sameVersions(next.versions, LEGACY);
-      const events = next.events.filter((e) => e.kind === EVENT);
       if (next.genesis.flyController !== "reduced-order")
         errors.push("this continuation requires a reduced-order birth");
+      // The life's engines in order: the legacy reduced-order fly, ECHO v2, this one.
+      const era = (c: Checkpoint) =>
+        sameVersions(c.versions, LEGACY) ? 0 : sameVersions(c.versions, V2) ? 1 : 2;
+      const to = era(next);
+      const upgrades = next.events.filter(
+        (e) => e.kind === EVENT || e.kind === SELF_MODEL_EVENT,
+      );
       if (!previous) {
-        if (!legacy || events.length)
+        if (to !== 0 || upgrades.length)
           errors.push("an upgraded life must have its legacy birth");
         return errors;
       }
-      const wasLegacy = sameVersions(previous.versions, LEGACY);
-      if (legacy) {
-        if (!wasLegacy || events.length)
-          errors.push("a life cannot revert its engine upgrade");
+      const from = era(previous);
+      if (to < from) {
+        errors.push("a life cannot revert its engine upgrade");
         return errors;
       }
-      if (!wasLegacy) {
-        if (!sameVersions(previous.versions, next.versions) || events.length)
+      if (to === from) {
+        if (upgrades.length)
           errors.push("an engine upgrade cannot be repeated or changed");
         return errors;
       }
-      const e = events[0];
+      // From the legacy fly, the engine upgrade; from ECHO v2, the self-model's.
+      const e = upgrades[0];
       if (
-        events.length !== 1 ||
+        upgrades.length !== 1 ||
         !e ||
+        e.kind !== (from === 0 ? EVENT : SELF_MODEL_EVENT) ||
         e.tick !== previous.tick ||
         next.tick !== previous.tick
       ) {
@@ -88,14 +115,21 @@ export const ECHO_UPGRADED_LIFE: LifeKind<HeadlessGenesis, HeadlessBethesdaLife>
         return errors;
       }
       const d = e.data;
+      const declared =
+        from === 0
+          ? d.migration === ECHO_UPGRADE &&
+            d.sourceRelease === ECHO_UPGRADE_SOURCE &&
+            d.selfModel === "innate-at-upgrade"
+          : d.migration === SELF_MODEL_UPGRADE &&
+            d.sourceRelease === SELF_MODEL_UPGRADE_SOURCE &&
+            d.from === ECHO_V2_VERSIONS.echo &&
+            d.to === next.versions.echo;
       if (
-        d.migration !== ECHO_UPGRADE ||
-        d.sourceRelease !== ECHO_UPGRADE_SOURCE ||
+        !declared ||
         d.parent !== previous.digest ||
         d.sourceStateHash !== previous.stateHash ||
         d.sourceGraphDigest !== previous.graphDigest ||
-        d.preservedGraphDigest !== previous.graphDigest ||
-        d.selfModel !== "innate-at-upgrade"
+        d.preservedGraphDigest !== previous.graphDigest
       )
         errors.push("the upgrade does not attest preservation of its exact parent");
       if (
@@ -211,6 +245,15 @@ class Graph {
 
 const graphHash = (g: GraphSnapshot) => sha256(JSON.stringify(g));
 
+function pauseCheck(upgradedUtc: string, stoppedUtc: string): void {
+  if (
+    !Number.isFinite(Date.parse(upgradedUtc)) ||
+    !Number.isFinite(Date.parse(stoppedUtc)) ||
+    Date.parse(stoppedUtc) > Date.parse(upgradedUtc)
+  )
+    throw new Error("upgrade needs its real UTC time");
+}
+
 export interface EchoUpgradeResult {
   life: HeadlessBethesdaLife;
   checkpoint: Checkpoint;
@@ -231,19 +274,15 @@ export function upgradeToEcho(
   if (errors.length) throw new Error(`upgrade refused: ${errors.join("; ")}`);
   if (!source.graph || source.genesis.flyController !== "reduced-order")
     throw new Error("upgrade needs the complete graph of a reduced-order individual");
-  if (
-    !Number.isFinite(Date.parse(upgradedUtc)) ||
-    !Number.isFinite(Date.parse(stoppedUtc)) ||
-    Date.parse(stoppedUtc) > Date.parse(upgradedUtc)
-  )
-    throw new Error("upgrade needs its real UTC time");
-  // Guard this specific migration against future simulator changes.
+  pauseCheck(upgradedUtc, stoppedUtc);
+  // Guard this specific migration against future simulator changes. ECHO
+  // starts innate here, so it starts as the current self-model.
   if (
     BETHESDA_LIFE.versions.fly !== "digital-fly/8" ||
-    BETHESDA_LIFE.versions.echo !== "echo-self-model/v2" ||
+    BETHESDA_LIFE.versions.echo !== "echo-self-model/v3" ||
     BETHESDA_LIFE.versions.city !== LEGACY_VERSIONS.city
   )
-    throw new Error("this migration supports digital-fly/8 and ECHO v2 only");
+    throw new Error("this migration supports digital-fly/8 and ECHO v3 only");
   const old = new Graph(source.graph, false);
   if (
     old.get(["cityFly", "controller"]) !== "reduced-order" ||
@@ -361,6 +400,104 @@ export function upgradeToEcho(
           groundVelocity,
           airVelocity,
           wind,
+        },
+      },
+    ],
+  });
+  const transition = ECHO_UPGRADED_LIFE.history!.transition(source, checkpoint);
+  if (transition.length) throw new Error(transition.join("; "));
+  restoreLife(ECHO_UPGRADED_LIFE, checkpoint);
+  return { life, checkpoint };
+}
+
+/**
+ * Continue an ECHO v2 individual on ECHO v3. Everything its self-model holds
+ * is kept: its beliefs and their uncertainty, its trust in its senses, its
+ * detectors, an open inquiry, its episodes and its counts. The workspace and
+ * the attention schema start empty, nothing before the upgrade is counted as
+ * checked, revised or shielded, and an open inquiry starts without a second
+ * look. Called only after the exact v2 release has restored and verified
+ * `source`. No time advances here.
+ */
+export function continueEchoSelfModel(
+  source: Checkpoint,
+  upgradedUtc: string,
+  stoppedUtc = upgradedUtc,
+): EchoUpgradeResult {
+  if (!sameVersions(source.versions, V2))
+    throw new Error("upgrade refused: the source is not an ECHO v2 checkpoint");
+  const errors = historicalCheckpointErrors(ECHO_UPGRADED_LIFE, source);
+  if (errors.length) throw new Error(`upgrade refused: ${errors.join("; ")}`);
+  if (!source.graph) throw new Error("upgrade needs the complete graph");
+  pauseCheck(upgradedUtc, stoppedUtc);
+  if (
+    BETHESDA_LIFE.versions.echo !== "echo-self-model/v3" ||
+    BETHESDA_LIFE.versions.fly !== ECHO_V2_VERSIONS.fly ||
+    BETHESDA_LIFE.versions.city !== ECHO_V2_VERSIONS.city ||
+    BETHESDA_LIFE.versions.headless !== ECHO_V2_VERSIONS.headless
+  )
+    throw new Error("this continuation supports ECHO v2 to v3 on digital-fly/8 only");
+  const old = new Graph(source.graph, false);
+  if (
+    old.get(["cityFly", "controller"]) !== "echo" ||
+    old.object(ADAPTER).c !== "EchoAdapter" ||
+    old.get([...STATE, "schema"]) !== "echo-state/v2" ||
+    old.get([...STATE, "version"]) !== ECHO_V2_VERSIONS.echo ||
+    old.get([...STATE, "variant"]) !== "full" ||
+    old.get(["cityFly", "failed"]) !== null
+  )
+    throw new Error("upgrade source is not a healthy ECHO v2 fly");
+  const descriptor = old.get([...ADAPTER, "descriptor", "id"]);
+  const fresh = () => ECHO_UPGRADED_LIFE.build(structuredClone(source.genesis));
+  const template = new Graph(snapshotGraph(fresh(), indexGraph(fresh())), false);
+  const graph = new Graph(source.graph);
+  for (const key of ["workspace", "attention"])
+    graph.set([...STATE, key], graph.import(template, template.get([...STATE, key])));
+  graph.set([...STATE, "airStep"], false);
+  for (const key of V3_COUNTS) graph.set([...STATE, "counts", key], 0);
+  for (const key of ["schema", "version"])
+    graph.set([...STATE, key], template.get([...STATE, key]));
+  graph.set(
+    [...ADAPTER, "descriptor", "id"],
+    template.get([...ADAPTER, "descriptor", "id"]),
+  );
+  const open = graph.get([...STATE, "inquiry"]) !== null;
+  if (open) graph.set([...STATE, "inquiry", "check"], null);
+  const life = restoreGraph(graph.snapshot, fresh());
+  if (life.city.tick !== source.tick)
+    throw new Error("upgrade advanced the city's clock");
+  // Reverse only the declared additions, and require every old graph byte back.
+  const projection = new Graph(snapshotGraph(life, indexGraph(fresh())), false);
+  for (const key of V3_STATE) projection.remove([...STATE, key]);
+  for (const key of V3_COUNTS) projection.remove([...STATE, "counts", key]);
+  if (open) projection.remove([...STATE, "inquiry", "check"]);
+  projection.set([...STATE, "schema"], "echo-state/v2");
+  projection.set([...STATE, "version"], ECHO_V2_VERSIONS.echo);
+  projection.set([...ADAPTER, "descriptor", "id"], descriptor);
+  const preservedGraphDigest = graphHash(projection.canonical());
+  if (preservedGraphDigest !== source.graphDigest)
+    throw new Error("upgrade refused: the old state did not survive byte for byte");
+  const checkpoint = checkpointLife(ECHO_UPGRADED_LIFE, life, {
+    genesis: source.genesis,
+    birth: source.birth,
+    previous: source,
+    events: [
+      {
+        tick: source.tick,
+        kind: SELF_MODEL_EVENT,
+        data: {
+          migration: SELF_MODEL_UPGRADE,
+          sourceRelease: SELF_MODEL_UPGRADE_SOURCE,
+          from: ECHO_V2_VERSIONS.echo,
+          to: ECHO_UPGRADED_LIFE.versions.echo,
+          parent: source.digest,
+          sourceStateHash: source.stateHash,
+          sourceGraphDigest: source.graphDigest,
+          preservedGraphDigest,
+          upgradedUtc,
+          pausedFromUtc: stoppedUtc,
+          added: "a workspace and an attention schema, empty, and a second look",
+          inquiryOpen: open,
         },
       },
     ],

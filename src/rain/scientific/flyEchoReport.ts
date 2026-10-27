@@ -35,6 +35,7 @@ import { FLY_APPARATUS } from "./fly.js";
 import { FLY_SOURCE } from "./flySource.js";
 import {
   attributionMetrics,
+  busyMetrics,
   deriveEcho,
   drawEchoSchedule,
   ECHO_DEVELOPMENT_CONDITIONS as DEV,
@@ -59,6 +60,7 @@ const SALTS = {
   impairment: 0x696d70,
   attribution: 0x617474,
   retention: 0x726574,
+  busy: 0x627573,
 } as const;
 type Schedule = keyof typeof SALTS;
 
@@ -94,6 +96,7 @@ export const ECHO_EVALUATION_ARMS: Record<
     { id: "no_uncertainty", variant: "no_uncertainty", reset: false },
     { id: "no_memory", variant: "no_memory", reset: false },
     { id: "no_learning", variant: "no_learning", reset: false },
+    { id: "no_metacognition", variant: "no_metacognition", reset: false },
   ],
   retention: [
     { id: "full", variant: "full", reset: false },
@@ -101,6 +104,11 @@ export const ECHO_EVALUATION_ARMS: Record<
     { id: "no_memory", variant: "no_memory", reset: false },
     { id: "no_learning", variant: "no_learning", reset: false },
     { id: "reactive", variant: "reactive", reset: false },
+  ],
+  busy: [
+    { id: "full", variant: "full", reset: false },
+    { id: "no_workspace", variant: "no_workspace", reset: false },
+    { id: "no_attention_schema", variant: "no_attention_schema", reset: false },
   ],
 };
 
@@ -182,6 +190,7 @@ export interface CellResult {
 
 function metricsOf(trial: EchoTrial, block: FlyBlockSpec): Record<string, number | null> {
   const a = block.echo!;
+  if (block.id === "busy") return { ...busyMetrics(trial, a, block.duration_s) };
   switch (a.schedule) {
     case "impairment":
       return { ...impairmentMetrics(trial, a, block.duration_s) };
@@ -469,11 +478,17 @@ const KEY_METRICS: Record<Schedule, string[]> = {
     "recalls",
     "false_recalls",
   ],
+  busy: [
+    "busy_attribution_latency_s",
+    "busy_identification_error",
+    "busy_impaired_path_error",
+  ],
 };
 const TITLES: Record<Schedule, string> = {
   impairment: "ECHO-01 · recognizing a bodily impairment",
-  attribution: "ECHO-02 · self versus external causation",
+  attribution: "ECHO-02 · self versus external causation, and ECHO-05 · a second look",
   retention: "ECHO-03 · learning retained through time",
+  busy: "ECHO-04 · attention: a workspace and a model of it, on a fly with urges",
 };
 const CELL_TEXT: Record<Cell, string> = {
   development:
@@ -555,6 +570,16 @@ Cells: ${ECHO_CELLS.map((c) => `**${c}**: ${CELL_TEXT[c]}`).join("; ")}.
             out.push(
               `| ${b.bin[0]}–${b.bin[1]} | ${b.n} | ${num(b.stated)} | ${num(b.accuracy)} |`,
             );
+          const once = r.attribution[`${cell}/no_metacognition`];
+          if (once) {
+            out.push(
+              `\nWithout the second look (no_metacognition), expected calibration error ${num(once.reliability.expected_calibration_error)}:\n\n| stated posterior | conclusions | mean stated | accuracy |\n| :--- | ---: | ---: | ---: |`,
+            );
+            for (const b of once.reliability.rows)
+              out.push(
+                `| ${b.bin[0]}–${b.bin[1]} | ${b.n} | ${num(b.stated)} | ${num(b.accuracy)} |`,
+              );
+          }
         }
       }
       out.push("");

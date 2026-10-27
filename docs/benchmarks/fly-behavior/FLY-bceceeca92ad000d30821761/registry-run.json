@@ -1,0 +1,1338 @@
+{
+  "schema_version": "rain-experiment-run/v1",
+  "experiment_id": "V3D-EXP-0055",
+  "run_id": "V3D-EXP-0055-RUN-0001",
+  "kind": "external",
+  "reproduces": null,
+  "status": "passed",
+  "hypothesis_verdict": "supported",
+  "evidence_class": "simulated",
+  "started_at": "2026-10-27T04:07:37.239Z",
+  "finished_at": "2026-10-27T04:08:12.651Z",
+  "duration_ms": 35412,
+  "seed": null,
+  "parameters": {
+    "scientific_plan_sha256": "bceceeca92ad000d30821761d4af4528dce6e3a0a091dd08dcd28af82706cfbb"
+  },
+  "definition": {
+    "created_at": "2026-10-27T04:07:37.084Z",
+    "created_by": "R.A.I.N.Host",
+    "criteria": {
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "note": "Exact one-sided sign test finds the opposite direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ],
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "note": "Every matched run completes",
+          "op": ">=",
+          "value": 20
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "note": "An independent re-simulation reproduces every state hash and measurement",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+          "op": ">=",
+          "value": 1
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "note": "Enough seeds differ between the arms for the sign test",
+          "op": ">=",
+          "value": 6
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "note": "The fly's gate refused no command in any run",
+          "op": "<=",
+          "value": 0
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "note": "Mean paired difference beyond the minimum effect",
+          "op": "<=",
+          "value": -0.12
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "note": "Exact one-sided sign test in the expected direction",
+          "op": "<=",
+          "value": 0.05
+        }
+      ]
+    },
+    "data_policy": {
+      "classification": "internal",
+      "store_artifacts": false
+    },
+    "dependencies": [],
+    "evidence_class": "simulated",
+    "experiment_id": "V3D-EXP-0055",
+    "experiment_version": 1,
+    "hypothesis": "Turning away from surfaces whose time to contact falls below 0.45 s will decrease cruise_collision_episodes_per_m by at least 0.12 1/m on average over 10 matched seeds drawn after preregistration, compared with avoidance off (avoidTtcS = 0), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+    "limitations": [
+      "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+      "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+      "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+      "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+      "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+      "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+      "Seeds are replicates of one model, not samples of real flies."
+    ],
+    "metrics": [
+      {
+        "description": "matched runs (seed x arm x block) that completed",
+        "deterministic": true,
+        "name": "runs_completed",
+        "unit": "count"
+      },
+      {
+        "description": "a second simulation reached every recorded state hash and measurement",
+        "deterministic": true,
+        "name": "determinism_check",
+        "unit": "1 if reproduced"
+      },
+      {
+        "description": "matched seeds, drawn by the host after preregistration",
+        "deterministic": true,
+        "name": "seeds",
+        "unit": "count"
+      },
+      {
+        "description": "fly-seconds simulated across all runs",
+        "deterministic": true,
+        "name": "simulated_seconds",
+        "unit": "s"
+      },
+      {
+        "description": "commands the fly's gate refused, over every run",
+        "deterministic": true,
+        "name": "gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the control arm",
+        "deterministic": true,
+        "name": "control_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "commands the gate refused in the treatment arm",
+        "deterministic": true,
+        "name": "treatment_gate_refusals",
+        "unit": "count"
+      },
+      {
+        "description": "mean cruise_collision_episodes_per_m in the control arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "control_mean",
+        "unit": "1/m"
+      },
+      {
+        "description": "mean cruise_collision_episodes_per_m in the treatment arm, over seeds defined in both arms",
+        "deterministic": true,
+        "name": "treatment_mean",
+        "unit": "1/m"
+      },
+      {
+        "description": "treatment minus control cruise_collision_episodes_per_m, averaged over seeds defined in both arms",
+        "deterministic": true,
+        "name": "mean_paired_delta",
+        "unit": "1/m"
+      },
+      {
+        "description": "seeds whose difference lies in the expected direction",
+        "deterministic": true,
+        "name": "seeds_expected_direction",
+        "unit": "count"
+      },
+      {
+        "description": "seeds whose difference lies in the opposite direction",
+        "deterministic": true,
+        "name": "seeds_opposite",
+        "unit": "count"
+      },
+      {
+        "description": "seeds with no difference (ties)",
+        "deterministic": true,
+        "name": "seeds_unchanged",
+        "unit": "count"
+      },
+      {
+        "description": "seeds where the metric is undefined in an arm; they drop out of the test",
+        "deterministic": true,
+        "name": "seeds_undefined",
+        "unit": "count"
+      },
+      {
+        "description": "seeds that differ between the arms",
+        "deterministic": true,
+        "name": "untied_pairs",
+        "unit": "count"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the expected direction",
+        "deterministic": true,
+        "name": "sign_test_p_expected",
+        "unit": "probability"
+      },
+      {
+        "description": "exact one-sided sign test p-value in the opposite direction",
+        "deterministic": true,
+        "name": "sign_test_p_opposite",
+        "unit": "probability"
+      },
+      {
+        "description": "0 when the control arm sits at the metric's floor or ceiling in every seed",
+        "deterministic": true,
+        "name": "control_informative",
+        "unit": "1 if informative"
+      },
+      {
+        "description": "control arm, mean over seeds: collision episodes per metre flown in pillar clutter",
+        "deterministic": true,
+        "name": "control_collision_episodes_per_m",
+        "unit": "1/m"
+      },
+      {
+        "description": "treatment arm, mean over seeds: collision episodes per metre flown in pillar clutter",
+        "deterministic": true,
+        "name": "treatment_collision_episodes_per_m",
+        "unit": "1/m"
+      },
+      {
+        "description": "control arm, mean over seeds: collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter",
+        "deterministic": true,
+        "name": "control_cruise_collision_episodes_per_m",
+        "unit": "1/m"
+      },
+      {
+        "description": "treatment arm, mean over seeds: collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter",
+        "deterministic": true,
+        "name": "treatment_cruise_collision_episodes_per_m",
+        "unit": "1/m"
+      },
+      {
+        "description": "control arm, mean over seeds: collision episodes in pillar clutter (contacts less than 0.1 s apart are one episode)",
+        "deterministic": true,
+        "name": "control_collision_episodes",
+        "unit": "count"
+      },
+      {
+        "description": "treatment arm, mean over seeds: collision episodes in pillar clutter (contacts less than 0.1 s apart are one episode)",
+        "deterministic": true,
+        "name": "treatment_collision_episodes",
+        "unit": "count"
+      },
+      {
+        "description": "control arm, mean over seeds: fraction of cruising flight spent within 5 cm of a pillar or wall, measured by the host from the arena's geometry",
+        "deterministic": true,
+        "name": "control_near_miss_fraction",
+        "unit": "fraction"
+      },
+      {
+        "description": "treatment arm, mean over seeds: fraction of cruising flight spent within 5 cm of a pillar or wall, measured by the host from the arena's geometry",
+        "deterministic": true,
+        "name": "treatment_near_miss_fraction",
+        "unit": "fraction"
+      },
+      {
+        "description": "control arm, mean over seeds: distance flown in pillar clutter",
+        "deterministic": true,
+        "name": "control_flown_m",
+        "unit": "m"
+      },
+      {
+        "description": "treatment arm, mean over seeds: distance flown in pillar clutter",
+        "deterministic": true,
+        "name": "treatment_flown_m",
+        "unit": "m"
+      },
+      {
+        "description": "control arm, mean over seeds: body saccades per second of flight in pillar clutter",
+        "deterministic": true,
+        "name": "control_saccades_per_flight_s",
+        "unit": "1/s"
+      },
+      {
+        "description": "treatment arm, mean over seeds: body saccades per second of flight in pillar clutter",
+        "deterministic": true,
+        "name": "treatment_saccades_per_flight_s",
+        "unit": "1/s"
+      },
+      {
+        "description": "control arm, mean over seeds: time spent pressed against a surface while flying or landing in pillar clutter",
+        "deterministic": true,
+        "name": "control_contact_s",
+        "unit": "s"
+      },
+      {
+        "description": "treatment arm, mean over seeds: time spent pressed against a surface while flying or landing in pillar clutter",
+        "deterministic": true,
+        "name": "treatment_contact_s",
+        "unit": "s"
+      }
+    ],
+    "parameters": {
+      "scientific_plan": {
+        "criteria": {
+          "failure": [
+            {
+              "id": "F1",
+              "metric": "sign_test_p_opposite",
+              "note": "Exact one-sided sign test finds the opposite direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ],
+          "guards": [
+            {
+              "id": "G1",
+              "metric": "runs_completed",
+              "note": "Every matched run completes",
+              "op": ">=",
+              "value": 20
+            },
+            {
+              "id": "G2",
+              "metric": "determinism_check",
+              "note": "An independent re-simulation reproduces every state hash and measurement",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G3",
+              "metric": "control_informative",
+              "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways",
+              "op": ">=",
+              "value": 1
+            },
+            {
+              "id": "G4",
+              "metric": "untied_pairs",
+              "note": "Enough seeds differ between the arms for the sign test",
+              "op": ">=",
+              "value": 6
+            },
+            {
+              "id": "G5",
+              "metric": "gate_refusals",
+              "note": "The fly's gate refused no command in any run",
+              "op": "<=",
+              "value": 0
+            }
+          ],
+          "success": [
+            {
+              "id": "S1",
+              "metric": "mean_paired_delta",
+              "note": "Mean paired difference beyond the minimum effect",
+              "op": "<=",
+              "value": -0.12
+            },
+            {
+              "id": "S2",
+              "metric": "sign_test_p_expected",
+              "note": "Exact one-sided sign test in the expected direction",
+              "op": "<=",
+              "value": 0.05
+            }
+          ]
+        },
+        "definition_sha256": "bceceeca92ad000d30821761d4af4528dce6e3a0a091dd08dcd28af82706cfbb",
+        "design": {
+          "analysis": {
+            "expected_direction": "decrease",
+            "method": "matched_seed_sign_test",
+            "metric": "cruise_collision_episodes_per_m",
+            "minimum_effect": 0.12
+          },
+          "budget": {
+            "max_simulated_seconds": 16000
+          },
+          "competing_hypothesis": "[scripted] Spontaneous saccades and the arena layout alone set the collision rate; the avoidance rule changes little.",
+          "hypothesis": "[scripted] Saccading away from surfaces under 0.45 s to contact reduces collision episodes per metre flown.",
+          "parameters": {
+            "seed_count": 10,
+            "treatment": {
+              "avoid_ttc_s": 0.45,
+              "kind": "obstacle_avoidance"
+            }
+          },
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "[scripted] Does the simulated fly's time-to-contact avoidance rule reduce collisions in pillar clutter?",
+          "schema": "rain-fly-design/v3"
+        },
+        "experiment": {
+          "arms": [
+            {
+              "config": {
+                "avoidTtcS": 0
+              },
+              "id": "control",
+              "isi_s": 90,
+              "l_over_v_ms": 40,
+              "light_intensity": 2,
+              "noise": 0
+            },
+            {
+              "config": {
+                "avoidTtcS": 0.45
+              },
+              "id": "treatment",
+              "isi_s": 90,
+              "l_over_v_ms": 40,
+              "light_intensity": 2,
+              "noise": 0
+            }
+          ],
+          "blocks": [
+            {
+              "arena": {
+                "ambient": 0.6,
+                "pillars": [
+                  {
+                    "r": 0.15,
+                    "x": -1.2,
+                    "z": -1.2
+                  },
+                  {
+                    "r": 0.15,
+                    "x": -1.2,
+                    "z": -0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": -1.2,
+                    "z": 0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": -1.2,
+                    "z": 1.2
+                  },
+                  {
+                    "r": 0.15,
+                    "x": -0.4,
+                    "z": -1.2
+                  },
+                  {
+                    "r": 0.15,
+                    "x": -0.4,
+                    "z": -0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": -0.4,
+                    "z": 0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": -0.4,
+                    "z": 1.2
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 0.4,
+                    "z": -1.2
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 0.4,
+                    "z": -0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 0.4,
+                    "z": 0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 0.4,
+                    "z": 1.2
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 1.2,
+                    "z": -1.2
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 1.2,
+                    "z": -0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 1.2,
+                    "z": 0.4
+                  },
+                  {
+                    "r": 0.15,
+                    "x": 1.2,
+                    "z": 1.2
+                  }
+                ],
+                "size": [
+                  4,
+                  2.5,
+                  4
+                ]
+              },
+              "duration_s": 120,
+              "fixed_config": {
+                "takeoffHz": 0.5
+              },
+              "id": "clutter",
+              "light_at": null,
+              "near_miss_m": 0.05,
+              "start_half_width_m": 0.25,
+              "stimulus": null,
+              "tick_s": 0.005,
+              "trials": 1
+            }
+          ],
+          "protocol": "obstacle_avoidance",
+          "schema": "digital-fly-experiment/v3",
+          "seed_count": 10
+        },
+        "experiment_id": "FLY-bceceeca92ad000d30821761",
+        "fly": "digital-fly/8 reduced-order-fsm/v1",
+        "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+        "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+        "ir": {
+          "backend": "digital-fly",
+          "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+          "controls": [
+            "baseline arm: avoidance off (avoidTtcS = 0)",
+            "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+            "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+            "fixed apparatus settings, both arms — clutter block: takeoffHz = 0.5",
+            "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+          ],
+          "dependent_variables": [
+            "cruise_collision_episodes_per_m"
+          ],
+          "domain": "fly-behavior-simulation",
+          "falsification": {
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "unit": "probability",
+            "value": 0.05
+          },
+          "hypothesis": "Turning away from surfaces whose time to contact falls below 0.45 s will decrease cruise_collision_episodes_per_m by at least 0.12 1/m on average over 10 matched seeds drawn after preregistration, compared with avoidance off (avoidTtcS = 0), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+          "independent_variables": [
+            "turning away from surfaces whose time to contact falls below 0.45 s"
+          ],
+          "limitations": [
+            "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+            "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+            "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+            "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+            "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+            "A result characterizes the simulator and is never empirical evidence about Drosophila."
+          ],
+          "observables": [
+            {
+              "description": "collision episodes per metre flown in pillar clutter",
+              "id": "collision_episodes_per_m",
+              "unit": "1/m"
+            },
+            {
+              "description": "collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter",
+              "id": "cruise_collision_episodes_per_m",
+              "unit": "1/m"
+            },
+            {
+              "description": "collision episodes in pillar clutter (contacts less than 0.1 s apart are one episode)",
+              "id": "collision_episodes",
+              "unit": "count"
+            },
+            {
+              "description": "fraction of cruising flight spent within 5 cm of a pillar or wall, measured by the host from the arena's geometry",
+              "id": "near_miss_fraction",
+              "unit": "fraction"
+            },
+            {
+              "description": "distance flown in pillar clutter",
+              "id": "flown_m",
+              "unit": "m"
+            },
+            {
+              "description": "body saccades per second of flight in pillar clutter",
+              "id": "saccades_per_flight_s",
+              "unit": "1/s"
+            },
+            {
+              "description": "time spent pressed against a surface while flying or landing in pillar clutter",
+              "id": "contact_s",
+              "unit": "s"
+            },
+            {
+              "description": "treatment minus control cruise_collision_episodes_per_m, averaged over the seeds where both are defined",
+              "id": "mean_paired_delta",
+              "unit": "1/m"
+            },
+            {
+              "description": "exact one-sided sign test p-value for a decrease, over untied seeds",
+              "id": "sign_test_p_expected",
+              "unit": "probability"
+            },
+            {
+              "description": "the same test in the opposite direction",
+              "id": "sign_test_p_opposite",
+              "unit": "probability"
+            }
+          ],
+          "parameter_constraints": [
+            "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+            "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+            "the integration settings (physics, sensing and decision periods) are never varied",
+            "at most 16000 simulated fly-seconds per experiment",
+            "8-16 seeds, drawn by the host after preregistration",
+            "a minimum effect at or above the host's 0.01 1/m for cruise_collision_episodes_per_m"
+          ],
+          "provenance": {
+            "decision_sha256": null,
+            "generation": "scripted",
+            "parent_record_sha256": null,
+            "source_ids": []
+          },
+          "question": "In the digital fly simulator, how does turning away from surfaces whose time to contact falls below 0.45 s change collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter, against avoidance off (avoidTtcS = 0) on matched seeds?",
+          "resource_budget": {
+            "execution_steps": 480000,
+            "max_samples": 20,
+            "replay_steps": 480000
+          },
+          "schema": "rain-scientific-experiment/v1",
+          "statistical_analysis": {
+            "independent_replicates": 10,
+            "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+            "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+          }
+        },
+        "schema": "rain-fly-plan/v2",
+        "simulated_seconds": 2400
+      }
+    },
+    "procedure": [
+      "Preregister the exact fly plan; the registry's receipt fixes when.",
+      "A person at a terminal (or, for the host's demonstration designs, the demonstration script) authorizes the plan once; the authorization binds the receipt and draws a random nonce.",
+      "Derive the seeds from SHA-256 of the receipt digest and the nonce, and refuse any this fly has already run.",
+      "Run every seed in both arms on the host-built arenas and stimuli of the protocol, counting the gate's refusals.",
+      "Simulate every run a second time and require each state hash and measurement.",
+      "Recompile and re-simulate again before registry admission, from committed code only."
+    ],
+    "question": "In the digital fly simulator, how does turning away from surfaces whose time to contact falls below 0.45 s change collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter, against avoidance off (avoidTtcS = 0) on matched seeds?",
+    "rationale": "Bounded experiment on the digital fly's reduced-order controller in a closed arena: seeds drawn by the host after preregistration, an exact one-sided sign test at alpha 0.05 on at least 6 untied seeds, and independent re-simulation.",
+    "runner": {
+      "adapter": "digital-fly-behavior/v3",
+      "kind": "external",
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "schema_version": "rain-experiment/v1",
+    "seed": null,
+    "subsystem": {
+      "component": "digital-fly",
+      "paths": [],
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "title": "Matched-seed digital fly behaviour",
+    "variables": {
+      "controls": [
+        "baseline arm: avoidance off (avoidTtcS = 0)",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "fixed apparatus settings, both arms — clutter block: takeoffHz = 0.5",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "dependent": [
+        "cruise_collision_episodes_per_m"
+      ],
+      "independent": [
+        "turning away from surfaces whose time to contact falls below 0.45 s"
+      ]
+    }
+  },
+  "definition_sha256": "872d0af8e8a3a715cccd336b8c477a3a824967764ba20a8de0f2a294dd50b89c",
+  "inputs": {
+    "scientific_plan": {
+      "schema": "rain-fly-plan/v2",
+      "design": {
+        "schema": "rain-fly-design/v3",
+        "question": "[scripted] Does the simulated fly's time-to-contact avoidance rule reduce collisions in pillar clutter?",
+        "hypothesis": "[scripted] Saccading away from surfaces under 0.45 s to contact reduces collision episodes per metre flown.",
+        "competing_hypothesis": "[scripted] Spontaneous saccades and the arena layout alone set the collision rate; the avoidance rule changes little.",
+        "parameters": {
+          "seed_count": 10,
+          "treatment": {
+            "kind": "obstacle_avoidance",
+            "avoid_ttc_s": 0.45
+          }
+        },
+        "analysis": {
+          "method": "matched_seed_sign_test",
+          "metric": "cruise_collision_episodes_per_m",
+          "expected_direction": "decrease",
+          "minimum_effect": 0.12
+        },
+        "budget": {
+          "max_simulated_seconds": 16000
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        }
+      },
+      "ir": {
+        "schema": "rain-scientific-experiment/v1",
+        "domain": "fly-behavior-simulation",
+        "backend": "digital-fly",
+        "backend_version": "digital-fly-behavior/v3 (digital-fly/8 reduced-order-fsm/v1)",
+        "question": "In the digital fly simulator, how does turning away from surfaces whose time to contact falls below 0.45 s change collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter, against avoidance off (avoidTtcS = 0) on matched seeds?",
+        "hypothesis": "Turning away from surfaces whose time to contact falls below 0.45 s will decrease cruise_collision_episodes_per_m by at least 0.12 1/m on average over 10 matched seeds drawn after preregistration, compared with avoidance off (avoidTtcS = 0), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+        "observables": [
+          {
+            "id": "collision_episodes_per_m",
+            "unit": "1/m",
+            "description": "collision episodes per metre flown in pillar clutter"
+          },
+          {
+            "id": "cruise_collision_episodes_per_m",
+            "unit": "1/m",
+            "description": "collision episodes that began in cruising flight (not during a landing approach) per metre flown in pillar clutter"
+          },
+          {
+            "id": "collision_episodes",
+            "unit": "count",
+            "description": "collision episodes in pillar clutter (contacts less than 0.1 s apart are one episode)"
+          },
+          {
+            "id": "near_miss_fraction",
+            "unit": "fraction",
+            "description": "fraction of cruising flight spent within 5 cm of a pillar or wall, measured by the host from the arena's geometry"
+          },
+          {
+            "id": "flown_m",
+            "unit": "m",
+            "description": "distance flown in pillar clutter"
+          },
+          {
+            "id": "saccades_per_flight_s",
+            "unit": "1/s",
+            "description": "body saccades per second of flight in pillar clutter"
+          },
+          {
+            "id": "contact_s",
+            "unit": "s",
+            "description": "time spent pressed against a surface while flying or landing in pillar clutter"
+          },
+          {
+            "id": "mean_paired_delta",
+            "unit": "1/m",
+            "description": "treatment minus control cruise_collision_episodes_per_m, averaged over the seeds where both are defined"
+          },
+          {
+            "id": "sign_test_p_expected",
+            "unit": "probability",
+            "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+          },
+          {
+            "id": "sign_test_p_opposite",
+            "unit": "probability",
+            "description": "the same test in the opposite direction"
+          }
+        ],
+        "independent_variables": [
+          "turning away from surfaces whose time to contact falls below 0.45 s"
+        ],
+        "dependent_variables": [
+          "cruise_collision_episodes_per_m"
+        ],
+        "controls": [
+          "baseline arm: avoidance off (avoidTtcS = 0)",
+          "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+          "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+          "fixed apparatus settings, both arms — clutter block: takeoffHz = 0.5",
+          "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+        ],
+        "parameter_constraints": [
+          "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+          "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+          "the integration settings (physics, sensing and decision periods) are never varied",
+          "at most 16000 simulated fly-seconds per experiment",
+          "8-16 seeds, drawn by the host after preregistration",
+          "a minimum effect at or above the host's 0.01 1/m for cruise_collision_episodes_per_m"
+        ],
+        "resource_budget": {
+          "execution_steps": 480000,
+          "replay_steps": 480000,
+          "max_samples": 20
+        },
+        "statistical_analysis": {
+          "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+          "independent_replicates": 10,
+          "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+        },
+        "falsification": {
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "unit": "probability"
+        },
+        "provenance": {
+          "generation": "scripted",
+          "decision_sha256": null,
+          "source_ids": [],
+          "parent_record_sha256": null
+        },
+        "limitations": [
+          "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+          "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+          "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+          "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+          "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+          "A result characterizes the simulator and is never empirical evidence about Drosophila."
+        ]
+      },
+      "fly": "digital-fly/8 reduced-order-fsm/v1",
+      "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+      "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+      "experiment": {
+        "schema": "digital-fly-experiment/v3",
+        "protocol": "obstacle_avoidance",
+        "seed_count": 10,
+        "blocks": [
+          {
+            "id": "clutter",
+            "arena": {
+              "size": [
+                4,
+                2.5,
+                4
+              ],
+              "ambient": 0.6,
+              "pillars": [
+                {
+                  "x": -1.2,
+                  "z": -1.2,
+                  "r": 0.15
+                },
+                {
+                  "x": -1.2,
+                  "z": -0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": -1.2,
+                  "z": 0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": -1.2,
+                  "z": 1.2,
+                  "r": 0.15
+                },
+                {
+                  "x": -0.4,
+                  "z": -1.2,
+                  "r": 0.15
+                },
+                {
+                  "x": -0.4,
+                  "z": -0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": -0.4,
+                  "z": 0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": -0.4,
+                  "z": 1.2,
+                  "r": 0.15
+                },
+                {
+                  "x": 0.4,
+                  "z": -1.2,
+                  "r": 0.15
+                },
+                {
+                  "x": 0.4,
+                  "z": -0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": 0.4,
+                  "z": 0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": 0.4,
+                  "z": 1.2,
+                  "r": 0.15
+                },
+                {
+                  "x": 1.2,
+                  "z": -1.2,
+                  "r": 0.15
+                },
+                {
+                  "x": 1.2,
+                  "z": -0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": 1.2,
+                  "z": 0.4,
+                  "r": 0.15
+                },
+                {
+                  "x": 1.2,
+                  "z": 1.2,
+                  "r": 0.15
+                }
+              ]
+            },
+            "fixed_config": {
+              "takeoffHz": 0.5
+            },
+            "start_half_width_m": 0.25,
+            "tick_s": 0.005,
+            "duration_s": 120,
+            "trials": 1,
+            "light_at": null,
+            "near_miss_m": 0.05,
+            "stimulus": null
+          }
+        ],
+        "arms": [
+          {
+            "config": {
+              "avoidTtcS": 0
+            },
+            "noise": 0,
+            "light_intensity": 2,
+            "l_over_v_ms": 40,
+            "isi_s": 90,
+            "id": "control"
+          },
+          {
+            "config": {
+              "avoidTtcS": 0.45
+            },
+            "noise": 0,
+            "light_intensity": 2,
+            "l_over_v_ms": 40,
+            "isi_s": 90,
+            "id": "treatment"
+          }
+        ]
+      },
+      "simulated_seconds": 2400,
+      "criteria": {
+        "guards": [
+          {
+            "id": "G1",
+            "metric": "runs_completed",
+            "op": ">=",
+            "value": 20,
+            "note": "Every matched run completes"
+          },
+          {
+            "id": "G2",
+            "metric": "determinism_check",
+            "op": ">=",
+            "value": 1,
+            "note": "An independent re-simulation reproduces every state hash and measurement"
+          },
+          {
+            "id": "G3",
+            "metric": "control_informative",
+            "op": ">=",
+            "value": 1,
+            "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+          },
+          {
+            "id": "G4",
+            "metric": "untied_pairs",
+            "op": ">=",
+            "value": 6,
+            "note": "Enough seeds differ between the arms for the sign test"
+          },
+          {
+            "id": "G5",
+            "metric": "gate_refusals",
+            "op": "<=",
+            "value": 0,
+            "note": "The fly's gate refused no command in any run"
+          }
+        ],
+        "success": [
+          {
+            "id": "S1",
+            "metric": "mean_paired_delta",
+            "op": "<=",
+            "value": -0.12,
+            "note": "Mean paired difference beyond the minimum effect"
+          },
+          {
+            "id": "S2",
+            "metric": "sign_test_p_expected",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test in the expected direction"
+          }
+        ],
+        "failure": [
+          {
+            "id": "F1",
+            "metric": "sign_test_p_opposite",
+            "op": "<=",
+            "value": 0.05,
+            "note": "Exact one-sided sign test finds the opposite direction"
+          }
+        ]
+      },
+      "definition_sha256": "bceceeca92ad000d30821761d4af4528dce6e3a0a091dd08dcd28af82706cfbb",
+      "experiment_id": "FLY-bceceeca92ad000d30821761"
+    },
+    "preregistration": {
+      "experiment_id": "V3D-EXP-0055",
+      "registry_definition_sha256": "872d0af8e8a3a715cccd336b8c477a3a824967764ba20a8de0f2a294dd50b89c",
+      "plan_sha256": "bceceeca92ad000d30821761d4af4528dce6e3a0a091dd08dcd28af82706cfbb",
+      "created_at": "2026-10-27T04:07:37.084Z"
+    },
+    "authorization": {
+      "schema": "rain-fly-authorization/v2",
+      "experiment_id": "FLY-bceceeca92ad000d30821761",
+      "definition_sha256": "bceceeca92ad000d30821761d4af4528dce6e3a0a091dd08dcd28af82706cfbb",
+      "registry_experiment_id": "V3D-EXP-0055",
+      "preregistration_sha256": "cf90de40f06791f98b897af885d81167bf764ba1fda0c72790363f0e1a2a66fd",
+      "registered_at": "2026-10-27T04:07:37.084Z",
+      "nonce": "d1beb764a9ca9f24c549c9103f8f4dd98b6d76b53d7297b18e01c18a6cadcbec",
+      "channel": "script",
+      "operator": "Scripted.DemoOperator",
+      "attestation": "demonstration-script",
+      "identity_verified": false,
+      "human_design_attested": false,
+      "scope": "fly-behavior-simulation",
+      "confirmed_prefix": "bceceeca",
+      "authorized_at": "2026-10-27T04:07:37.201Z",
+      "expires_at": "2026-10-27T05:07:37.201Z",
+      "authorization_sha256": "[REDACTED]"
+    },
+    "seeds": [
+      1012619799,
+      1487612848,
+      2609848606,
+      2472022321,
+      3098492659,
+      3184870199,
+      1792861686,
+      2016846943,
+      4112421622,
+      1152704355
+    ],
+    "engine": {
+      "runtime": "node",
+      "version": "24.19.0",
+      "js": "V8 13.6.233.17-node.51"
+    },
+    "replay_sha256": "bd812915176cc9788820dec81dcfade66e4b6cc3fb41254e1d1c660c989085a1",
+    "final_state_hashes": [
+      "clutter/control/1012619799/1a272d668374f12c5e6b01c0898ce702dd744740ab2b2adce51c226b3dccb5cb",
+      "clutter/treatment/1012619799/033f680c71f26275c766154be847cd0b7e866f11300ce839f4291eb0d390f6b3",
+      "clutter/control/1487612848/c5d471e9631944165663161fa2679442d57304912a7261e2066d4c2714da792e",
+      "clutter/treatment/1487612848/05da4e95a2fe3f76af6f670d5e0554a0c796541c4c2d1b8135f751752220ff2c",
+      "clutter/control/2609848606/c49d187ec081d9a85b64364bc61b48d478367fa10f79ee9546e2efcc1844e814",
+      "clutter/treatment/2609848606/51810d6c2a7a3868810f58e6e71843961db5a21b9d00a1c3e60f6c68ed3e4381",
+      "clutter/control/2472022321/6f5306e004fdf39ffd08899c242ff2f9531db277347338a1c0981c8d507752d1",
+      "clutter/treatment/2472022321/7ed794d4214bd63835ad3469628e4dcea3aea6388e18bd63301a719732dac069",
+      "clutter/control/3098492659/3960561b7281cba165811da0e32e1d0e8e61afd54bfe2ffb647a3ef2a06d3669",
+      "clutter/treatment/3098492659/522db47d3c98bac720f37e52fb3101fb50317a387c78e44e8fbd4af43c1b9131",
+      "clutter/control/3184870199/649016225b66322b83612a6aa16212fdd0a2748b615dc5970d02393851832d4f",
+      "clutter/treatment/3184870199/b1a8a91d10abe216cf60476fb69bbd65fb19c0bdd551eeb89f4616b03244d44d",
+      "clutter/control/1792861686/49f29f2c7b5bdadf35253dc71438463b80147480e40b5d1b3061ecfd1a4f7df7",
+      "clutter/treatment/1792861686/7d5750bce0e32f5036af31a8797629abc540ba7ec3b1c898fe21fb893853c3f6",
+      "clutter/control/2016846943/9f6ec865edbf6049b76ecddb82ec2ed6fd110a82b16109f9efc2972d86838feb",
+      "clutter/treatment/2016846943/9ca9093b0dacfaafa649390b00f55fbaa4d6e4afd9a64a346cb389f03db1390a",
+      "clutter/control/4112421622/caf1373dd3df7967dd11ffa8972f95e6e50c1b5064e0c6ace5ab74d55f40e4cd",
+      "clutter/treatment/4112421622/015c068773e3af3a68baa650f004088ace2d71aa3cdbf466a59e8acc2808cb3f",
+      "clutter/control/1152704355/b372e3ce02869aa92757f394a85bca212c7d058f5616c4f5ab652203dbcaff80",
+      "clutter/treatment/1152704355/675d2b65afaa1e351330542cf2daf7dc96c3117448993df5a30893104ccf1992"
+    ]
+  },
+  "measurements": {
+    "control_collision_episodes": 3.1,
+    "control_collision_episodes_per_m": 0.1416293981596871,
+    "control_contact_s": 0.0155,
+    "control_cruise_collision_episodes_per_m": 0.1416293981596871,
+    "control_flown_m": 22.21459858951751,
+    "control_gate_refusals": 0,
+    "control_informative": 1,
+    "control_mean": 0.1416293981596871,
+    "control_near_miss_fraction": 0.14742060412523278,
+    "control_saccades_per_flight_s": 0.45135425063513407,
+    "determinism_check": 1,
+    "gate_refusals": 0,
+    "mean_paired_delta": -0.1416293981596871,
+    "runs_completed": 20,
+    "seeds": 10,
+    "seeds_expected_direction": 10,
+    "seeds_opposite": 0,
+    "seeds_unchanged": 0,
+    "seeds_undefined": 0,
+    "sign_test_p_expected": 0.0009765625,
+    "sign_test_p_opposite": 1,
+    "simulated_seconds": 2400,
+    "treatment_collision_episodes": 0,
+    "treatment_collision_episodes_per_m": 0,
+    "treatment_contact_s": 0,
+    "treatment_cruise_collision_episodes_per_m": 0,
+    "treatment_flown_m": 21.14600501576129,
+    "treatment_gate_refusals": 0,
+    "treatment_mean": 0,
+    "treatment_near_miss_fraction": 0.03697934686295531,
+    "treatment_saccades_per_flight_s": 0.4794326926258597,
+    "untied_pairs": 10
+  },
+  "series": {
+    "control_primary": [
+      0.04092857818459156,
+      0.1647414758261531,
+      0.047247004151259535,
+      0.23424632126144104,
+      0.1961395172658615,
+      0.042275785596454625,
+      0.19514946877597023,
+      0.14602663892026618,
+      0.1685209332748697,
+      0.18101825834000346
+    ],
+    "paired_delta": [
+      -0.04092857818459156,
+      -0.1647414758261531,
+      -0.047247004151259535,
+      -0.23424632126144104,
+      -0.1961395172658615,
+      -0.042275785596454625,
+      -0.19514946877597023,
+      -0.14602663892026618,
+      -0.1685209332748697,
+      -0.18101825834000346
+    ],
+    "treatment_primary": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "statistics": {
+    "control_primary": {
+      "n": 10,
+      "mean": 0.141629398,
+      "median": 0.166631205,
+      "min": 0.040928578,
+      "max": 0.234246321,
+      "stdev": 0.071617517,
+      "variance": 0.005129069,
+      "note": null
+    },
+    "paired_delta": {
+      "n": 10,
+      "mean": -0.141629398,
+      "median": -0.166631205,
+      "min": -0.234246321,
+      "max": -0.040928578,
+      "stdev": 0.071617517,
+      "variance": 0.005129069,
+      "note": null
+    },
+    "treatment_primary": {
+      "n": 10,
+      "mean": 0,
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "stdev": 0,
+      "variance": 0,
+      "note": null
+    }
+  },
+  "evaluation": {
+    "rule": "rain-criteria/v1",
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "runs_completed",
+        "op": ">=",
+        "value": 20,
+        "observed": 20,
+        "holds": true
+      },
+      {
+        "id": "G2",
+        "metric": "determinism_check",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G3",
+        "metric": "control_informative",
+        "op": ">=",
+        "value": 1,
+        "observed": 1,
+        "holds": true
+      },
+      {
+        "id": "G4",
+        "metric": "untied_pairs",
+        "op": ">=",
+        "value": 6,
+        "observed": 10,
+        "holds": true
+      },
+      {
+        "id": "G5",
+        "metric": "gate_refusals",
+        "op": "<=",
+        "value": 0,
+        "observed": 0,
+        "holds": true
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "mean_paired_delta",
+        "op": "<=",
+        "value": -0.12,
+        "observed": -0.1416293981596871,
+        "holds": true
+      },
+      {
+        "id": "S2",
+        "metric": "sign_test_p_expected",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 0.0009765625,
+        "holds": true
+      }
+    ],
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "observed": 1,
+        "holds": false
+      }
+    ],
+    "summary": "All 2 success criteria held and no failure criterion triggered."
+  },
+  "observations": [
+    "Every arm is an output of the digital fly simulator (a reduced-order controller that simulates no neurons) in a closed arena; no animal was observed.",
+    "Seeds drawn by the host after preregistration; authorized by the demonstration script (Scripted.DemoOperator), not a person.",
+    "Independent re-simulation reproduced every state hash and measurement: bd812915176cc9788820dec81dcfade66e4b6cc3fb41254e1d1c660c989085a1"
+  ],
+  "interpretation": {
+    "deterministic": "All 2 success criteria held and no failure criterion triggered. Simulated data: this characterizes the simulator and analysis pipeline, not a physical system.",
+    "model": null
+  },
+  "limitations": [
+    "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+    "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+    "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+    "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+    "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+    "A result characterizes the simulator and is never empirical evidence about Drosophila.",
+    "Seeds are replicates of one model, not samples of real flies.",
+    "Matched seeds of one model; the sign test's p-values describe consistency across this simulator's seeds, not a population."
+  ],
+  "artifacts": [
+    {
+      "name": "fly-record.json",
+      "sha256": "cf8d962f5f4bea13acf6ca24944c7855d6a2927760bb1038765b7d5dce1e122b",
+      "bytes": 19447,
+      "kind": "fly-simulation-record",
+      "stored": false,
+      "note": "external artifact; referenced by hash, never fetched"
+    }
+  ],
+  "models": [],
+  "reproduction": null,
+  "error": null,
+  "provenance": {
+    "source": "external_submission",
+    "submission_sha256": "cd739c946add1412530a060d0aa0a5dd4e6667eb319bbd71f7bfd5341f7ce4c1",
+    "producer": {
+      "producer": "R.A.I.N.FlyHost",
+      "repository": "topherchris420/lop-nur-twin",
+      "commit": "352fafda07d29c0d7f4f412073dc129fc5ac7a63",
+      "dirty": false,
+      "fly_record_sha256": "3ce68cdce4f234e614f0b561c68584ee796236002f5e4fb0b76eeb026d404735",
+      "fly_run_id": "FR-9afdcad9c10f81d31e77c6e6",
+      "fly": "digital-fly/8 reduced-order-fsm/v1",
+      "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+      "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+      "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+      "approval_channel": "script"
+    },
+    "recorded_by": {
+      "git": {
+        "commit": "352fafda07d29c0d7f4f412073dc129fc5ac7a63",
+        "branch": "feat/echo-indicators",
+        "dirty": false,
+        "changed_paths": 0,
+        "note": null
+      },
+      "environment": {
+        "runtime": "node",
+        "node": "24.19.0",
+        "os": "win32",
+        "os_release": "10.0.26200",
+        "machine": "arm64",
+        "cpu_count": 8
+      }
+    },
+    "recorded_at": "2026-10-27T04:09:04.333Z"
+  }
+}

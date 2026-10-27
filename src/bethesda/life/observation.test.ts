@@ -68,6 +68,49 @@ describe("observing the life", () => {
     const o = parseObservation(JSON.parse(JSON.stringify(observe(life))));
     expect(o.flyController).toBe("echo");
     expect(o.selfModel?.echoVersion).toMatch(/^echo-self-model\//);
+    // What it attends to, what it last concluded and what it is asking: written, though maybe null.
+    expect(o.selfModel!.attending).not.toBeUndefined();
+    expect(o.selfModel!.lastConclusion).not.toBeUndefined();
+    expect(o.selfModel!.openInquiry).not.toBeUndefined();
+  });
+
+  it("reads what an ECHO fly attends to and concluded, refuses it malformed, and reads one written before them", () => {
+    const life = new HeadlessBethesdaLife(TEST_CITY, { flyController: "echo" });
+    life.advanceTicks(20);
+    const good = JSON.parse(JSON.stringify(observe(life))) as LifeObservation;
+    const sm = good.selfModel!;
+    sm.attending = {
+      source: "self",
+      what: "why its predictions fail",
+      since: 1.5,
+      shielded: true,
+      expectsNext: "routine",
+    };
+    sm.lastConclusion = {
+      t: 1.2,
+      explanation: "self",
+      candidate: "self:legs",
+      confidence: 0.97,
+      resolved: true,
+      checked: "revised",
+    };
+    sm.openInquiry = { since: 1.3, leading: "external:drift", p: 0.6, secondLook: false };
+    expect(parseObservation(structuredClone(good)).selfModel).toEqual(sm);
+    const broken = (f: (s: Record<string, Record<string, unknown>>) => void) => {
+      const o = structuredClone(good);
+      f(o.selfModel as unknown as Record<string, Record<string, unknown>>);
+      return () => parseObservation(o);
+    };
+    expect(broken((s) => (s.attending!.source = "<b>"))).toThrow(/attending.source/);
+    expect(broken((s) => (s.attending!.shielded = "yes"))).toThrow(/shielded/);
+    expect(broken((s) => (s.lastConclusion!.confidence = 1.5))).toThrow(/confidence/);
+    expect(broken((s) => (s.lastConclusion!.checked = "maybe"))).toThrow(/checked/);
+    expect(broken((s) => (s.openInquiry!.extra = 1))).toThrow(/unexpected extra/);
+    const old = structuredClone(good);
+    delete old.selfModel!.attending;
+    delete old.selfModel!.lastConclusion;
+    delete old.selfModel!.openInquiry;
+    expect("attending" in parseObservation(old).selfModel!).toBe(false);
   });
 
   it("changes nothing: a life watched every tick lives as one never watched", () => {

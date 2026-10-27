@@ -591,11 +591,12 @@ visitor is the person at the screen, and the fly sees them as it sees anyone.
 ## Experiments and the lab
 
 The R.A.I.N. Lab runs the fly as a fourth experiment backend
-(`digital-fly-behavior/v3`). It has nine protocols: obstacle avoidance, light
+(`digital-fly-behavior/v3`). It has eleven protocols: obstacle avoidance, light
 preference, visual threat (a looming dose series in approach speed, l/v),
 noisy sensing, adaptation to looms repeated on a fixed schedule, controller
-comparison, and Project ECHO's three (a hidden impairment, self versus
-external causation, learning retained through time; see
+comparison, and Project ECHO's five (a hidden impairment, self versus
+external causation, learning retained through time, attention on a fly with
+urges, a second look at its conclusions; see
 [Project ECHO](PROJECT_ECHO.md)). Each is a preregistered design with a baseline arm on
 the same seeds, run in enclosed arenas.
 

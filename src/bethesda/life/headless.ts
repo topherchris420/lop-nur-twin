@@ -11,6 +11,7 @@ import { CityFly, type CityController } from "../fly/cityFly.js";
 import type { EchoCheckpoint } from "../fly/echo/checkpoint.js";
 import { EchoAdapter } from "../fly/echo/adapter.js";
 import { ECHO_VERSION } from "../fly/echo/params.js";
+import { selfReport, type SelfReport } from "../fly/echo/selfModel.js";
 import { FLY_VERSION } from "../fly/fly.js";
 import type { Mode } from "../fly/neural.js";
 import type { LifeKind } from "./continuity.js";
@@ -37,13 +38,15 @@ export interface HeadlessLifeStatus {
   flyHash: string;
   flyController: CityController;
   /** With the ECHO controller: what its self-model holds now. In memory only, like everything here. */
-  selfModel: {
-    echoVersion: string;
-    inquiries: number;
-    episodes: number;
-    legGain: number;
-    trustInSense: number;
-  } | null;
+  selfModel:
+    | ({
+        echoVersion: string;
+        inquiries: number;
+        episodes: number;
+        legGain: number;
+        trustInSense: number;
+      } & SelfReport)
+    | null;
   fly: {
     position: [number, number, number];
     mode: Mode;
@@ -203,14 +206,16 @@ export class HeadlessBethesdaLife {
 
   private selfModelSummary(): HeadlessLifeStatus["selfModel"] {
     const a = this.cityFly.fly.adapter;
-    const m = a instanceof EchoAdapter ? a.model?.state : undefined;
-    return m
+    const model = a instanceof EchoAdapter ? a.model : null;
+    const m = model?.state;
+    return model && m
       ? {
           echoVersion: m.version,
           inquiries: m.counts.inquiries,
           episodes: m.episodes.length,
           legGain: m.belief.x[0]!,
           trustInSense: 1 / m.noiseScale,
+          ...selfReport(model),
         }
       : null;
   }

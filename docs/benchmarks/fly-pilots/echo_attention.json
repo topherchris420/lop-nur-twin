@@ -1,0 +1,1471 @@
+{
+  "schema": "rain-fly-pilot/v1",
+  "status": "PILOT: exploratory sizing on the public pilot seeds; not evidence, never preregistered, authorized or admitted, and its seeds never feed an archived run",
+  "protocol": "echo_attention",
+  "fly_version": "digital-fly/8",
+  "fly": "digital-fly/8 reduced-order-fsm/v1",
+  "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+  "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+  "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
+  "code": {
+    "commit": "0967b3956bc36319a25d49a2e93c92c78586717e",
+    "dirty": false
+  },
+  "definition": {
+    "protocol": "echo_attention",
+    "demonstration": {
+      "treatment": {
+        "kind": "echo_attention",
+        "variant": "no_workspace"
+      },
+      "metric": "busy_attribution_latency_s",
+      "direction": "increase"
+    },
+    "blocks": [
+      {
+        "id": "busy",
+        "arena": {
+          "size": [
+            3,
+            2.5,
+            3
+          ],
+          "ambient": 0.6,
+          "pillars": [
+            {
+              "x": -0.75,
+              "z": -0.75,
+              "r": 0.05
+            },
+            {
+              "x": -0.75,
+              "z": 0.75,
+              "r": 0.05
+            },
+            {
+              "x": 0.75,
+              "z": -0.75,
+              "r": 0.05
+            },
+            {
+              "x": 0.75,
+              "z": 0.75,
+              "r": 0.05
+            }
+          ]
+        },
+        "fixed_config": {
+          "takeoffHz": 0.5,
+          "groomHz": 0.5,
+          "walkStartHz": 1,
+          "walkStopHz": 0.1
+        },
+        "start_half_width_m": 0.4,
+        "tick_s": 0.05,
+        "duration_s": 120,
+        "trials": 1,
+        "light_at": null,
+        "near_miss_m": null,
+        "stimulus": null,
+        "echo": {
+          "schedule": "impairment",
+          "conditions": "evaluation",
+          "condition_set": [
+            {
+              "id": "speed_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.35,
+                      0.45
+                    ],
+                    [
+                      0.65,
+                      0.75
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "turn_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "turnGain",
+                  "bands": [
+                    [
+                      0.35,
+                      0.5
+                    ],
+                    [
+                      0.7,
+                      0.8
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "turn_bias",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "turnBias",
+                  "bands": [
+                    [
+                      0.4,
+                      0.6
+                    ],
+                    [
+                      1,
+                      1.4
+                    ]
+                  ],
+                  "signed": true
+                }
+              ]
+            },
+            {
+              "id": "speed_and_turn_gain",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.45,
+                      0.7
+                    ]
+                  ],
+                  "signed": false
+                },
+                {
+                  "field": "turnGain",
+                  "bands": [
+                    [
+                      0.5,
+                      0.8
+                    ]
+                  ],
+                  "signed": false
+                }
+              ]
+            },
+            {
+              "id": "speed_gain_and_turn_bias",
+              "cause": "self",
+              "effects": [
+                {
+                  "field": "speedGain",
+                  "bands": [
+                    [
+                      0.45,
+                      0.7
+                    ]
+                  ],
+                  "signed": false
+                },
+                {
+                  "field": "turnBias",
+                  "bands": [
+                    [
+                      0.5,
+                      1.2
+                    ]
+                  ],
+                  "signed": true
+                }
+              ]
+            }
+          ],
+          "onset_s": [
+            30,
+            40
+          ],
+          "onsets_s": [
+            20,
+            55,
+            90,
+            125
+          ],
+          "jitter_s": 3,
+          "episode_s": [
+            15,
+            22
+          ],
+          "persistent_last": 0.5,
+          "phases_s": [
+            25,
+            65,
+            90,
+            125,
+            150,
+            185,
+            210
+          ],
+          "window_s": 1,
+          "reexposure_s": 10
+        }
+      }
+    ],
+    "control": {
+      "config": {},
+      "noise": 0,
+      "light_intensity": 2,
+      "l_over_v_ms": 40,
+      "isi_s": 90,
+      "echo": {
+        "variant": "full",
+        "reset_s": null
+      },
+      "id": "control"
+    },
+    "doses": [
+      {
+        "treatment": {
+          "kind": "echo_attention",
+          "variant": "no_workspace"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "no_workspace",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      },
+      {
+        "treatment": {
+          "kind": "echo_attention",
+          "variant": "no_attention_schema"
+        },
+        "arm": {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "no_attention_schema",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      }
+    ],
+    "seeds": [
+      1250699102,
+      1587739442,
+      2658312056,
+      3199705756,
+      162094665,
+      4278750438,
+      3635782303,
+      2460133421,
+      2871360669,
+      3107702767,
+      2144531015,
+      548865697,
+      4221970428,
+      2671053968,
+      3682526939,
+      1508309798,
+      3602842389,
+      2945248724,
+      3245830047,
+      4077872909,
+      792557650,
+      3431649965,
+      1106352229,
+      1065338367,
+      3197863881,
+      4273701671,
+      3580466435,
+      1701112925,
+      2957129322,
+      4023885916,
+      1678647756,
+      1516296522
+    ],
+    "null_seeds": [
+      1389853239,
+      3817225699,
+      3921015553,
+      340036684,
+      73397429,
+      3964186322,
+      2077844650,
+      1800957549,
+      1043787298,
+      1024682578,
+      2688939661,
+      3190625804,
+      388700234,
+      3959280679,
+      1269043350,
+      4016638675,
+      1988085456,
+      164549902,
+      536081231,
+      4074758372,
+      808908111,
+      1172435952,
+      1553893803,
+      3361379865,
+      1123745285,
+      4261818673,
+      472226864,
+      707999433,
+      2655811014,
+      101944684,
+      3593148740,
+      2873974990
+    ]
+  },
+  "control": {
+    "label": "the full ECHO self-model, with its workspace and its model of its own attention, under the same hidden conditions",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1250699102,
+        "metrics": {
+          "busy_attribution_latency_s": 17.15,
+          "busy_identification_error": 0.013798708732618329,
+          "busy_impaired_path_error": 0.2832752828901254
+        }
+      },
+      {
+        "seed": 1587739442,
+        "metrics": {
+          "busy_attribution_latency_s": 19.199999999999996,
+          "busy_identification_error": 0.013524021112030441,
+          "busy_impaired_path_error": 0.016788052419438846
+        }
+      },
+      {
+        "seed": 2658312056,
+        "metrics": {
+          "busy_attribution_latency_s": 80.9,
+          "busy_identification_error": 0.0394240022678001,
+          "busy_impaired_path_error": 0.014963826458238664
+        }
+      },
+      {
+        "seed": 3199705756,
+        "metrics": {
+          "busy_attribution_latency_s": 31.300000000000004,
+          "busy_identification_error": 0.04169672187543911,
+          "busy_impaired_path_error": 0.04181846310688805
+        }
+      },
+      {
+        "seed": 162094665,
+        "metrics": {
+          "busy_attribution_latency_s": 3.25,
+          "busy_identification_error": 0.03283236886717161,
+          "busy_impaired_path_error": 0.03267039111060317
+        }
+      },
+      {
+        "seed": 4278750438,
+        "metrics": {
+          "busy_attribution_latency_s": 3.799999999999997,
+          "busy_identification_error": 0.022526743463570285,
+          "busy_impaired_path_error": 0.030253834376815426
+        }
+      },
+      {
+        "seed": 3635782303,
+        "metrics": {
+          "busy_attribution_latency_s": 0.5,
+          "busy_identification_error": 0.12738133877126193,
+          "busy_impaired_path_error": 0.024132449882446623
+        }
+      },
+      {
+        "seed": 2460133421,
+        "metrics": {
+          "busy_attribution_latency_s": 12.699999999999996,
+          "busy_identification_error": 0.01587778700271097,
+          "busy_impaired_path_error": 0.0216545225365646
+        }
+      },
+      {
+        "seed": 2871360669,
+        "metrics": {
+          "busy_attribution_latency_s": 33.150000000000006,
+          "busy_identification_error": 0.013976909594996936,
+          "busy_impaired_path_error": 0.02556050607959408
+        }
+      },
+      {
+        "seed": 3107702767,
+        "metrics": {
+          "busy_attribution_latency_s": 13.149999999999999,
+          "busy_identification_error": 0.02752666724812745,
+          "busy_impaired_path_error": 0.009899432073212092
+        }
+      },
+      {
+        "seed": 2144531015,
+        "metrics": {
+          "busy_attribution_latency_s": 19.300000000000004,
+          "busy_identification_error": 0.008445819104910674,
+          "busy_impaired_path_error": 0.06211204440018787
+        }
+      },
+      {
+        "seed": 548865697,
+        "metrics": {
+          "busy_attribution_latency_s": 7.849999999999998,
+          "busy_identification_error": 0.009814439290145124,
+          "busy_impaired_path_error": 0.1409790894855395
+        }
+      },
+      {
+        "seed": 4221970428,
+        "metrics": {
+          "busy_attribution_latency_s": 10.850000000000001,
+          "busy_identification_error": 0.02379455394360063,
+          "busy_impaired_path_error": 0.035392087651281864
+        }
+      },
+      {
+        "seed": 2671053968,
+        "metrics": {
+          "busy_attribution_latency_s": 10.100000000000001,
+          "busy_identification_error": 0.00976876891198726,
+          "busy_impaired_path_error": 0.03185932948433951
+        }
+      },
+      {
+        "seed": 3682526939,
+        "metrics": {
+          "busy_attribution_latency_s": 11.900000000000006,
+          "busy_identification_error": 0.02520909935122386,
+          "busy_impaired_path_error": 0.05258508399729413
+        }
+      },
+      {
+        "seed": 1508309798,
+        "metrics": {
+          "busy_attribution_latency_s": 9.799999999999997,
+          "busy_identification_error": 0.040384315036303645,
+          "busy_impaired_path_error": null
+        }
+      },
+      {
+        "seed": 3602842389,
+        "metrics": {
+          "busy_attribution_latency_s": 12.8,
+          "busy_identification_error": 0.02673004133679495,
+          "busy_impaired_path_error": 0.05486184892840436
+        }
+      },
+      {
+        "seed": 2945248724,
+        "metrics": {
+          "busy_attribution_latency_s": 11.350000000000001,
+          "busy_identification_error": 0.01938715676604938,
+          "busy_impaired_path_error": 0.02665058664478003
+        }
+      },
+      {
+        "seed": 3245830047,
+        "metrics": {
+          "busy_attribution_latency_s": 10.299999999999997,
+          "busy_identification_error": 0.03305404610436777,
+          "busy_impaired_path_error": 0.03501129846400189
+        }
+      },
+      {
+        "seed": 4077872909,
+        "metrics": {
+          "busy_attribution_latency_s": 87.25,
+          "busy_identification_error": 0.1357119545438225,
+          "busy_impaired_path_error": 0.043420830903091755
+        }
+      },
+      {
+        "seed": 792557650,
+        "metrics": {
+          "busy_attribution_latency_s": 4.100000000000001,
+          "busy_identification_error": 0.0069507358388132025,
+          "busy_impaired_path_error": 0.0734212087027414
+        }
+      },
+      {
+        "seed": 3431649965,
+        "metrics": {
+          "busy_attribution_latency_s": 6.349999999999998,
+          "busy_identification_error": 0.027166056427077447,
+          "busy_impaired_path_error": 0.04799765410596972
+        }
+      },
+      {
+        "seed": 1106352229,
+        "metrics": {
+          "busy_attribution_latency_s": 17.4,
+          "busy_identification_error": 0.012030965342708791,
+          "busy_impaired_path_error": 0.03103429650871236
+        }
+      },
+      {
+        "seed": 1065338367,
+        "metrics": {
+          "busy_attribution_latency_s": 17.700000000000003,
+          "busy_identification_error": 0.049784165063571986,
+          "busy_impaired_path_error": null
+        }
+      },
+      {
+        "seed": 3197863881,
+        "metrics": {
+          "busy_attribution_latency_s": 10.5,
+          "busy_identification_error": 0.02813479657252583,
+          "busy_impaired_path_error": 0.13056564448569435
+        }
+      },
+      {
+        "seed": 4273701671,
+        "metrics": {
+          "busy_attribution_latency_s": 4.100000000000001,
+          "busy_identification_error": 0.016089979082801725,
+          "busy_impaired_path_error": 0.16485045266850734
+        }
+      },
+      {
+        "seed": 3580466435,
+        "metrics": {
+          "busy_attribution_latency_s": 3.1499999999999986,
+          "busy_identification_error": 0.018051346025415527,
+          "busy_impaired_path_error": 0.21178821606198642
+        }
+      },
+      {
+        "seed": 1701112925,
+        "metrics": {
+          "busy_attribution_latency_s": 3.1500000000000057,
+          "busy_identification_error": 0.007336564694161095,
+          "busy_impaired_path_error": 0.015910040953460027
+        }
+      },
+      {
+        "seed": 2957129322,
+        "metrics": {
+          "busy_attribution_latency_s": 13.649999999999999,
+          "busy_identification_error": 0.014791999794339416,
+          "busy_impaired_path_error": 0.02894202205550624
+        }
+      },
+      {
+        "seed": 4023885916,
+        "metrics": {
+          "busy_attribution_latency_s": 17.85,
+          "busy_identification_error": 0.026511114576592047,
+          "busy_impaired_path_error": 0.032866157269222665
+        }
+      },
+      {
+        "seed": 1678647756,
+        "metrics": {
+          "busy_attribution_latency_s": 14.850000000000001,
+          "busy_identification_error": 0.003355727803975193,
+          "busy_impaired_path_error": 0.12967120824882217
+        }
+      },
+      {
+        "seed": 1516296522,
+        "metrics": {
+          "busy_attribution_latency_s": 28.10000000000001,
+          "busy_identification_error": 0.021800907395601324,
+          "busy_impaired_path_error": null
+        }
+      }
+    ]
+  },
+  "doses": [
+    {
+      "label": "the ECHO controller with workspace disabled (each process acts on its own, nothing is broadcast, and so no attention schema)",
+      "treatment": {
+        "kind": "echo_attention",
+        "variant": "no_workspace"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "busy_attribution_latency_s": 13.899999999999999,
+            "busy_identification_error": 0.011095219009638708,
+            "busy_impaired_path_error": 0.08803297020012346
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "busy_attribution_latency_s": 19.199999999999996,
+            "busy_identification_error": 0.013524021112030441,
+            "busy_impaired_path_error": 0.016788052419438846
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "busy_attribution_latency_s": 80.9,
+            "busy_identification_error": 0.0394240022678001,
+            "busy_impaired_path_error": 0.014963826458238664
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "busy_attribution_latency_s": 31.300000000000004,
+            "busy_identification_error": 0.035965389181319245,
+            "busy_impaired_path_error": null
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "busy_attribution_latency_s": 8.049999999999997,
+            "busy_identification_error": 0.019909448964844357,
+            "busy_impaired_path_error": 0.07775006895499229
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "busy_attribution_latency_s": 3.799999999999997,
+            "busy_identification_error": 0.007465023597428808,
+            "busy_impaired_path_error": 0.009075088859688735
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "busy_attribution_latency_s": 0.5,
+            "busy_identification_error": 0.002725681173933811,
+            "busy_impaired_path_error": 0.026142944247900174
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "busy_attribution_latency_s": 12.75,
+            "busy_identification_error": 0.9744284466690023,
+            "busy_impaired_path_error": 0.035971130482583095
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "busy_attribution_latency_s": 36.2,
+            "busy_identification_error": 0.0015081961569827522,
+            "busy_impaired_path_error": 0.025716122146030203
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "busy_attribution_latency_s": 13.149999999999999,
+            "busy_identification_error": 0.02752666724812745,
+            "busy_impaired_path_error": 0.009899432073212092
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "busy_attribution_latency_s": 19.35,
+            "busy_identification_error": 0.00821073871358664,
+            "busy_impaired_path_error": 0.06105710317811646
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "busy_attribution_latency_s": 7.849999999999998,
+            "busy_identification_error": 0.020068961299005914,
+            "busy_impaired_path_error": 0.1797340224551774
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "busy_attribution_latency_s": 10.850000000000001,
+            "busy_identification_error": 0.017715215109881922,
+            "busy_impaired_path_error": 0.04017136075958092
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "busy_attribution_latency_s": 13,
+            "busy_identification_error": 0.011345689081499423,
+            "busy_impaired_path_error": 0.028016722813799105
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "busy_attribution_latency_s": 12,
+            "busy_identification_error": 0.011578645180848791,
+            "busy_impaired_path_error": 0.10744320995488221
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "busy_attribution_latency_s": 9.799999999999997,
+            "busy_identification_error": 0.006205973255113177,
+            "busy_impaired_path_error": 0.06471272881031008
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "busy_attribution_latency_s": 14.500000000000004,
+            "busy_identification_error": 0.017568476309708696,
+            "busy_impaired_path_error": 0.01781717098887882
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "busy_attribution_latency_s": 13.149999999999999,
+            "busy_identification_error": 0.18036016351250822,
+            "busy_impaired_path_error": null
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "busy_attribution_latency_s": 10.299999999999997,
+            "busy_identification_error": 0.025875484018100657,
+            "busy_impaired_path_error": 0.056646182581073866
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "busy_attribution_latency_s": 87.25,
+            "busy_identification_error": 0.1357119545438225,
+            "busy_impaired_path_error": 0.043420830903091755
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "busy_attribution_latency_s": 9,
+            "busy_identification_error": 0.012215617056426433,
+            "busy_impaired_path_error": 0.09823258674898691
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "busy_attribution_latency_s": 6.349999999999998,
+            "busy_identification_error": 0.027166056427077447,
+            "busy_impaired_path_error": 0.04799765410596972
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "busy_attribution_latency_s": 17.4,
+            "busy_identification_error": 0.012030965342708791,
+            "busy_impaired_path_error": 0.03103429650871236
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "busy_attribution_latency_s": 22.5,
+            "busy_identification_error": 0.02326866214303936,
+            "busy_impaired_path_error": 0.035515743278445984
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "busy_attribution_latency_s": 10.5,
+            "busy_identification_error": 0.011594438621702926,
+            "busy_impaired_path_error": 0.09220062662857048
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "busy_attribution_latency_s": 4.149999999999999,
+            "busy_identification_error": 0.03896940963374124,
+            "busy_impaired_path_error": 0.11300750779328085
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "busy_attribution_latency_s": 3.1499999999999986,
+            "busy_identification_error": 0.018051346025415527,
+            "busy_impaired_path_error": 0.21178821606198642
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "busy_attribution_latency_s": 3.1500000000000057,
+            "busy_identification_error": 0.0003261431491370854,
+            "busy_impaired_path_error": 0.017683547813351807
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "busy_attribution_latency_s": 13.649999999999999,
+            "busy_identification_error": 0.007991886236900505,
+            "busy_impaired_path_error": 0.029457274980125948
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "busy_attribution_latency_s": 17.85,
+            "busy_identification_error": 0.026511114576592047,
+            "busy_impaired_path_error": 0.032866157269222665
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "busy_attribution_latency_s": 14.899999999999999,
+            "busy_identification_error": 0.021099366455915588,
+            "busy_impaired_path_error": null
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "busy_attribution_latency_s": 29.450000000000003,
+            "busy_identification_error": 0.035416920590855994,
+            "busy_impaired_path_error": 0.011791793364534555
+          }
+        }
+      ],
+      "metrics": {
+        "busy_attribution_latency_s": {
+          "control_mean": 17.109375000000004,
+          "treatment_mean": 17.8078125,
+          "mean_difference": 0.6984374999999992,
+          "sd_difference": 1.7107574428380552,
+          "increase": 13,
+          "decrease": 1,
+          "tie": 18,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    },
+    {
+      "label": "the ECHO controller with attention schema disabled (the workspace runs on its bids alone, never shielded)",
+      "treatment": {
+        "kind": "echo_attention",
+        "variant": "no_attention_schema"
+      },
+      "gate_refusals": 0,
+      "per_seed": [
+        {
+          "seed": 1250699102,
+          "metrics": {
+            "busy_attribution_latency_s": 17.15,
+            "busy_identification_error": 0.013798708732618329,
+            "busy_impaired_path_error": 0.2832752828901254
+          }
+        },
+        {
+          "seed": 1587739442,
+          "metrics": {
+            "busy_attribution_latency_s": 19.199999999999996,
+            "busy_identification_error": 0.013524021112030441,
+            "busy_impaired_path_error": 0.016788052419438846
+          }
+        },
+        {
+          "seed": 2658312056,
+          "metrics": {
+            "busy_attribution_latency_s": 80.9,
+            "busy_identification_error": 0.0394240022678001,
+            "busy_impaired_path_error": 0.014963826458238664
+          }
+        },
+        {
+          "seed": 3199705756,
+          "metrics": {
+            "busy_attribution_latency_s": 31.300000000000004,
+            "busy_identification_error": 0.04169672187543911,
+            "busy_impaired_path_error": 0.04181846310688805
+          }
+        },
+        {
+          "seed": 162094665,
+          "metrics": {
+            "busy_attribution_latency_s": 3.25,
+            "busy_identification_error": 0.04620401538280396,
+            "busy_impaired_path_error": 0.0317253824097161
+          }
+        },
+        {
+          "seed": 4278750438,
+          "metrics": {
+            "busy_attribution_latency_s": 3.799999999999997,
+            "busy_identification_error": 0.00814177730198556,
+            "busy_impaired_path_error": 0.006757756964042718
+          }
+        },
+        {
+          "seed": 3635782303,
+          "metrics": {
+            "busy_attribution_latency_s": 0.5,
+            "busy_identification_error": 0.12738133877126193,
+            "busy_impaired_path_error": 0.024132449882446623
+          }
+        },
+        {
+          "seed": 2460133421,
+          "metrics": {
+            "busy_attribution_latency_s": 12.699999999999996,
+            "busy_identification_error": 0.01587778700271097,
+            "busy_impaired_path_error": 0.0216545225365646
+          }
+        },
+        {
+          "seed": 2871360669,
+          "metrics": {
+            "busy_attribution_latency_s": 33.150000000000006,
+            "busy_identification_error": 0.013976909594996936,
+            "busy_impaired_path_error": 0.02556050607959408
+          }
+        },
+        {
+          "seed": 3107702767,
+          "metrics": {
+            "busy_attribution_latency_s": 13.149999999999999,
+            "busy_identification_error": 0.02752666724812745,
+            "busy_impaired_path_error": 0.009899432073212092
+          }
+        },
+        {
+          "seed": 2144531015,
+          "metrics": {
+            "busy_attribution_latency_s": 19.300000000000004,
+            "busy_identification_error": 0.008445819104910674,
+            "busy_impaired_path_error": 0.06211204440018787
+          }
+        },
+        {
+          "seed": 548865697,
+          "metrics": {
+            "busy_attribution_latency_s": 7.849999999999998,
+            "busy_identification_error": 0.009814439290145124,
+            "busy_impaired_path_error": 0.1409790894855395
+          }
+        },
+        {
+          "seed": 4221970428,
+          "metrics": {
+            "busy_attribution_latency_s": 10.850000000000001,
+            "busy_identification_error": 0.02379455394360063,
+            "busy_impaired_path_error": 0.035392087651281864
+          }
+        },
+        {
+          "seed": 2671053968,
+          "metrics": {
+            "busy_attribution_latency_s": 10.100000000000001,
+            "busy_identification_error": 0.0006083242434331686,
+            "busy_impaired_path_error": 0.049204991032447604
+          }
+        },
+        {
+          "seed": 3682526939,
+          "metrics": {
+            "busy_attribution_latency_s": 12,
+            "busy_identification_error": 0.011578645180848791,
+            "busy_impaired_path_error": 0.10744320995488221
+          }
+        },
+        {
+          "seed": 1508309798,
+          "metrics": {
+            "busy_attribution_latency_s": 9.799999999999997,
+            "busy_identification_error": 0.040384315036303645,
+            "busy_impaired_path_error": null
+          }
+        },
+        {
+          "seed": 3602842389,
+          "metrics": {
+            "busy_attribution_latency_s": 12.8,
+            "busy_identification_error": 0.02673004133679495,
+            "busy_impaired_path_error": 0.05486184892840436
+          }
+        },
+        {
+          "seed": 2945248724,
+          "metrics": {
+            "busy_attribution_latency_s": 11.350000000000001,
+            "busy_identification_error": 0.033600868618747864,
+            "busy_impaired_path_error": 0.019850708820725427
+          }
+        },
+        {
+          "seed": 3245830047,
+          "metrics": {
+            "busy_attribution_latency_s": 10.299999999999997,
+            "busy_identification_error": 0.02949909984191307,
+            "busy_impaired_path_error": 0.03808481243584724
+          }
+        },
+        {
+          "seed": 4077872909,
+          "metrics": {
+            "busy_attribution_latency_s": 87.25,
+            "busy_identification_error": 0.1357119545438225,
+            "busy_impaired_path_error": 0.043420830903091755
+          }
+        },
+        {
+          "seed": 792557650,
+          "metrics": {
+            "busy_attribution_latency_s": 4.100000000000001,
+            "busy_identification_error": 0.0069507358388132025,
+            "busy_impaired_path_error": 0.0734212087027414
+          }
+        },
+        {
+          "seed": 3431649965,
+          "metrics": {
+            "busy_attribution_latency_s": 6.349999999999998,
+            "busy_identification_error": 0.027166056427077447,
+            "busy_impaired_path_error": 0.04799765410596972
+          }
+        },
+        {
+          "seed": 1106352229,
+          "metrics": {
+            "busy_attribution_latency_s": 17.4,
+            "busy_identification_error": 0.012030965342708791,
+            "busy_impaired_path_error": 0.03103429650871236
+          }
+        },
+        {
+          "seed": 1065338367,
+          "metrics": {
+            "busy_attribution_latency_s": 17.700000000000003,
+            "busy_identification_error": 0.049784165063571986,
+            "busy_impaired_path_error": null
+          }
+        },
+        {
+          "seed": 3197863881,
+          "metrics": {
+            "busy_attribution_latency_s": 10.5,
+            "busy_identification_error": 0.0219577985534207,
+            "busy_impaired_path_error": 0.041427465507466274
+          }
+        },
+        {
+          "seed": 4273701671,
+          "metrics": {
+            "busy_attribution_latency_s": 4.149999999999999,
+            "busy_identification_error": 0.032308755862984255,
+            "busy_impaired_path_error": null
+          }
+        },
+        {
+          "seed": 3580466435,
+          "metrics": {
+            "busy_attribution_latency_s": 3.1499999999999986,
+            "busy_identification_error": 0.018051346025415527,
+            "busy_impaired_path_error": 0.21178821606198642
+          }
+        },
+        {
+          "seed": 1701112925,
+          "metrics": {
+            "busy_attribution_latency_s": 3.1500000000000057,
+            "busy_identification_error": 0.007336564694161095,
+            "busy_impaired_path_error": 0.015910040953460027
+          }
+        },
+        {
+          "seed": 2957129322,
+          "metrics": {
+            "busy_attribution_latency_s": 13.649999999999999,
+            "busy_identification_error": 0.014791999794339416,
+            "busy_impaired_path_error": 0.02894202205550624
+          }
+        },
+        {
+          "seed": 4023885916,
+          "metrics": {
+            "busy_attribution_latency_s": 17.85,
+            "busy_identification_error": 0.026511114576592047,
+            "busy_impaired_path_error": 0.032866157269222665
+          }
+        },
+        {
+          "seed": 1678647756,
+          "metrics": {
+            "busy_attribution_latency_s": 14.850000000000001,
+            "busy_identification_error": 0.003355727803975193,
+            "busy_impaired_path_error": 0.12967120824882217
+          }
+        },
+        {
+          "seed": 1516296522,
+          "metrics": {
+            "busy_attribution_latency_s": 28.10000000000001,
+            "busy_identification_error": 0.021800907395601324,
+            "busy_impaired_path_error": null
+          }
+        }
+      ],
+      "metrics": {
+        "busy_attribution_latency_s": {
+          "control_mean": 17.109375000000004,
+          "treatment_mean": 17.114062500000003,
+          "mean_difference": 0.0046874999999997335,
+          "sd_difference": 0.0195075460998729,
+          "increase": 2,
+          "decrease": 0,
+          "tie": 30,
+          "undefined": 0,
+          "control_at_floor": 0,
+          "control_at_ceiling": 0
+        }
+      }
+    }
+  ],
+  "null": {
+    "label": "null: the control again on the next 32 pilot seeds, paired in order",
+    "treatment": null,
+    "gate_refusals": 0,
+    "per_seed": [
+      {
+        "seed": 1389853239,
+        "metrics": {
+          "busy_attribution_latency_s": 43.650000000000006,
+          "busy_identification_error": 0.09721824665099732,
+          "busy_impaired_path_error": 0.14696070485965346
+        }
+      },
+      {
+        "seed": 3817225699,
+        "metrics": {
+          "busy_attribution_latency_s": 18.5,
+          "busy_identification_error": 0.028935692523360902,
+          "busy_impaired_path_error": 0.1958281325119599
+        }
+      },
+      {
+        "seed": 3921015553,
+        "metrics": {
+          "busy_attribution_latency_s": 17.049999999999997,
+          "busy_identification_error": 0.07315773245919727,
+          "busy_impaired_path_error": 0.03305482999027457
+        }
+      },
+      {
+        "seed": 340036684,
+        "metrics": {
+          "busy_attribution_latency_s": 5.75,
+          "busy_identification_error": 0.024113156886901996,
+          "busy_impaired_path_error": 0.023213754230192576
+        }
+      },
+      {
+        "seed": 73397429,
+        "metrics": {
+          "busy_attribution_latency_s": 85.35,
+          "busy_identification_error": 0.4729869334006734,
+          "busy_impaired_path_error": 0.013471144887231208
+        }
+      },
+      {
+        "seed": 3964186322,
+        "metrics": {
+          "busy_attribution_latency_s": 3.549999999999997,
+          "busy_identification_error": 0.009921033205523653,
+          "busy_impaired_path_error": 0.014406292821821489
+        }
+      },
+      {
+        "seed": 2077844650,
+        "metrics": {
+          "busy_attribution_latency_s": 30.450000000000003,
+          "busy_identification_error": 0.009188311201014087,
+          "busy_impaired_path_error": 0.07292044468344035
+        }
+      },
+      {
+        "seed": 1800957549,
+        "metrics": {
+          "busy_attribution_latency_s": 5.850000000000001,
+          "busy_identification_error": 0.0019104181007443019,
+          "busy_impaired_path_error": 0.01674603467342215
+        }
+      },
+      {
+        "seed": 1043787298,
+        "metrics": {
+          "busy_attribution_latency_s": 5.550000000000004,
+          "busy_identification_error": 0.011016585517039514,
+          "busy_impaired_path_error": 0.1501387624020603
+        }
+      },
+      {
+        "seed": 1024682578,
+        "metrics": {
+          "busy_attribution_latency_s": 7.200000000000003,
+          "busy_identification_error": 0.028112345761843058,
+          "busy_impaired_path_error": 0.4714519092106666
+        }
+      },
+      {
+        "seed": 2688939661,
+        "metrics": {
+          "busy_attribution_latency_s": 15.049999999999997,
+          "busy_identification_error": 0.07364888348506735,
+          "busy_impaired_path_error": 0.02317822332309013
+        }
+      },
+      {
+        "seed": 3190625804,
+        "metrics": {
+          "busy_attribution_latency_s": 5.450000000000003,
+          "busy_identification_error": 0.10132469111639768,
+          "busy_impaired_path_error": null
+        }
+      },
+      {
+        "seed": 388700234,
+        "metrics": {
+          "busy_attribution_latency_s": 17.35,
+          "busy_identification_error": 0.011214210687896695,
+          "busy_impaired_path_error": 0.3261318657248446
+        }
+      },
+      {
+        "seed": 3959280679,
+        "metrics": {
+          "busy_attribution_latency_s": 38.05,
+          "busy_identification_error": 0.050392049233815496,
+          "busy_impaired_path_error": 0.007821131867524193
+        }
+      },
+      {
+        "seed": 1269043350,
+        "metrics": {
+          "busy_attribution_latency_s": 5.950000000000003,
+          "busy_identification_error": 0.057502469547194325,
+          "busy_impaired_path_error": 0.03180132710593246
+        }
+      },
+      {
+        "seed": 4016638675,
+        "metrics": {
+          "busy_attribution_latency_s": 16.9,
+          "busy_identification_error": 0.02071410641385344,
+          "busy_impaired_path_error": 0.09968666574976544
+        }
+      },
+      {
+        "seed": 1988085456,
+        "metrics": {
+          "busy_attribution_latency_s": 9.800000000000004,
+          "busy_identification_error": 0.018128796964740238,
+          "busy_impaired_path_error": 0.022339236898026322
+        }
+      },
+      {
+        "seed": 164549902,
+        "metrics": {
+          "busy_attribution_latency_s": 6.849999999999994,
+          "busy_identification_error": 0.007156103463531199,
+          "busy_impaired_path_error": 0.013795259880198028
+        }
+      },
+      {
+        "seed": 536081231,
+        "metrics": {
+          "busy_attribution_latency_s": 5.349999999999998,
+          "busy_identification_error": 0.00869587267561688,
+          "busy_impaired_path_error": 0.01488705342298204
+        }
+      },
+      {
+        "seed": 4074758372,
+        "metrics": {
+          "busy_attribution_latency_s": 10.299999999999997,
+          "busy_identification_error": 0.013442333922555862,
+          "busy_impaired_path_error": 0.01440989643181114
+        }
+      },
+      {
+        "seed": 808908111,
+        "metrics": {
+          "busy_attribution_latency_s": 15.900000000000002,
+          "busy_identification_error": 0.04092009290609425,
+          "busy_impaired_path_error": 0.16411459411330565
+        }
+      },
+      {
+        "seed": 1172435952,
+        "metrics": {
+          "busy_attribution_latency_s": 51.449999999999996,
+          "busy_identification_error": 0.2140011611995094,
+          "busy_impaired_path_error": 0.26021085512979825
+        }
+      },
+      {
+        "seed": 1553893803,
+        "metrics": {
+          "busy_attribution_latency_s": 22.200000000000003,
+          "busy_identification_error": 0.01438431815016773,
+          "busy_impaired_path_error": 0.020528572749884573
+        }
+      },
+      {
+        "seed": 3361379865,
+        "metrics": {
+          "busy_attribution_latency_s": 9.75,
+          "busy_identification_error": 0.02821746530852014,
+          "busy_impaired_path_error": 0.024355624802908014
+        }
+      },
+      {
+        "seed": 1123745285,
+        "metrics": {
+          "busy_attribution_latency_s": 6.450000000000003,
+          "busy_identification_error": 0.041246039491241705,
+          "busy_impaired_path_error": 0.39402793609360426
+        }
+      },
+      {
+        "seed": 4261818673,
+        "metrics": {
+          "busy_attribution_latency_s": 21.75,
+          "busy_identification_error": 0.03895324669306236,
+          "busy_impaired_path_error": 0.054070285978140835
+        }
+      },
+      {
+        "seed": 472226864,
+        "metrics": {
+          "busy_attribution_latency_s": 19.349999999999994,
+          "busy_identification_error": 0.015993167934237988,
+          "busy_impaired_path_error": 0.023518382745374523
+        }
+      },
+      {
+        "seed": 707999433,
+        "metrics": {
+          "busy_attribution_latency_s": 3.1999999999999957,
+          "busy_identification_error": 0.026814232862727015,
+          "busy_impaired_path_error": 0.07864727819384838
+        }
+      },
+      {
+        "seed": 2655811014,
+        "metrics": {
+          "busy_attribution_latency_s": 67.30000000000001,
+          "busy_identification_error": 0.1027437564121568,
+          "busy_impaired_path_error": 0.12374258053810284
+        }
+      },
+      {
+        "seed": 101944684,
+        "metrics": {
+          "busy_attribution_latency_s": 23.35,
+          "busy_identification_error": 0.03881379780672194,
+          "busy_impaired_path_error": 0.016698126500648613
+        }
+      },
+      {
+        "seed": 3593148740,
+        "metrics": {
+          "busy_attribution_latency_s": 3.75,
+          "busy_identification_error": 0.009790956037727915,
+          "busy_impaired_path_error": 0.03187209510737159
+        }
+      },
+      {
+        "seed": 2873974990,
+        "metrics": {
+          "busy_attribution_latency_s": 9.899999999999999,
+          "busy_identification_error": 0.003081200996176835,
+          "busy_impaired_path_error": 0.058521603516535715
+        }
+      }
+    ],
+    "metrics": {
+      "busy_attribution_latency_s": {
+        "control_mean": 17.109375000000004,
+        "treatment_mean": 19.009375000000002,
+        "mean_difference": 1.8999999999999997,
+        "sd_difference": 29.468096471903632,
+        "increase": 14,
+        "decrease": 18,
+        "tie": 0,
+        "undefined": 0,
+        "control_at_floor": 0,
+        "control_at_ceiling": 0
+      }
+    }
+  },
+  "sized": {
+    "metric": "busy_attribution_latency_s",
+    "direction": "increase",
+    "treatment": {
+      "kind": "echo_attention",
+      "variant": "no_workspace"
+    },
+    "outcomes": {
+      "expected": 13,
+      "opposite": 1,
+      "uninformative": 18
+    },
+    "seed_count": null,
+    "pass_probability": null,
+    "minimum_effect": null,
+    "host_minimum_effect": 30,
+    "design_minimum_effect": null,
+    "s1_probability": null,
+    "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
+  },
+  "floors": [
+    {
+      "metric": "busy_attribution_latency_s",
+      "resolution": 0.05,
+      "divergence_bound": 20.837090843942434,
+      "floor": 30,
+      "host_minimum_effect": 30
+    }
+  ],
+  "runs_sha256": "b93abbccb2ac495eb23c46b52d1ed9610c98b86f7be496fa804ce45eebf2cd00",
+  "outputs_sha256": "a09db1ba20e3d96997c317e0ea004d9652b5b3f598fd6129a760771f40c1a70b",
+  "generated_at": "2026-10-27T01:20:57.527Z",
+  "sha256": "cd9e988cf46bccc7ce98ca9833ea048baf0fbd90005cb86fb8a6c20115ee56b2"
+}

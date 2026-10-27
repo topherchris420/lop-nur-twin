@@ -73,13 +73,41 @@ export interface LifeObservation {
   };
   /** Pedestrians and vehicles near the fly, nearest first. */
   nearby: { kind: string; x: number; z: number }[];
-  /** With the ECHO controller: a summary of what its self-model holds now. */
+  /**
+   * With the ECHO controller: a summary of what its self-model holds now.
+   * Self-models before `echo-self-model/v3` write no attention, conclusion
+   * or inquiry.
+   */
   selfModel: {
     echoVersion: string;
     inquiries: number;
     episodes: number;
     legGain: number;
     trustInSense: number;
+    /** What holds its workspace (echo/workspace.ts), since when (simulated s), and whether it shields it; null when nothing does. */
+    attending?: {
+      source: string;
+      what: string;
+      since: number;
+      shielded: boolean;
+      expectsNext: string | null;
+    } | null;
+    /** Its latest conclusion, how sure it said it was, and what a second look made of it. */
+    lastConclusion?: {
+      t: number;
+      explanation: string;
+      candidate: string;
+      confidence: number;
+      resolved: boolean;
+      checked: "confirmed" | "revised" | null;
+    } | null;
+    /** An inquiry open now: since when, its leading explanation and that explanation's probability. */
+    openInquiry?: {
+      since: number;
+      leading: string;
+      p: number;
+      secondLook: boolean;
+    } | null;
   } | null;
   /**
    * The city's wind (fly/weather.ts) at 10 m and where the fly is. Lives
@@ -232,13 +260,12 @@ export function parseObservation(value: unknown): LifeObservation {
   if (at > tick) fail("checkpoint.tick", "later than the observation");
   let selfModel: LifeObservation["selfModel"] = null;
   if (o.selfModel !== null) {
-    const m = object(o.selfModel, "selfModel", [
-      "echoVersion",
-      "inquiries",
-      "episodes",
-      "legGain",
-      "trustInSense",
-    ]);
+    const m = object(
+      o.selfModel,
+      "selfModel",
+      ["echoVersion", "inquiries", "episodes", "legGain", "trustInSense"],
+      ["attending", "lastConclusion", "openInquiry"],
+    );
     selfModel = {
       echoVersion: str(m.echoVersion, "selfModel.echoVersion"),
       inquiries: int(m.inquiries, "selfModel.inquiries"),
@@ -246,6 +273,74 @@ export function parseObservation(value: unknown): LifeObservation {
       legGain: num(m.legGain, "selfModel.legGain"),
       trustInSense: num(m.trustInSense, "selfModel.trustInSense", 0),
     };
+    const nullable = <T>(v: unknown, read: (v: unknown) => T): T | null =>
+      v === null ? null : read(v);
+    if (m.attending !== undefined)
+      selfModel.attending = nullable(m.attending, (v) => {
+        const a = object(v, "selfModel.attending", [
+          "source",
+          "what",
+          "since",
+          "shielded",
+          "expectsNext",
+        ]);
+        if (typeof a.shielded !== "boolean")
+          fail("selfModel.attending.shielded", "not true or false");
+        return {
+          source: str(a.source, "selfModel.attending.source", 24, WORD),
+          what: str(a.what, "selfModel.attending.what", 60),
+          since: num(a.since, "selfModel.attending.since", 0),
+          shielded: a.shielded as boolean,
+          expectsNext: nullable(a.expectsNext, (s) =>
+            str(s, "selfModel.attending.expectsNext", 24, WORD),
+          ),
+        };
+      });
+    if (m.lastConclusion !== undefined)
+      selfModel.lastConclusion = nullable(m.lastConclusion, (v) => {
+        const c = object(v, "selfModel.lastConclusion", [
+          "t",
+          "explanation",
+          "candidate",
+          "confidence",
+          "resolved",
+          "checked",
+        ]);
+        if (typeof c.resolved !== "boolean")
+          fail("selfModel.lastConclusion.resolved", "not true or false");
+        if (c.checked !== null && c.checked !== "confirmed" && c.checked !== "revised")
+          fail("selfModel.lastConclusion.checked", "neither confirmed, revised nor null");
+        return {
+          t: num(c.t, "selfModel.lastConclusion.t", 0),
+          explanation: str(
+            c.explanation,
+            "selfModel.lastConclusion.explanation",
+            24,
+            WORD,
+          ),
+          candidate: str(c.candidate, "selfModel.lastConclusion.candidate", 60),
+          confidence: num(c.confidence, "selfModel.lastConclusion.confidence", 0, 1),
+          resolved: c.resolved as boolean,
+          checked: c.checked as "confirmed" | "revised" | null,
+        };
+      });
+    if (m.openInquiry !== undefined)
+      selfModel.openInquiry = nullable(m.openInquiry, (v) => {
+        const q = object(v, "selfModel.openInquiry", [
+          "since",
+          "leading",
+          "p",
+          "secondLook",
+        ]);
+        if (typeof q.secondLook !== "boolean")
+          fail("selfModel.openInquiry.secondLook", "not true or false");
+        return {
+          since: num(q.since, "selfModel.openInquiry.since", 0),
+          leading: str(q.leading, "selfModel.openInquiry.leading", 60),
+          p: num(q.p, "selfModel.openInquiry.p", 0, 1),
+          secondLook: q.secondLook as boolean,
+        };
+      });
   }
   if ((o.flyController === "echo") !== (selfModel !== null))
     fail("selfModel", "present exactly when the controller is echo");

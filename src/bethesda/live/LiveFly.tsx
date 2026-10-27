@@ -385,15 +385,58 @@ function Life({ o }: { o: LifeObservation }) {
   );
 }
 
+/** What the fly's self-model can conclude about a change, in words. */
+const EXPLANATION_WORDS: Record<string, string> = {
+  none: "nothing had changed",
+  self: "its own body had changed",
+  external: "something outside was moving it",
+  both: "its body and something outside had both changed",
+  sensor: "its sense of motion was misleading it",
+};
+
 function SelfModel({ o }: { o: LifeObservation }) {
   const m = o.selfModel;
+  const a = m?.attending,
+    c = m?.lastConclusion,
+    q = m?.openInquiry;
   return (
     <Section title="Its model of itself">
       {m ? (
         <>
           <p className="text-muted-foreground text-xs">
-            The fly&apos;s own estimates ({m.echoVersion}).
+            The fly&apos;s own estimates ({m.echoVersion}): functional states of a
+            computational self-model, not a claim that it experiences anything.
           </p>
+          {a !== undefined ? (
+            <dl className="mt-2 space-y-2">
+              <Fact label="Attending to">
+                {a
+                  ? `${a.what}, for ${span(Math.max(0, o.simulatedSeconds - a.since))}${a.shielded ? ", holding off its urges until it is done" : ""}`
+                  : "nothing in particular"}
+              </Fact>
+              {q ? (
+                <Fact label="Asking itself">
+                  why its predictions fail, for{" "}
+                  {span(Math.max(0, o.simulatedSeconds - q.since))}: leading answer{" "}
+                  {q.leading} at {(q.p * 100).toFixed(0)}%
+                  {q.secondLook ? ", taking a second look before it commits" : ""}
+                </Fact>
+              ) : null}
+              {c ? (
+                <Fact label="Last concluded">
+                  {span(Math.max(0, o.simulatedSeconds - c.t))} ago that{" "}
+                  {EXPLANATION_WORDS[c.explanation] ?? c.explanation} (
+                  {c.resolved ? `${(c.confidence * 100).toFixed(0)}% sure` : "unresolved"}
+                  {c.checked === "confirmed"
+                    ? ", confirmed on a second look"
+                    : c.checked === "revised"
+                      ? ", after a second look revised its first answer"
+                      : ""}
+                  )
+                </Fact>
+              ) : null}
+            </dl>
+          ) : null}
           <dl className="mt-2 grid grid-cols-2 gap-3">
             <Fact label="Trusts its sense of motion">
               {m.trustInSense.toFixed(2)} × innate
@@ -407,8 +450,8 @@ function SelfModel({ o }: { o: LifeObservation }) {
         <p className="text-muted-foreground text-sm leading-relaxed">
           This individual runs the reduced-order controller, which keeps no model of
           itself. A Project ECHO fly would show here what its functional self-model holds:
-          how far it trusts its senses, what it believes about its own body, and the
-          inquiries it opens when its predictions fail.
+          what it is attending to, how far it trusts its senses, what it believes about
+          its own body, and the inquiries it opens when its predictions fail.
         </p>
       )}
     </Section>

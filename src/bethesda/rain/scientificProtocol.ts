@@ -328,7 +328,7 @@ export const BACKEND_CAPABILITIES: readonly BackendCapability[] = [
     version: "digital-fly-behavior/v3",
     supported: [
       "matched-seed paired arms of the digital fly in closed arenas",
-      "six fixed protocols: obstacle avoidance, light preference, a looming dose series (visual threat), noisy sensing, adaptation to repeated looms and controller comparison",
+      "eleven fixed protocols: obstacle avoidance, light preference, a looming dose series (visual threat), noisy sensing, adaptation to repeated looms, controller comparison and Project ECHO's five self-model lesion studies",
       "seeds drawn by the host after preregistration, never by the design; pilot seeds never",
       "an exact one-sided sign test on untied seeds at a host-fixed alpha of 0.05",
       "controller configurations that override model parameters only, within their ranges; FlyBody and published values stay fixed",
@@ -674,6 +674,7 @@ export const FLY_BLOCKS = [
   "impairment",
   "attribution",
   "retention",
+  "busy",
 ] as const;
 export type FlyBlockId = (typeof FLY_BLOCKS)[number];
 
@@ -692,6 +693,9 @@ export const FLY_ECHO_VARIANTS = [
   "no_uncertainty",
   "naive_self",
   "motion_gated",
+  "no_workspace",
+  "no_metacognition",
+  "no_attention_schema",
 ] as const;
 export type FlyEchoVariant = (typeof FLY_ECHO_VARIANTS)[number];
 /** What a hidden condition stands for, as the experimenter scores the fly's explanation. */
@@ -1052,7 +1056,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.008,
+    minimum_effect: 0.006,
     description:
       "relative error of the fly's final beliefs about the impaired gains and biases against the hidden values (undefined without a self-model)",
   },
@@ -1105,7 +1109,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: 1,
-    minimum_effect: 0.07,
+    minimum_effect: 0.2,
     description:
       "fraction of external changes (a push, a turning surface) the fly blamed on its own body",
   },
@@ -1169,7 +1173,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.1,
+    minimum_effect: 0.2,
     description:
       "mean path error over the first 10 s after a self-change met before comes back",
   },
@@ -1180,7 +1184,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 4,
+    minimum_effect: 3,
     description:
       "time from that return to the fly's concluding that it changed itself (undefined without one)",
   },
@@ -1212,7 +1216,7 @@ export const FLY_METRICS = [
     primary: true,
     floor: 0,
     ceiling: null,
-    minimum_effect: 0.2,
+    minimum_effect: 0.1,
     description: "mean path error over the first 10 s of an unfamiliar combined change",
   },
   {
@@ -1236,11 +1240,46 @@ export const FLY_METRICS = [
     description:
       "recalls concluded during the unfamiliar change, which no episode matches",
   },
+  // ECHO-04: the impairment schedule on a fly whose urges to take off and to
+  // groom compete with its attention to itself.
+  {
+    id: "busy_attribution_latency_s",
+    block: "busy",
+    unit: "s",
+    primary: true,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: 30,
+    description:
+      "time from the hidden impairment's onset to the fly's first concluding that it changed itself; a fly that never does counts the rest of the run (undefined without a self-model)",
+  },
+  {
+    id: "busy_identification_error",
+    block: "busy",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "relative error of the busy fly's final beliefs about the impaired gains and biases against the hidden values (undefined without a self-model)",
+  },
+  {
+    id: "busy_impaired_path_error",
+    block: "busy",
+    unit: "fraction",
+    primary: false,
+    floor: 0,
+    ceiling: null,
+    minimum_effect: null,
+    description:
+      "mean path error of the busy fly's steady walking from the hidden impairment's onset to the end of the run",
+  },
 ] as const;
 export type FlyMetricId = (typeof FLY_METRICS)[number]["id"];
 
 /**
- * The six protocols. `caveat` says plainly what a protocol cannot show as
+ * The eleven protocols. `caveat` says plainly what a protocol cannot show as
  * designed; it travels into every plan's limitations. The v3 redesign chose
  * the apparatus of four of them with pilots so that their primary measures
  * discriminate (docs/benchmarks/fly-pilots/); what is left is what the pilots
@@ -1333,6 +1372,28 @@ export const FLY_PROTOCOLS = [
     caveat:
       "Retained learning is measured, not identity: a reset self-model in the same body is still the same simulated fly, and a restored checkpoint is the self-model alone (docs/PROJECT_ECHO.md).",
   },
+  {
+    id: "echo_attention",
+    title: "ECHO-04: attention, a workspace and a model of it",
+    blocks: ["busy"],
+    independent:
+      "the workspace disabled (each process acts on its own and nothing is broadcast), or the attention schema disabled (the workspace runs on its bids alone, never shielded)",
+    baseline:
+      "the full self-model on the same seeds, under the same hidden impairments drawn from the held-out evaluation conditions, on a fly that often takes off and grooms",
+    caveat:
+      "The workspace, its broadcast and the attention schema are functional analogues of indicator properties (GWT-1 to GWT-4 and AST-1 of Butlin, Long et al. 2023) in a few lines of arithmetic: a result here says what they do for this simulated fly, never that it is aware of anything. The block's urge rates are set high so that urges meet the fly's inquiries often enough to measure; in the development runs the attention schema rarely changed what the fly did. Its pilot found no seed count that passes with 0.9 probability, so the demonstration runs under-powered at the host's largest seed count and minimum effect.",
+  },
+  {
+    id: "echo_metacognition",
+    title: "ECHO-05: a second look at its own conclusions",
+    blocks: ["attribution"],
+    independent:
+      "the second look disabled: the fly commits to a conclusion as soon as one explanation's posterior is high enough",
+    baseline:
+      "the full self-model, which acts on a conclusion but weighs it again on fresh evidence before it commits, on the same seeds under the same hidden changes",
+    caveat:
+      "The second look was added after ECHO-02's published held-out results showed the fly overconfident on combined causes, so these conditions are not naive for it; its one parameter was set by a principle, never tuned on them (docs/PROJECT_ECHO.md). Its stated confidence is the Bayesian posterior over the fly's own explanations, a functional analogue of metacognitive monitoring (HOT-2), not a report of felt certainty. Its pilot found no seed count that passes with 0.9 probability, so the demonstration runs under-powered at the host's largest seed count and minimum effect.",
+  },
 ] as const satisfies readonly {
   id: string;
   title: string;
@@ -1372,7 +1433,9 @@ export type FlyTreatment =
   | {
       kind: "echo_retention";
       variant: "memory_reset" | "no_memory" | "no_learning" | "reactive";
-    };
+    }
+  | { kind: "echo_attention"; variant: "no_workspace" | "no_attention_schema" }
+  | { kind: "echo_metacognition"; variant: "no_metacognition" };
 
 export interface FlyDesign {
   schema: typeof FLY_DESIGN;
@@ -1613,6 +1676,14 @@ export const FLY_DESIGN_SCHEMA = closed({
             type: "string",
             enum: ["memory_reset", "no_memory", "no_learning", "reactive"],
           },
+        }),
+        closed({
+          kind: { const: "echo_attention", type: "string" },
+          variant: { type: "string", enum: ["no_workspace", "no_attention_schema"] },
+        }),
+        closed({
+          kind: { const: "echo_metacognition", type: "string" },
+          variant: { type: "string", enum: ["no_metacognition"] },
         }),
       ],
     },

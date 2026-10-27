@@ -10,7 +10,7 @@
  */
 import { model, type Param } from "../params.js";
 
-export const ECHO_VERSION = "echo-self-model/v2" as const;
+export const ECHO_VERSION = "echo-self-model/v3" as const;
 
 /** The literature the mechanisms follow, for what they borrow: never a claim that a fly works this way. */
 export const ECHO_CITATIONS = {
@@ -27,6 +27,23 @@ export const ECHO_CITATIONS = {
     doi: "10.1115/1.3662552",
   },
   page1954: { short: "Page 1954, Biometrika 41:100", doi: "10.1093/biomet/41.1-2.100" },
+  butlin2023: {
+    short:
+      "Butlin, Long et al. 2023, Consciousness in artificial intelligence, arXiv:2308.08708",
+    doi: "10.48550/arXiv.2308.08708",
+  },
+  dehaene2001: {
+    short: "Dehaene & Naccache 2001, Cognition 79:1",
+    doi: "10.1016/S0010-0277(00)00123-2",
+  },
+  graziano2015: {
+    short: "Graziano & Webb 2015, Front Psychol 6:500",
+    doi: "10.3389/fpsyg.2015.00500",
+  },
+  fleming2014: {
+    short: "Fleming & Lau 2014, Front Hum Neurosci 8:443",
+    doi: "10.3389/fnhum.2014.00443",
+  },
 } as const;
 
 export const ECHO_PARAMS = {
@@ -248,6 +265,117 @@ export const ECHO_PARAMS = {
     "fraction",
     [0.25, 0.25],
     "the lowest gain the fly ever believes it has: it never commands more than four times what it intends",
+  ),
+  // --- The workspace: one content at a time, broadcast (workspace.ts) ------------
+  inquirySalience: model(
+    1,
+    "salience",
+    [1, 1],
+    "how much an open inquiry, the self-model asking why its predictions fail, bids for the workspace: the unit every other bid is set against",
+  ),
+  hazardSalience: model(
+    3,
+    "salience",
+    [3, 3],
+    "a surface ahead in flight, or any avoidance the controller intends: the fly's safety outranks everything, and nothing shields against it",
+  ),
+  touchSalience: model(
+    1.5,
+    "salience",
+    [1.5, 1.5],
+    "the legs at an edge or against a solid: the body met something, which outranks an inquiry and is never shielded against",
+  ),
+  airSalience: model(
+    1.2,
+    "salience",
+    [1.2, 1.2],
+    "a sudden change in the air going by (more than airSettleMS in a period): it outranks an inquiry, as a step in the wind is news, and is never shielded against",
+  ),
+  landSalience: model(
+    1.3,
+    "salience",
+    [1.3, 1.3],
+    "a landing the controller intends: time-critical, so it outranks an inquiry",
+  ),
+  foodSalience: model(
+    0.5,
+    "salience",
+    [0.5, 0.5],
+    "food the controller pursues (feeding, scenting or returning to it), plus the fly's hunger (one minus its reserve): a hungry fly's food outranks an inquiry",
+  ),
+  takeoffSalience: model(
+    1.1,
+    "salience",
+    [1.1, 1.1],
+    "a voluntary takeoff: just above an open inquiry, so that an urge to fly interrupts self-examination unless the fly controls its attention (attentionSchema.ts). A model choice that sets up the conflict ECHO-06 tests",
+  ),
+  groomSalience: model(
+    0.7,
+    "salience",
+    [0.7, 0.7],
+    "a grooming bout the controller intends: below an open inquiry",
+  ),
+  flightSalience: model(
+    0.6,
+    "salience",
+    [0.6, 0.6],
+    "cruising or hovering flight the controller intends",
+  ),
+  idleSalience: model(
+    0.3,
+    "salience",
+    [0.3, 0.3],
+    "walking or resting as the controller intends it: the least of the bids",
+  ),
+  igniteSalience: model(
+    0.5,
+    "salience",
+    [0.5, 0.5],
+    "a bid enters an empty workspace only at this salience or more: below it nothing is broadcast, and the controller acts alone",
+  ),
+  releaseSalience: model(
+    0.25,
+    "salience",
+    [0.25, 0.25],
+    "what holds the workspace lets go when its bid falls below this",
+  ),
+  workspaceMargin: model(
+    0.05,
+    "fraction",
+    [0.05, 0.05],
+    "a rival takes the workspace only when it outbids what holds it by more than this share: what holds it keeps it against an equal (ignition and sustain)",
+  ),
+  // --- The attention schema: a model of its own attention (attentionSchema.ts) --
+  schemaTauS: model(
+    60,
+    "s",
+    [60, 60],
+    "the fly learns how often each kind of content takes its workspace, and how long each holds it, over about this long",
+  ),
+  schemaDwellS: model(
+    2,
+    "s",
+    [2, 2],
+    "how long the fly expects a content to hold its workspace before it has seen any: a guess its own experience replaces",
+  ),
+  shieldRisk: model(
+    0.2,
+    "probability",
+    [0.2, 0.2],
+    "the fly shields an inquiry when it expects, by its model of its own attention, at least this chance that a content it may hold off takes the workspace before the inquiry can finish",
+  ),
+  shieldMargin: model(
+    1,
+    "fraction",
+    [1, 1],
+    "while shielded, a rival it may hold off needs twice the inquiry's bid to take the workspace; hazards, touch and the air are never held off",
+  ),
+  // --- The second look: monitoring its own conclusions (metacognition) -----------
+  checkPeriods: model(
+    20,
+    "periods",
+    [20, 20],
+    "before it commits to a conclusion the fly acts on it and weighs it again on this many fresh periods (1 s): it commits if the same claim still wins, revises if another does, and keeps asking if none does",
   ),
   // --- Remembering -----------------------------------------------------------------
   historyPeriods: model(
