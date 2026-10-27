@@ -22,15 +22,15 @@ the redesign and ECHO added (FLY_METRICS) come from `floors`;
 
 | pilot | fly version | flySource digest | fly identity | engine | code | runs digest | outputs digest |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| adaptation | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `26dec5e045bf` | `e2882f456e4a` |
-| echo_attention | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `b93abbccb2ac` | `4394d509b8d9` |
-| echo_attribution | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `8ddd96235633` | `a379b5eadd6e` |
-| echo_impairment | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `efda7baf7464` | `8f90041e1eb8` |
-| echo_metacognition | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `ebf5b16f2ead` | `893d402e4226` |
-| echo_retention | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `0a429fb46981` | `46affc1c731f` |
-| noisy_sensing | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `9959291514c3` | `3bf02c19ae9d` |
-| obstacle_avoidance | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `6e4f49d552ab` | `97b352b3a0b4` |
-| visual_threat | digital-fly/8 | `0cece29de212` | `c2254d64d295` | node 24.19.0 (V8 13.6.233.17-node.51) | `6680a49e9233` | `d6398bac6d76` | `0e4e54818d99` |
+| adaptation | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `26dec5e045bf` | `e2882f456e4a` |
+| echo_attention | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `b93abbccb2ac` | `a09db1ba20e3` |
+| echo_attribution | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `8ddd96235633` | `c47520962571` |
+| echo_impairment | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `efda7baf7464` | `8fb4d492b75e` |
+| echo_metacognition | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `ebf5b16f2ead` | `d78aa588853d` |
+| echo_retention | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `0a429fb46981` | `c88cd043784d` |
+| noisy_sensing | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `9959291514c3` | `3bf02c19ae9d` |
+| obstacle_avoidance | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `6e4f49d552ab` | `97b352b3a0b4` |
+| visual_threat | digital-fly/8 | `a96a496c4c00` | `c684a7f00023` | node 24.19.0 (V8 13.6.233.17-node.51) | `0967b3956bc3` | `d6398bac6d76` | `0e4e54818d99` |
 
 `npm run rain:fly -- --pilot --check` re-runs every pilot exactly from its
 recorded definition and compares the digests of its runs (final state hashes,
@@ -43,11 +43,11 @@ sized; any difference fails the check.
 | protocol | demonstration dose | metric | pilot seeds expected / opposite / uninformative | seed count | pass probability | sized minimum effect | host minimum effect | design minimum effect | S1 probability |
 | :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
 | adaptation | repeating a looming stimulus every 10 s on a fixed schedule | repeat_escape_probability (decrease) | 28 / 0 / 4 | 13 | 0.9254 | 0.13 | 0.1 | 0.13 | 0.9534 |
-| echo_attention | the ECHO controller with workspace disabled (each process acts on its own, nothing is broadcast, and so no attention schema) | busy_attribution_latency_s (increase) | 13 / 1 / 18 | none | — | — | 1 | — | — |
+| echo_attention | the ECHO controller with workspace disabled (each process acts on its own, nothing is broadcast, and so no attention schema) | busy_attribution_latency_s (increase) | 13 / 1 / 18 | none | — | — | 30 | — | — |
 | echo_attribution | the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) | attribution_accuracy (decrease) | 32 / 0 / 0 | 12 | 0.9165 | 0.36 | 0.2 | 0.36 | 0.9541 |
 | echo_impairment | the ECHO controller with no self-model (the reduced-order controller alone) | impaired_path_error (increase) | 32 / 0 / 0 | 9 | 0.9272 | 0.19 | 0.09 | 0.19 | 0.9520 |
 | echo_metacognition | the ECHO controller with the second look disabled (it commits to a conclusion at once) | attribution_brier (increase) | 19 / 13 / 0 | none | — | — | 0.2 | — | — |
-| echo_retention | the full ECHO self-model reset to an innate one 5 s before a remembered change returns | reexposure_latency_s (increase) | 19 / 2 / 11 | none | — | — | 4 | — | — |
+| echo_retention | the full ECHO self-model reset to an innate one 5 s before a remembered change returns | reexposure_latency_s (increase) | 19 / 2 / 11 | none | — | — | 3 | — | — |
 | noisy_sensing | sensory noise of 0.4 (standard deviation 0.23: relative on sizes, distances and light levels, in radians on directions) | escape_ttc_s (increase) | 32 / 0 / 0 | 9 | 0.9272 | 0.24 | 0.02 | 0.24 | 0.9679 |
 | obstacle_avoidance | turning away from surfaces whose time to contact falls below 0.45 s | cruise_collision_episodes_per_m (decrease) | 31 / 0 / 1 | 10 | 0.9077 | 0.12 | 0.01 | 0.12 | 0.9567 |
 | visual_threat | a sphere of 4 cm radius approaching the standing fly at l/v = 40 ms (1.00 m/s) | escape_ttc_s (decrease) | 32 / 0 / 0 | 9 | 0.9272 | 0.28 | 0.02 | 0.28 | 0.9993 |
@@ -60,23 +60,23 @@ sized; any difference fails the check.
 
 | metric | pilot | resolution | divergence bound | floor | in force |
 | :--- | :--- | ---: | ---: | ---: | ---: |
-| busy_attribution_latency_s | echo_attention | 0.05 | 20.8 | 30 | 1 |
+| busy_attribution_latency_s | echo_attention | 0.05 | 20.8 | 30 | 30 |
 | attribution_accuracy | echo_attribution | 0 | 0.138 | 0.2 | 0.2 |
-| false_self_attribution | echo_attribution | 0 | 0.118 | 0.2 | 0.07 |
+| false_self_attribution | echo_attribution | 0 | 0.118 | 0.2 | 0.2 |
 | attribution_brier | echo_attribution | 0 | 0.131 | 0.2 | 0.2 |
 | attribution_path_error | echo_attribution | 0 | 0.0821 | 0.09 | 0.09 |
 | impaired_path_error | echo_impairment | 0 | 0.0803 | 0.09 | 0.09 |
 | late_path_error | echo_impairment | 0 | 0.106 | 0.2 | 0.2 |
 | baseline_path_error | echo_impairment | 0 | 0.00564 | 0.006 | 0.006 |
 | detection_latency_s | echo_impairment | 0.05 | 2.82 | 3 | 3 |
-| identification_error | echo_impairment | 0 | 0.00565 | 0.006 | 0.008 |
+| identification_error | echo_impairment | 0 | 0.00565 | 0.006 | 0.006 |
 | attribution_accuracy | echo_metacognition | 0 | 0.138 | 0.2 | 0.2 |
-| false_self_attribution | echo_metacognition | 0 | 0.118 | 0.2 | 0.07 |
+| false_self_attribution | echo_metacognition | 0 | 0.118 | 0.2 | 0.2 |
 | attribution_brier | echo_metacognition | 0 | 0.131 | 0.2 | 0.2 |
 | attribution_path_error | echo_metacognition | 0 | 0.0821 | 0.09 | 0.09 |
-| reexposure_path_error | echo_retention | 0 | 0.117 | 0.2 | 0.1 |
-| reexposure_latency_s | echo_retention | 0.05 | 2.91 | 3 | 4 |
-| unfamiliar_path_error | echo_retention | 0 | 0.0972 | 0.1 | 0.2 |
+| reexposure_path_error | echo_retention | 0 | 0.117 | 0.2 | 0.2 |
+| reexposure_latency_s | echo_retention | 0.05 | 2.91 | 3 | 3 |
+| unfamiliar_path_error | echo_retention | 0 | 0.0972 | 0.1 | 0.1 |
 | near_miss_fraction | noisy_sensing | 0 | 0.0264 | 0.03 | 0.09 |
 | escape_ttc_s | noisy_sensing | 0.01 | 0.00831 | 0.01 | 0.02 |
 | near_miss_fraction | obstacle_avoidance | 0 | 0.0805 | 0.09 | 0.09 |

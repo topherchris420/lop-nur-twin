@@ -4,11 +4,11 @@
   "protocol": "echo_retention",
   "fly_version": "digital-fly/8",
   "fly": "digital-fly/8 reduced-order-fsm/v1",
-  "fly_sha256": "c2254d64d2950c9dac480f1991a71f4db6936acd44c066f5dfa02aee51cc7d3b",
-  "fly_source_sha256": "0cece29de2127e843f6cee245964775cf5e42dfaa8d09ff3e5c1f52745eee00d",
+  "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+  "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
   "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
   "code": {
-    "commit": "6680a49e9233b79ab9f33141eafcd108b4e22a9b",
+    "commit": "0967b3956bc36319a25d49a2e93c92c78586717e",
     "dirty": false
   },
   "definition": {
@@ -2934,7 +2934,7 @@
     "seed_count": null,
     "pass_probability": null,
     "minimum_effect": null,
-    "host_minimum_effect": 4,
+    "host_minimum_effect": 3,
     "design_minimum_effect": null,
     "s1_probability": null,
     "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
@@ -2945,25 +2945,25 @@
       "resolution": 0,
       "divergence_bound": 0.11681839443082015,
       "floor": 0.2,
-      "host_minimum_effect": 0.1
+      "host_minimum_effect": 0.2
     },
     {
       "metric": "reexposure_latency_s",
       "resolution": 0.05,
       "divergence_bound": 2.91000234695338,
       "floor": 3,
-      "host_minimum_effect": 4
+      "host_minimum_effect": 3
     },
     {
       "metric": "unfamiliar_path_error",
       "resolution": 0,
       "divergence_bound": 0.09715804611636442,
       "floor": 0.1,
-      "host_minimum_effect": 0.2
+      "host_minimum_effect": 0.1
     }
   ],
   "runs_sha256": "0a429fb46981d1019fa44baf7b35e6ace861f587bd16554ce0cce43269239f8b",
-  "outputs_sha256": "46affc1c731f966828ddce26ddc67205be803eceefa720d361d368a459be0166",
-  "generated_at": "2026-10-27T00:52:58.085Z",
-  "sha256": "3948bbb51b4fd4dd9af0029ab5985ba96782466d9691f83dc15a52a0df49306f"
+  "outputs_sha256": "c88cd043784dd7ea4fe4e49ea2bde3d94a30143e5e64bd190ab5e066914e4087",
+  "generated_at": "2026-10-27T01:16:13.572Z",
+  "sha256": "fabe7286af386f7f64ea8af01e9054bd714db9f18ffe684b90b3e1c07521034f"
 }

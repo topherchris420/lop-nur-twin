@@ -4,11 +4,11 @@
   "protocol": "echo_attention",
   "fly_version": "digital-fly/8",
   "fly": "digital-fly/8 reduced-order-fsm/v1",
-  "fly_sha256": "c2254d64d2950c9dac480f1991a71f4db6936acd44c066f5dfa02aee51cc7d3b",
-  "fly_source_sha256": "0cece29de2127e843f6cee245964775cf5e42dfaa8d09ff3e5c1f52745eee00d",
+  "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+  "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
   "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
   "code": {
-    "commit": "6680a49e9233b79ab9f33141eafcd108b4e22a9b",
+    "commit": "0967b3956bc36319a25d49a2e93c92c78586717e",
     "dirty": false
   },
   "definition": {
@@ -1450,7 +1450,7 @@
     "seed_count": null,
     "pass_probability": null,
     "minimum_effect": null,
-    "host_minimum_effect": 1,
+    "host_minimum_effect": 30,
     "design_minimum_effect": null,
     "s1_probability": null,
     "rule": "seed_count: the smallest of 8-16 whose chance of passing G3, G4 (6 untied) and the exact sign test at alpha 0.05 is at least 0.9, with the expected direction's share at its one-sided 95% lower bound; minimum_effect: the pilot's mean paired difference less 1.645 standard errors (pilot and experiment), rounded down to two significant figures, so S1 holds with about 95% probability for an effect the size of the pilot's; the design uses the larger of it and the host's minimum effect"
@@ -1461,11 +1461,11 @@
       "resolution": 0.05,
       "divergence_bound": 20.837090843942434,
       "floor": 30,
-      "host_minimum_effect": 1
+      "host_minimum_effect": 30
     }
   ],
   "runs_sha256": "b93abbccb2ac495eb23c46b52d1ed9610c98b86f7be496fa804ce45eebf2cd00",
-  "outputs_sha256": "4394d509b8d9a1a3a62aadf112ee50a9f3f86097de1f15642ed4309445dd34b8",
-  "generated_at": "2026-10-27T00:57:36.072Z",
-  "sha256": "ecce9ce4065185b5d887dca04e7e71a9229c9d72ba08d9007c983f0102019a02"
+  "outputs_sha256": "a09db1ba20e3d96997c317e0ea004d9652b5b3f598fd6129a760771f40c1a70b",
+  "generated_at": "2026-10-27T01:20:57.527Z",
+  "sha256": "cd9e988cf46bccc7ce98ca9833ea048baf0fbd90005cb86fb8a6c20115ee56b2"
 }

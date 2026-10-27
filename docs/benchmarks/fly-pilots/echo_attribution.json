@@ -4,11 +4,11 @@
   "protocol": "echo_attribution",
   "fly_version": "digital-fly/8",
   "fly": "digital-fly/8 reduced-order-fsm/v1",
-  "fly_sha256": "c2254d64d2950c9dac480f1991a71f4db6936acd44c066f5dfa02aee51cc7d3b",
-  "fly_source_sha256": "0cece29de2127e843f6cee245964775cf5e42dfaa8d09ff3e5c1f52745eee00d",
+  "fly_sha256": "c684a7f0002390bee7e62d529bc459479c35e45465749ad174bd99aca71a5f8a",
+  "fly_source_sha256": "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
   "engine": "node 24.19.0 (V8 13.6.233.17-node.51)",
   "code": {
-    "commit": "6680a49e9233b79ab9f33141eafcd108b4e22a9b",
+    "commit": "0967b3956bc36319a25d49a2e93c92c78586717e",
     "dirty": false
   },
   "definition": {
@@ -3058,7 +3058,7 @@
       "resolution": 0,
       "divergence_bound": 0.11756546017815175,
       "floor": 0.2,
-      "host_minimum_effect": 0.07
+      "host_minimum_effect": 0.2
     },
     {
       "metric": "attribution_brier",
@@ -3076,7 +3076,7 @@
     }
   ],
   "runs_sha256": "8ddd962356337bbce6962ea4b386ca9d83aa2c8f16281bd6c260d504f06e6a11",
-  "outputs_sha256": "a379b5eadd6e25be1ff4fb5b68d54f553ca9903c469933f7b1665ea16062559c",
-  "generated_at": "2026-10-27T00:52:02.629Z",
-  "sha256": "1685c12b038949f7ca0e82ae88acdd7525dfc3abe12d9868699eab654b4d281c"
+  "outputs_sha256": "c475209625715aa1b02a4b7c7bba66cc4e5dc2debd6561806f1d5cd53bd39a21",
+  "generated_at": "2026-10-27T01:13:13.808Z",
+  "sha256": "ddcefdad8449ee8ecc60fe5a261f12e74622a707c90e219cd338491d3dbbf9ab"
 }
