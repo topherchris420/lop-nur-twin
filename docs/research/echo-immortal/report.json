@@ -1,0 +1,1367 @@
+{
+  "schema": "echo-immortal-report/v1",
+  "sourceCommit": "f7283da505cc36379c4c028c7a8e30fe22fbb9c6",
+  "sourceDigest": "409555cdd365e4d5d4019574f8d420c5dc08bc261cbd8ff70de0383602b2a3af",
+  "plan": {
+    "version": "echo-lifelong-study/v1",
+    "developmentSeeds": [1201, 1202, 1203],
+    "heldOutSeeds": [8101, 8102, 8103, 8104],
+    "phaseSeconds": 180,
+    "phases": ["acquisition", "retention", "transfer", "reversal", "composition"],
+    "success": {
+      "adaptationLatencyReduction": 0.2,
+      "retentionNearSeconds": 10,
+      "minimumPairedMeals": 3
+    },
+    "limitations": [
+      "not preregistered",
+      "same-repository evaluation, not independent validation",
+      "single scalar odour, no novel chemical identities",
+      "reduced-order body; MuJoCo readiness not met",
+      "fixed-policy arm retains heuristic navigation state but has no learned parameters",
+      "finite challenges do not demonstrate open-ended learning"
+    ]
+  },
+  "rows": [
+    {
+      "seed": 8101,
+      "arm": "persistent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": 90.9,
+          "meals": 2,
+          "feedS": 89.09999999999145,
+          "nearPreviousS": 0,
+          "visitedCells": 7,
+          "spentJ": 0.009576715000003327,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [0.00015253590605064722, -5.498617525413432]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 167.6,
+          "visitedCells": 3,
+          "spentJ": 0.0089355950000061,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [1.5339317923700277, -5.859501255818925]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 5,
+          "spentJ": 0.00928667000000976,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [0.6825453803150315, -7.561752978209826]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 22,
+          "spentJ": 0.02266268499993082,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [2.0507340530169094, 2.156641850978312]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 10,
+          "spentJ": 0.01662064999993803,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [3.259460146798088, -2.4899250633824686]
+        }
+      ]
+    },
+    {
+      "seed": 8101,
+      "arm": "memory-reset",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": 90.9,
+          "meals": 2,
+          "feedS": 89.09999999999145,
+          "nearPreviousS": 0,
+          "visitedCells": 7,
+          "spentJ": 0.009576715000003327,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [0.00015253590605064722, -5.498617525413432]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 168.3,
+          "visitedCells": 3,
+          "spentJ": 0.0089355950000061,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [1.5675350859507782, -5.702332975214411]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 6,
+          "spentJ": 0.010473545000011138,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [0.05599631137962471, -2.992654884575391]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": 136.7,
+          "meals": 1,
+          "feedS": 43.39999999996054,
+          "nearPreviousS": 0,
+          "visitedCells": 19,
+          "spentJ": 0.016396749999927324,
+          "trials": 1,
+          "rejectedCommands": 0,
+          "endpoint": [0.0011925021142612207, 5.4990952116488385]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 26.3,
+          "visitedCells": 21,
+          "spentJ": 0.024577949999928773,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-1.3827153950963333, -1.3049860687593693]
+        }
+      ]
+    },
+    {
+      "seed": 8101,
+      "arm": "fixed-policy",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": 89.3,
+          "meals": 4,
+          "feedS": 90.64999999999004,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.011514790000002146,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [0.0005733881517321756, -5.498639249130939]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 162.7,
+          "visitedCells": 8,
+          "spentJ": 0.0100320550000074,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-2.177159808620465, -5.661422344606222]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 2,
+          "spentJ": 0.006541250000006542,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-2.048053795115724, -5.994016252779555]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 14,
+          "spentJ": 0.01974195999993984,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [3.3691303955729826, -1.252505658368471]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 8,
+          "spentJ": 0.014917534999934583,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [0.9110843987137188, -0.6457557099102936]
+        }
+      ]
+    },
+    {
+      "seed": 8101,
+      "arm": "independent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": 44.9,
+          "meals": 4,
+          "feedS": 134.99999999994972,
+          "nearPreviousS": 0,
+          "visitedCells": 8,
+          "spentJ": 0.008576970000003504,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [0.0005051174794761521, -5.498721655757307]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 180,
+          "visitedCells": 6,
+          "spentJ": 0.015534155000006728,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [0.8740424176387276, -4.963346951012111]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 13,
+          "spentJ": 0.012560849999961675,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [-1.9521999278356825, -0.9199026075684519]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 13,
+          "spentJ": 0.015923314999933165,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [-3.6119598508110586, 4.0784250523459065]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 11,
+          "spentJ": 0.01657596999992377,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [-3.6718547829400205, -2.2765031555905053]
+        }
+      ]
+    },
+    {
+      "seed": 8102,
+      "arm": "persistent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "west",
+          "latencyS": 171.2,
+          "meals": 1,
+          "feedS": 8.899999999999991,
+          "nearPreviousS": 0,
+          "visitedCells": 12,
+          "spentJ": 0.011505275000001081,
+          "trials": 1,
+          "rejectedCommands": 0,
+          "endpoint": [-5.498842872382925, 0.0009260853486508993]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 156.8,
+          "visitedCells": 6,
+          "spentJ": 0.0169433750000121,
+          "trials": 1,
+          "rejectedCommands": 0,
+          "endpoint": [-5.440520087183429, 1.6818093272435086]
+        },
+        {
+          "phase": "transfer",
+          "food": "south",
+          "latencyS": 63.7,
+          "meals": 4,
+          "feedS": 116.19999999995872,
+          "nearPreviousS": 0,
+          "visitedCells": 10,
+          "spentJ": 0.011146964999908263,
+          "trials": 5,
+          "rejectedCommands": 0,
+          "endpoint": [-0.0013156068790752544, 5.499333346122079]
+        },
+        {
+          "phase": "reversal",
+          "food": "east",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 36.9,
+          "visitedCells": 8,
+          "spentJ": 0.010223179999922297,
+          "trials": 5,
+          "rejectedCommands": 0,
+          "endpoint": [2.3694880345178047, 2.188289393548254]
+        },
+        {
+          "phase": "composition",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 10,
+          "spentJ": 0.01421551999992552,
+          "trials": 5,
+          "rejectedCommands": 0,
+          "endpoint": [-1.5699207328364684, 1.203745032766944]
+        }
+      ]
+    },
+    {
+      "seed": 8102,
+      "arm": "memory-reset",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "west",
+          "latencyS": 171.2,
+          "meals": 1,
+          "feedS": 8.899999999999991,
+          "nearPreviousS": 0,
+          "visitedCells": 12,
+          "spentJ": 0.011505275000001081,
+          "trials": 1,
+          "rejectedCommands": 0,
+          "endpoint": [-5.498842872382925, 0.0009260853486508993]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 149.2,
+          "visitedCells": 8,
+          "spentJ": 0.01984186000001552,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-6.428618426440476, -1.0778761151548455]
+        },
+        {
+          "phase": "transfer",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 12,
+          "spentJ": 0.012775229999943544,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-1.7222662495162346, 2.078358947957722]
+        },
+        {
+          "phase": "reversal",
+          "food": "east",
+          "latencyS": 179.3,
+          "meals": 1,
+          "feedS": 0.7500000000001172,
+          "nearPreviousS": 0,
+          "visitedCells": 11,
+          "spentJ": 0.014252294999929326,
+          "trials": 1,
+          "rejectedCommands": 0,
+          "endpoint": [5.4985602030133345, 0.0003855790330444627]
+        },
+        {
+          "phase": "composition",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 180,
+          "visitedCells": 4,
+          "spentJ": 0.012142494999970208,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [5.781323843810169, 0.8288931189161642]
+        }
+      ]
+    },
+    {
+      "seed": 8102,
+      "arm": "fixed-policy",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "west",
+          "latencyS": 114.9,
+          "meals": 2,
+          "feedS": 65.10000000001328,
+          "nearPreviousS": 0,
+          "visitedCells": 10,
+          "spentJ": 0.011216525000001401,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-5.498721414950765, -0.00027706342582032]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 63.1,
+          "visitedCells": 7,
+          "spentJ": 0.013212655000010483,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-7.777662222757337, -0.3086297332322634]
+        },
+        {
+          "phase": "transfer",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 12,
+          "spentJ": 0.017301419999960908,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-0.27519033356973727, 1.9934616022761507]
+        },
+        {
+          "phase": "reversal",
+          "food": "east",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 8,
+          "spentJ": 0.010089844999937973,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [1.3848445617573077, -0.9209280354933421]
+        },
+        {
+          "phase": "composition",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.014255509999946257,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-1.488361314261741, 2.6514702820697456]
+        }
+      ]
+    },
+    {
+      "seed": 8102,
+      "arm": "independent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "west",
+          "latencyS": 104.2,
+          "meals": 3,
+          "feedS": 75.7500000000036,
+          "nearPreviousS": 0,
+          "visitedCells": 10,
+          "spentJ": 0.011288265000002113,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-5.4986783756772875, 0.000052727620507187345]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 147.2,
+          "visitedCells": 7,
+          "spentJ": 0.015980310000011773,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-4.880800219633046, -1.2490137795796399]
+        },
+        {
+          "phase": "transfer",
+          "food": "south",
+          "latencyS": 143.9,
+          "meals": 1,
+          "feedS": 36.199999999967076,
+          "nearPreviousS": 0,
+          "visitedCells": 13,
+          "spentJ": 0.013786249999946844,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [-0.0002092518320267655, 5.498589307306091]
+        },
+        {
+          "phase": "reversal",
+          "food": "east",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 24.3,
+          "visitedCells": 10,
+          "spentJ": 0.014354979999948864,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [1.5945014643562587, 0.7933367690529292]
+        },
+        {
+          "phase": "composition",
+          "food": "west",
+          "latencyS": 154.7,
+          "meals": 1,
+          "feedS": 25.34999999997696,
+          "nearPreviousS": 0,
+          "visitedCells": 17,
+          "spentJ": 0.020415804999931064,
+          "trials": 5,
+          "rejectedCommands": 0,
+          "endpoint": [-5.7115944001120935, -0.1311328916420621]
+        }
+      ]
+    },
+    {
+      "seed": 8103,
+      "arm": "persistent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": 54.3,
+          "meals": 3,
+          "feedS": 125.64999999995821,
+          "nearPreviousS": 0,
+          "visitedCells": 10,
+          "spentJ": 0.010611920000003975,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-0.0005443203161835553, -5.498681139588207]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 89.9,
+          "visitedCells": 6,
+          "spentJ": 0.009032610000005775,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-1.1267960613250014, -7.494782654314708]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 8,
+          "spentJ": 0.01065579000001135,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-3.2862754157944796, -3.232849449896932]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": 118.3,
+          "meals": 1,
+          "feedS": 61.74999999994385,
+          "nearPreviousS": 0,
+          "visitedCells": 17,
+          "spentJ": 0.01440027999992731,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [-0.00014537487743716674, 5.498648940817913]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 93.1,
+          "visitedCells": 6,
+          "spentJ": 0.009569454999917536,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [-0.35448457330396593, 3.565758577617242]
+        }
+      ]
+    },
+    {
+      "seed": 8103,
+      "arm": "memory-reset",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": 54.3,
+          "meals": 3,
+          "feedS": 125.64999999995821,
+          "nearPreviousS": 0,
+          "visitedCells": 10,
+          "spentJ": 0.010611920000003975,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-0.0005443203161835553, -5.498681139588207]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 89.9,
+          "visitedCells": 6,
+          "spentJ": 0.009032610000005775,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-1.0225434732759435, -7.549598777815595]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.011064660000011835,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-4.677742178257117, -4.047964223940927]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 7,
+          "spentJ": 0.010941984999941673,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-2.1742564338177583, -0.4687564143969026]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 5,
+          "spentJ": 0.008395074999921655,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-2.281861330020201, -2.0212407183580305]
+        }
+      ]
+    },
+    {
+      "seed": 8103,
+      "arm": "fixed-policy",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.012551010000005112,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [0.8514649218614017, -3.4675075652698797]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 145.6,
+          "visitedCells": 9,
+          "spentJ": 0.016728215000015895,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-1.4700353029938675, -5.257241171430404]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": 96,
+          "meals": 2,
+          "feedS": 83.99999999999609,
+          "nearPreviousS": 0,
+          "visitedCells": 11,
+          "spentJ": 0.011179909999927452,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-5.4989165819756005, -0.000855279453711484]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 33.8,
+          "visitedCells": 9,
+          "spentJ": 0.01046593499991675,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-1.6282035753600819, 2.5885577276534413]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.014876484999915951,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-1.0508614601071071, -1.492573368550598]
+        }
+      ]
+    },
+    {
+      "seed": 8103,
+      "arm": "independent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "north",
+          "latencyS": 175.1,
+          "meals": 1,
+          "feedS": 4.999999999999916,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.010616920000000168,
+          "trials": 1,
+          "rejectedCommands": 0,
+          "endpoint": [0.0003620020947589869, -5.498715568382429]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 180,
+          "visitedCells": 2,
+          "spentJ": 0.009324715000008924,
+          "trials": 1,
+          "rejectedCommands": 0,
+          "endpoint": [0.3096925463729993, -5.446581137457142]
+        },
+        {
+          "phase": "transfer",
+          "food": "west",
+          "latencyS": 147.2,
+          "meals": 2,
+          "feedS": 32.850000000000996,
+          "nearPreviousS": 0,
+          "visitedCells": 16,
+          "spentJ": 0.014247844999985316,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-5.499302273393362, -0.0012741041504849043]
+        },
+        {
+          "phase": "reversal",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 69.2,
+          "visitedCells": 12,
+          "spentJ": 0.01134884499993171,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-3.875541111921313, 6.435602918381346]
+        },
+        {
+          "phase": "composition",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 71.1,
+          "visitedCells": 8,
+          "spentJ": 0.013941039999925825,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-1.7286021995869525, 2.6635887656081447]
+        }
+      ]
+    },
+    {
+      "seed": 8104,
+      "arm": "persistent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "south",
+          "latencyS": 63.1,
+          "meals": 2,
+          "feedS": 116.94999999996612,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.011027460000003595,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [-0.0002936350618553574, 5.4986733058312875]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 85.5,
+          "visitedCells": 37,
+          "spentJ": 0.013751065000012613,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [-1.3960950046972238, 2.8535694998523096]
+        },
+        {
+          "phase": "transfer",
+          "food": "east",
+          "latencyS": 107.2,
+          "meals": 1,
+          "feedS": 72.89999999993371,
+          "nearPreviousS": 0,
+          "visitedCells": 13,
+          "spentJ": 0.013077389999945645,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [5.498681676972719, 0.00007199512662414851]
+        },
+        {
+          "phase": "reversal",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 59.7,
+          "visitedCells": 11,
+          "spentJ": 0.013007894999911944,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [0.3764444524608186, -4.746125169199756]
+        },
+        {
+          "phase": "composition",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 149,
+          "visitedCells": 7,
+          "spentJ": 0.012485069999959596,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [-1.3269433660160999, -2.7040793949482604]
+        }
+      ]
+    },
+    {
+      "seed": 8104,
+      "arm": "memory-reset",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "south",
+          "latencyS": 63.1,
+          "meals": 2,
+          "feedS": 116.94999999996612,
+          "nearPreviousS": 0,
+          "visitedCells": 9,
+          "spentJ": 0.011027460000003595,
+          "trials": 2,
+          "rejectedCommands": 0,
+          "endpoint": [-0.0002936350618553574, 5.4986733058312875]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 85.5,
+          "visitedCells": 25,
+          "spentJ": 0.012300890000010908,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-7.196861600557687, -4.167864842998654]
+        },
+        {
+          "phase": "transfer",
+          "food": "east",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 20,
+          "spentJ": 0.018601574999967747,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [1.7288914842737573, -0.8994080468900143]
+        },
+        {
+          "phase": "reversal",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 7,
+          "spentJ": 0.009655004999922119,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [2.0176291768843675, -2.482196510064902]
+        },
+        {
+          "phase": "composition",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 3,
+          "spentJ": 0.00878459999992566,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [1.5856846716350421, -1.5553152722433294]
+        }
+      ]
+    },
+    {
+      "seed": 8104,
+      "arm": "fixed-policy",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "south",
+          "latencyS": 152.7,
+          "meals": 2,
+          "feedS": 27.299999999998853,
+          "nearPreviousS": 0,
+          "visitedCells": 8,
+          "spentJ": 0.010150925000001216,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-0.00024287075269471508, 5.498613500381007]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 168.6,
+          "visitedCells": 5,
+          "spentJ": 0.012599885000007801,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [-0.5450350506624723, 4.445175187381439]
+        },
+        {
+          "phase": "transfer",
+          "food": "east",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 12,
+          "spentJ": 0.014412254999986357,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [2.578271994434683, 2.6897942669270307]
+        },
+        {
+          "phase": "reversal",
+          "food": "north",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 4,
+          "spentJ": 0.010535584999940457,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [1.968569948057804, 2.3817042822128354]
+        },
+        {
+          "phase": "composition",
+          "food": "south",
+          "latencyS": 174.3,
+          "meals": 1,
+          "feedS": 5.799999999999628,
+          "nearPreviousS": 0,
+          "visitedCells": 6,
+          "spentJ": 0.009789174999928242,
+          "trials": 0,
+          "rejectedCommands": 0,
+          "endpoint": [0.15437342814344215, 5.303611225720557]
+        }
+      ]
+    },
+    {
+      "seed": 8104,
+      "arm": "independent",
+      "phases": [
+        {
+          "phase": "acquisition",
+          "food": "south",
+          "latencyS": 95.1,
+          "meals": 3,
+          "feedS": 84.89999999999527,
+          "nearPreviousS": 0,
+          "visitedCells": 7,
+          "spentJ": 0.010073045000003307,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [0.00013511927129848629, 5.498565331565704]
+        },
+        {
+          "phase": "retention",
+          "food": null,
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 18.9,
+          "visitedCells": 8,
+          "spentJ": 0.016641265000010216,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [0.7145378792770438, 7.339260378219635]
+        },
+        {
+          "phase": "transfer",
+          "food": "east",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 0,
+          "visitedCells": 11,
+          "spentJ": 0.013910819999954669,
+          "trials": 3,
+          "rejectedCommands": 0,
+          "endpoint": [4.721238757909366, 4.460675452539]
+        },
+        {
+          "phase": "reversal",
+          "food": "north",
+          "latencyS": 97.3,
+          "meals": 1,
+          "feedS": 82.74999999992475,
+          "nearPreviousS": 0,
+          "visitedCells": 17,
+          "spentJ": 0.014002389999895268,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [0.000756622018422879, -5.498856419130814]
+        },
+        {
+          "phase": "composition",
+          "food": "south",
+          "latencyS": null,
+          "meals": 0,
+          "feedS": 0,
+          "nearPreviousS": 23.4,
+          "visitedCells": 4,
+          "spentJ": 0.010275434999914214,
+          "trials": 4,
+          "rejectedCommands": 0,
+          "endpoint": [0.744968090563871, -3.743055179492264]
+        }
+      ]
+    }
+  ],
+  "continuity": [
+    {
+      "seed": 8101,
+      "arm": "persistent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 25
+    },
+    {
+      "seed": 8101,
+      "arm": "memory-reset",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 27
+    },
+    {
+      "seed": 8101,
+      "arm": "fixed-policy",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 10
+    },
+    {
+      "seed": 8101,
+      "arm": "independent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 28
+    },
+    {
+      "seed": 8102,
+      "arm": "persistent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 27
+    },
+    {
+      "seed": 8102,
+      "arm": "memory-reset",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 24
+    },
+    {
+      "seed": 8102,
+      "arm": "fixed-policy",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 10
+    },
+    {
+      "seed": 8102,
+      "arm": "independent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 35
+    },
+    {
+      "seed": 8103,
+      "arm": "persistent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 24
+    },
+    {
+      "seed": 8103,
+      "arm": "memory-reset",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 26
+    },
+    {
+      "seed": 8103,
+      "arm": "fixed-policy",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 10
+    },
+    {
+      "seed": 8103,
+      "arm": "independent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 23
+    },
+    {
+      "seed": 8104,
+      "arm": "persistent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 22
+    },
+    {
+      "seed": 8104,
+      "arm": "memory-reset",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 21
+    },
+    {
+      "seed": 8104,
+      "arm": "fixed-policy",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 10
+    },
+    {
+      "seed": 8104,
+      "arm": "independent",
+      "identityPreserved": true,
+      "exactRestore": true,
+      "archivedEvents": 28
+    }
+  ],
+  "interpretation": {
+    "adaptation": {
+      "status": "inconclusive",
+      "validPairs": 0,
+      "meanLatencyReduction": null
+    },
+    "retention": {
+      "nearPreviousSeconds": [167.6, 156.8, 89.9, 85.5],
+      "thresholdS": 10,
+      "interpretation": "occupancy measure only; paired lesions needed to attribute it to memory"
+    },
+    "openEndedLearning": "not demonstrated",
+    "biologicalValidation": "not established",
+    "skillComposition": "measured as performance on the joint composition phase; no acquisition claim",
+    "catastrophicForgetting": "not established: no isolated cue-retention assay in this embodied protocol",
+    "individualDivergence": [
+      {
+        "seed": 8101,
+        "endpointDistanceM": 6.934599885064457
+      },
+      {
+        "seed": 8102,
+        "endpointDistanceM": 4.3514778913926255
+      },
+      {
+        "seed": 8103,
+        "endpointDistanceM": 1.6438094842657769
+      },
+      {
+        "seed": 8104,
+        "endpointDistanceM": 2.3178196143738545
+      }
+    ]
+  },
+  "stability": {
+    "embodied": [
+      {
+        "simulatedSeconds": 60,
+        "exactRestore": true,
+        "rejected": 0,
+        "workingHistory": 0,
+        "pending": 0
+      },
+      {
+        "simulatedSeconds": 600,
+        "exactRestore": true,
+        "rejected": 0,
+        "workingHistory": 4,
+        "pending": 0
+      },
+      {
+        "simulatedSeconds": 3600,
+        "exactRestore": true,
+        "rejected": 0,
+        "workingHistory": 27,
+        "pending": 0
+      }
+    ],
+    "tissueOnly": [
+      {
+        "simulatedSeconds": 3600,
+        "reserveJ": 0.42379600000004536,
+        "recoveryBouts": 2,
+        "maintenanceJ": 0.9240000000000007,
+        "finite": true
+      },
+      {
+        "simulatedSeconds": 86400,
+        "reserveJ": 0.11459600000101791,
+        "recoveryBouts": 30,
+        "maintenanceJ": 12.123999999999109,
+        "finite": true
+      },
+      {
+        "simulatedSeconds": 604800,
+        "reserveJ": 0.11299600000712637,
+        "recoveryBouts": 210,
+        "maintenanceJ": 84.18000000001095,
+        "finite": true
+      },
+      {
+        "simulatedSeconds": 31536000,
+        "reserveJ": 0.11619600037161318,
+        "recoveryBouts": 10950,
+        "maintenanceJ": 4383.619999923989,
+        "finite": true
+      }
+    ]
+  },
+  "scope": "research individuals only; original live fly and checkpoints untouched; no live migration tested"
+}
