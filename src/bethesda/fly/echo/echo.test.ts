@@ -22,7 +22,7 @@ import {
   parseEchoCheckpoint,
   serializeEchoCheckpoint,
 } from "./checkpoint";
-import { INNATE, N, predict, X, type PeriodContext } from "./forward";
+import { INNATE, N, predict, predictAir, WIND, X, type PeriodContext } from "./forward";
 import { ECHO_PARAMS, ECHO_VERSION, EP } from "./params";
 import {
   ECHO_VARIANTS,
@@ -84,7 +84,7 @@ class Steady implements FlyNeuralAdapter {
 
 describe("ECHO self-model: version, parameters and vocabulary", () => {
   it("names one version, fixes every number as a model choice, and shares its variants with the contract", () => {
-    expect(ECHO_VERSION).toBe("echo-self-model/v1");
+    expect(ECHO_VERSION).toBe("echo-self-model/v2");
     for (const [name, p] of Object.entries(ECHO_PARAMS)) {
       expect(p.kind, name).toBe("model");
       expect(p.min, name).toBe(p.value);
@@ -151,6 +151,14 @@ describe("the forward model", () => {
         tau: P.walkSpeedTauS,
         turnCommand: walking ? cmd.yawRate! : 0,
         airSpeed: 0,
+        hover: false,
+        airMax: P.maxAirspeedCmS / 100,
+        wind: false,
+        flightTau: 0.08,
+        windRate: [0, 0],
+        airLag: [0, 0],
+        airLagSd: 0,
+        regime: null,
         heading: 0,
         learnable: true,
       };
@@ -172,6 +180,14 @@ describe("the forward model", () => {
       tau: 0.1,
       turnCommand: 0,
       airSpeed: 0,
+      hover: false,
+      airMax: 1.5,
+      wind: false,
+      flightTau: 0.08,
+      windRate: [0, 0],
+      airLag: [0, 0],
+      airLagSd: 0,
+      regime: null,
       heading: 0,
       learnable: true,
     };
@@ -183,6 +199,125 @@ describe("the forward model", () => {
     drift[X.driftX] = 0.01;
     const still = predict(drift, { ...ctx, kind: "still" }).y;
     expect(Math.hypot(still[0], still[1])).toBeCloseTo(0.01 * 0.05, 12);
+  });
+});
+
+describe("the air: a wind the fly feels, and expects to move it as its body lets it", () => {
+  const cruise = (over: Partial<PeriodContext> = {}): PeriodContext => ({
+    kind: "flight",
+    T: 0.05,
+    steps: 10,
+    h: 0.005,
+    legSpeed0: 0,
+    legCommand: 0,
+    tau: 0.1,
+    turnCommand: 0,
+    airSpeed: 0.5,
+    hover: false,
+    airMax: 1.5,
+    wind: true,
+    flightTau: 0.08,
+    windRate: [0, 0],
+    airLag: [0, 0],
+    airLagSd: 0,
+    regime: null,
+    heading: 0,
+    learnable: true,
+    ...over,
+  });
+  // At heading 0 the fly's frame has x ahead and z to its right: a wind toward z blows from its left.
+  const crosswind = INNATE.slice();
+  crosswind[X.windZ] = 0.4;
+
+  it("in cruise expects the crosswind to carry it and its wings to hold its groundspeed against the rest", () => {
+    const y = predict(crosswind, cruise()).y;
+    expect(y[0]).toBeCloseTo(0.5 * 0.05, 12);
+    expect(y[1]).toBeCloseTo(-0.4 * 0.05, 12);
+    // A tailwind faster than the command carries it; hovering, it holds still.
+    const tail = INNATE.slice();
+    tail[X.windX] = 0.8;
+    expect(predict(tail, cruise()).y[0]).toBeCloseTo(0.8 * 0.05, 12);
+    const hover = predict(crosswind, cruise({ hover: true, airSpeed: 0 })).y;
+    expect(hover[0]).toBeCloseTo(0, 12);
+    expect(hover[1]).toBeCloseTo(0, 12);
+    // While the body catches up with a change, it goes as much further as its antennae say.
+    const lagging = predict(INNATE, cruise({ airLag: [-0.004, 0.001], airLagSd: 0.001 }));
+    expect(lagging.y[0]).toBeCloseTo(0.5 * 0.05 - 0.004, 12);
+    expect(lagging.y[1]).toBeCloseTo(-0.001, 12);
+    expect(lagging.sd[0]).toBeGreaterThan(predict(INNATE, cruise()).sd[0]);
+    // Until it tracks the air, the same beliefs predict what they always did.
+    expect(predict(crosswind, cruise({ wind: false })).y[1]).toBeCloseTo(0, 14);
+  });
+
+  it("feels the whole wind standing, and only its own air speed from ahead in cruise", () => {
+    const standing = predictAir(crosswind, cruise({ kind: "still" }), 0, 0);
+    expect(standing.map((r) => r.y)).toHaveLength(2);
+    expect(standing[0]!.y).toBeCloseTo(0, 12);
+    expect(standing[1]!.y).toBeCloseTo(-0.4, 12);
+    const flying = predictAir(crosswind, cruise(), 0, 0);
+    expect(flying).toHaveLength(1);
+    expect(flying[0]!.y).toBeCloseTo(-0.5, 12);
+    // Carried by a tailwind, its antennae have nothing to say about the wind.
+    const tail = INNATE.slice();
+    tail[X.windX] = 0.8;
+    expect(predictAir(tail, cruise(), 0, 0)).toHaveLength(0);
+  });
+
+  it("takes the air to be still, without doubt, while it has never felt it move", () => {
+    const { fly, echo } = walker(5, { config: {} });
+    run(fly, 60);
+    const S = echo.model!.state;
+    expect(fly.state.counts.takeoffs).toBeGreaterThan(0);
+    expect(S.wind.felt).toBe(false);
+    for (const i of WIND) {
+      expect(S.belief.x[i]).toBe(0);
+      expect(S.belief.P[i * N + i]).toBe(0);
+    }
+  });
+
+  it("flies in a gusting wind without blaming its sense, and believes the wind it is in", () => {
+    const BIG: ArenaSpec = {
+      size: [40, 6, 40],
+      ambient: 0.8,
+      lights: [{ at: [0, 5.5, 0], intensity: 2 }],
+    };
+    const gust = (t: number) => 0.8 * (1 + 0.3 * Math.sin(t / 3));
+    const world = Object.assign(arenaWorld(BIG, "gusty"), {
+      wind: (_p: V3, t: number): V3 => [0.6 * gust(t), 0, 0.8 * gust(t)],
+    });
+    const fly = new DigitalFly({
+      seed: 9,
+      world,
+      start: { p: [0, 0.01, 0], yaw: 0 },
+      // A fly that feels the wind takes off less (controller.ts): this one is made restless.
+      config: { takeoffHz: 0.3 },
+      adapter: EchoAdapter.factory({ variant: "full", seed: 9 }),
+    });
+    run(fly, 300);
+    const S = (fly.adapter as EchoAdapter).model!.state;
+    expect(fly.state.counts.takeoffs).toBeGreaterThan(2);
+    expect(S.wind.felt).toBe(true);
+    expect(S.wind.readings).toBeGreaterThan(1000);
+    expect(S.counts.concluded.sensor).toBe(0);
+    const believed = Math.hypot(S.belief.x[X.windX]!, S.belief.x[X.windZ]!);
+    expect(Math.abs(believed - gust(fly.state.t))).toBeLessThan(0.1);
+  }, 60_000);
+
+  it("leaves the air to a self-model that cannot learn", () => {
+    const world = Object.assign(arenaWorld(ROOM, "breezy"), {
+      wind: (): V3 => [0.3, 0, 0],
+    });
+    const fly = new DigitalFly({
+      seed: 4,
+      world,
+      start: { p: [0, 0.5, 0], yaw: 0 },
+      config: WALKING,
+      adapter: EchoAdapter.factory({ variant: "no_learning", seed: 4 }),
+    });
+    run(fly, 20);
+    const S = (fly.adapter as EchoAdapter).model!.state;
+    expect(S.wind.felt).toBe(false);
+    expect(S.belief.x[X.windX]).toBe(0);
   });
 });
 

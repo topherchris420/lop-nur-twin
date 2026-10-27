@@ -6,8 +6,9 @@
  *   reported and the belief it held before. An inquiry re-weighs these back
  *   to where a change began. The oldest is dropped as each new one comes.
  * - **Learned action-response beliefs** live in the estimator (estimator.ts):
- *   the current Gaussian over the nine beliefs. They are not episodes; they
- *   are what the episodes taught.
+ *   the current Gaussian over the eleven beliefs. They are not episodes; they
+ *   are what the episodes taught (all but the wind, which the antennae keep
+ *   current).
  * - **Episodic memory** (`Episode`): one record per concluded inquiry: what
  *   was observed, what the fly did, what it predicted, what happened, which
  *   explanation won and with what posterior, the beliefs before and after,
@@ -22,7 +23,14 @@
  * less evidence. Nothing here is a model of a fly's memory systems.
  */
 import type { Belief } from "./estimator.js";
-import { GAINS, INNATE, SELF, type PeriodContext, type PeriodKind } from "./forward.js";
+import {
+  GAINS,
+  INNATE,
+  LEARNED,
+  SELF,
+  type PeriodContext,
+  type PeriodKind,
+} from "./forward.js";
 import { EP } from "./params.js";
 
 export const EXPLANATIONS = ["none", "self", "external", "both", "sensor"] as const;
@@ -43,6 +51,10 @@ export interface Period {
   nis: number;
   /** The command moved the fly (walking or flying at some speed). */
   moving: boolean;
+  /** How much the fly's doubt about the air grew over the period (variance, (m/s)², each component); 0 while it has not felt the air. */
+  windVar: number;
+  /** What the antennae read at its end (the air going by, m/s), the spread expected of each reading, and the heading and leg speed they were read at; null when they taught nothing. */
+  air: { y: number[]; sd: number[]; heading: number; legSpeed: number } | null;
 }
 
 export interface Episode {
@@ -91,11 +103,10 @@ export function remember(history: Period[], p: Period): void {
     history.splice(0, history.length - EP.historyPeriods);
 }
 
-/** How much an episode changed the fly's beliefs, weighted by how sure it was. */
+/** How much an episode changed the fly's learned beliefs, weighted by how sure it was. */
 export function salience(e: Episode): number {
   let change = 0;
-  for (let i = 0; i < e.before.length; i++)
-    change += Math.abs(e.after[i]! - e.before[i]!);
+  for (const i of LEARNED) change += Math.abs(e.after[i]! - e.before[i]!);
   return change * e.reliability.posterior + 0.5 * e.recalled;
 }
 

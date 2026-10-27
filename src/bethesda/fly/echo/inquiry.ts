@@ -7,7 +7,9 @@
  * - `none`: nothing changed (the alarm was noise);
  * - `self`: its own gains or biases changed (legs or wings, whichever it was
  *   using), so the same commands now move it differently;
- * - `external`: something outside carries or turns it, whatever it commands;
+ * - `external`: something outside carries or turns it, whatever it commands,
+ *   or (once its antennae have felt the air move) the wind has changed by
+ *   more than it expected (`external:wind`);
  * - `both`: its body and its surroundings changed together;
  * - `sensor`: its own sense of motion became noisier;
  * - `nominal`: its body is back to the body it was born with;
@@ -27,8 +29,8 @@
  * The comparison is a computation over the fly's own predictions and senses.
  * It is never handed the experimenter's perturbation, its label or its cause.
  */
-import { cloneBelief, update, widen, assume, type Belief } from "./estimator.js";
-import { BIASES, GAINS, INNATE, SELF, X } from "./forward.js";
+import { cloneBelief, feelAir, update, widen, assume, type Belief } from "./estimator.js";
+import { BIASES, GAINS, INNATE, SELF, WIND, X, predictAir } from "./forward.js";
 import {
   awayFromInnate,
   recallable,
@@ -166,6 +168,10 @@ export function openInquiry(
       ),
       c("external:spin", "external", widen(prior, [X.spin], EP.changeSpinSd), 0.08),
       c("external:all", "external", freeOutside(prior), 0.04),
+      // The wind, once the fly tracks it: it changed by more than it expected.
+      ...(evidence.some((p) => p.context.wind)
+        ? [c("external:wind", "external", widen(prior, WIND, EP.changeWindSd), 0.08)]
+        : []),
       c("both", "both", freeOutside(freeSelf(prior, effectors)), 0.1),
       c("sensor", "sensor", cloneBelief(prior), 0.2, scale * EP.sensorFaultFactor),
     );
@@ -217,6 +223,10 @@ export function weigh(inquiry: Inquiry, p: Period): void {
   const ctx = p.context;
   const s = inquiry.sums;
   s.kinds[ctx.kind] = (s.kinds[ctx.kind] ?? 0) + 1;
+  // The air changed over every period after the first, whose doubt is in the explanations' starting belief.
+  if (p.windVar > 0 && p.k > inquiry.fromPeriod)
+    for (const c of inquiry.candidates)
+      c.belief = widen(c.belief, WIND, Math.sqrt(p.windVar));
   if (!ctx.learnable) return;
   inquiry.periods++;
   if (p.moving) inquiry.moving++;
@@ -235,6 +245,14 @@ export function weigh(inquiry: Inquiry, p: Period): void {
     c.logLik += r.update.logLik;
     const sd = r.update.prediction.sd;
     c.fit -= r.update.residual.reduce((a, v, i) => a + (v / sd[i]!) ** 2, 0);
+    if (p.air) {
+      const rows = predictAir(c.belief.x, ctx, p.air.heading, p.air.legSpeed);
+      const a = feelAir(c.belief, rows, p.air.y.slice(0, rows.length), p.air.sd);
+      if (a.ok) {
+        c.belief = a.belief;
+        c.logLik += a.logLik;
+      }
+    }
   }
 }
 
@@ -282,7 +300,8 @@ export type Verdict =
 /**
  * Whether two explanations, fitted to the evidence, now make the same claim:
  * the same kind of cause and the same beliefs to within half the recall
- * distance (gains and biases), 2 mm/s (drift) and the same trust in the sense.
+ * distance (gains and biases), 2 mm/s (drift), 10 cm/s (the wind) and the
+ * same trust in the sense.
  * A remembered "back to normal" and the innate body, or "my speed changed"
  * and "my body changed" when only the speed did, end as one claim; their
  * posteriors are added rather than left to split.
@@ -297,7 +316,9 @@ export function sameClaim(a: Candidate, b: Candidate): boolean {
     if (Math.abs(x[i]! - y[i]!) >= tol) return false;
   return (
     Math.abs(x[X.driftX]! - y[X.driftX]!) < 0.002 &&
-    Math.abs(x[X.driftZ]! - y[X.driftZ]!) < 0.002
+    Math.abs(x[X.driftZ]! - y[X.driftZ]!) < 0.002 &&
+    Math.abs(x[X.windX]! - y[X.windX]!) < 0.1 &&
+    Math.abs(x[X.windZ]! - y[X.windZ]!) < 0.1
   );
 }
 

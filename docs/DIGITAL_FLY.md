@@ -1052,7 +1052,8 @@ existing fallback applies and the fly still runs. No React state changes per
 frame: the panel reads the fly four times a second. Over six simulated hours
 of the default headless life on this laptop (one run each), a whole tick,
 city and fly, took 0.786 ms in wind against 0.727 ms in still air with the
-reduced-order controller, and 0.792 against 0.723 ms with ECHO's: each wind
+reduced-order controller, and 0.792 against 0.723 ms with ECHO's
+(`echo-self-model/v1`, before it felt the air): each wind
 query casts two short rays, and the flies' days differ too (the wind kept
 them down more).
 

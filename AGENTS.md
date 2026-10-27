@@ -713,7 +713,9 @@ cause.**
   `ECHO_EVALUATION_CONDITIONS` in the held-out arena, whose bands exclude the
   development values (a test checks). A change made after seeing a held-out
   result is disclosed in `docs/PROJECT_ECHO.md` and the evaluation is run
-  again; never tune silently on held-out data.
+  again; never tune silently on held-out data. In the city, develop on other
+  city seeds (`docs/PROJECT_ECHO.md` lists them) and keep the default city
+  (393977) for reporting.
 - **Every number is a model choice, and versioned.** `ECHO_PARAMS` are fixed
   `model` values. Changing one, or anything the self-model does, bumps
   `ECHO_VERSION`; then rerun the pilots, the evaluation report

@@ -10,7 +10,7 @@
  */
 import { model, type Param } from "../params.js";
 
-export const ECHO_VERSION = "echo-self-model/v1" as const;
+export const ECHO_VERSION = "echo-self-model/v2" as const;
 
 /** The literature the mechanisms follow, for what they borrow: never a claim that a fly works this way. */
 export const ECHO_CITATIONS = {
@@ -55,6 +55,12 @@ export const ECHO_PARAMS = {
     [0.05, 0.05],
     "spread of the innate belief that nothing outside turns the perched fly",
   ),
+  windPriorSd: model(
+    1,
+    "m/s",
+    [1, 1],
+    "spread of the fly's belief in the air's velocity when its antennae first feel the air move, and again each time it leaves a surface for the air or the air for a surface: the air aloft is not the air at a surface. About the wind a fly meets near the ground in the city's breeze (2.5 m/s at 10 m, weather.ts, is 0.7 to 1.4 m/s between 0.25 and 2 m)",
+  ),
   // --- How beliefs are expected to change ------------------------------------
   selfProcessSd: model(
     0.001,
@@ -67,6 +73,43 @@ export const ECHO_PARAMS = {
     "m/s per √s",
     [0.0003, 0.0003],
     "how fast the fly expects outside drift to wander unprompted: slowly too, so a push is noticed and asked about rather than absorbed",
+  ),
+  windProcessSd: model(
+    0.3,
+    "m/s per √s",
+    [0.3, 0.3],
+    "how fast the fly expects the air to change unprompted, once it has felt it move: quickly, as a gust in a breeze near the ground does (half a metre per second over two or three seconds, weather.ts), so the wind is followed rather than asked about",
+  ),
+  // --- Feeling the air ---------------------------------------------------------
+  airSenseShare: model(
+    0.01,
+    "fraction",
+    [0.01, 0.01],
+    "how far the fly expects its antennae's reading of the air going by to stray, as a share of the reading, in each direction: little, since the body's antennae report the air as it is unless the fly is given sensory noise (senses.ts); a model choice, not a measured precision",
+  ),
+  airSenseFloorMS: model(
+    0.005,
+    "m/s",
+    [0.005, 0.005],
+    "and how far at least, however slow the air",
+  ),
+  airQuietMS: model(
+    0.05,
+    "m/s",
+    [0.05, 0.05],
+    "below this the antennae give no bearing for the air (senses.ts), and the fly takes the air going by as none, give or take this much",
+  ),
+  airSettleMS: model(
+    0.1,
+    "m/s",
+    [0.1, 0.1],
+    "a change in the air going by of more than this over one period in flight says the wings were still catching up with a step in the wind (into or out of a building's lee), so the antennae's reading at its end says little about the wind and revises nothing: twice what a gust's rise changes it by (about 1 m/s per second, weather.ts)",
+  ),
+  windRateTauS: model(
+    0.25,
+    "s",
+    [0.25, 0.25],
+    "the fly takes how fast the wind is changing from the change between its antennae's readings in a row, smoothed over this long, so that a noisy reading is not taken for a gust; a gust rises over one to three seconds (weather.ts)",
   ),
   // --- Noticing that the model is wrong ---------------------------------------
   cusumSlack: model(
@@ -131,6 +174,12 @@ export const ECHO_PARAMS = {
     "how large an outside drift the fly considers when it asks whether something outside moves it",
   ),
   changeSpinSd: model(1, "rad/s", [1, 1], "how large an outside turn the fly considers"),
+  changeWindSd: model(
+    1,
+    "m/s",
+    [1, 1],
+    "how large a change in the air the fly considers when it asks whether the wind now moves it differently",
+  ),
   confoundChi2: model(
     4,
     "χ²",

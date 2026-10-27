@@ -13,7 +13,7 @@ result below describes a functional self-model in a reduced-order simulator
 (see [Functional self-modelling is not consciousness](#functional-self-modelling-is-not-consciousness)).
 The fly makes no first-person statement, and none would count as evidence.
 
-Code: `src/bethesda/fly/echo/` (`ECHO_VERSION` is `echo-self-model/v1`), the
+Code: `src/bethesda/fly/echo/` (`ECHO_VERSION` is `echo-self-model/v2`), the
 body's opt-in hooks `src/bethesda/fly/perturbation.ts` and
 `src/bethesda/fly/selfMotion.ts`, the experiment rig
 `src/rain/scientific/flyEcho.ts`, the evaluation report
@@ -56,9 +56,10 @@ code:
   self-model. It passes the clock, the motor program running (`mode`), the
   legs' stepping speed (proprioception), touch (the legs at an edge or against
   a solid), the self-motion sense, the sky's compass when the sun is seen,
-  and the fly's own body schema (the parameter table every decision maker is
-  handed). It never passes position, velocity, heading, the world, landing
-  sites or anything about a perturbation.
+  the air its antennae feel going by (its speed and the bearing it comes
+  from), and the fly's own body schema (the parameter table every decision
+  maker is handed). It never passes position, velocity, heading, the world,
+  the wind, landing sites or anything about a perturbation.
 - The self-model's modules import nothing from the simulator except types and
   that view; `echo/echo.test.ts` scans them for it, and checks that scrambling
   every privileged field of every recorded input leaves the self-model's state
@@ -93,18 +94,70 @@ byte-for-byte as before: all seven kept pilots reproduce exactly
 
 Episodes are scheduled by the experimenter, labelled with a cause for
 scoring, and never handed to the fly. They are models of a perturbation
-chosen for this simulator, not of any injury or wind.
+chosen for this simulator, not of any injury or wind. A perturbation's
+`drift` in the air is added to what the wings hold; the city's wind is not
+a perturbation, and the body meets it by its own rule (next section).
+
+### The air
+
+From `echo-self-model/v2` the self-model tracks the wind as its antennae feel
+it (the city's wind, [the digital fly](DIGITAL_FLY.md#wind)). Two beliefs, the
+air's velocity in the fly's own frame, join the nine, and the forward model
+lets the air move the fly only as the body does (`fly.ts`, part of the body
+schema the fly is given):
+
+- standing, walking or hovering, the wind moves it not at all, and its
+  antennae feel all of it (less its own motion over the ground);
+- in cruise its wings hold its groundspeed along its heading, so the wind
+  across its heading carries it and the wind along it only changes the air
+  speed its antennae feel from ahead; beyond its wings' limit, or with a
+  tailwind faster than its command (no air from ahead at all), the wind
+  carries it along its heading too. Its antennae tell it which, at each
+  period's end;
+- its air velocity follows a change in the wind only after the body's
+  flight velocity time constant, so while it catches up it goes further than
+  its wings hold: that constant times the change in the air going by between
+  the period's two ends, as its antennae felt it. For the body's velocity
+  tracker that is exact, short of its acceleration limit, whether the wind
+  rises in a gust or steps at a building's lee;
+- the antennae's reading at a period's end says what the wind is, less what
+  the body has yet to catch up with. The fly takes that from how fast the air
+  going by has been changing over its last readings (never from its own
+  beliefs, which that rate feeds: taken from them, the loop diverged on
+  development data), and after a step (the air going by changed by more than
+  `airSettleMS` in one period) the reading revises nothing.
+
+Each reading of the antennae revises the wind beliefs as the self-motion
+sense revises the rest (`feelAir` in `estimator.ts`). The air changes as it
+will (`windProcessSd`, whether or not a period teaches), and the air at a
+surface is not the air aloft: each takeoff and landing widens the belief
+again (`windPriorSd`). An inquiry gains one explanation, that the wind
+changed by more than the fly expected (`external:wind`). The wind is
+followed, not learned: it is left out of what makes an episode memorable
+and out of the log of revised beliefs, unless the conclusion was that the
+wind changed.
+
+Until its antennae first feel the air move, the fly takes the air to be
+still, with no doubt: the wind beliefs stay 0 with no spread and every
+prediction is the one `echo-self-model/v1` made. In a world without wind (every
+arena, every pilot and every registered block) the self-model runs as it
+did: twenty arena runs of both versions (walking and flying flies, impaired,
+pushed and with a noisier sense) give identical behaviour and beliefs, and
+the pilots and the evaluation report reproduce their results. Each number
+the air adds is derived from the city's wind model (`weather.ts`) and stated
+in `ECHO_PARAMS`, not fitted.
 
 ### One decision period
 
 `echo/selfModel.ts` runs the cycle the brief describes, every 50 ms:
 
-1. **Observe.** The self-motion sense reports the period just ended.
+1. **Observe.** The self-motion sense reports the period just ended, and the
+   antennae how the air goes by.
 2. **Estimate.** `echo/forward.ts` predicts that report from the efference
    copy (what was commanded), proprioception (the legs' speed when it was
-   commanded), the fly's heading estimate and its nine beliefs: its legs'
-   speed gain, turning gain and turning bias; the same for its wings; and an
-   outside drift (x, z) and outside turn. With every belief innate, the
+   commanded), the fly's heading estimate and its eleven beliefs: its legs'
+   speed gain, turning gain and turning bias; the same for its wings; an
+   outside drift (x, z) and outside turn; and the wind (x, z) ([The air](#the-air)). With every belief innate, the
    walking prediction reproduces the reduced-order body's walking law exactly
    (a test checks 50 periods to 12 decimals). Flight is predicted only in
    settled cruise or hover. `echo/estimator.ts` is an extended Kalman filter
@@ -120,7 +173,8 @@ chosen for this simulator, not of any injury or wind.
    rewinds the short-term history to where the change began and re-weighs the
    evidence under competing explanations: nothing changed; its own speed gain,
    turning gain, turning bias or several of them; an outside drift, turn or
-   both; its body and its surroundings together; its sense became noisier; its
+   both; once it has felt the air move, a change in the wind beyond what it
+   expected; its body and its surroundings together; its sense became noisier; its
    body is back to the innate one; or a change it remembers has come back.
    Each is scored by its marginal likelihood, which charges an explanation for
    freedom it does not need. Explanations that end as the same claim about the
@@ -334,6 +388,21 @@ settle time and hover flag were corrected after nominal flight raised false
 alarms; and the sun compass was added after wind in flight kept being
 re-detected. Each was found and checked on development data only.
 
+The air (`echo-self-model/v2`) was developed on seven development cities
+(seeds 4242, 777, 31337, 101, 808, 202 and 505, an hour each), never in a
+registered block: the wind's rate was taken from the antennae instead of the
+fly's own beliefs after that loop diverged; the wings' regime was taken from
+the antennae at a period's end; and the body's lag after a change in the wind
+was taken from the change in the air going by over the period, after slow
+cruise into a headwind across a building's lee kept being blamed on the
+sense, with the antennae's expected spread lowered from 5% to 1% so the lag
+could be read from them. The default city (seed 393977), which reports the
+result below, is not a development city, but it was looked at twice while
+the air was built: with a first rough version, and with the version before
+the lag was read from the antennae. Every change after those looks was
+found and checked on the development cities, but they were made knowing how
+the default city had gone, so its result is not a clean held-out test.
+
 ## Failures, negative findings and uncertainty
 
 - **Overconfidence on held-out causes (ECHO-02).** On development data the
@@ -373,10 +442,14 @@ re-detected. Each was found and checked on development data only.
   inconclusive by their frozen criteria; their minimum effects are large
   because each seed draws its own condition and the pilots' null arms vary
   widely. They were not lowered.
-- **The city's wind is mostly blamed on the sense.** In wind the self-model
-  concluded 80 of 106 inquiries in an hour as its own sense misleading it
-  ([In Bethesda](#in-bethesda)): its explanations have no wind, and its
-  drift cannot represent what the body's groundspeed hold leaves of one.
+- **The air is this simulator's air.** The self-model's account of the wind
+  is the body's own rule for it, exact only for its velocity tracker short of
+  its acceleration limit, with no turbulence and no vertical air, and it
+  takes its antennae to be nearly exact (1%), which a fly given sensory noise
+  is not. Its city results ([In Bethesda](#in-bethesda)) come from cities it
+  was developed on, and from a default city it was seen in. A perched fly
+  sometimes concludes that its surface turned (`external:spin`), in still air
+  as in wind; that predates the air.
 - **Uncertainty of the numbers.** Intervals are bootstrap intervals over
   seeds of one deterministic simulator, and sign-test p-values say how
   consistently the arms differ across seeds. Neither says anything about a
@@ -417,15 +490,25 @@ city, so in still air any change the self-model concludes there is a
 misreading of noise: in a simulated hour it opened one inquiry.
 
 From `digital-fly/8` the city has a wind ([the digital fly](DIGITAL_FLY.md#wind)),
-the first outside cause there, and the self-model mostly misreads it. Over
-the first simulated hour of the default city the ECHO fly flew for 163 s
-(1,076 s in still air), cautious for 131 s of them; it opened 106 inquiries
-and concluded 80 of them as its own sense misleading it, 11 as an outside
-push, 8 as both and 2 as its body. Its outside drift is one velocity fixed in
-the world, but its body holds its groundspeed along its heading, so only the
-crosswind part of the wind moves it, and that part turns as the fly turns: no
-belief it can hold explains it. It does not feel the wind either: airflow is
-not in its view (`view.ts`).
+the first outside cause there. `echo-self-model/v1` mostly misread it: over
+the first simulated hour of the default city its fly flew for 163 s (1,076 s
+in still air), cautious for 131 s of them, and concluded 80 of 106 inquiries
+as its own sense misleading it, 11 as an outside push, 8 as both and 2 as its
+body. Its outside drift is one velocity fixed in the world, but its body
+holds its groundspeed along its heading, so only the crosswind part of the
+wind moves it, and that part turns as the fly turns: no belief it could hold
+explained it, and it did not feel the air.
+
+From `echo-self-model/v2` the fly feels the air and expects it to move it as
+its body lets it ([The air](#the-air)). Over the same hour it flew for 180 s,
+cautious for none of them, and opened 6 inquiries: 4 concluded that its
+surroundings had changed, 1 that its sense misled it, and 1 ended
+unresolved; it struck a surface 9 times (14 with `v1`). Over the seven development cities, an hour each, `v1` concluded
+601 inquiries as its own sense misleading it and was cautious for 2,290 of
+its 3,879 s in flight; `v2` concluded 1, cautious for 61 of 2,554 s. The
+default city's result is not a clean held-out test
+([Scientific validation](#scientific-validation)). In still air the default
+city's ECHO fly still opens one inquiry in an hour.
 
 The panel's **Self-Model** section is read-only and shows the fly's own
 estimates (predicted against sensed motion, prediction error, trust in its
@@ -489,7 +572,15 @@ npm run rain:fly:verify                                                    # re-
 - bounded stores over 30 perturbations, a byte-for-byte checkpoint round trip,
   exact continuation after restoring its own checkpoint, refusals of another
   version, variant or changed byte, a recorded reset, a recalled impairment;
-- a decision well under a millisecond, and a state under 400 KB.
+- a decision well under a millisecond, and a state under 400 KB;
+- the air: in cruise the crosswind carries the fly and its wings hold its
+  groundspeed against the rest (a faster tailwind carries it, hovering it
+  holds still, a changing wind slips what it holds); standing it feels the
+  whole wind and in cruise only its own air speed; a fly that has never felt
+  the air takes it to be still with no doubt; in a gusting arena wind a flying
+  fly concludes nothing about its sense and believes the wind it is in, to
+  0.1 m/s (`echo-self-model/v1` opened 41 inquiries there and blamed its sense
+  in 34); and a self-model that cannot learn leaves the air alone.
 
 `src/rain/scientific/flyEcho.test.ts`: evaluation bands that exclude the
 development values; registered blocks on evaluation conditions only, in the
