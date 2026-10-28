@@ -1,11 +1,13 @@
 # The deployed fly continued as the ECHO organism
 
-**Not deployed.** This is code, tests, a rehearsal on the deployed
-individual's verified backup, and a cutover plan, for review. The live
-individual
-`04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921` stays
-on ECHO v3 (release `d25e1f3`) on the Oracle VM until its owner approves the
-cutover below. Nothing here has touched its service, store or checkpoints.
+**Deployed on October 28, 2026.** The live individual
+`04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921`
+continues as the organism, on release `62bd125` on the Oracle VM, after a
+pause of 19 minutes 31 seconds (over the 15 budgeted) recorded as one gap.
+Every check of the cutover passed: [the cutover, as it ran](#the-cutover-as-it-ran).
+What comes before that record was written for review before the cutover:
+the code, tests, a rehearsal on the deployed individual's verified backup,
+and the plan.
 
 The continuation keeps that individual, and only that individual: its birth,
 genesis, checkpoint chain, age, city, body, controller, navigation memory,
@@ -32,11 +34,11 @@ selector (`bethesdaStore.ts`), `deploy/bethesda-life/install.sh` and
 
 ## Source and target
 
-|                   | Release                                                             | Versions                                                                                                                                                             |
-| ----------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Source (deployed) | `d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592`                          | `bethesda-headless-life/v2`, `bethesda-city/4`, `digital-fly/8`, `echo-self-model/v3`, `bethesda-echo-upgrade/v1`, `life-graph/v1`                                   |
-| Target            | the commit this branch merges as                                    | the same, plus `organism: bethesda-echo-organism/v1`, `mushroomBody: mushroom-body/v1`, `olfaction: echo-olfactory-navigation/v1`, `physiology: echo-maintenance/v1` |
-| Kept for replay   | `c8b5fb1` (digital-fly/7), `3db627b` (ECHO v2), `d25e1f3` (ECHO v3) | `install.sh` keeps every release a continuation names as its source; `c8b5fb1` was pruned on the VM before this rule and is rebuilt from git when needed             |
+|                            | Release                                                                                        | Versions                                                                                                                                                             |
+| -------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Source (until the cutover) | `d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592`                                                     | `bethesda-headless-life/v2`, `bethesda-city/4`, `digital-fly/8`, `echo-self-model/v3`, `bethesda-echo-upgrade/v1`, `life-graph/v1`                                   |
+| Target (deployed)          | `62bd12502c17379b92e89c74d17b3e1240ddd243`, merged into `main` as `3e8cbe0` with the same tree | the same, plus `organism: bethesda-echo-organism/v1`, `mushroomBody: mushroom-body/v1`, `olfaction: echo-olfactory-navigation/v1`, `physiology: echo-maintenance/v1` |
+| Kept for replay            | `c8b5fb1` (digital-fly/7), `3db627b` (ECHO v2), `d25e1f3` (ECHO v3)                            | `install.sh` keeps every release a continuation names as its source; `c8b5fb1` was pruned on the VM before this rule and is rebuilt from git when needed             |
 
 The ECHO v3 self-model, the reduced-order controller, the body, the city and
 their parameters are unchanged; `scripts/fly-source.ts --check` reproduces
@@ -184,10 +186,10 @@ the way the deployed release did: head 269 restored on `3db627b`, then
 continued by `d25e1f3`'s own `continueEchoSelfModel`. The v3 graph it gives,
 `29ef122c0f1fec81f8f313bb53124d87b36024e9249e74db2c3ab17d562c5527`, matches
 the digest in the live store's checkpoint 270 header, as a
-[read-only copy of the live store](#the-remaining-verification-gate) showed;
-step 3 of the cutover checks it again on the VM. That v3 fly was then lived 36,000 ticks in
-memory to stand in for the v3 era, and the organism `--check` steps ran on
-the result.
+[read-only copy of the live store](#the-read-only-copy-of-the-live-store)
+showed and step 3 of the cutover confirmed on the VM. That v3 fly was then
+lived 36,000 ticks in memory to stand in for the v3 era, and the organism
+`--check` steps ran on the result.
 
 | #   | Confirmation                                 | Evidence                                                                                                                                                                                                                                                                         | Result                     |
 | --- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
@@ -354,11 +356,13 @@ checkpoints keep growing until the city's record is full, at 83.8 MB and
 about 40.7 simulated hours of age (the backup's head was 22.1 hours old),
 and memory grows with them; that growth is the city's and predates this
 change, and the service's heap was sized for the full-grown checkpoint
-([measured](BETHESDA_CONTINUOUS_LIFE.md#what-the-machine-needs)). The
-`--check` in step 3 of the cutover measures the real peak on the VM.
+([measured](BETHESDA_CONTINUOUS_LIFE.md#what-the-machine-needs)). On the
+VM, the `--check` in step 3 of the cutover peaked at 3.36 GB
+(3,439,536 kB) in 147 s, with checkpoint 417 as the head
+([as it ran](#the-cutover-as-it-ran)).
 
 Against the live store's 76 MB head (checkpoint 409,
-[below](#the-remaining-verification-gate)), the `--check` peaked at 3.06 GB
+[below](#the-read-only-copy-of-the-live-store)), the `--check` peaked at 3.06 GB
 in 77 s here, and `d25e1f3`'s own `--check` at 1.80 GB in 21 s. On the VM
 at 23:51 UTC on October 27, 6,316 MB was available beside the service,
 which held 1.0 GB between checkpoints.
@@ -374,6 +378,7 @@ check with the service stopped.
 
 ## Cutover plan
 
+It ran on October 28, 2026, as [recorded below](#the-cutover-as-it-ran).
 This is the procedure the two earlier continuations used, with this
 script. **Each step that changes the VM needs the owner's explicit approval,
 given for this cutover; this document is not that approval.**
@@ -460,10 +465,10 @@ history; if a backup restore is unavoidable, stop every other writer, keep
 the failed store, record the lost interval and its parentage, and get
 approval for that specific recovery.
 
-## The remaining verification gate
+## The read-only copy of the live store
 
-A read-only copy of the live store was examined on this laptop
-([output](research/echo-organism-continuation/live-copy.txt)). It was
+Before the cutover, a read-only copy of the live store was examined on this
+laptop ([output](research/echo-organism-continuation/live-copy.txt)). It was
 streamed from the VM at 23:55 UTC on October 27 as a `tar` to standard
 output, so nothing was written there, and is kept off the VM as
 `bethesda-life-20261027T235529Z-d25e1f3b9e40-streamed.tar.gz`, with the
@@ -481,6 +486,85 @@ same SHA-256 on both ends: 410 checkpoints, head 409 at tick 1,211,849.
 - The copy was unchanged afterwards, and was then deleted.
 
 That ran on Windows on ARM64, not on the VM's platform, and the live fly
-has lived on since. Before any commit, steps 2 and 3 must still pass on the
-VM against a fresh backup. Until step 9 passes, the live fly has not been
-upgraded, and nothing may say it has.
+lived on after it, so steps 2 and 3 of the cutover then ran on the VM
+against a fresh backup ([as they ran](#the-cutover-as-it-ran)).
+
+## The cutover, as it ran
+
+It ran on October 28, 2026 (times UTC), each step that changed the VM with
+the owner's approval. Step 9 passed, so the live fly continues as the
+organism. The outputs are in
+[`cutover.txt`](research/echo-organism-continuation/cutover.txt), with the
+scripts that produced them
+([what each is](research/echo-organism-continuation/README.md#the-cutover)).
+
+| Step                         | When              | Result                                                                                                                                                                                                                                                                                                                               |
+| ---------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Prepare                   | built 00:38:51    | Release `62bd12502c17379b92e89c74d17b3e1240ddd243`, beside `d25e1f3`, which kept running                                                                                                                                                                                                                                             |
+| 2. Backup                    | 00:39:11–00:40:15 | Checkpoint 417 at tick 1,235,849, resumed by `d25e1f3`; SHA-256 `5dc04b6b…` checked off the VM                                                                                                                                                                                                                                       |
+| 3. Check                     | about 00:41–00:43 | On a copy of that backup, read-only to the service's user, beside the service: checkpoint 270's header as the rehearsal rebuilt it, and `--check` passed in 147 s (the same individual and tick, `preservedGraphDigest` equal to `sourceGraphDigest`, the 600- and 611-tick checks). The copy was unchanged, the service undisturbed |
+| 4. Stop                      | 00:47:52–00:48:26 | A clean stop: the v3 runner committed checkpoint 420 at tick 1,244,222 at 00:48:21.398 and released its lease (epoch 9)                                                                                                                                                                                                              |
+| 5. Final backup              | 00:48:49–00:49:30 | Checkpoint 420; SHA-256 `f912cbaa…` checked off the VM                                                                                                                                                                                                                                                                               |
+| 6. Commit                    | 01:02:32–01:05:49 | Checkpoint 421 at tick 1,244,222, parent 420, with `preservedGraphDigest` equal to `sourceGraphDigest` (`796f5ec2…`): 142 inquiries, 24 episodes and no remembered place kept, and one `organism-continuation` event. Its lease (epoch 10) was held for 23 s                                                                         |
+| 7. Switch and start          | 01:05:49–01:07:52 | `install.sh` restored 421 on `62bd125`, switched to it (`d25e1f3` previous, `3db627b` kept for replay) and started the service at 01:07:01; the runner took the lease (epoch 11) at 01:07:35 and resumed at 01:07:52                                                                                                                 |
+| 8. Verify                    | 01:09–01:16       | Active with no restarts; `--verify` passed on all 422 checkpoints; the witness live, with the same individual, `echo-self-model/v3` and a rising tick; the status shows physiology, mushroom body and olfaction; checkpoint 422 committed at 01:13:23, linked to 421, with its archive; no command rejected                          |
+| 9. Backup on the new release | 01:15:02–01:16:06 | Checkpoint 422 at tick 1,247,222, resumed by `62bd125`; SHA-256 `61b214e7…` checked off the VM                                                                                                                                                                                                                                       |
+
+**The pause** ran from the v3 runner's final commit, at 00:48:21.398, to
+the organism's resumption, at 01:07:52.078: 19 minutes 31 seconds, over the
+15 budgeted. The steps took about 6½ minutes of it. For almost 13, between
+steps 5 and 6, the stopped service waited while the commit command was
+approved a second time, in the tooling that ran it. Checkpoint 422 records
+the pause as one `gap` (`"policy":"paused"`) at the continuation's tick,
+1,244,222: the clock did not advance, nothing was computed, and no
+experience is attributed to it.
+
+**Where it departed from the plan.**
+
+- Step 1 built the branch's head, `62bd125`, before the merge, with the
+  owner's approval. `main` took the branch at 01:18 as the merge commit
+  `3e8cbe0`, whose tree is identical: the release is named by the branch's
+  commit, and its code is `main`'s.
+- The VM's checkout is shallow and was detached, so `git pull --ff-only`
+  could not update it; the commit was fetched instead.
+  [The upgrade instructions](BETHESDA_CONTINUOUS_LIFE.md#upgrade) now fetch
+  that way.
+- Step 3 ran beside the service, as the plan allows when memory is well
+  over the check's need: 4,785 MB was available, against the 4,270 MB its
+  gate asked for (the check's estimated peak, the service's growth back to
+  its high-water mark, and 512 MB). Under a 4,608 MB cap, at the lowest
+  priority and as the kernel's first out-of-memory victim, it peaked at
+  3.36 GB (3,439,536 kB), about 60 MB over its estimate and inside that
+  margin. The service ran on as the same process, with no restarts.
+
+**What the organism did first.** The v3 fly had used up its reserve: its
+last v3 status, at the stop, reads `"energyFraction":0`, resting. On the
+organism's first tick protective mode began, at 0.03% of a full reserve.
+The deliberately artificial supply brought the reserve to 35% by tick
+1,245,465, 124.2 simulated seconds later, metered as 0.497 J of
+`maintenanceJ`; the fly's food intake is unchanged (64 meals, `fedJ`
+6.81 J). Then the fly flew again: 25 takeoffs and landings by checkpoint
+424, with no collision and no command rejected. By 01:26 olfaction had
+adjusted 5,114 walking decisions and made one search turn, and its filters
+were back at rest; the mushroom body had made no trial (the fly had not
+eaten, and remembered no place to return to). The self-model's bounded
+memory let episode 142 go, and checkpoint 422 holds it in the archive. Its
+143rd inquiry concluded `sensor`, and its trust in its senses fell from 1
+to 0.96; 4 of its 142 earlier inquiries had concluded `sensor` too. The fly
+carries no perturbation schedule, so none of these is a fault the simulator
+applied.
+
+**Kept.** The three backups are kept off the VM, each checked against its
+SHA-256 there: `bethesda-life-20261028T003911Z-d25e1f3b9e40.tar.gz`
+(step 2), `bethesda-life-20261028T004849Z-d25e1f3b9e40.tar.gz` (step 5, the
+last before the continuation) and
+`bethesda-life-20261028T011502Z-62bd12502c17.tar.gz` (step 9). The VM keeps
+the `d25e1f3` and `3db627b` releases for replay beside `62bd125`.
+
+**What it shows.** One fly and one history: the same birth, genesis and
+chain (`--verify` passed all 422 checkpoints, and each later checkpoint
+names the one before it as its parent), one writer at a time (the leases of
+epochs 9, 10 and 11 never overlapped), and the whole v3 graph kept byte for
+byte, with the four parts beside it. It shows no foraging benefit (see
+[the rehearsal](#rehearsal-on-the-deployed-individuals-backup)), and none of
+it is evidence of awareness or of a complete nervous system.

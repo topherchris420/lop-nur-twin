@@ -75,7 +75,8 @@ extension's explicit scientific limitations. The
 [organism continuation](ECHO_ORGANISM_CONTINUATION.md) is the reviewed path
 for the deployed individual itself: its own v3 self-model and controller,
 kept byte for byte, with the mushroom body, olfaction and physiology added
-beside them. It is not deployed until its cutover is approved.
+beside them. The deployed individual has lived as it since October 28,
+2026 ([the cutover, as it ran](ECHO_ORGANISM_CONTINUATION.md#the-cutover-as-it-ran)).
 
 ### What the fly may know, and what it may not
 

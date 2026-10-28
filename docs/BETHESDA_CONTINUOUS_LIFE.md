@@ -224,14 +224,17 @@ in the subnet's security list, TCP 80 and TCP 443 from `0.0.0.0/0`.
 ### Upgrade
 
 ```sh
-cd ~/lop-nur-twin && git pull --ff-only
+cd ~/lop-nur-twin && git fetch --depth 1 origin main && git checkout --detach FETCH_HEAD
 sudo deploy/bethesda-life/install.sh
 ```
 
-It builds the new release beside the running one, stops the service, and
-runs `--check` with the new release. If the new release can resume the
-individual it switches to it and starts it; if it cannot, it starts the old
-release again and exits with the reason. `sudo deploy/bethesda-life/install.sh --rollback`
+The first line moves the checkout to `main`'s newest commit by fetching it,
+which also works on a shallow or detached checkout such as the VM's, where
+`git pull --ff-only` does not. `install.sh` builds the new release beside
+the running one, stops the service, and runs `--check` with the new
+release. If the new release can resume the individual it switches to it and
+starts it; if it cannot, it starts the old release again and exits with the
+reason. `sudo deploy/bethesda-life/install.sh --rollback`
 returns to the previous release, after the same check. The two newest
 releases are kept, and so is every release a recorded continuation names as
 its source (the `*_SOURCE` commits in `src/bethesda/life/`) or that
@@ -379,7 +382,9 @@ store with `--commit`, and run `install.sh` normally; the exact steps and
 their checks are in [the cutover plan](ECHO_ORGANISM_CONTINUATION.md#cutover-plan).
 The runner then commits the archive with its checkpoints (early, if it
 fills) and stops rather than drop a record. The store's history holds four
-engines, and the v3 release can no longer resume it.
+engines, and the v3 release can no longer resume it. The deployed individual
+was continued this way on October 28, 2026
+([as it ran](ECHO_ORGANISM_CONTINUATION.md#the-cutover-as-it-ran)).
 
 ### Backup
 

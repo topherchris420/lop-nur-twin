@@ -82,10 +82,11 @@ docs/research/echo-replay/run1/
 docs/research/echo-replay/run2/
 docs/research/echo-replay/windows/
 
-# The organism continuation's rehearsal on the deployed individual's backup:
-# its scripts and outputs as they ran, paths aside. Only the README there is
-# written by hand.
+# The organism continuation's rehearsal on the deployed individual's backup,
+# and its cutover: the scripts and outputs as they ran, paths aside. Only the
+# README there is written by hand.
 docs/research/echo-organism-continuation/*.ts
+docs/research/echo-organism-continuation/*.js
 docs/research/echo-organism-continuation/*.mjs
 docs/research/echo-organism-continuation/*.sh
 docs/research/echo-organism-continuation/*.json

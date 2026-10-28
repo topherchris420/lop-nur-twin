@@ -1,7 +1,8 @@
 # Original ECHO individual: migration plan
 
-**No rollout has occurred.** The original fly remains on its existing live
-release. The new evaluation CLI accepts no production store path.
+**This plan was not rolled out.** The original fly was instead continued as
+[the organism](ECHO_ORGANISM_CONTINUATION.md#the-cutover-as-it-ran) on
+October 28, 2026. The new evaluation CLI accepts no production store path.
 User approval is required before any stop, deployment, merge, or live state
 change. A live upgrade using the current service architecture necessarily
 pauses computation; it cannot satisfy an uninterrupted-computation promise.
@@ -13,8 +14,8 @@ for review as [the organism continuation](ECHO_ORGANISM_CONTINUATION.md). It
 composes mushroom-body learning, olfactory navigation and recoverable
 physiology onto the deployed individual's own adapter and adds the runner
 support, archival path, installer changes and backup rehearsal that stage 6
-and the section on further integration below call for. It has not been
-deployed. Its cutover needs its own explicit approval, like everything here.
+and the section on further integration below call for. It was deployed on
+October 28, 2026, with its own explicit approval.
 
 ## Reviewable stages
 
