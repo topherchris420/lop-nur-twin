@@ -12,6 +12,10 @@ Created by **Christopher Woodyard** at **[Vers3Dynamics](https://vers3dynamics.c
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Explore](https://img.shields.io/badge/explore-Eva%20today-0B5D63)](http://150.136.49.49/)
 
+[![One orbit of the Lop Nur reconstruction while night falls over the compound and lifts again](docs/media/readme/lop-nur-orbit.gif)](https://lop-nur-twin.vercel.app/)
+
+<sub>The Lop Nur twin: one orbit of the reconstructed compound while night falls and lifts (press <code>N</code> in the twin).</sub>
+
 **[Watch the Bethesda fly](https://lop-nur-twin.vercel.app/live)** ·
 **[Explore the twin](https://lop-nur-twin.vercel.app/)** ·
 **[Inspect the evidence](https://lop-nur-twin.vercel.app/analysis)** ·
@@ -37,28 +41,58 @@ available for someone else to examine.
 > **Models propose. Host code validates. People authorize. Simulations run.
 > Results remain open to inspection.**
 
-[![Lop Nur reconstruction with its evidence timeline, site map, and inspectable claims](docs/screenshot-overview.png)](https://lop-nur-twin.vercel.app/)
-
-[Start exploring](#start-exploring) · [The digital fly](#the-digital-fly) ·
-[Research method](#how-the-research-loop-works) · [Results](#recorded-results) ·
-[Run locally](#run-locally) · [Documentation](#documentation)
+[Start exploring](#start-exploring) · [Evidence](#every-claim-carries-its-evidence) ·
+[The digital fly](#the-digital-fly) · [Research method](#how-the-research-loop-works) ·
+[Results](#recorded-results) · [Run locally](#run-locally) ·
+[Documentation](#documentation)
 
 ## Start exploring
 
 The public reconstruction and scripted experiences need **no account or model API
 key**. The 3D scenes require WebGL; `/analysis` and `/compare` work without it.
 
-| Experience                                                         | What you can do                                                                                                       |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| **[Live Bethesda fly](https://lop-nur-twin.vercel.app/live)**      | Observe the shared server-side individual, its activity, recent decision reasons, and nearby city activity.           |
-| **[Eva's clay garden](http://150.136.49.49/)**                     | Watch a separate server-side fly through a stop-motion clay exhibit. [About this garden](docs/LIVE_GARDEN.md).        |
-| **[Lop Nur twin](https://lop-nur-twin.vercel.app/)**               | Explore the airfield, open structure dossiers, measure modeled distances, and move through the evidence timeline.     |
-| **[Evidence inspector](https://lop-nur-twin.vercel.app/analysis)** | Trace claims to sources, classifications, dates, and stated uncertainty.                                              |
-| **[Revision comparison](https://lop-nur-twin.vercel.app/compare)** | Inspect changes in geometry, sourcing, and uncertainty between recorded model releases.                               |
-| **[Bethesda and R.A.I.N. Lab](docs/BETHESDA_ANOMALY.md)**          | Discover the hidden city and enter its research laboratory.                                                           |
-| **[Noeterra](https://lop-nur-twin.vercel.app/noeterra)**           | Explore rule-based civilizations in the Mediterranean (264 BC) or Tarim Basin (77 BC).                                |
-| **[Blacksite](https://lop-nur-twin.vercel.app/play)**              | Enter the illustrative first-person simulation with human, scripted, or optionally configured model-controlled seats. |
-| **[Evaluation](https://lop-nur-twin.vercel.app/evaluation)**       | Inspect recorded decisions, experiment outcomes, and comparisons.                                                     |
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/"><img src="docs/media/readme/gallery/twin.jpg" width="100%" alt="The Lop Nur compound painted by evidence status, with the evidence timeline below"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/">Lop Nur twin</a></b>
+      <br><sub>Explore the airfield, open structure dossiers, measure modeled distances, and move through the evidence timeline.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/live"><img src="docs/media/readme/gallery/live-fly.jpg" width="100%" alt="The live page: the fly on a map of Bethesda beside its current behavior and recent decisions"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/live">Live Bethesda fly</a></b>
+      <br><sub>Observe the shared server-side individual, its activity, recent decision reasons, and nearby city activity.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="http://150.136.49.49/"><img src="docs/media/readme/gallery/garden.jpg" width="100%" alt="Macro view of the garden's clay fly on its cedar fence"></a>
+      <br><b><a href="http://150.136.49.49/">Eva's clay garden</a></b>
+      <br><sub>Watch a separate server-side fly through a stop-motion clay exhibit. <a href="docs/LIVE_GARDEN.md">About this garden</a>.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="docs/BETHESDA_ANOMALY.md"><img src="docs/media/readme/gallery/rain-lab.jpg" width="100%" alt="The R.A.I.N. Lab's Research Panel: the meeting table, R.A.I.N.'s plate, and a scripted meeting transcript"></a>
+      <br><b><a href="docs/BETHESDA_ANOMALY.md">Bethesda and R.A.I.N. Lab</a></b>
+      <br><sub>Discover the hidden city and enter its research laboratory.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/noeterra"><img src="docs/media/readme/gallery/noeterra.jpg" width="100%" alt="Noeterra's Mediterranean map with the event log and the Roman Republic's realm panel"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/noeterra">Noeterra</a></b>
+      <br><sub>Explore rule-based civilizations in the Mediterranean (264 BC) or Tarim Basin (77 BC).</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/play"><img src="docs/media/readme/gallery/blacksite.jpg" width="100%" alt="Blacksite: a first-person view across open ground between two buildings"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/play">Blacksite</a></b>
+      <br><sub>Enter the illustrative first-person simulation with human, scripted, or optionally configured model-controlled seats.</sub>
+    </td>
+  </tr>
+</table>
+
+| Analytical page                                                    | What you can do                                                                         |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| **[Evidence inspector](https://lop-nur-twin.vercel.app/analysis)** | Trace claims to sources, classifications, dates, and stated uncertainty.                |
+| **[Revision comparison](https://lop-nur-twin.vercel.app/compare)** | Inspect changes in geometry, sourcing, and uncertainty between recorded model releases. |
+| **[Evaluation](https://lop-nur-twin.vercel.app/evaluation)**       | Inspect recorded decisions, experiment outcomes, and comparisons.                       |
 
 **Your first five minutes:** open the twin, select a structure, and read its
 dossier. Press `L` for the evidence lens, then open the inspector to follow a
@@ -73,11 +107,40 @@ In the twin, press **backtick** (usually below Escape) and submit
 Site Index and search for those coordinates. Bethesda loads on demand; the
 laboratory is inside a building, behind a door.
 
+[![The twin's telemetry resolver takes the coordinates, the location resolves from Lop Nur to Bethesda, and the camera surveys the modeled city](docs/media/readme/bethesda-reveal.gif)](docs/BETHESDA_ANOMALY.md)
+
 [City guide](docs/BETHESDA_ANOMALY.md) · [Lab guide](docs/RAIN_LAB_BETHESDA.md)
 
 </details>
 
+## Every claim carries its evidence
+
+The Lop Nur twin is a public-source analytical reconstruction, and it shows how
+much of its own picture the sources support. Every building and pavement is
+classified **observed**, **reported**, **interpreted**, or **illustrative**.
+Press `L` and the scene paints itself by that classification. Step the evidence
+timeline back and the twin draws solid only what public sources had established
+by that date; everything else becomes an outline. An outline marks an absence of
+evidence, never evidence of absence.
+
+[![The evidence lens paints the compound by classification; the timeline then rewinds to 2021 and steps forward to today as structures become established](docs/media/readme/evidence-timeline.gif)](https://lop-nur-twin.vercel.app/?lens=1)
+
+Select any structure for its dossier: what the evidence establishes, what the
+model infers, what remains unknown, and three separate dates for when it existed
+at the site, when the evidence became public, and when it entered this model.
+The [evidence inspector](https://lop-nur-twin.vercel.app/analysis) presents the
+same records without WebGL, and the
+[revision comparison](https://lop-nur-twin.vercel.app/compare) shows how geometry,
+sourcing, and uncertainty changed between recorded model releases.
+
+[Site model](docs/SITE_MODEL.md) · [Provenance](docs/DATA_PROVENANCE.md) ·
+[Temporal model](docs/TEMPORAL_MODEL.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)
+
 ## The digital fly
+
+[![The shared Bethesda fly on its live page: walking, grooming, and resting bouts, then a takeoff back toward remembered food six meters away, each decision listed with its reason](docs/media/readme/live-fly.gif)](https://lop-nur-twin.vercel.app/live)
+
+<sub>The shared fly on <a href="https://lop-nur-twin.vercel.app/live"><code>/live</code></a>, recorded on 28 October 2026 (UTC) and shown at twice real speed. Every change of behavior arrives with the reason its controller logged.</sub>
 
 ### A history that survives the window closing
 
@@ -159,6 +222,10 @@ observation; the film is not a continuous recording of the Bethesda simulator.
 
 ## How the research loop works
 
+<p align="center">
+  <a href="https://rainlabteam.vercel.app/"><img src="docs/rain-lab.webp" width="520" alt="R.A.I.N. Lab — Recursive Architecture of Intelligent Nexus: a cartoon octopus in a white suit striding with a tuning fork inside a ring of lightning"></a>
+</p>
+
 James, Jasmine, Luca, and Elena are four computational research perspectives.
 They work with a shared paper corpus, mathematical context, protocol definitions,
 and retained results. Their proposals pass through the laboratory's validation,
@@ -189,6 +256,10 @@ criteria. An inconclusive result remains an inconclusive result.
 | **Numerical physics** | Does a driven, damped oscillator match its analytic reference?                           |
 | **Noeterra**          | How do memory, diplomacy, and rule changes affect simulated civilizations?               |
 | **Digital fly**       | How do sensing, adaptation, and self-model variants respond to controlled perturbations? |
+
+[![Noeterra observed for fifty simulated years from Spring 264 BC: borders shift as rule-based powers declare wars, conclude treaties, and annex provinces](docs/media/readme/noeterra.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=mediterranean-264bc&play=observe&seed=1)
+
+<sub>Noeterra's Mediterranean scenario in observer mode (seed 1), one frame per five simulated years. Every power is a rule-based agent; the outcome is an illustrative simulation, not historical evidence.</sub>
 
 The learning engine evaluates proposed procedural guidance on frozen held-out
 tasks; activation still requires operator approval. Project Inception adds
