@@ -340,11 +340,15 @@ criteria. An inconclusive result remains an inconclusive result.
 | **Digital fly**       | How do sensing, adaptation, and self-model variants respond to controlled perturbations? |
 
 <details>
-<summary>Watch fifty simulated years in Noeterra</summary>
+<summary>Watch fifty simulated years in each Noeterra world</summary>
 
 [![Noeterra observed for fifty simulated years from Spring 264 BC: borders shift as rule-based powers declare wars, conclude treaties, and annex provinces](docs/media/readme/noeterra.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=mediterranean-264bc&play=observe&seed=1)
 
 <sub>Noeterra's Mediterranean scenario in observer mode (seed 1), one frame per five simulated years. Every power is a rule-based agent; the outcome is an illustrative simulation, not historical evidence.</sub>
+
+[![Loulan and the Tarim Basin observed for fifty simulated years from Spring 77 BC: Western Han declares war on Jushi, Loulan allies with the Xiongnu, Dayuan annexes Yarkand, and Wusun joins Han's war before cancelling the alliance](docs/media/readme/noeterra-tarim.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=tarim-77bc&play=observe&seed=1)
+
+<sub>Noeterra's Tarim Basin scenario, Loulan and its neighbors from Spring 77 BC, in observer mode (seed 1), one frame per five simulated years. The cyan ring beside Loulan's capital marks the twin's airfield today, about 60 km away. Every power is a rule-based agent; the outcome is an illustrative simulation, not historical evidence.</sub>
 
 </details>
 

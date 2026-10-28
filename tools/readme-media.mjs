@@ -5,12 +5,13 @@
  * The README shows the app working rather than describing it: an orbit of the
  * Lop Nur compound while night falls, the evidence timeline rewinding, the
  * hidden city resolving, the shared Bethesda fly as `/live` serves it, and fifty
- * simulated years of Noeterra. Like the stills `tools/shots.mjs` writes, they go
- * stale the moment anything visible changes, so they are captured by script:
- * fixed cameras, fixed framing, fixed timing, one command.
+ * simulated years in each of Noeterra's two worlds. Like the stills
+ * `tools/shots.mjs` writes, they go stale the moment anything visible changes,
+ * so they are captured by script: fixed cameras, fixed framing, fixed timing,
+ * one command.
  *
  *   node tools/readme-media.mjs                  -> all of them, in order
- *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | noeterra | gallery)
+ *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | noeterra | noeterra-tarim | gallery)
  *   node tools/readme-media.mjs --origin http://localhost:5199 --site https://lop-nur-twin.vercel.app
  *
  * It writes docs/media/readme/*.gif and the gallery thumbnails in
@@ -24,19 +25,19 @@
  * handles and the dev server's copy of React Three Fiber. Edit nothing in the
  * repository while they run: Tailwind's plugin reloads the page when any file
  * it scans for class names changes, the README included, and a reload ends
- * the capture. A headless browser on software
- * WebGL takes seconds to render a frame, so these captures do not record the
- * screen: they own the page's clock. `requestAnimationFrame` and
- * `performance.now()` are replaced before any app code runs, and each frame
- * advances the scene by exactly 1/fps of a second before it is photographed.
- * The GIF plays at the app's own speed however long each frame took.
+ * the capture. A headless browser on software WebGL takes seconds to render a
+ * frame, so these captures do not record the screen: they own the page's
+ * clock. `requestAnimationFrame` and `performance.now()` are replaced before
+ * any app code runs, and each frame advances the scene by exactly 1/fps of a
+ * second before it is photographed. The GIF plays at the app's own speed
+ * however long each frame took.
  *
- * `live` and `noeterra` are recorded in real time from the deployed site
- * (`--site`). `/live` follows the one server-side fly, which no local server
- * can show, and the dev server only has Noeterra's WebAssembly engine after
- * `bun run noeterra:wasm`. The fly does whatever it is doing when this runs —
- * rerun `--only live` if it slept through the recording — and the README's
- * caption names the date of the recording, so update it with the GIF.
+ * `live` and the two Noeterra worlds are recorded in real time from the
+ * deployed site (`--site`). `/live` follows the one server-side fly, which no
+ * local server can show, and the dev server only has Noeterra's WebAssembly
+ * engine after `bun run noeterra:wasm`. The fly does whatever it is doing when
+ * this runs — rerun `--only live` if it slept through the recording — and the
+ * README's caption names the date of the recording, so update it with the GIF.
  */
 
 import puppeteer from "puppeteer";
@@ -498,14 +499,18 @@ async function captureLive(page) {
 }
 
 /**
- * Noeterra's Mediterranean in observer mode, seed 1: one frame for every five
- * simulated years, each showing the first three events of those years. The
- * engine is deterministic, so the same seed plays the same fifty years.
+ * A Noeterra world in observer mode, seed 1: one frame for every five simulated
+ * years, each showing the first three events of those years. The engine is
+ * deterministic, so the same seed plays the same fifty years. The page is shown
+ * with reduced motion, as the app renders it for visitors who ask for that:
+ * the map's highlights pulse otherwise, and a frame photographed at a different
+ * point in the pulse made every rerun a new GIF of the same years.
  */
-async function captureNoeterra(page) {
-  console.log("noeterra:");
+async function captureNoeterra(page, scenario, name) {
+  console.log(`${name}:`);
   await page.setViewport({ width: 1280, height: 760 });
-  await page.goto(`${site}/noeterra?scenario=mediterranean-264bc&play=observe&seed=1`, {
+  await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
+  await page.goto(`${site}/noeterra?scenario=${scenario}&play=observe&seed=1`, {
     waitUntil: "domcontentloaded",
     timeout: 120000,
   });
@@ -525,7 +530,7 @@ async function captureNoeterra(page) {
     { timeout: 120000 },
   );
   await sleep(2500);
-  const shoot = await frames(page, "noeterra");
+  const shoot = await frames(page, name);
   await shoot(2);
   for (let i = 0; i < 10; i++) {
     if (!(await press("5 years"))) throw new Error("no '5 years' button");
@@ -544,7 +549,7 @@ async function captureNoeterra(page) {
     await shoot();
   }
   await shoot(2);
-  encode("noeterra", shoot.dir, { fps: 1.25, width: 960, statsMode: "full", lossy: 60 });
+  encode(name, shoot.dir, { fps: 1.25, width: 960, statsMode: "full", lossy: 60 });
 }
 
 /* ------------------------------------------------------------------ */
@@ -627,7 +632,8 @@ const CAPTURES = {
   evidence: captureEvidence,
   bethesda: captureBethesda,
   live: captureLive,
-  noeterra: captureNoeterra,
+  noeterra: (page) => captureNoeterra(page, "mediterranean-264bc", "noeterra"),
+  "noeterra-tarim": (page) => captureNoeterra(page, "tarim-77bc", "noeterra-tarim"),
   gallery: captureGallery,
 };
 if (only && !(only in CAPTURES)) {
