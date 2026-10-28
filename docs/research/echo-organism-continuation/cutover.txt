@@ -1,0 +1,156 @@
+platform: the VM, Linux 7.0.0-1013-oracle aarch64, node v24.22.1; the off-VM checks, win32 arm64, node v24.19.0
+times: UTC, October 28, 2026. Each step that changed the VM ran with its owner's approval; nothing else here changed anything.
+
+== 1. install.sh --prepare built the release beside the running one: its RELEASE file, and the VM's checkout and releases (read at 01:36)
+commit 62bd12502c17379b92e89c74d17b3e1240ddd243
+node 24.22.1
+built 2026-10-28T00:38:51Z
+checkout: 62bd12502c17379b92e89c74d17b3e1240ddd243
+releases: 3db627bc125415093d6507988a2d8f61949f5240 62bd12502c17379b92e89c74d17b3e1240ddd243 d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592
+
+== 2. backup.sh with the service running on d25e1f3, then the archive's SHA-256 checked off the VM
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 417, tick 1235849
+kept /var/backups/bethesda-life/bethesda-life-20261028T003911Z-d25e1f3b9e40.tar.gz (21M), written by release d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592
+5dc04b6bbdb2fe7bbc8515e133667088f553452c96a03b27d07d255d6f68f3ac  bethesda-life-20261028T003911Z-d25e1f3b9e40.tar.gz
+bethesda-life-20261028T003911Z-d25e1f3b9e40.tar.gz: OK
+
+== 3. vm-organism-check.sh on a copy of that backup, beside the service, then compare-step3.mjs (backup.log against check.log)
+service: active, pid 17103, restarts 0; resident 2557 MB, high-water 3015 MB
+memory: 4785 MB available, 4270 MB needed
+copy: 428 files, 295 MB, read-only to bethesda-life
+checkpoint 270: sequence 270, individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, parent 54f369efaed0183a69344700677afa179fce5f217efee33348afd28a77720ac1, graph 29ef122c0f1fec81f8f313bb53124d87b36024e9249e74db2c3ab17d562c5527, echo-self-model/v3
+checkpoint 270: as the rehearsal rebuilt it
+check: release 62bd12502c17379b92e89c74d17b3e1240ddd243 from /opt/bethesda-life/releases/d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592; heap 4096 MB, cap 4608M, nice 19
+check: exit 0 in 147 s
+Checking the source checkpoint on its original engine
+Checking that this release continues the v3 fly as its own engine does (600 ticks, in memory)
+Checking the preserved graph and the new organism checkpoint
+Checking deterministic continuation after restore
+peak-rss-kb 3439536
+{"mode":"--check","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","tick":1235849,"previousSequence":417,"sequence":418,"parent":"5f722f074544dc6b38eec4e56f7795c015d3f6d6367a39792b07c10bf41bb90b","genesisDigest":"e42d5e2cad81af6689136ae78f1ba366a420a850620f3710e499913f9ac50d4a","sourceGraphDigest":"677a423fc2890c634f399b6c9c015b1d0ec66305f8b4819eafb53860846d827a","preservedGraphDigest":"677a423fc2890c634f399b6c9c015b1d0ec66305f8b4819eafb53860846d827a","kept":{"rememberedPlaces":0,"inquiries":142,"episodesKept":24,"lastEpisode":142,"inquiryOpen":false},"introduced":{"mushroomBody":"mushroom-body/v1: 2000 Kenyon cells, innate weights drawn from the fly's seed, no trials; values the places remembered from now on","inheritedPlaces":"0 remembered places keep the rule they were learned under","olfaction":"echo-olfactory-navigation/v1: filters at rest, a stream of its own at its start","physiology":"echo-maintenance/v1: tissue proxies at their resting values; artificial maintenance metered apart from food","archive":"recovery and rest bouts, mushroom-body updates, and each ECHO episode when the self-model's bounded memory lets it go, recorded from now on"},"versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","graph":"life-graph/v1"},"sameEngineTicks":600,"recoveryTicks":611,"pausedFromUtc":"2026-10-28T00:34:23.807Z","upgradedUtc":"2026-10-28T00:42:04.732Z","committedUtc":null}
+copy: unchanged (2678fecde3a27d9cc884f90a12e53176b89656e1fb21788ee7664402965647d1)
+service: active, pid 17103, restarts 0; 5764 MB available
+== ssh exit 0 in 150 s
+step 3: pass  the deployed individual, in both checks
+step 3: pass  its genesis
+step 3: pass  the backup's head, checkpoint 417
+step 3: pass  the head's tick, 1235849
+step 3: pass  preservedGraphDigest equal to sourceGraphDigest
+step 3: pass  the same-engine check, 600 ticks
+step 3: pass  the restore check, 611 ticks
+step 3: pass  ECHO v3, continued as the organism
+step 3: pass  nothing committed
+== compare exit 0
+
+== 4. The stop: systemd's lines and the v3 runner's last status line (journal)
+2026-10-28T00:47:52+00:00 bethesda-life systemd[1]: Stopping bethesda-life.service - Bethesda headless life (one city, one digital fly)...
+2026-10-28T00:48:25+00:00 bethesda-life bethesda-life[17103]: {"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1244222,"simulatedSeconds":124422.20000000001,"cityHash":"40ddd65fecb2ca61","flyHash":"b8de4bc37da6c598:87e19978803bb9c6","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":142,"episodes":24,"legGain":0.9982074961591414,"trustInSense":1,"attending":{"source":"routine","what":"resting","since":123006.6,"shielded":false,"expectsNext":"self"},"lastConclusion":{"t":122972.65,"explanation":"none","candidate":"none","confidence":0.865961516509681,"resolved":false,"checked":null},"openInquiry":null},"fly":{"position":[236.94010083773355,1.3691492110072379,723.3792119019399],"mode":"rest","energyFraction":0,"meals":64,"escapes":2},"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","checkpoint":420}
+2026-10-28T00:48:26+00:00 bethesda-life systemd[1]: bethesda-life.service: Deactivated successfully.
+2026-10-28T00:48:26+00:00 bethesda-life systemd[1]: Stopped bethesda-life.service - Bethesda headless life (one city, one digital fly).
+2026-10-28T00:48:26+00:00 bethesda-life systemd[1]: bethesda-life.service: Consumed 1h 59min 11.874s CPU time, 3.2G memory peak, 0B memory swap peak.
+
+== 5. backup.sh with the service stopped: the final backup before the continuation, then its SHA-256 off the VM
+service: inactive
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 420, tick 1244222
+kept /var/backups/bethesda-life/bethesda-life-20261028T004849Z-d25e1f3b9e40.tar.gz (21M), written by release d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592
+f912cbaa1aee94e985845cedd8b0c7a1aa2c7df9bf6df92a4cf78ff14f9b9d20  bethesda-life-20261028T004849Z-d25e1f3b9e40.tar.gz
+bethesda-life-20261028T004849Z-d25e1f3b9e40.tar.gz: OK
+
+== 6. The continuation's --commit on the live store (62bd125, --from-release d25e1f3), with the service stopped
+service: inactive
+head: 000000000420.json
+output: /var/tmp/organism-commit.IOIaOg
+commit start 2026-10-28T01:02:32Z
+commit end 2026-10-28T01:05:49Z
+status: 0
+Checking the source checkpoint on its original engine
+Checking that this release continues the v3 fly as its own engine does (600 ticks, in memory)
+Checking the preserved graph and the new organism checkpoint
+Checking deterministic continuation after restore
+{"mode":"--commit","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","tick":1244222,"previousSequence":420,"sequence":421,"parent":"1f14acea695fbe125ea8150d33c9bfd9a4a253d32456ff34f05ed82f58855907","genesisDigest":"e42d5e2cad81af6689136ae78f1ba366a420a850620f3710e499913f9ac50d4a","sourceGraphDigest":"796f5ec2f4d71c2580ad3f997da1868fb244e3c17c06c1dfd40b49edd3570d91","preservedGraphDigest":"796f5ec2f4d71c2580ad3f997da1868fb244e3c17c06c1dfd40b49edd3570d91","kept":{"rememberedPlaces":0,"inquiries":142,"episodesKept":24,"lastEpisode":142,"inquiryOpen":false},"introduced":{"mushroomBody":"mushroom-body/v1: 2000 Kenyon cells, innate weights drawn from the fly's seed, no trials; values the places remembered from now on","inheritedPlaces":"0 remembered places keep the rule they were learned under","olfaction":"echo-olfactory-navigation/v1: filters at rest, a stream of its own at its start","physiology":"echo-maintenance/v1: tissue proxies at their resting values; artificial maintenance metered apart from food","archive":"recovery and rest bouts, mushroom-body updates, and each ECHO episode when the self-model's bounded memory lets it go, recorded from now on"},"versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","graph":"life-graph/v1"},"sameEngineTicks":600,"recoveryTicks":611,"pausedFromUtc":"2026-10-28T00:48:21.398Z","upgradedUtc":"2026-10-28T01:03:26.313Z","committedUtc":"2026-10-28T01:05:09.786Z"}
+head now: 000000000421.json
+
+== 7. install.sh: the check, the switch and the start; then systemd's lines (journal)
+62bd125 Record the read-only check of a copy of the live store
+memory: 7913 MB (the life needs 7000 MB; heap 2560 MB)
+release: 62bd12502c17379b92e89c74d17b3e1240ddd243 (already built)
+check: can 62bd12502c17379b92e89c74d17b3e1240ddd243 resume this individual? (every seal and link, then the head restored)
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1244222,"simulatedSeconds":124422.20000000001,"cityHash":"40ddd65fecb2ca61","flyHash":"c9c25a045fb38521:87e19978803bb9c6","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":142,"episodes":24,"legGain":0.9982074961591414,"trustInSense":1,"attending":{"source":"routine","what":"resting","since":123006.6,"shielded":false,"expectsNext":"self"},"lastConclusion":{"t":122972.65,"explanation":"none","candidate":"none","confidence":0.865961516509681,"resolved":false,"checked":null},"openInquiry":null},"fly":{"position":[236.94010083773355,1.3691492110072379,723.3792119019399],"mode":"rest","energyFraction":0,"meals":64,"escapes":2},"organism":{"version":"bethesda-echo-organism/v1","physiology":{"atp":1,"water":1,"fatigue":0,"sleepPressure":0,"stress":0,"protective":false,"sleeping":false,"recoveryBouts":0,"maintenanceJ":0},"mushroomBody":{"trials":0,"fruitless":0,"inheritedPlaces":0},"olfaction":{"on":0,"off":0,"modulatedDecisions":0,"searchTurns":0},"archivePending":0,"classification":"model variables of a simulated fly: not measured biology, and not evidence of awareness"},"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","checkpoint":421,"restored":true}
+kept release 3db627bc125415093d6507988a2d8f61949f5240: pinned for historical replay
+started bethesda-life on /opt/bethesda-life/releases/62bd12502c17379b92e89c74d17b3e1240ddd243; watching it for 90 s
+bethesda-life is living. Follow it with: journalctl -u bethesda-life -f
+Starting bethesda-life.service - Bethesda headless life (one city, one digital fly)...
+Started bethesda-life.service - Bethesda headless life (one city, one digital fly).
+bethesda-life-observer: live
+2026-10-28T01:07:01+00:00 bethesda-life systemd[1]: Starting bethesda-life.service - Bethesda headless life (one city, one digital fly)...
+2026-10-28T01:07:01+00:00 bethesda-life systemd[1]: Started bethesda-life.service - Bethesda headless life (one city, one digital fly).
+
+== The store's leases: the v3 runner's, the commit's and the organism runner's (read at 01:36; the runner renews epoch 11)
+read 2026-10-28T01:36:33Z
+000000000009.json: {"schema":"life-store/v1","epoch":9,"holder":"pid 17103","acquiredUtc":"2026-10-27T12:18:38.773Z","expiresUtc":"2026-10-28T00:48:25.675Z"}
+000000000010.json: {"schema":"life-store/v1","epoch":10,"holder":"pid 25272","acquiredUtc":"2026-10-28T01:04:49.398Z","expiresUtc":"2026-10-28T01:05:12.647Z"}
+000000000011.json: {"schema":"life-store/v1","epoch":11,"holder":"pid 25615","acquiredUtc":"2026-10-28T01:07:35.827Z","expiresUtc":"2026-10-28T01:37:32.966Z"}
+
+== The backups on the VM, with the times they were written
+2026-10-28 00:39:19 21348276 bethesda-life-20261028T003911Z-d25e1f3b9e40.tar.gz
+2026-10-28 00:40:15 117 bethesda-life-20261028T003911Z-d25e1f3b9e40.tar.gz.sha256
+2026-10-28 00:48:53 21390442 bethesda-life-20261028T004849Z-d25e1f3b9e40.tar.gz
+2026-10-28 00:49:30 117 bethesda-life-20261028T004849Z-d25e1f3b9e40.tar.gz.sha256
+2026-10-28 01:15:06 21490712 bethesda-life-20261028T011502Z-62bd12502c17.tar.gz
+2026-10-28 01:16:06 117 bethesda-life-20261028T011502Z-62bd12502c17.tar.gz.sha256
+
+== 8. Verification
+-- at 01:09: the service, the current and previous releases, the head, and the local witness (its first 700 characters)
+now 2026-10-28T01:09:00Z
+MainPID=25615 NRestarts=0 ActiveState=active ActiveEnterTimestamp=Wed 2026-10-28 01:07:01 UTC
+/opt/bethesda-life/releases/62bd12502c17379b92e89c74d17b3e1240ddd243
+/opt/bethesda-life/releases/d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592
+head: 000000000421.json
+{"schema":"bethesda-life-witness/v1","status":"live","servedUtc":"2026-10-28T01:09:00.856Z","ageS":0.8,"reason":null,"observation":{"schema":"bethesda-life-observation/v1","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","epoch":11,"versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3"},"flyController":"echo","tick":1244902,"simulatedSeconds":124490.20000000001,"observedUtc":"2026-10-28T01:09:00.092Z","checkpoint":{"sequence":421,"tick":1244222,"committedUtc":"2026-10-28T01:05:09.786Z"},"checkpointing":false,"fly":{"position":[236.94010083773355,1.3691492110072379,723.3792119019399],"velocit
+-- the runner's first status line as the organism (journal)
+2026-10-28T01:08:52+00:00 bethesda-life bethesda-life[25615]: {"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1244822,"simulatedSeconds":124482.20000000001,"cityHash":"512281d84bfcd192","flyHash":"b198f99d236b1fe5:14439d0ad71e4b38","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":142,"episodes":24,"legGain":0.9982074815724288,"trustInSense":1,"attending":{"source":"routine","what":"resting","since":123006.6,"shielded":false,"expectsNext":"self"},"lastConclusion":{"t":122972.65,"explanation":"none","candidate":"none","confidence":0.865961516509681,"resolved":false,"checked":null},"openInquiry":null},"fly":{"position":[236.94010083773355,1.3691492110072379,723.3792119019399],"mode":"rest","energyFraction":0.16914893617025203,"meals":64,"escapes":2},"organism":{"version":"bethesda-echo-organism/v1","physiology":{"atp":0.70832609658028,"water":1,"fatigue":0,"sleepPressure":0,"stress":0,"protective":true,"sleeping":false,"recoveryBouts":1,"maintenanceJ":0.24000000000000277},"mushroomBody":{"trials":0,"fruitless":0,"inheritedPlaces":0},"olfaction":{"on":0,"off":0,"modulatedDecisions":0,"searchTurns":0},"archivePending":1,"classification":"model variables of a simulated fly: not measured biology, and not evidence of awareness"}}
+-- the runner's --verify on the live store, beside the service; then the journal searched for "reject" since 01:07
+{"checkpoints":422,"head":421,"events":9}
+verify exit 0 in 70 s
+rejection mentions since 01:07: 0
+service: 25615 restarts 0; head 000000000421.json
+-- the next checkpoint
+new head 000000000422.json at 2026-10-28T01:13:27Z
+-- checkpoint-events.js on 421 and 422 (on the VM)
+{"sequence":421,"epoch":10,"committedUtc":"2026-10-28T01:05:09.786Z","tick":1244222,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","parent":"1f14acea695fbe125ea8150d33c9bfd9a4a253d32456ff34f05ed82f58855907","digest":"97c530188e74e9c5d26e8790931b77514252141fa423e8da935c0d36ae11c8dd","graphDigest":"c430634514201c228b7d0088a147c7c5672f3a4b84d7fbb271aaf178f729b030","graph":"present","versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","graph":"life-graph/v1"},"events":1,"kinds":{"organism-continuation":1},"last":["organism-continuation@1244222"]}
+{"sequence":422,"epoch":11,"committedUtc":"2026-10-28T01:13:23.617Z","tick":1247222,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","parent":"97c530188e74e9c5d26e8790931b77514252141fa423e8da935c0d36ae11c8dd","digest":"ade8f635a777a3b9e1c9b95ef1e75534a40986884fd9271a98460a9481c800fb","graphDigest":"a46d0fceba88fd2117d628c91ddb3a8f0dc97b68bc5fc4c61a7e0c41344b4f61","graph":"present","versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","graph":"life-graph/v1"},"events":4,"kinds":{"gap":1,"recovery-enter":1,"recovery-exit":1,"echo-episode-archived":1},"last":["gap@1244222","recovery-enter@1244223","recovery-exit@1245465","echo-episode-archived@1246931"]}
+-- events-dump.js on 421 and 422 (the step-9 backup, here)
+421 {"tick":1244222,"kind":"organism-continuation","data":{"migration":"bethesda-organism-continuation/v1","sourceRelease":"d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592","parent":"1f14acea695fbe125ea8150d33c9bfd9a4a253d32456ff34f05ed82f58855907","sourceStateHash":"40ddd65fecb2ca61|b8de4bc37da6c598:87e19978803bb9c6","sourceGraphDigest":"796f5ec2f4d71c2580ad3f997da1868fb244e3c17c06c1dfd40b49edd3570d91","preservedGraphDigest":"796f5ec2f4d71c2580ad3f997da1868fb244e3c17c06c1dfd40b49edd3570d91","sourceDescriptor":{"schema":"life-graph/v1","root":{"r":0},"nodes":[{"t":"o","c":null,"e":[["id","echo-self-model/v3/full over reduced-order-fsm/v1"],["label","ECHO self-model (experimental)"],["fidelity","The reduced-order behavioural controller with a computational self-model between its intentions and the body: a forward model of its own self-motion, Bayesian estimation of its own movement gains and of outside drift, change detection and model comparison, episodic memory. No neurons, synapses or connectome are simulated, and nothing here is a claim about awareness."],["simulatesNeurons",false],["regions",{"r":1}],["selfMotion",true]]},{"t":"sh","p":["cityFly","fly","adapter","descriptor","regions"]}]},"upgradedUtc":"2026-10-28T01:03:26.313Z","pausedFromUtc":"2026-10-28T00:48:21.398Z","preserved":"the whole ECHO v3 graph, byte for byte: body, city, controller and navigation memory, self-model, and every random stream","kept":{"rememberedPlaces":0,"inquiries":142,"episodesKept":24,"lastEpisode":142,"inquiryOpen":false},"introduced":{"mushroomBody":"mushroom-body/v1: 2000 Kenyon cells, innate weights drawn from the fly's seed, no trials; values the places remembered from now on","inheritedPlaces":"0 remembered places keep the rule they were learned under","olfaction":"echo-olfactory-navigation/v1: filters at rest, a stream of its own at its start","physiology":"echo-maintenance/v1: tissue proxies at their resting values; artificial maintenance metered apart from food","archive":"recovery and rest bouts, mushroom-body updates, and each ECHO episode when the self-model's bounded memory lets it go, recorded from now on"}}}
+422 {"tick":1244222,"kind":"gap","data":{"stoppedUtc":"2026-10-28T00:48:21.398Z","resumedUtc":"2026-10-28T01:07:52.078Z","policy":"paused"}}
+422 {"tick":1244223,"kind":"recovery-enter","data":{"reserveFraction":0.00028191489361702106,"maintenanceJ":0.0004,"recoveryBouts":1}}
+422 {"tick":1245465,"kind":"recovery-exit","data":{"reserveFraction":0.35013652482259117,"maintenanceJ":0.4968000000000101,"recoveryBouts":1}}
+422 {"tick":1246931,"kind":"echo-episode-archived","data":{"episode":{"id":142,"simulation":{"fly":"digital-fly/8","echo":"echo-self-model/v3","seed":755912396},"noticed":122965.35,"since":122964.65,"concluded":122972.65,"period":1647521,"observed":{"periods":160,"mean":[0.0002838,-0.00000467,-0.001392]},"action":{"kinds":{"still":103,"walk":57,"flight":0,"other":0},"legCommandCmS":0.6176,"turnCommand":-0.06372},"predicted":{"mean":[0.000287,-0.000006489,-0.0003519]},"outcome":{"meanInnovation":[-0.000003268,0.000001819,-0.00104],"meanNis":2.61},"explanation":"none","candidate":"none","resolved":false,"posterior":{"none":0.866,"self:speed":0.01367,"self:turn-gain":0.04838,"self:turn-bias":0.01617,"self:body":0.0001929,"external:drift":0.0003096,"external:spin":0.05371,"external:all":0.00002399,"external:wind":0.001589,"both":2.717e-8,"sensor":4.617e-202},"before":[0.998379,1.01451,-0.00121434,0.999294,0.956841,0.0217481,0.000404053,-0.000134926,0.0370718,-0.171376,-0.0853843],"after":[0.996865,1.01413,0.00167503,0.999294,0.956841,0.0217481,0.00013449,-0.000175831,0.00327928,-0.17135,-0.0853907],"settled":[1.0073193862468626,0.9983594684839284,-0.0033482569139038367,0.8687288355250895,0.9543355180790731,-0.028698689154195885,0.00025802191348234086,0.0002804471598371966,-0.007672124078399247,-0.9104321972653282,-0.8746519428974884],"reliability":{"posterior":0.866,"spreads":[0.009106,0.01435,0.01041,0.1635,0.1655,0.1592,0.0001662,0.0001581,0.006536,0.006753,0.006753]},"recalled":0}}}
+-- the public witness, at the /live page's origin (about 01:16)
+public witness: live 04f8c797b697 tick 1249480 checkpoint 422 echo-self-model/v3
+
+== 9. backup.sh on the new release, then its SHA-256 off the VM
+/opt/bethesda-life/releases/62bd12502c17379b92e89c74d17b3e1240ddd243
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 422, tick 1247222
+kept /var/backups/bethesda-life/bethesda-life-20261028T011502Z-62bd12502c17.tar.gz (21M), written by release 62bd12502c17379b92e89c74d17b3e1240ddd243
+61b214e7f02ec49eea2bef2e86b8cbcc299aa46dc3f814189c1ca93a5b8509fe  bethesda-life-20261028T011502Z-62bd12502c17.tar.gz
+bethesda-life-20261028T011502Z-62bd12502c17.tar.gz: OK
+service: active, pid 25615, restarts 0
+
+== After the cutover
+-- checkpoint-events.js on 423 and 424 (on the VM)
+{"sequence":423,"epoch":11,"committedUtc":"2026-10-28T01:18:25.225Z","tick":1250222,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","parent":"ade8f635a777a3b9e1c9b95ef1e75534a40986884fd9271a98460a9481c800fb","digest":"52c4af46ddd2e9e38f2f3fe5f860d3b164fc15bbfe210d3363a60f4d7af2b0da","graphDigest":"0f3dcf952113c55979aa8f8d7310bf76bb41c096b99debac957576d4e0df01d7","graph":"present","versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","graph":"life-graph/v1"},"events":0,"kinds":{},"last":[]}
+{"sequence":424,"epoch":11,"committedUtc":"2026-10-28T01:23:26.768Z","tick":1253222,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","parent":"52c4af46ddd2e9e38f2f3fe5f860d3b164fc15bbfe210d3363a60f4d7af2b0da","digest":"6c81af7fa30fd878cf9cd498ea79012ed279e004af8ad336c20b526710aca30d","graphDigest":"fb13002327c8b63f281d2eebdce248b9abd1b830f721ed45362d05b2f8a1f555","graph":"present","versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","graph":"life-graph/v1"},"events":0,"kinds":{},"last":[]}
+-- rejected-counts.js: 420, 421 and 422 from the step-9 backup, here; 424 on the VM
+420 1244222 526359 nodes; cityFly.fly.state.counts: takeoffs=1192 escapes=2 landings=1192 saccades=9335 collisions=214 contactS=343.57499999976005 groomBouts=2591 rejected=0 walkedM=533.0550236617238 flownM=14573.000966705082 meals=64 feedS=3026.1500000428437 fedJ=6.808837500010516 spentJ=7.654837499556871
+421 1244222 526384 nodes; cityFly.fly.state.counts: takeoffs=1192 escapes=2 landings=1192 saccades=9335 collisions=214 contactS=343.57499999976005 groomBouts=2591 rejected=0 walkedM=533.0550236617238 flownM=14573.000966705082 meals=64 feedS=3026.1500000428437 fedJ=6.808837500010516 spentJ=7.654837499556871
+422 1247222 526993 nodes; cityFly.fly.state.counts: takeoffs=1194 escapes=2 landings=1194 saccades=9349 collisions=214 contactS=343.57499999976005 groomBouts=2596 rejected=0 walkedM=534.0582544937894 flownM=14585.92366548181 meals=64 feedS=3026.1500000428437 fedJ=6.808837500010516 spentJ=7.667318049547692
+424 1253222 528026 nodes; cityFly.fly.state.counts: takeoffs=1217 escapes=2 landings=1217 saccades=9451 collisions=214 contactS=343.57499999976005 groomBouts=2602 rejected=0 walkedM=538.0355236291587 flownM=14693.623339707076 meals=64 feedS=3026.1500000428437 fedJ=6.808837500010516 spentJ=7.719867189556528
+-- echo-conclusions.js: 420 and 422 from the step-9 backup, here; 425 on the VM
+420 1244222 cityFly.fly.perturbation: null | cityFly.fly.adapter.model.state.counts.concluded: none=81 self=11 external=46 both=0 sensor=4
+422 1247222 cityFly.fly.perturbation: null | cityFly.fly.adapter.model.state.counts.concluded: none=81 self=11 external=46 both=0 sensor=5
+425 1256222 cityFly.fly.perturbation: null | cityFly.fly.adapter.model.state.counts.concluded: none=81 self=11 external=46 both=0 sensor=5
+-- the runner's status at 01:26 (journal)
+2026-10-28T01:26:31+00:00 bethesda-life bethesda-life[25615]: {"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1255416,"simulatedSeconds":125541.6,"cityHash":"a11aa819dc9a844b","flyHash":"f679f969e8c4b537:b82f56f51a48cb8a","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":143,"episodes":24,"legGain":1.0028853260448325,"trustInSense":0.9607773316028922,"attending":{"source":"routine","what":"resting","since":125528.75,"shielded":false,"expectsNext":"hazard"},"lastConclusion":{"t":124693,"explanation":"sensor","candidate":"sensor","confidence":1,"resolved":true,"checked":"confirmed"},"openInquiry":null},"fly":{"position":[303.66424081369587,5.437889394084206,715.7798986100933],"mode":"rest","energyFraction":0.29545661347600144,"meals":64,"escapes":2},"organism":{"version":"bethesda-echo-organism/v1","physiology":{"atp":0.9259578180621888,"water":0.9838810912264534,"fatigue":0.08152442401233485,"sleepPressure":0.03561621392850582,"stress":0,"protective":false,"sleeping":false,"recoveryBouts":1,"maintenanceJ":0.4968000000000101},"mushroomBody":{"trials":0,"fruitless":0,"inheritedPlaces":0},"olfaction":{"on":1.3229648714690348e-52,"off":1.9407520952270837e-9,"modulatedDecisions":5114,"searchTurns":1},"archivePending":0,"classification":"model variables of a simulated fly: not measured biology, and not evidence of awareness"}}
+-- at 01:36
+read 2026-10-28T01:36:33Z
+service: active, pid 25615, restarts 0; head 000000000426.json
