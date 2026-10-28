@@ -83,6 +83,7 @@
     "rain:scientific:draft": "node scripts/run-ts.mjs scripts/rain-scientific-upgrade.ts --draft",
     "rain:scientific:verify": "node scripts/run-ts.mjs scripts/verify-scientific-evidence.ts",
     "rain:stand-in": "node tools/stand-in-model.mjs",
+    "readme-media": "node tools/readme-media.mjs",
     "replay:jev": "node tools/jev-replay.mjs",
     "routes": "node tools/routes.mjs",
     "scan:secrets": "node tools/jev-secret-scan.mjs dist",
