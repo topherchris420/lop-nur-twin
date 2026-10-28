@@ -146,7 +146,7 @@ export const ECHO_UPGRADED_LIFE: LifeKind<HeadlessGenesis, HeadlessBethesdaLife>
 };
 
 /** A small editor used only on an in-memory copy, never on stored checkpoint bytes. */
-class Graph {
+export class Graph {
   readonly snapshot: GraphSnapshot;
   constructor(snapshot: GraphSnapshot, copy = true) {
     this.snapshot = copy ? structuredClone(snapshot) : snapshot;

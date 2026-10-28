@@ -1,0 +1,352 @@
+{
+ "node": "v24.19.0",
+ "platform": "win32 arm64",
+ "heapLimitMB": 3776,
+ "sameEngine": {
+  "ticks": 600,
+  "same": true,
+  "label": "same-engine check",
+  "wallS": 20.2,
+  "cpuS": 25.8,
+  "maxRssMB": 2272,
+  "heapUsedMB": 1104
+ },
+ "continuation": {
+  "seconds": 32.6,
+  "preservedGraphDigest": "f05a195ae739bfe6b06d3ea27b76e5fb3b1cee5fccbc30818d842314493d60c4",
+  "sourceGraphDigest": "f05a195ae739bfe6b06d3ea27b76e5fb3b1cee5fccbc30818d842314493d60c4",
+  "preserved": true,
+  "label": "continued",
+  "wallS": 52.9,
+  "cpuS": 70.5,
+  "maxRssMB": 2907,
+  "heapUsedMB": 1439
+ },
+ "restoreDivergence": {
+  "intervals": [
+   1,
+   10,
+   100,
+   500
+  ],
+  "mismatch": null,
+  "label": "restore check",
+  "wallS": 61.8,
+  "cpuS": 81.6,
+  "maxRssMB": 2907,
+  "heapUsedMB": 890
+ },
+ "identity": {
+  "individual": "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",
+  "sameIndividual": true,
+  "sameBirth": true,
+  "sameGenesisDigest": true,
+  "parentIsV3Head": true,
+  "sequence": 272,
+  "tickUnchanged": true,
+  "events": [
+   "organism-continuation"
+  ]
+ },
+ "integrity": {
+  "organismCheckpointErrors": [],
+  "historicalErrors": [
+   [],
+   [],
+   []
+  ],
+  "transitions": [
+   [
+    "269 -> 270 (v3)",
+    []
+   ],
+   [
+    "270 -> 271 (v3)",
+    []
+   ],
+   [
+    "271 -> 272 (organism)",
+    []
+   ]
+  ]
+ },
+ "learningPreserved": {
+  "before": {
+   "tick": 830842,
+   "rememberedPlaces": 0,
+   "landmarkPlaces": 0,
+   "placesDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "controllerDigest": "d3eb776d99142ebd4686021d703a4ce5454af67fb01533a410c67d7aa4d9b420",
+   "selfModelDigest": "0578d234702a0db7afb015f409eccb25d72d5399dcee134c382992f0aa1cdc4b",
+   "replaced": 0,
+   "episodesKept": 24,
+   "lastEpisode": 78,
+   "inquiries": 78,
+   "inquiryOpen": false,
+   "beliefs": 12,
+   "bodyDigest": "9fca662819ccdba2280a09813f181bd759f7e283374ddbe4ac60818d9e69a4de",
+   "logDigest": "3ccf73b1fc52c89d98d4768d703d9ce193163cfb0025bcf854ec7e41da167674",
+   "cityHash": "8d86a87d632ad007",
+   "reserveFraction": 0.7652,
+   "rejectedCommands": 0,
+   "failed": null
+  },
+  "after": {
+   "tick": 830842,
+   "rememberedPlaces": 0,
+   "landmarkPlaces": 0,
+   "placesDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "controllerDigest": "d3eb776d99142ebd4686021d703a4ce5454af67fb01533a410c67d7aa4d9b420",
+   "selfModelDigest": "0578d234702a0db7afb015f409eccb25d72d5399dcee134c382992f0aa1cdc4b",
+   "replaced": 0,
+   "episodesKept": 24,
+   "lastEpisode": 78,
+   "inquiries": 78,
+   "inquiryOpen": false,
+   "beliefs": 12,
+   "bodyDigest": "9fca662819ccdba2280a09813f181bd759f7e283374ddbe4ac60818d9e69a4de",
+   "logDigest": "3ccf73b1fc52c89d98d4768d703d9ce193163cfb0025bcf854ec7e41da167674",
+   "cityHash": "8d86a87d632ad007",
+   "reserveFraction": 0.7652,
+   "rejectedCommands": 0,
+   "failed": null
+  },
+  "same": {
+   "tick": true,
+   "rememberedPlaces": true,
+   "landmarkPlaces": true,
+   "placesDigest": true,
+   "controllerDigest": true,
+   "selfModelDigest": true,
+   "replaced": true,
+   "episodesKept": true,
+   "lastEpisode": true,
+   "inquiries": true,
+   "inquiryOpen": true,
+   "beliefs": true,
+   "bodyDigest": true,
+   "logDigest": true,
+   "cityHash": true,
+   "reserveFraction": true,
+   "rejectedCommands": true,
+   "failed": true
+  }
+ },
+ "introduced": {
+  "mushroomBody": "mushroom-body/v1: 2000 Kenyon cells, innate weights drawn from the fly's seed, no trials; values the places remembered from now on",
+  "inheritedPlaces": "0 remembered places keep the rule they were learned under",
+  "olfaction": "echo-olfactory-navigation/v1: filters at rest, a stream of its own at its start",
+  "physiology": "echo-maintenance/v1: tissue proxies at their resting values; artificial maintenance metered apart from food",
+  "archive": "recovery and rest bouts, mushroom-body updates, and each ECHO episode when the self-model's bounded memory lets it go, recorded from now on"
+ },
+ "kept": {
+  "rememberedPlaces": 0,
+  "inquiries": 78,
+  "episodesKept": 24,
+  "lastEpisode": 78,
+  "inquiryOpen": false
+ },
+ "checkpointBytes": {
+  "v3": 64025555,
+  "organism": 64113942
+ },
+ "runs": [
+  {
+   "ticks": 3600,
+   "msPerTick": 1.56,
+   "sequence": 273,
+   "archived": 1,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.925042843502009,
+     "water": 0.994984379700067,
+     "fatigue": 0.02015939711913517,
+     "sleepPressure": 0.00912322180877212,
+     "stress": 0,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 0,
+     "maintenanceJ": 0
+    },
+    "mushroomBody": {
+     "trials": 0,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0,
+     "off": 0,
+     "modulatedDecisions": 0,
+     "searchTurns": 0
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "label": "run 3600",
+   "wallS": 95.2,
+   "cpuS": 125.8,
+   "maxRssMB": 2907,
+   "heapUsedMB": 1068
+  },
+  {
+   "ticks": 7200,
+   "msPerTick": 1.535,
+   "sequence": 274,
+   "archived": 3,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.9252724459180844,
+     "water": 0.9843729269136686,
+     "fatigue": 0.04305505588464383,
+     "sleepPressure": 0.026278371663124377,
+     "stress": 0,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 0,
+     "maintenanceJ": 0
+    },
+    "mushroomBody": {
+     "trials": 0,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0,
+     "off": 0,
+     "modulatedDecisions": 0,
+     "searchTurns": 0
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "label": "run 7200",
+   "wallS": 117,
+   "cpuS": 153.2,
+   "maxRssMB": 2907,
+   "heapUsedMB": 1159
+  },
+  {
+   "ticks": 14400,
+   "msPerTick": 1.63,
+   "sequence": 275,
+   "archived": 5,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.9561623159702324,
+     "water": 0.962131477491089,
+     "fatigue": 0.07884796652266346,
+     "sleepPressure": 0.04795843388036958,
+     "stress": 0,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 0,
+     "maintenanceJ": 0
+    },
+    "mushroomBody": {
+     "trials": 0,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0,
+     "off": 0,
+     "modulatedDecisions": 0,
+     "searchTurns": 0
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "label": "run 14400",
+   "wallS": 152,
+   "cpuS": 194.4,
+   "maxRssMB": 3208,
+   "heapUsedMB": 1161
+  },
+  {
+   "ticks": 36000,
+   "msPerTick": 1.584,
+   "sequence": 276,
+   "archived": 6,
+   "errors": [],
+   "restoresExactly": true,
+   "valuationKept": true,
+   "status": {
+    "version": "bethesda-echo-organism/v1",
+    "physiology": {
+     "atp": 0.9816485238383383,
+     "water": 0.9105594712500201,
+     "fatigue": 0.024527119041341236,
+     "sleepPressure": 0.036875914678855315,
+     "stress": 0,
+     "protective": false,
+     "sleeping": false,
+     "recoveryBouts": 0,
+     "maintenanceJ": 0
+    },
+    "mushroomBody": {
+     "trials": 0,
+     "fruitless": 0,
+     "inheritedPlaces": 0
+    },
+    "olfaction": {
+     "on": 0,
+     "off": 0,
+     "modulatedDecisions": 0,
+     "searchTurns": 0
+    },
+    "archivePending": 0,
+    "classification": "model variables of a simulated fly: not measured biology, and not evidence of awareness"
+   },
+   "label": "run 36000",
+   "wallS": 220.4,
+   "cpuS": 268.7,
+   "maxRssMB": 3208,
+   "heapUsedMB": 1186
+  }
+ ],
+ "archiveKinds": {
+  "echo-episode-archived": 15
+ },
+ "commands": {
+  "rejectedDuringRuns": 0
+ },
+ "afterRuns": {
+  "tick": 892042,
+  "rememberedPlaces": 0,
+  "landmarkPlaces": 0,
+  "placesDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "controllerDigest": "a75605d06f9411405c40ea92fb785500b2a93149e426bed21a6b74c09983d9a3",
+  "selfModelDigest": "497a4316e649386cfc7831d01dee1fc731cd1caab22ceaec357bc21810da6271",
+  "replaced": 0,
+  "episodesKept": 24,
+  "lastEpisode": 93,
+  "inquiries": 93,
+  "inquiryOpen": false,
+  "beliefs": 12,
+  "bodyDigest": "e64c8dcf2d337f8e5da2caaad7cfc99b1fc41126c6832cb692ed0a379ba2cba8",
+  "logDigest": "731935057eb56db1a11196572eec20fea9bc57f0b1332557f899df7f7819fdfb",
+  "cityHash": "f921f3de9dde613d",
+  "reserveFraction": 0.4854,
+  "rejectedCommands": 0,
+  "failed": null
+ },
+ "final": {
+  "label": "organism phase done",
+  "wallS": 224.8,
+  "cpuS": 274.3,
+  "maxRssMB": 3208,
+  "heapUsedMB": 1147
+ }
+}

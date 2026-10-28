@@ -1,0 +1,16 @@
+{
+ "node": "v24.19.0",
+ "platform": "win32 arm64",
+ "heapLimitMB": 3264,
+ "restart": {
+  "sequence": 277,
+  "errors": [],
+  "sameAfter600": true,
+  "individual": "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",
+  "label": "restarted",
+  "wallS": 13.6,
+  "cpuS": 17.6,
+  "maxRssMB": 2145,
+  "heapUsedMB": 613
+ }
+}

@@ -40,3 +40,25 @@ condition = "AND"
 regexTarget = "secret"
 regexes = ['''^3db627bc125415093d6507988a2d8f61949f5240$''']
 paths = ['''(^|/)src/bethesda/life/echoUpgrade\.ts$''']
+
+# The organism continuation pins the public d25e1f3 (ECHO v3) commit as its
+# only source release, and its report and rehearsal name it and 3db627b.
+# These files also say `sourceGraphDigest`, which matches the rule's
+# "sourcegraph" keyword. Again only these exact SHAs, in these exact files.
+[[rules.allowlists]]
+description = "Public d25e1f3 engine commit required as the organism continuation's source release, not a credential."
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592$''']
+paths = [
+  '''(^|/)src/bethesda/life/organism\.ts$''',
+  '''(^|/)docs/ECHO_ORGANISM_CONTINUATION\.md$''',
+  '''(^|/)docs/research/echo-organism-continuation/rehearse\.ts$''',
+]
+
+[[rules.allowlists]]
+description = "Public 3db627b engine commit whose release the organism rehearsal rebuilt, not a credential."
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^3db627bc125415093d6507988a2d8f61949f5240$''']
+paths = ['''(^|/)docs/research/echo-organism-continuation/rehearse\.ts$''']

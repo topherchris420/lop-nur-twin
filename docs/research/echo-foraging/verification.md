@@ -31,3 +31,7 @@ The additional `npm run rain:fly -- --pilot --check` check **failed**: the four 
 A representative `echo_impairment` check on the unchanged pre-extension worktree produced exactly the same mismatching digests. Repeating it with the archive's Node 24.19.0 / V8 13.6.233.17-node.51 also gave that mismatch. The Node-version difference alone therefore does not explain it. The underlying cause remains unresolved. The existing fly/ECHO simulation and pilot code did not change in this extension.
 
 Logs: [full pilot check](legacy-pilot-check.txt), [unchanged baseline check](baseline-impairment-check.txt), [recorded Node-version check](pinned-impairment-check.txt). The two new research reports reproduce on the tested environment; this does not establish cross-machine or historical exact replay. Resolve the legacy discrepancy before relying on those archived pilots as a deployment gate.
+
+### Resolution, later on October 27, 2026
+
+The cause was found afterwards and is recorded in [cross-platform replay of the fly pilots](../echo-replay/README.md). The archive was recorded on Windows on ARM64 and reproduces there, all nine pilots byte for byte. On Linux x64, the one difference that reaches the ECHO pilots is `Math.pow` with a fractional exponent, in the self-model's noise rescaling. On Linux arm64, which the production VM runs, all nine pilots differ, the four non-ECHO pilots included. The finding above stands as it was recorded: no pilot record, threshold or result was changed.

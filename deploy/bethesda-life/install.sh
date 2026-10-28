@@ -157,7 +157,7 @@ build_release() {
   git_ archive --format=tar HEAD package.json package-lock.json scripts/run-ts.mjs \
     scripts/ts-hooks.mjs scripts/bethesda-life-headless.ts scripts/bethesda-life-observer.ts \
     scripts/bethesda-life-upgrade-echo.ts scripts/bethesda-life-continue-echo.ts \
-    src | tar -x -C "$tmp"
+    scripts/bethesda-life-continue-organism.ts src | tar -x -C "$tmp"
   say "release: $commit (installing its production dependencies)"
   (cd "$tmp" && PATH=$node_dir/bin:$PATH PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev \
     --ignore-scripts --no-audit --no-fund --loglevel=error)
@@ -234,13 +234,30 @@ check_or_restore() {
   fi
 }
 
+# Releases kept for historical replay: each release a recorded continuation
+# names as its source (the *_SOURCE commits in src/bethesda/life/), which
+# re-verifies the checkpoints that continuation started from, and any commit
+# listed in $PREFIX/pinned (one per line; # starts a comment).
+pinned_releases() {
+  {
+    sed -n 's/.*_SOURCE = "\([0-9a-f]\{40\}\)".*/\1/p' "$repo"/src/bethesda/life/*.ts
+    if [ -f "$PREFIX/pinned" ]; then sed 's/#.*//' "$PREFIX/pinned"; fi
+  } | tr -d ' \t' | grep -E '^[0-9a-f]{40}$' | sort -u || true
+}
+
 prune() {
-  local keep_current keep_previous d
+  local keep_current keep_previous pinned d
   keep_current=$(readlink -f "$PREFIX/current")
   keep_previous=$(readlink -f "$PREFIX/previous" 2>/dev/null || true)
+  pinned=$(pinned_releases)
   for d in "$PREFIX"/releases/*/; do
     d=${d%/}
-    [ "$d" = "$keep_current" ] || [ "$d" = "$keep_previous" ] || rm -rf "$d"
+    if [ "$d" = "$keep_current" ] || [ "$d" = "$keep_previous" ]; then continue; fi
+    if printf '%s\n' "$pinned" | grep -qx "$(basename "$d")"; then
+      say "kept release $(basename "$d"): pinned for historical replay"
+      continue
+    fi
+    rm -rf "$d"
   done
   for d in "$PREFIX"/node-v*/; do
     d=${d%/}

@@ -15,6 +15,11 @@
  *          ... --store DIR --check                          (--verify, then restore the head in
  *                                                            memory; no lease, nothing written)
  * As a service on one machine: deploy/bethesda-life/ (docs/BETHESDA_CONTINUOUS_LIFE.md).
+ *
+ * An organism life (src/bethesda/life/organism.ts) also archives what happens
+ * to it: each commit moves the archive into the checkpoint's events, and the
+ * clock advances in short steps so the archive is committed long before it
+ * could fill; a full archive stops the clock, it never drops a record.
  */
 import { randomBytes } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
@@ -36,6 +41,7 @@ import {
 } from "../src/bethesda/life/observationFile.js";
 import { LifeStore } from "../src/bethesda/life/store.js";
 import { bethesdaStoreKind } from "../src/bethesda/life/bethesdaStore.js";
+import { ORGANISM_EVENT, OrganismLife } from "../src/bethesda/life/organism.js";
 import { PROFILES } from "../src/bethesda/simulation.js";
 
 const TICK_MS = 100;
@@ -52,6 +58,15 @@ const CHECKPOINT_TICKS = 3000;
 const OBSERVE_ENV = "BETHESDA_LIFE_OBSERVE";
 /** A durable life is observed every this many ticks (one simulated second). */
 const OBSERVE_TICKS = 10;
+/** An organism life is checkpointed early once its archive holds this many records. */
+const ARCHIVE_COMMIT = 1024;
+/**
+ * And advances at most this many ticks between looks at its archive. A tick
+ * adds at most 27 records (an episode for each of the self-model's 24, and
+ * three bouts or updates), so the archive stays below 1024 + 48 * 27 = 2320,
+ * far from the 4096 at which the clock would stop.
+ */
+const ARCHIVE_STEP_TICKS = 48;
 
 type Clock = { continuous: true } | { continuous: false; ticks: number };
 interface Mode {
@@ -106,7 +121,17 @@ function parseClock(args: string[]): Clock {
 }
 
 const print = (life: HeadlessBethesdaLife, extra: Record<string, unknown> = {}) =>
-  process.stdout.write(JSON.stringify({ ...life.status(), ...extra }) + "\n");
+  process.stdout.write(
+    JSON.stringify({
+      ...life.status(),
+      ...(life instanceof OrganismLife ? { organism: life.organismStatus() } : {}),
+      ...extra,
+    }) + "\n",
+  );
+
+/** Ticks one advance may take: all that are due, or short steps for a life that archives. */
+const stepOf = (life: HeadlessBethesdaLife) =>
+  life instanceof OrganismLife ? ARCHIVE_STEP_TICKS : Infinity;
 
 /** Runs the clock: a fixed number of ticks, or wall time until a signal. */
 async function live(
@@ -114,9 +139,10 @@ async function live(
   clock: Clock,
   each: (life: HeadlessBethesdaLife) => void,
 ): Promise<void> {
+  const step = stepOf(life);
   if (!clock.continuous) {
     for (let left = clock.ticks; left > 0;) {
-      const n = Math.min(left, CHECKPOINT_TICKS);
+      const n = Math.min(left, CHECKPOINT_TICKS, step);
       life.advanceTicks(n);
       left -= n;
       each(life);
@@ -135,8 +161,10 @@ async function live(
     const due = target - life.city.tick;
     if (due > MAX_BACKLOG_TICKS)
       throw new Error(`Headless city fell ${due} ticks behind wall time`);
-    if (due > 0) {
-      life.advanceTicks(due);
+    for (let left = due; left > 0;) {
+      const n = Math.min(left, step);
+      life.advanceTicks(n);
+      left -= n;
       each(life);
     }
     if (now - lastLog >= 60_000) {
@@ -211,7 +239,13 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
     }
   };
   // The life was paused while no process ran; those ticks were not computed and are not claimed.
-  const upgrade = checkpoint.events.find((e) => e.kind === "engine-upgrade");
+  // After a recorded continuation, the pause began when its source was committed.
+  const upgrade = checkpoint.events.find(
+    (e) =>
+      e.kind === "engine-upgrade" ||
+      e.kind === "self-model-upgrade" ||
+      e.kind === ORGANISM_EVENT,
+  );
   const pausedFrom = upgrade?.data.pausedFromUtc;
   let pending: LifeEvent[] = [
     {
@@ -229,22 +263,35 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
   const commit = () => {
     // The clock waits while it is made and verified: the observer is told so.
     observe(true);
-    const next = checkpointLife(kind, life, {
-      genesis: previous.genesis,
-      birth: previous.birth,
-      previous,
-      events: pending,
-    });
-    // Verified before it is committed: it must restore to this very life.
-    restoreLife(kind, next);
-    // Making and verifying it can outlast a good part of the lease on a slow machine.
-    store.renew();
-    head = { sequence: next.sequence, tick: next.tick, committedUtc: store.commit(next) };
-    previous = next;
+    // An organism's archive leaves the life only for a checkpoint that holds it.
+    const archived = life instanceof OrganismLife ? life.takeArchive() : [];
+    try {
+      const next = checkpointLife(kind, life, {
+        genesis: previous.genesis,
+        birth: previous.birth,
+        previous,
+        events: [...pending, ...archived],
+      });
+      // Verified before it is committed: it must restore to this very life.
+      restoreLife(kind, next);
+      // Making and verifying it can outlast a good part of the lease on a slow machine.
+      store.renew();
+      head = {
+        sequence: next.sequence,
+        tick: next.tick,
+        committedUtc: store.commit(next),
+      };
+      previous = next;
+    } catch (e) {
+      if (life instanceof OrganismLife) life.returnArchive(archived);
+      throw e;
+    }
     pending = [];
     sinceCheckpoint = 0;
     observe();
   };
+  const archiveFull = () =>
+    life instanceof OrganismLife && life.archive.length >= ARCHIVE_COMMIT;
   let lastTick = life.city.tick;
   observe();
   try {
@@ -252,10 +299,15 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
       sinceCheckpoint += l.city.tick - lastTick;
       lastTick = l.city.tick;
       store.renew();
-      if (sinceCheckpoint >= CHECKPOINT_TICKS) commit();
+      if (sinceCheckpoint >= CHECKPOINT_TICKS || archiveFull()) commit();
       if (l.city.tick - observedTick >= OBSERVE_TICKS) observe();
     });
-    if (life.city.tick !== previous.tick || pending.length) commit();
+    if (
+      life.city.tick !== previous.tick ||
+      pending.length ||
+      (life instanceof OrganismLife && life.archive.length)
+    )
+      commit();
   } finally {
     // A stopped life is unavailable at once, not stale for a few seconds.
     if (observed) removeObservation(observed);

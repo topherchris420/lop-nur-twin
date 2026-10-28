@@ -1,0 +1,4 @@
+[pow-free] src/bethesda/fly/echo/selfModel.ts:636: ratio ** 0.025
+CHANGED  echo_impairment: runs efda7baf7464 became 01f6755b0ff9; outputs 8fb4d492b75e became 3ef8133ce709; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 25.4 s
+CHANGED  echo_attention: runs b93abbccb2ac became ef8d79c6a2aa; outputs a09db1ba20e3 became aadb91df8f72; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 16.7 s
+CHANGED  echo_metacognition: runs ebf5b16f2ead became 2b2c3adcba0c; outputs d78aa588853d became dea9b312a134; ran on digital-fly/8 source a96a496c4c00, re-run on digital-fly/8 source a96a496c4c00; 18.0 s

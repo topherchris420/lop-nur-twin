@@ -1,0 +1,30 @@
+{
+ "platform": "linux arm64",
+ "node": "v24.19.0",
+ "v8": "13.6.233.17-node.51",
+ "n": 2000000,
+ "fns": {
+  "sin": "62b5ce08ee170ab3",
+  "cos": "5a0e1df955449b1c",
+  "tan": "871067f6d647657e",
+  "exp": "e9ee90db2c59b613",
+  "expm1": "fa289ac790b37cc4",
+  "log": "69bf3a417222b967",
+  "log1p": "f0f9e5d4862137f1",
+  "log2": "5b64da1188a889cd",
+  "log10": "6169992bbbb85f73",
+  "asin": "2b271faf430316b6",
+  "acos": "b939c9d030877fdb",
+  "atan": "df9a5efa014e8117",
+  "sinh": "4d26d36eb4997d14",
+  "cosh": "fb1104eafd5b904f",
+  "tanh": "2ded68f1d06a7247",
+  "cbrt": "8cc8669fc2652204",
+  "sqrt": "f6c29b1aaa48ef1d",
+  "atan2": "0de11660593aa4e3",
+  "pow": "fa242f60097930a2",
+  "pow10": "ee2ec2be85c96fb1",
+  "hypot2": "91a87a0a4a057a93",
+  "hypot3": "e807aec3646664ef"
+ }
+}

@@ -1,0 +1,25 @@
+{
+ "node": "v24.19.0",
+ "platform": "win32 arm64",
+ "heapLimitMB": 3264,
+ "sourceLearned": {
+  "tick": 794842,
+  "rememberedPlaces": 1,
+  "landmarkPlaces": 0,
+  "placesDigest": "b36559b07cbf46aaec934b497c2819bfb83df3e839a01507d3c7a7f105f2e2d7",
+  "controllerDigest": "d5e60fe4b0be730f34827424b3d6af5e360245c1924b07db1d8a8d3e365f08fe",
+  "selfModelDigest": "17a6b5534bb4db6301be6cf62a39731e33adca186f804e8c2db71d1c9fcdda4c",
+  "replaced": 0,
+  "episodesKept": 24,
+  "lastEpisode": 73,
+  "inquiries": 73,
+  "inquiryOpen": false,
+  "beliefs": 12,
+  "bodyDigest": "333040450ff01a6808e39ddeba724075260bf7772f295f0b3909e6b24b2e72a2",
+  "logDigest": "06287f69f20eaf3b034da2751ad0becab5dd908ea249927268de4266a2c90146",
+  "cityHash": "f7499ce668499146",
+  "reserveFraction": 0.87,
+  "rejectedCommands": 0,
+  "failed": null
+ }
+}

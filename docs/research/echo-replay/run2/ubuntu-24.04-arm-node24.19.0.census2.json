@@ -1,0 +1,28 @@
+{
+ "platform": "linux arm64",
+ "node": "v24.19.0",
+ "n": 1000000,
+ "fns": {
+  "sin": "7bf860993a2503c1",
+  "cos": "08f3c28e6d15e862",
+  "tan": "5f516967d7496793",
+  "exp": "517310c455ebebdc",
+  "expm1": "96fcf46a534b2da6",
+  "log": "c009f4496cd391c4",
+  "log1p": "12a1eb72e05ea6b6",
+  "log2": "18edfef6d7fe7ed1",
+  "log10": "8de5a28a999ac0bd",
+  "asin": "8bd34c04c1b13b2f",
+  "acos": "bfd65c3f4bf5cb5b",
+  "atan": "0b0587c1612cd729",
+  "sinh": "5c419f9ac9197b61",
+  "cosh": "089a9c65e3aa6104",
+  "tanh": "84528adc4aef153b",
+  "cbrt": "3ec672b385e032dc",
+  "sqrt": "50ea74650c86036d",
+  "atan2": "abead1b86343fd03",
+  "pow": "5a5bddfb11a60165",
+  "hypot": "c18038064f678731"
+ },
+ "differFromExpLog": 54686
+}

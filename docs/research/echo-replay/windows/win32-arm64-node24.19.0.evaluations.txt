@@ -1,0 +1,42 @@
+platform: win32 arm64, node v24.19.0
+
+--check on main e2b2c3e, in a clean worktree:
+  echo:immortal:evaluate: exit 1, Error: report.json does not reproduce
+  echo:foraging:evaluate: exit 1, Error: report.json does not reproduce
+--check on the organism branch cf3ced2:
+  echo:immortal:evaluate: exit 1, Error: report.json does not reproduce
+  echo:foraging:evaluate: exit 1, Error: report.json does not reproduce
+
+== echo-immortal: the record on main, against the report regenerated on main (e2b2c3e)
+leaves compared: 1155
+non-number differences: 1
+  $.sourceCommit: "a773e41395a93d4e23535fe68c758081aa0b2516" -> "e2b2c3ee4ca9103f635f6318a5a13399494e1e05"
+number differences by key (count, max abs, max rel, worst):
+  $.rows[].phases[].endpoint[]: 22, 4.93e-14, 2.53e-12, $.rows[15].phases[3].endpoint[0]: 0.000756622018422879 -> 0.0007566220184247943
+  $.interpretation.individualDivergence[].endpointDistanceM: 2, 4.80e-14, 2.07e-14, $.interpretation.individualDivergence[3].endpointDistanceM: 2.3178196143738545 -> 2.3178196143739025
+
+== echo-immortal: regenerated on main (e2b2c3e), against regenerated on the branch (cf3ced2)
+leaves compared: 1155
+non-number differences: 1
+  $.sourceCommit: "e2b2c3ee4ca9103f635f6318a5a13399494e1e05" -> "cf3ced2cb2b734d54be29bc02d0452434701af46"
+number differences by key (count, max abs, max rel, worst):
+
+== echo-foraging: the record on main, against the report regenerated on main (e2b2c3e)
+leaves compared: 13940
+non-number differences: 1
+  $.sourceCommit: "7174595600c91eca3aa335384f88655d258cb6ec" -> "e2b2c3ee4ca9103f635f6318a5a13399494e1e05"
+number differences by key (count, max abs, max rel, worst):
+  $.rows[].trace[].position[]: 385, 2.40e-15, 5.21e-12, $.rows[24].trace[36].position[0]: -0.00016120433500816934 -> -0.00016120433500900992
+  $.rows[].onAlignment: 1, 5.97e-15, 6.05e-14, $.rows[24].onAlignment: -0.09864477839246248 -> -0.09864477839246845
+  $.rows[].trace[].on: 40, 5.55e-16, 1.41e-14, $.rows[7].trace[59].on: 5.952268094141869e-22 -> 5.952268094141785e-22
+  $.rows[].trace[].odour: 11, 4.72e-16, 3.57e-15, $.rows[3].trace[58].odour: 0.0777337404992529 -> 0.07773374049925318
+  $.rows[].offsetTurnRadS: 1, 8.33e-16, 3.08e-15, $.rows[24].offsetTurnRadS: 0.2700221553863776 -> 0.2700221553863784
+  $.rows[].closestSourceM: 3, 2.22e-16, 1.98e-15, $.rows[19].closestSourceM: 0.007434118418915163 -> 0.007434118418915148
+  $.rows[].trace[].off: 35, 1.11e-16, 1.46e-15, $.rows[7].trace[37].off: 0.014249351028975689 -> 0.014249351028975668
+  $.interpretation.orientation.meanAlignmentGain: 1, 6.66e-16, 6.46e-16, $.interpretation.orientation.meanAlignmentGain: 1.0314126163141877 -> 1.0314126163141883
+
+== echo-foraging: regenerated on main (e2b2c3e), against regenerated on the branch (cf3ced2)
+leaves compared: 13940
+non-number differences: 1
+  $.sourceCommit: "e2b2c3ee4ca9103f635f6318a5a13399494e1e05" -> "cf3ced2cb2b734d54be29bc02d0452434701af46"
+number differences by key (count, max abs, max rel, worst):

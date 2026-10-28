@@ -57,6 +57,10 @@ export default tseslint.config(
       "public/noeterra/**",
       // The FlyBody physics backend's environment, checkout and traces (fly-physics/).
       ".fly-physics/**",
+      // Diagnostic scripts kept byte for byte as they ran (docs/research/echo-replay/).
+      "docs/research/echo-replay/**",
+      // The organism continuation's rehearsal scripts, as they ran (docs/research/echo-organism-continuation/).
+      "docs/research/echo-organism-continuation/**",
     ],
   },
 

@@ -1,0 +1,47 @@
+{
+ "node": "v24.19.0",
+ "platform": "win32 arm64",
+ "heapLimitMB": 3264,
+ "ownEngine": {
+  "verified": true,
+  "head": 269,
+  "tick": 794842,
+  "epoch": 7,
+  "committedUtc": "2026-10-27T12:14:59.835Z",
+  "individual": "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",
+  "versions": {
+   "headless": "bethesda-headless-life/v2",
+   "city": "bethesda-city/4",
+   "fly": "digital-fly/8",
+   "echo": "echo-self-model/v2",
+   "upgrade": "bethesda-echo-upgrade/v1",
+   "graph": "life-graph/v1"
+  },
+  "label": "verified on 3db627b",
+  "wallS": 12.1,
+  "cpuS": 15.8,
+  "maxRssMB": 1678,
+  "heapUsedMB": 1121
+ },
+ "thisBranchV3Kind": {
+  "verified": true,
+  "label": "verified as ECHO_UPGRADED_LIFE",
+  "wallS": 22.8,
+  "cpuS": 30.5,
+  "maxRssMB": 2105,
+  "heapUsedMB": 1014
+ },
+ "thisBranchOrganismKind": {
+  "verified": true,
+  "storeKindSelected": "ECHO_UPGRADED_LIFE",
+  "events": [
+   "engine-upgrade@405966"
+  ],
+  "gaps": 5,
+  "label": "verified as ORGANISM_LIFE",
+  "wallS": 37.5,
+  "cpuS": 52.2,
+  "maxRssMB": 2461,
+  "heapUsedMB": 1391
+ }
+}
