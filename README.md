@@ -10,7 +10,7 @@ Created by **Christopher Woodyard** at **[Vers3Dynamics](https://vers3dynamics.c
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Explore](https://img.shields.io/badge/explore-Eva%20today-0B5D63)](http://150.136.49.49/)
+[![Explore](https://img.shields.io/badge/explore-Eva%20today-0B5D63)](https://150-136-49-49.sslip.io/)
 
 **[Watch the Bethesda fly](https://lop-nur-twin.vercel.app/live)** ·
 **[Explore the twin](https://lop-nur-twin.vercel.app/)** ·
@@ -51,7 +51,7 @@ key**. The 3D scenes require WebGL; `/analysis` and `/compare` work without it.
 | Experience                                                         | What you can do                                                                                                       |
 | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
 | **[Live Bethesda fly](https://lop-nur-twin.vercel.app/live)**      | Observe the shared server-side individual, its activity, recent decision reasons, and nearby city activity.           |
-| **[Eva's clay garden](http://150.136.49.49/)**                     | Watch a separate server-side fly through a stop-motion clay exhibit. [About this garden](docs/LIVE_GARDEN.md).        |
+| **[Eva's clay garden](https://150-136-49-49.sslip.io/)**           | Watch a separate server-side fly through a stop-motion clay exhibit. [About this garden](docs/LIVE_GARDEN.md).        |
 | **[Lop Nur twin](https://lop-nur-twin.vercel.app/)**               | Explore the airfield, open structure dossiers, measure modeled distances, and move through the evidence timeline.     |
 | **[Evidence inspector](https://lop-nur-twin.vercel.app/analysis)** | Trace claims to sources, classifications, dates, and stated uncertainty.                                              |
 | **[Revision comparison](https://lop-nur-twin.vercel.app/compare)** | Inspect changes in geometry, sourcing, and uncertainty between recorded model releases.                               |
@@ -107,8 +107,9 @@ There are three distinct ways to encounter a fly here:
 | **Eva · clay garden**                | A separate Python garden service on its own VM.  | The exhibit reads `GET /api/state`; its cameras and clay rendering change only the presentation.                       |
 | **Local Bethesda and research runs** | Your browser session or a controlled experiment. | These are separate instances. Switching to ECHO or restoring only its self-model does not preserve a whole individual. |
 
-The garden currently uses a plain-HTTP address that some browsers or networks
-block. Its fly and runtime are separate from the shared Bethesda service.
+The garden is public over [trusted HTTPS](https://150-136-49-49.sslip.io/), with
+automatic certificate renewal and no visitor account. Its fly and runtime are
+separate from the shared Bethesda service. [HTTPS operation and verification](docs/LIVE_GARDEN.md#public-https).
 
 [Continuity and recovery](docs/BETHESDA_CONTINUOUS_LIFE.md) ·
 [Identity and history studies](docs/INDIVIDUAL_CONTINUITY.md) ·

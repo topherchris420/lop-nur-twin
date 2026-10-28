@@ -1,0 +1,374 @@
+{
+  "schema": "garden-https-verification/v1",
+  "at": "2026-10-28T03:40:27.109Z",
+  "origin": "https://150-136-49-49.sslip.io",
+  "initialPublicHttpState": {
+    "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+    "born_at": 1792908400.321717,
+    "ticks": 49365,
+    "moments_count": 1476,
+    "updated_at": 1793155225.321717,
+    "server_time": 1793155232.4543009
+  },
+  "beforeWebChanges": {
+    "state": {
+      "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+      "born_at": 1792908400.321717,
+      "ticks": 49555,
+      "moments_count": 1478,
+      "updated_at": 1793156175.321717,
+      "server_time": 1793156180.786297
+    },
+    "simulation": {
+      "MainPID": "8320",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "26635115133",
+      "ActiveState": "active",
+      "InvocationID": "41ff2fcf7d214bd0b0725ff1d43344e4"
+    },
+    "nginx": {
+      "MainPID": "51566",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "177338768410",
+      "ActiveState": "active",
+      "InvocationID": "ad204d522ad1400e9ab7a6ba8475faf3"
+    },
+    "boot_id": "756b0395-0dea-4b48-a216-96059c7bd4dc",
+    "index_sha256": "8c089e4e0f11ceac07cb7d90772e9a4ead9ed2189d916adc21cca34dc19d8853"
+  },
+  "afterWebChanges": {
+    "state": {
+      "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+      "born_at": 1792908400.321717,
+      "ticks": 50076,
+      "moments_count": 1486,
+      "updated_at": 1793158780.321717,
+      "server_time": 1793158783.5175102
+    },
+    "simulation": {
+      "MainPID": "8320",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "26635115133",
+      "ActiveState": "active",
+      "InvocationID": "41ff2fcf7d214bd0b0725ff1d43344e4"
+    },
+    "nginx": {
+      "MainPID": "51566",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "177338768410",
+      "ActiveState": "active",
+      "InvocationID": "ad204d522ad1400e9ab7a6ba8475faf3"
+    },
+    "boot_id": "756b0395-0dea-4b48-a216-96059c7bd4dc",
+    "index_sha256": "8c089e4e0f11ceac07cb7d90772e9a4ead9ed2189d916adc21cca34dc19d8853"
+  },
+  "externalHttps": {
+    "at": "2026-10-28T03:40:27.109Z",
+    "origin": "https://150-136-49-49.sslip.io",
+    "certificate": {
+      "authorized": true,
+      "protocol": "TLSv1.3",
+      "subject": {
+        "CN": "150-136-49-49.sslip.io"
+      },
+      "issuer": {
+        "C": "US",
+        "O": "Let's Encrypt",
+        "CN": "YE2"
+      },
+      "subjectAltName": "DNS:150-136-49-49.sslip.io",
+      "validFrom": "Oct 28 01:59:39 2026 GMT",
+      "validTo": "Jan 26 01:59:38 2027 GMT",
+      "fingerprint256": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+    },
+    "release": "garden-20261026-f0b215e4a835",
+    "indexSha256": "8c089e4e0f11ceac07cb7d90772e9a4ead9ed2189d916adc21cca34dc19d8853",
+    "assetsVerified": [
+      "assets/favicon-D3v4vz6U.svg",
+      "assets/flybody-lod0-Bo4lM7L6.json",
+      "assets/flybody-lod1-CkalxyAp.json",
+      "assets/garden-Dexota9S.js",
+      "assets/index--sjT-xW-.css",
+      "assets/index-C7nxqUbT.js",
+      "flybody-LICENSE.txt",
+      "index.html"
+    ],
+    "privateRoutesBlocked": true,
+    "http": {
+      "origin": "http://150.136.49.49",
+      "samePage": true,
+      "state": {
+        "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+        "born_at": 1792908400.321717,
+        "ticks": 50083,
+        "moments_count": 1486,
+        "updated_at": 1793158815.321717,
+        "server_time": 1793158820.6495545
+      }
+    },
+    "first": {
+      "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+      "born_at": 1792908400.321717,
+      "ticks": 50083,
+      "moments_count": 1486,
+      "updated_at": 1793158815.321717,
+      "server_time": 1793158819.9651484
+    },
+    "last": {
+      "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+      "born_at": 1792908400.321717,
+      "ticks": 50084,
+      "moments_count": 1486,
+      "updated_at": 1793158820.321717,
+      "server_time": 1793158827.1999724
+    },
+    "ok": true
+  },
+  "network": [
+    {
+      "path": "/",
+      "id": "2uCHIJqFAiigkP1hQ00021OhP",
+      "createdAt": "2026-10-28T03:07:13.085Z",
+      "status": "finished",
+      "checks": [
+        {
+          "country": "US",
+          "city": "Buffalo",
+          "asn": 36352,
+          "network": "HostPapa",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "DE",
+          "city": "Falkenstein",
+          "asn": 24940,
+          "network": "Hetzner Online",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "SG",
+          "city": "Singapore",
+          "asn": 8888,
+          "network": "xTom",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        }
+      ]
+    },
+    {
+      "path": "/api/state",
+      "id": "2DM3WHCIZN4DH2npt00021OhP",
+      "createdAt": "2026-10-28T03:07:17.704Z",
+      "status": "finished",
+      "checks": [
+        {
+          "country": "US",
+          "city": "Buffalo",
+          "asn": 36352,
+          "network": "HostPapa",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "DE",
+          "city": "Falkenstein",
+          "asn": 24940,
+          "network": "Hetzner Online",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "SG",
+          "city": "Singapore",
+          "asn": 16276,
+          "network": "OVH",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        }
+      ]
+    },
+    {
+      "path": "/",
+      "id": "2hP4L397esE6ciHGe00021Oht",
+      "createdAt": "2026-10-28T03:37:27.298Z",
+      "status": "finished",
+      "checks": [
+        {
+          "country": "US",
+          "city": "Norfolk",
+          "asn": 21928,
+          "network": "T-Mobile",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "US",
+          "city": "Seattle",
+          "asn": 7922,
+          "network": "Comcast Cable Communications",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "US",
+          "city": "Philadelphia",
+          "asn": 701,
+          "network": "Verizon",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        }
+      ]
+    },
+    {
+      "path": "/api/state",
+      "id": "2rmZvAY1QmEHGJYgK00021Oht",
+      "createdAt": "2026-10-28T03:37:32.012Z",
+      "status": "finished",
+      "checks": [
+        {
+          "country": "US",
+          "city": "Norfolk",
+          "asn": 21928,
+          "network": "T-Mobile",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "US",
+          "city": "Chicago",
+          "asn": 7922,
+          "network": "Comcast Cable Communications",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        },
+        {
+          "country": "US",
+          "city": "Philadelphia",
+          "asn": 701,
+          "network": "Verizon",
+          "resolvedAddress": "150.136.49.49",
+          "statusCode": 200,
+          "tlsAuthorized": true,
+          "certificateFingerprint": "7B:DF:FE:2C:D7:BE:97:88:0F:76:54:5C:D7:2A:52:B1:9A:15:BC:0D:07:CD:EA:EF:3A:D4:EE:A9:7A:40:AC:A6"
+        }
+      ]
+    }
+  ],
+  "browser": {
+    "at": "2026-10-28T03:02:43.978Z",
+    "profiles": [
+      {
+        "name": "desktop",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "engine": "Chromium (device emulation for phone profiles)",
+        "secureContext": true,
+        "sceneRendered": true,
+        "cookies": 0,
+        "before": {
+          "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+          "born_at": 1792908400.321717,
+          "ticks": 49633,
+          "moments_count": 1479
+        },
+        "afterReload": {
+          "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+          "born_at": 1792908400.321717,
+          "ticks": 49638,
+          "moments_count": 1479
+        }
+      },
+      {
+        "name": "iphone",
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+        "engine": "Chromium (device emulation for phone profiles)",
+        "secureContext": true,
+        "sceneRendered": true,
+        "cookies": 0,
+        "before": {
+          "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+          "born_at": 1792908400.321717,
+          "ticks": 49638,
+          "moments_count": 1479
+        },
+        "afterReload": {
+          "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+          "born_at": 1792908400.321717,
+          "ticks": 49641,
+          "moments_count": 1479
+        }
+      },
+      {
+        "name": "android",
+        "userAgent": "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4812.0 Mobile Safari/537.36",
+        "engine": "Chromium (device emulation for phone profiles)",
+        "secureContext": true,
+        "sceneRendered": true,
+        "cookies": 0,
+        "before": {
+          "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+          "born_at": 1792908400.321717,
+          "ticks": 49641,
+          "moments_count": 1479
+        },
+        "afterReload": {
+          "life_id": "5cf42cd6-fd0a-474d-882c-4cb70e0357e8",
+          "born_at": 1792908400.321717,
+          "ticks": 49643,
+          "moments_count": 1479
+        }
+      }
+    ],
+    "requests": 55,
+    "allRequestsSameOriginGET": true,
+    "failedRequests": 0,
+    "consoleAndPageErrors": 0,
+    "physicalMobileHardwareTested": false,
+    "webkitTested": false
+  },
+  "changes": {
+    "caddyVersion": "2.11.7",
+    "certificateRenewal": "Caddy automatic ACME TLS-ALPN-01; service enabled; background maintenance and ARI confirmed in journal",
+    "firewall": "one labelled TCP 443 INPUT allow rule, persisted; Oracle rules unchanged",
+    "nginx": "one loopback-only real-IP conf, validated and gracefully reloaded; original files unchanged",
+    "frontendReplaced": false,
+    "simulationRestarted": false,
+    "simulationOrDatabaseModified": false,
+    "vmRebooted": false,
+    "backup": "/var/backups/bethesda-fly-https/20261028T025620Z"
+  },
+  "validation": {
+    "build": "bun.cmd run build: exit 0",
+    "gardenTests": "78 passed in 10 files",
+    "publisherTests": "10 passed",
+    "smokeLint": "passed"
+  },
+  "limitations": [
+    "Third-party sslip.io DNS dependency; network policies can differ.",
+    "Carrier probe last-mile radio/Wi-Fi type not reported.",
+    "No physical iPhone/Android or Safari/WebKit validation."
+  ]
+}

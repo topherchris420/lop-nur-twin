@@ -1,0 +1,35 @@
+{
+	admin 127.0.0.1:2019
+	auto_https disable_redirects
+	servers {
+		protocols h1 h2
+		strict_sni_host on
+	}
+}
+
+https://150-136-49-49.sslip.io {
+	tls {
+		issuer acme {
+			dir https://acme-v02.api.letsencrypt.org/directory
+			disable_http_challenge
+		}
+	}
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+	@write not method GET HEAD
+	respond @write 405
+	handle /api/state {
+		header Cache-Control "no-store"
+		reverse_proxy 127.0.0.1:80
+	}
+	@public path / /index.html /garden-*
+	handle @public {
+		reverse_proxy 127.0.0.1:80
+	}
+	handle {
+		respond 404
+	}
+}
