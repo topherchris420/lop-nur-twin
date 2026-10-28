@@ -1,7 +1,7 @@
 # The live fly garden, in clay
 
 `src/garden/` is a new exhibit page for the live fly garden at
-<http://150.136.49.49/>. It shows the same fly, drawn as a stop-motion clay film
+<https://150-136-49-49.sslip.io/>. It shows the same fly, drawn as a stop-motion clay film
 in a 3D Bethesda back garden instead of the flat 2D painting. The page is a
 viewer. The garden's Python service remains the only thing that decides what
 the fly does; this page reads its state and draws it.
@@ -306,11 +306,171 @@ What only the garden's server can guarantee, and its present limits:
 - **Backups are daily.** `bethesda-fly-backup.timer` keeps one snapshot per
   weekday (`/var/lib/bethesda-fly/backups/day-0` … `day-6`). A disk failure
   could lose up to a day.
-- **Plain HTTP.** The garden has no TLS, and some browsers and networks refuse
-  the bare address.
+- **Public HTTPS.** The trusted hostname uses the same authoritative service;
+  the original HTTP address remains available. See [Public HTTPS](#public-https).
 - **The page itself may be cached.** nginx sends `index.html` without
   `Cache-Control`, so after a publish a browser may keep the previous page for
   a while. The hashed assets never change under their names.
+
+## Public HTTPS
+
+The public URL is **<https://150-136-49-49.sslip.io/>**. It needs no Oracle or
+GitHub credentials. DNS resolves to `150.136.49.49`; there is no AAAA record.
+The original <http://150.136.49.49/>
+remains available without a redirect. HSTS applies only to the HTTPS hostname.
+
+```text
+visitor HTTPS :443 -> Caddy -> Nginx 127.0.0.1:80 -> existing static garden
+                                                   /api/state -> 127.0.0.1:8765/state
+visitor HTTP :80 -----------------> Nginx ---------> the same page and service
+```
+
+The garden's Python service, database and frontend were not changed. Caddy
+2.11.7 was installed from its official signed stable APT repository, with its
+default automatic service start masked until the HTTPS configuration passed
+validation. No package was upgraded. Caddy's resident service used about
+12 MB at the verification snapshot. The configuration is recorded in
+[`deploy/garden/Caddyfile.https`](../deploy/garden/Caddyfile.https):
+
+- It listens on TCP 443, with HTTP/1.1 and HTTP/2. HTTP/3 is disabled, so no
+  UDP firewall change or inaccessible HTTP/3 advertisement is needed.
+- Its admin API is bound to `127.0.0.1:2019`. The simulation remains bound to
+  `127.0.0.1:8765`; neither port is opened to the public.
+- Only the page, garden release files and exact `/api/state` path are proxied.
+  Other paths return 404; methods other than GET/HEAD return 405 before reaching
+  the application. The API supports GET; HEAD on that Python endpoint returns
+  501 and should not be used as an availability test.
+- The original CSP, framing, referrer and content-type headers pass through
+  Nginx. Caddy adds HSTS and a permissions policy, and `/api/state` is served
+  with `Cache-Control: no-store`. Requests remain same-origin; no CORS exception
+  is needed. The frontend bytes, clay presentation and assets are unchanged.
+- [`nginx-realip.conf`](../deploy/garden/nginx-realip.conf), installed as
+  `/etc/nginx/conf.d/bethesda-fly-realip.conf`, trusts forwarded visitor addresses
+  only from loopback. Caddy overwrites untrusted incoming forwarded addresses.
+  This preserves Nginx's existing per-visitor API rate limit instead of grouping
+  every HTTPS visitor into one `127.0.0.1` bucket. Nginx passed `nginx -t` and
+  was gracefully reloaded; its master PID and invocation remained unchanged.
+
+The VM's original firewall allowed 22 and 80 but rejected 443. Exactly one rule
+was inserted before its INPUT reject: new TCP connections to 443, labelled
+`eva-garden-https`. It was persisted in `/etc/iptables/rules.v4` for the existing
+`netfilter-persistent` service. No Oracle network rules were changed.
+
+### Certificate renewal
+
+Caddy obtains and renews the Let's Encrypt certificate automatically using the
+TLS-ALPN-01 challenge on TCP 443. `auto_https disable_redirects` and the ACME
+issuer's `disable_http_challenge` prevent Caddy from taking Nginx's port 80.
+The enabled `caddy.service` starts independently of `bethesda-fly`.
+
+Certificate/account state stays in Caddy's persistent, service-owned
+`/var/lib/caddy/.local/share/caddy/` directory. Never delete or publish its keys.
+The issued certificate covers `150-136-49-49.sslip.io`, is trusted by Windows,
+Node, Chrome and the independent probes, and expires **2027-01-26 01:59:38 UTC**.
+The service journal confirms successful issuance, background certificate
+maintenance and receipt of ACME renewal information. Renewal requires the DNS
+name to keep resolving to the VM, incoming TCP 443, outbound ACME/DNS access,
+and writable persistent Caddy storage. There is no separate cron renewal job.
+No forced renewal or service restart was used to test this.
+
+Read-only operational checks (on the VM, after connecting with an existing
+authorized SSH key and pinned host identity):
+
+```sh
+systemctl is-active caddy bethesda-fly nginx
+systemctl is-enabled caddy
+sudo journalctl -u caddy --since '24 hours ago' --no-pager
+sudo ss -lntp
+curl -fSs https://150-136-49-49.sslip.io/api/state
+```
+
+Keep the signed Caddy package current in a separately reviewed maintenance
+window; automatic TLS renewal does not update the Caddy executable. Do not
+upgrade other packages or restart the simulation as part of web maintenance.
+The [official Caddy HTTPS](https://caddyserver.com/docs/automatic-https) and
+[service documentation](https://caddyserver.com/docs/running) describe its
+certificate maintenance and graceful configuration reloads.
+
+### Verification and continuity: 2026-10-28 UTC
+
+The HTTPS link was published only after external verification. Evidence is
+recorded in [the verification receipt](benchmarks/garden-https/2026-10-28.json).
+
+- Windows curl and Node accepted the public certificate without disabling trust
+  checks. `/` and `GET /api/state` returned 200; all eight manifest files and the
+  root page matched release `garden-20261026-f0b215e4a835` byte for byte.
+- Independent Globalping HTTPS probes in the US, Germany and Singapore returned
+  200 for both paths, each with `tls.authorized: true`. Additional T-Mobile,
+  Comcast and Verizon network probes did the same. These are network tests;
+  the carrier probe's last-mile radio or Wi-Fi connection is not reported.
+- Isolated desktop, iPhone-sized and Android-sized Chrome sessions loaded the
+  real public URL with normal certificate validation. All rendered the 3D
+  scene, named Eva, and retained the same identity after reloading. All 55
+  requests were same-origin GETs, with no failed requests, page errors, console
+  warnings/errors or CSP violations. No visitor login cookies were present.
+- Physical iPhone/Android hardware and Safari/WebKit were not available for
+  testing. Chrome device emulation is not a physical Safari test. A shared
+  `sslip.io` hostname still depends on that third-party DNS service and may be
+  blocked by a particular network's policy; a keeper-owned domain can be added
+  later without changing Eva.
+
+Eva's first public HTTP observation was `life_id`
+`5cf42cd6-fd0a-474d-882c-4cb70e0357e8`, `born_at` `1792908400.321717`,
+49,365 ticks and 1,476 memories. The receipt records the later state and process
+checks. Identity and birth were identical; ticks, update time and memory count
+never decreased. The simulation kept PID **8320**, invocation
+`41ff2fcf7d214bd0b0725ff1d43344e4`, zero restarts and its original start time
+**2026-10-25 12:22:12 UTC**. The VM boot ID was unchanged. No database,
+simulation code, simulation service unit or frontend file was modified.
+
+Run the read-only external smoke test from a different machine:
+
+```sh
+node deploy/garden/https-smoke.mjs
+# Optional: compare with an earlier /api/state observation saved locally.
+node deploy/garden/https-smoke.mjs --before /path/to/state-before.json --out /tmp/garden-https.json
+```
+
+The test checks trusted TLS, security headers, the release's exact asset bytes,
+blocked private paths, the identical HTTP page, the pinned identity, increasing
+ticks and nondecreasing memories. It makes only GET requests to the garden and
+opens no SSH connection, database or simulation process. It exits nonzero on
+failure. It does not prove process continuity; compare the read-only systemd
+PID, invocation, start timestamp and restart count separately. If identity or
+continuity fails, stop and report it. Never create a replacement.
+
+### Web-layer backup and rollback
+
+Before installation, Nginx configuration and the active/persistent firewall
+rules were backed up to the root-only directory
+`/var/backups/bethesda-fly-https/20261028T025620Z/`. It also contains the
+pre-change continuity summary, packaged default Caddyfile and activated
+HTTPS Caddyfile. None of these backups contains Eva's database. The original
+Nginx files were compared with the backup after activation.
+
+For a future HTTPS configuration change, first back up `/etc/caddy/Caddyfile`,
+validate the proposed file as the `caddy` user, install it, then use
+`sudo systemctl reload caddy`. Validate Nginx changes with `sudo nginx -t` before
+`sudo systemctl reload nginx`. Both operations are confined to the web layer.
+Record state and simulation process identity before and after each change.
+
+To withdraw HTTPS and leave the original HTTP garden serving:
+
+```sh
+sudo systemctl disable --now caddy
+sudo iptables -D INPUT -p tcp -m state --state NEW -m tcp --dport 443 -m comment --comment eva-garden-https -j ACCEPT
+sudo sh -c 'iptables-save > /etc/iptables/rules.v4'
+curl -fSs http://150.136.49.49/api/state
+```
+
+This removes only the added firewall rule; do not restore an entire old firewall
+over newer SSH/network rules. Leave certificate storage intact. The loopback-only
+real-IP rule can safely remain for HTTP; to undo it too, move
+`/etc/nginx/conf.d/bethesda-fly-realip.conf` into the backup directory, validate
+Nginx and gracefully reload Nginx. No site-file rollback, simulation action or
+VM reboot is required. Because browsers remember HSTS on the HTTPS hostname,
+use the original HTTP IP URL during a rollback. Recheck Eva's identity, birth,
+memories, ticks and original process without restarting it.
 
 ## Performance
 
@@ -422,7 +582,7 @@ export GARDEN_BACKUP_DIR=/path/outside/the/repository
    This compares the public bytes of `/` and every file in the manifest with
    the release, reads the CSP, and reads `/api/state` twice, 6 s apart.
 6. **Check what the server actually serves:**
-   `node tools/garden.mjs check --source proxy --origin http://150.136.49.49`.
+   `node tools/garden.mjs check --source proxy --origin https://150-136-49-49.sslip.io`.
    Then look at its photographs: they are the live page as a browser draws it.
 7. **Roll back, if needed:** `node deploy/garden/deploy.mjs rollback <release>`
    puts back the page that `<release>` replaced, with the same checks.

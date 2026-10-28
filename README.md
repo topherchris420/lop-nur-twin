@@ -10,7 +10,7 @@ Created by **Christopher Woodyard** at **[Vers3Dynamics](https://vers3dynamics.c
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Explore](https://img.shields.io/badge/explore-Eva%20today-0B5D63)](http://150.136.49.49/)
+[![Explore](https://img.shields.io/badge/explore-Eva%20today-0B5D63)](https://150-136-49-49.sslip.io/)
 
 [![One orbit of the Lop Nur reconstruction while night falls over the compound and lifts again](docs/media/readme/lop-nur-orbit.gif)](https://lop-nur-twin.vercel.app/)
 
@@ -64,8 +64,8 @@ key**. The 3D scenes require WebGL; `/analysis` and `/compare` work without it.
       <br><sub>Observe the shared server-side individual, its activity, recent decision reasons, and nearby city activity.</sub>
     </td>
     <td width="33%" valign="top">
-      <a href="http://150.136.49.49/"><img src="docs/media/readme/gallery/garden.jpg" width="100%" alt="Macro view of the garden's clay fly on its cedar fence"></a>
-      <br><b><a href="http://150.136.49.49/">Eva's clay garden</a></b>
+      <a href="https://150-136-49-49.sslip.io/"><img src="docs/media/readme/gallery/garden.jpg" width="100%" alt="Macro view of the garden's clay fly on its cedar fence"></a>
+      <br><b><a href="https://150-136-49-49.sslip.io/">Eva's clay garden</a></b>
       <br><sub>Watch a separate server-side fly through a stop-motion clay exhibit. <a href="docs/LIVE_GARDEN.md">About this garden</a>.</sub>
     </td>
   </tr>
@@ -170,8 +170,9 @@ There are three distinct ways to encounter a fly here:
 | **Eva · clay garden**                | A separate Python garden service on its own VM.  | The exhibit reads `GET /api/state`; its cameras and clay rendering change only the presentation.                       |
 | **Local Bethesda and research runs** | Your browser session or a controlled experiment. | These are separate instances. Switching to ECHO or restoring only its self-model does not preserve a whole individual. |
 
-The garden currently uses a plain-HTTP address that some browsers or networks
-block. Its fly and runtime are separate from the shared Bethesda service.
+The garden is public over [trusted HTTPS](https://150-136-49-49.sslip.io/), with
+automatic certificate renewal and no visitor account. Its fly and runtime are
+separate from the shared Bethesda service. [HTTPS operation and verification](docs/LIVE_GARDEN.md#public-https).
 
 [Continuity and recovery](docs/BETHESDA_CONTINUOUS_LIFE.md) ·
 [Identity and history studies](docs/INDIVIDUAL_CONTINUITY.md) ·
