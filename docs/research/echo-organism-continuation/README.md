@@ -2,7 +2,7 @@
 
 The evidence behind the rehearsal in
 [the continuation's report](../../ECHO_ORGANISM_CONTINUATION.md#rehearsal-on-the-deployed-individuals-backup):
-what ran, on what, and what each file is. Nothing here touched the deployed
+what ran, on what, and what each file is. Nothing here changed the deployed
 individual's service, store or checkpoints, and nothing here is the fly's
 life.
 
@@ -12,6 +12,10 @@ life.
   `bethesda-life-20261027T121504Z-3db627bc1254.tar.gz`, the final one before
   the v3 continuation: 270 checkpoints, head 269 at tick 794,842. Unpacked
   read-only and checked against its SHA-256 manifest before and after.
+- **A read-only copy of the live store**, streamed from the VM at 23:55 UTC
+  on October 27 (410 checkpoints, head 409 at tick 1,211,849), for the
+  checks in [`live-copy.txt`](live-copy.txt). Unpacked read-only, unchanged
+  afterwards, then deleted.
 - **The two releases the VM keeps**, rebuilt from git: `3db627b` (ECHO v2,
   which wrote the backup) and `d25e1f3` (ECHO v3, deployed now), each as the
   files the runner imports plus its `RELEASE` file.
@@ -29,18 +33,21 @@ of it.
 
 ## Files
 
-| File                              | What it is                                                                                                                                   |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `rehearse.ts`                     | The rehearsal, one phase per run (`verify`, `source`, `v3`, `organism`, `restart`, `deplete`, `smell`); its header says what each does       |
-| `report-<phase>.json`             | Each phase's output, as written                                                                                                              |
-| `report-smell*.json`              | The placed copy, as found and with its reserve set to 30%, at six placements, each also run on ECHO v3 without the organism as a control     |
-| `pairs.mjs`, `pairs.txt`          | The six placements at 30%, organism beside control, and their totals                                                                         |
-| `long.ts`, `report-long.json`     | Increasingly long runs of an organism on the small test city (not the deployed individual), each run ending in a checkpoint restored exactly |
-| `make-v3-store.ts`, `rollback.sh` | The rollback rehearsal: a synthetic store with the deployed lineage, resumed by this release and by the real `d25e1f3` runner                |
-| `rollback.txt`                    | `rollback.sh`'s output                                                                                                                       |
-| `sizes.mjs`, `sizes-*.json`       | Where a checkpoint's bytes are, by path: checkpoints 266 and 269 of the backup, and the rehearsal's 272 and 277                              |
+| File                                 | What it is                                                                                                                                   |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rehearse.ts`                        | The rehearsal, one phase per run (`verify`, `source`, `v3`, `organism`, `restart`, `deplete`, `smell`); its header says what each does       |
+| `report-<phase>.json`                | Each phase's output, as written                                                                                                              |
+| `report-smell*.json`                 | The placed copy, as found and with its reserve set to 30%, at six placements, each also run on ECHO v3 without the organism as a control     |
+| `pairs.mjs`, `pairs.txt`             | The six placements at 30%, organism beside control, and their totals                                                                         |
+| `long.ts`, `report-long.json`        | Increasingly long runs of an organism on the small test city (not the deployed individual), each run ending in a checkpoint restored exactly |
+| `make-v3-store.ts`, `rollback.sh`    | The rollback rehearsal: a synthetic store with the deployed lineage, resumed by this release and by the real `d25e1f3` runner                |
+| `rollback.txt`                       | `rollback.sh`'s output                                                                                                                       |
+| `sizes.mjs`, `sizes-*.json`          | Where a checkpoint's bytes are, by path: checkpoints 266 and 269 of the backup, and the rehearsal's 272 and 277                              |
+| `live-copy.txt`                      | The live store's copy: compared with the backup, the headers of checkpoints 269, 270 and 409, and both engines' `--check` on it              |
+| `headers.mjs`, `compare-headers.mjs` | A checkpoint's header; the backup's checkpoints 265–269 against the copy's, everything but the graph                                         |
 
-The scripts here differ from the files that ran only in where they find
+`headers.mjs` and `compare-headers.mjs` take their paths as arguments and
+are as they ran. The other scripts here differ from the files that ran only in where they find
 things: their path constants now come from `REHEARSAL_REPO` (this
 repository) and `REHEARSAL_SCRATCH` (a directory holding the unpacked backup
 in `backup-v2-121504Z/`, the release trees in `releases/<commit>/` and the

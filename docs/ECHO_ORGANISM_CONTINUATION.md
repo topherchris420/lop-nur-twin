@@ -182,9 +182,10 @@ fly's life. Its rehearsal script and per-phase reports are in
 Because that backup predates v3, the rehearsal first rebuilt the v3 head
 the way the deployed release did: head 269 restored on `3db627b`, then
 continued by `d25e1f3`'s own `continueEchoSelfModel`. The v3 graph it gives,
-`29ef122c0f1fec81f8f313bb53124d87b36024e9249e74db2c3ab17d562c5527`, should
-equal the digest in the live store's checkpoint 270 header; comparing them
-is the first check of the cutover. That v3 fly was then lived 36,000 ticks in
+`29ef122c0f1fec81f8f313bb53124d87b36024e9249e74db2c3ab17d562c5527`, matches
+the digest in the live store's checkpoint 270 header, as a
+[read-only copy of the live store](#the-remaining-verification-gate) showed;
+step 3 of the cutover checks it again on the VM. That v3 fly was then lived 36,000 ticks in
 memory to stand in for the v3 era, and the organism `--check` steps ran on
 the result.
 
@@ -356,6 +357,12 @@ change, and the service's heap was sized for the full-grown checkpoint
 ([measured](BETHESDA_CONTINUOUS_LIFE.md#what-the-machine-needs)). The
 `--check` in step 3 of the cutover measures the real peak on the VM.
 
+Against the live store's 76 MB head (checkpoint 409,
+[below](#the-remaining-verification-gate)), the `--check` peaked at 3.06 GB
+in 77 s here, and `d25e1f3`'s own `--check` at 1.80 GB in 21 s. On the VM
+at 23:51 UTC on October 27, 6,316 MB was available beside the service,
+which held 1.0 GB between checkpoints.
+
 A tick of the real city costs 1.58 ms for the v3 fly and 1.53–1.63 ms for
 the organism: no measurable overhead, and about 1.6% of one core at the
 runner's real-time pace of 10 ticks a second. The continuation itself takes
@@ -455,8 +462,25 @@ approval for that specific recovery.
 
 ## The remaining verification gate
 
-The live store has moved on since the rehearsal's backup: its v3 era
-(checkpoints from 270, made on the VM) has not been examined here, because
-no read of the VM was made in this work. Before any commit, steps 2 and 3
-must pass on the VM, on its platform, against a fresh backup. Until step 9
-passes, the live fly has not been upgraded, and nothing may say it has.
+A read-only copy of the live store was examined on this laptop
+([output](research/echo-organism-continuation/live-copy.txt)). It was
+streamed from the VM at 23:55 UTC on October 27 as a `tar` to standard
+output, so nothing was written there, and is kept off the VM as
+`bethesda-life-20261027T235529Z-d25e1f3b9e40-streamed.tar.gz`, with the
+same SHA-256 on both ends: 410 checkpoints, head 409 at tick 1,211,849.
+
+- Checkpoint 270, the v3 continuation the VM committed, has graph digest
+  `29ef122c…` and parent `54f369ef…`, exactly as the rehearsal rebuilt it.
+- Checkpoints 0–265 are byte for byte the rehearsal backup's. Checkpoints
+  266–269 differ only in the graphs that the store's compaction has since
+  replaced with `null`; every other field is identical.
+- `d25e1f3`'s own `--check` verified the whole chain and restored the head.
+- The continuation's `--check` passed on head 409: the same individual and
+  tick, `preservedGraphDigest` equal to `sourceGraphDigest` (`edc45dc1…`),
+  and the 600-tick same-engine and 611-tick restore checks.
+- The copy was unchanged afterwards, and was then deleted.
+
+That ran on Windows on ARM64, not on the VM's platform, and the live fly
+has lived on since. Before any commit, steps 2 and 3 must still pass on the
+VM against a fresh backup. Until step 9 passes, the live fly has not been
+upgraded, and nothing may say it has.

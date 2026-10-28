@@ -1,0 +1,40 @@
+platform: win32 arm64, node v24.19.0
+
+== The copy: the live store as a tar streamed to standard output (nothing written on the VM)
+bethesda-life-20261027T235529Z-d25e1f3b9e40-streamed.tar.gz, 21176098 bytes
+SHA-256 on the VM: a4d6f0d4ef9efc6b56c33ff2d4c5f074c1d8c7a6d7e7c006e9813c67ba72e576
+SHA-256 here:      a4d6f0d4ef9efc6b56c33ff2d4c5f074c1d8c7a6d7e7c006e9813c67ba72e576
+files: 420; checkpoints: 410; head: 000000000409.json; tmp: 0
+
+== Against the rehearsal backup (bethesda-life-20261027T121504Z-3db627bc1254), file by file
+checkpoints/: in backup 270, same bytes 266, different 4, missing 0
+individual.json: in backup 1, same bytes 1, different 0, missing 0
+leases/: in backup 7, same bytes 7, different 0, missing 0
+-- compare-headers.mjs on the five newest checkpoints of the backup:
+000000000265.json: everything but the graph identical; backup 1067 bytes, graph absent; live 1067 bytes, graph absent
+000000000266.json: everything but the graph identical; backup 62649132 bytes, graph present; live 1067 bytes, graph absent
+000000000267.json: everything but the graph identical; backup 62774749 bytes, graph present; live 1067 bytes, graph absent
+000000000268.json: everything but the graph identical; backup 62838639 bytes, graph present; live 1067 bytes, graph absent
+000000000269.json: everything but the graph identical; backup 62874088 bytes, graph present; live 1067 bytes, graph absent
+
+== headers.mjs: checkpoints 269 (last ECHO v2), 270 (the v3 continuation) and 409 (the head)
+{"file":"000000000269.json","epoch":7,"committedUtc":"2026-10-27T12:14:59.835Z","sequence":269,"tick":794842,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","genesisDigest":"e42d5e2cad81af6689136ae78f1ba366a420a850620f3710e499913f9ac50d4a","parent":"7b17cbb1a81d0f50c7a2f5a20cfa1c2ca6b4ae669ad802a8f426bf4a35a4132b","digest":"54f369efaed0183a69344700677afa179fce5f217efee33348afd28a77720ac1","graphDigest":"2022be4e3b3387a373894d38f048f9937c60f0dcab20123efa8de98b6d3e6f7d","versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v2","upgrade":"bethesda-echo-upgrade/v1","graph":"life-graph/v1"},"events":0,"lastEvents":[]}
+{"file":"000000000270.json","epoch":8,"committedUtc":"2026-10-27T12:17:21.986Z","sequence":270,"tick":794842,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","genesisDigest":"e42d5e2cad81af6689136ae78f1ba366a420a850620f3710e499913f9ac50d4a","parent":"54f369efaed0183a69344700677afa179fce5f217efee33348afd28a77720ac1","digest":"b88b67a0318a52600116d79a1c86f48cbb95c048e9726285b77ba7064ed7467f","graphDigest":"29ef122c0f1fec81f8f313bb53124d87b36024e9249e74db2c3ab17d562c5527","versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","graph":"life-graph/v1"},"events":1,"lastEvents":["self-model-upgrade@794842"]}
+{"file":"000000000409.json","epoch":9,"committedUtc":"2026-10-27T23:54:23.578Z","sequence":409,"tick":1211849,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","genesisDigest":"e42d5e2cad81af6689136ae78f1ba366a420a850620f3710e499913f9ac50d4a","parent":"db72731e638a627a007f5c19cf64a2cc87f2dd4de54a5f094247009ac7190ca0","digest":"3ce27eb3dec488f0e4add2f2f231d2d8d072f9232f983349de6ad7ca7ce4d850","graphDigest":"edc45dc1bbdf00e80060c09259159cfe0f43f7b0862267df53fbc16a5a2bd814","versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","graph":"life-graph/v1"},"events":0,"lastEvents":[]}
+
+== d25e1f3: bethesda-life-headless.ts --store COPY --check (heap 2,560 MB)
+exit 0 in 21 s
+peak-rss-kb 1840672
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/8","tick":1211849,"simulatedSeconds":121184.90000000001,"cityHash":"ccd2233f47248422","flyHash":"bd38de9f3fa20dd9:027d600a628b819a","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":141,"episodes":24,"legGain":1.0053539217111866,"trustInSense":1,"attending":{"source":"routine","what":"resting","since":120944.8,"shielded":false,"expectsNext":"self"},"lastConclusion":{"t":120921.8,"explanation":"none","candidate":"none","confidence":0.5948689602821087,"resolved":false,"checked":null},"openInquiry":null},"fly":{"position":[235.96174665039308,1.4682843965563965,718.4904758839324],"mode":"rest","energyFraction":0,"meals":64,"escapes":2},"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","checkpoint":409,"restored":true}
+
+== This release (22cf46d): bethesda-life-continue-organism.ts --store COPY --from-release d25e1f3 --check (heap 4,096 MB)
+exit 0 in 77 s
+Checking the source checkpoint on its original engine
+Checking that this release continues the v3 fly as its own engine does (600 ticks, in memory)
+Checking the preserved graph and the new organism checkpoint
+Checking deterministic continuation after restore
+peak-rss-kb 3131356
+{"mode":"--check","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","tick":1211849,"previousSequence":409,"sequence":410,"parent":"3ce27eb3dec488f0e4add2f2f231d2d8d072f9232f983349de6ad7ca7ce4d850","genesisDigest":"e42d5e2cad81af6689136ae78f1ba366a420a850620f3710e499913f9ac50d4a","sourceGraphDigest":"edc45dc1bbdf00e80060c09259159cfe0f43f7b0862267df53fbc16a5a2bd814","preservedGraphDigest":"edc45dc1bbdf00e80060c09259159cfe0f43f7b0862267df53fbc16a5a2bd814","kept":{"rememberedPlaces":0,"inquiries":141,"episodesKept":24,"lastEpisode":141,"inquiryOpen":false},"introduced":{"mushroomBody":"mushroom-body/v1: 2000 Kenyon cells, innate weights drawn from the fly's seed, no trials; values the places remembered from now on","inheritedPlaces":"0 remembered places keep the rule they were learned under","olfaction":"echo-olfactory-navigation/v1: filters at rest, a stream of its own at its start","physiology":"echo-maintenance/v1: tissue proxies at their resting values; artificial maintenance metered apart from food","archive":"recovery and rest bouts, mushroom-body updates, and each ECHO episode when the self-model's bounded memory lets it go, recorded from now on"},"versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/8","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","graph":"life-graph/v1"},"sameEngineTicks":600,"recoveryTicks":611,"pausedFromUtc":"2026-10-27T23:54:23.578Z","upgradedUtc":"2026-10-27T23:59:32.951Z","committedUtc":null}
+
+== Afterwards
+copy unchanged: 420 files, same hashes, still 0 writable
