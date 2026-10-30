@@ -133,7 +133,12 @@ def _svg(dev: dict | None, held: dict | None) -> str | None:
                 m = cond["readout_summary_hz"].get("mn9_shiu")
                 if m:
                     off = 4 if name == "dev" else -4
-                    out.append(f'<rect x="{X(100) + off - 3:.1f}" y="{Y(m["mean"]) - 3:.1f}" width="6" height="6" fill="{marks[cond["wiring"]]}"/>')
+                    if m["mean"] > ymax:  # off scale: a triangle on the top edge, with the value
+                        x0, y0 = X(100) + off, Y(ymax)
+                        out.append(f'<path d="M{x0 - 4:.1f},{y0 + 4:.1f} L{x0:.1f},{y0 - 3:.1f} L{x0 + 4:.1f},{y0 + 4:.1f} Z" fill="{marks[cond["wiring"]]}"/>')
+                        out.append(f'<text x="{x0 + 7:.1f}" y="{y0 + 4 + (0 if name == "dev" else 12):.1f}" fill="{marks[cond["wiring"]]}" font-size="10">{cond["wiring"]} {m["mean"]:.0f} Hz ({name}), off scale</text>')
+                    else:
+                        out.append(f'<rect x="{X(100) + off - 3:.1f}" y="{Y(m["mean"]) - 3:.1f}" width="6" height="6" fill="{marks[cond["wiring"]]}"/>')
     for k, col in marks.items():
         out.append(f'<rect x="{W - R + 18}" y="{ly - 3}" width="6" height="6" fill="{col}"/><text x="{W - R + 36}" y="{ly + 4}">{k} (100 Hz)</text>')
         ly += 18

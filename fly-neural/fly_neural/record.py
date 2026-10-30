@@ -105,6 +105,7 @@ def code_watch(results: Path | None = None):
         end = code_state(results)
         return {**start, "changed_during_run": [k for k in ("commit", "dirty", "fly_neural") if start.get(k) != end.get(k)]}
 
+    finish.start = start
     return finish
 
 

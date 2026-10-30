@@ -15,6 +15,7 @@ every number the verdict used. A failed criterion is reported as failed.
 from __future__ import annotations
 
 import json
+import os
 import time
 import zlib
 from pathlib import Path
@@ -141,7 +142,51 @@ def judge(crit: dict, res: dict[str, dict], secs: float) -> dict:
     return out
 
 
-def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, only: list[str] | None = None, budget: Budget | None = None, log=print) -> dict:
+PROGRESS_SCHEMA = "fly-neural-progress/v1"
+
+
+class ProgressMismatch(RuntimeError):
+    pass
+
+
+def _progress(path: Path | None, header: dict, resume: bool, log=print) -> dict[str, dict]:
+    """Conditions an earlier process finished, if ``resume`` and the file is of this exact run.
+
+    The file's first line is the run's identity: experiment, split, config
+    hash, commit, cleanliness, this package's source digest and the
+    connectome's manifest hash. Every condition has its own seeds, so a
+    condition finished by an earlier process is the one this process would
+    compute. Anything else in the file is refused, never mixed in."""
+    if path is None or not resume or not path.exists():
+        if path is not None:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(header, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+        return {}
+    lines = path.read_text(encoding="utf-8").splitlines()
+    old = json.loads(lines[0])
+    if old != header:
+        diff = sorted(k for k in set(old) | set(header) if old.get(k) != header.get(k))
+        raise ProgressMismatch(f"{path} is from a different run ({', '.join(diff)} differ); remove it or run without --resume")
+    done = {}
+    for ln in lines[1:]:
+        if ln.strip():
+            r = json.loads(ln)
+            done[r["name"]] = r
+    log(f"resuming: {len(done)} conditions finished by an earlier process: {', '.join(done) or 'none'}")
+    return done
+
+
+def run(
+    cfg_path: Path,
+    split: str,
+    compiled: Path,
+    out_dir: Path,
+    only: list[str] | None = None,
+    budget: Budget | None = None,
+    log=print,
+    progress: Path | None = None,
+    resume: bool = False,
+) -> dict:
     code = code_watch(out_dir)
     cfg = load_config(cfg_path)
     if split not in cfg["seeds"]:
@@ -154,9 +199,33 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, only: list[st
     pops = {k: P.resolve(k, c)[1] for k in sorted(keys)}
     readouts = {k: P.resolve(k, c)[0] for k in cfg["readouts"]}
     conds = [x for x in cfg["conditions"] if not only or x["name"] in only]
+    config_sha256 = __import__("hashlib").sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+    start = code.start
+    header = {
+        "schema": PROGRESS_SCHEMA,
+        "experiment": cfg["id"],
+        "split": split,
+        "only": sorted(only) if only else None,
+        "config_sha256": config_sha256,
+        "commit": start.get("commit"),
+        "dirty": start.get("dirty"),
+        "fly_neural": start.get("fly_neural"),
+        "connectome_manifest_sha256": c.manifest.get("sha256"),
+    }
+    earlier = _progress(progress, header, resume, log)
     t0 = time.monotonic()
+    results = {}
     with Meter() as meter:
-        results = {cond["name"]: run_condition(c, net, cond, cfg, split, readouts, budget, log) for cond in conds}
+        for cond in conds:
+            if cond["name"] in earlier:
+                results[cond["name"]] = earlier[cond["name"]]
+                continue
+            results[cond["name"]] = run_condition(c, net, cond, cfg, split, readouts, budget, log)
+            if progress is not None:
+                with open(progress, "a", encoding="utf-8", newline="\n") as f:
+                    f.write(json.dumps(results[cond["name"]], sort_keys=True) + "\n")
+                    f.flush()
+                    os.fsync(f.fileno())
     secs = cfg["protocol"]["duration_ms"] / 1000.0
     verdicts = []
     for crit in cfg["criteria"]:
@@ -168,9 +237,12 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, only: list[st
         "kind": "experiment",
         "experiment": cfg["id"],
         "config_file": Path(cfg_path).name,
-        "config_sha256": __import__("hashlib").sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
+        "config_sha256": config_sha256,
         "split": split,
         "partial": bool(only),
+        # Conditions finished by an earlier process of this same run (same commit,
+        # source, config and connectome; see _progress), carried over unchanged.
+        "resumed_conditions": [n for n in results if n in earlier],
         "connectome": {"path_name": Path(compiled).name, "manifest_sha256": c.manifest.get("sha256"), "neurons": c.n, "pairs": c.pairs, "synapses": c.synapses, "sign_policy": c.manifest.get("sign_policy")},
         "network": net.describe(),
         "params": net.params.as_dict(),
@@ -181,6 +253,7 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, only: list[st
         "failed": [v["id"] for v in verdicts if not v["passed"]],
         "resources": {**meter.describe(), "machine": machine()},
         "wall_s": round(time.monotonic() - t0, 2),
+        "wall_s_including_earlier_processes": round(time.monotonic() - t0 + sum(earlier[n]["resources"]["wall_s"] for n in results if n in earlier), 2),
         "environment": environment(),
         "code": code(),
     }

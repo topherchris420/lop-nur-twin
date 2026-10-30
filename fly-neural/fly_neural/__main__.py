@@ -104,7 +104,8 @@ def cmd_experiment(args) -> int:
     if not cfg.is_absolute() and not cfg.exists():
         cfg = Path(__file__).resolve().parents[1] / "experiments" / args.config
     budget = Budget(max_wall_s=args.max_wall_s, max_rss_mb=args.max_rss_mb, stop_file=WORK / "STOP")
-    data = run(cfg, args.split, compiled_dir(args.connectome), Path(args.out or RESULTS), only=args.only, budget=budget)
+    progress = WORK / "progress" / f"{cfg.stem}-{args.split}{'-partial' if args.only else ''}.jsonl"
+    data = run(cfg, args.split, compiled_dir(args.connectome), Path(args.out or RESULTS), only=args.only, budget=budget, progress=progress, resume=args.resume)
     return 0 if not data["failed"] else 3
 
 
@@ -181,6 +182,7 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--out", help=f"results directory (default {RESULTS})")
     e.add_argument("--max-wall-s", type=float, default=None)
     e.add_argument("--max-rss-mb", type=float, default=None)
+    e.add_argument("--resume", action="store_true", help="reuse the conditions an interrupted run of this same commit, config and connectome finished (.fly-neural/progress/)")
     e.set_defaults(fn=cmd_experiment)
     s = sub.add_parser("shadow", help="replay a research fly's recording into the model (neural-shadow mode)")
     s.add_argument("recording", help="a .jsonl written by scripts/echo-neural-shadow.ts")
