@@ -181,14 +181,32 @@ tick=$(printf '%s\n' "$checked" | sed -n 's/.*"tick":\([0-9]*\).*"individual":.*
 [ -n "$individual" ] && [ -n "$checkpoint" ] && [ -n "$tick" ] ||
   die "the check passed but printed no individual, checkpoint and tick; the copy was not kept"
 
+# The head's digest and commit time, from the copy the check just verified,
+# for the watcher's public ledger (src/bethesda/life/ledger.ts): every
+# checkpoint names its parent's digest, so this one fixes the history back to
+# birth. A record without them still keeps the archive.
+anchor=
+head_file=$(find "$check/store/checkpoints" -maxdepth 1 -name '[0-9]*.json' | sort | tail -n 1)
+if read -r seq digest committed < <(cd "$release" && runuser -u "$SERVICE" -- \
+  "$PREFIX/node/bin/node" --max-old-space-size="$heap_mb" -e '
+    const s = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+    console.log(s.checkpoint.sequence, s.checkpoint.digest, s.committedUtc);' "$head_file") &&
+  [ "$seq" = "$checkpoint" ] && [[ $digest =~ ^[0-9a-f]{64}$ ]] &&
+  [[ $committed =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$ ]]; then
+  anchor=",\"digest\":\"$digest\",\"committed\":\"$committed\""
+else
+  printf 'backup.sh: could not read checkpoint %s'\''s digest; the record will not carry it\n' "$checkpoint" >&2
+fi
+
 mv "$part" "$out/$name.tar.gz"
 part=
 (cd "$out" && sha256sum "$name.tar.gz" >"$name.tar.gz.sha256")
 result=kept
-put kept.json "{\"utc\":\"$started\",\"archive\":\"$name.tar.gz\",\"sha256\":\"$(cut -d' ' -f1 "$out/$name.tar.gz.sha256")\",\"bytes\":$(stat -c %s "$out/$name.tar.gz"),\"individual\":\"$individual\",\"checkpoint\":$checkpoint,\"tick\":$tick,\"release\":\"$commit\"}"
+put kept.json "{\"utc\":\"$started\",\"archive\":\"$name.tar.gz\",\"sha256\":\"$(cut -d' ' -f1 "$out/$name.tar.gz.sha256")\",\"bytes\":$(stat -c %s "$out/$name.tar.gz"),\"individual\":\"$individual\",\"checkpoint\":$checkpoint,\"tick\":$tick,\"release\":\"$commit\"$anchor}"
 rm -rf "$check"
 check=
-printf 'individual %s, checkpoint %s, tick %s\n' "$individual" "$checkpoint" "$tick"
+printf 'individual %s, checkpoint %s, tick %s%s\n' "$individual" "$checkpoint" "$tick" \
+  "${anchor:+, digest $digest}"
 printf 'kept %s (%s), written by release %s\n' "$out/$name.tar.gz" \
   "$(du -h "$out/$name.tar.gz" | cut -f1)" "$commit"
 

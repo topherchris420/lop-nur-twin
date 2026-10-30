@@ -26,7 +26,7 @@ export const CHECKPOINT_LATE_S = 20 * 60;
  */
 export const BACKUP_LATE_S = 13 * 3600;
 
-const HEX64 = /^[0-9a-f]{64}$/;
+export const HEX64 = /^[0-9a-f]{64}$/;
 
 /** What `backup.sh` records: its newest run, and the newest archive kept and copied off. */
 export interface BackupStatus {
@@ -49,6 +49,13 @@ export interface BackupStatus {
     checkpoint: number;
     tick: number;
     release: string;
+    /**
+     * The archived head checkpoint's digest and the time the life committed
+     * it, as the check verified them; null in records from before backup.sh
+     * read them. The watcher's ledger (ledger.ts) anchors them.
+     */
+    digest: string | null;
+    committed: string | null;
   } | null;
   /** The newest archive uploaded off the machine; null before the first. */
   offsite: { utc: string; archive: string } | null;
@@ -72,17 +79,22 @@ const fail = (path: string, what: string): never => {
   throw new Invalid(`${path}: ${what}`);
 };
 
-function object(v: unknown, path: string, keys: readonly string[]): Obj {
+export function object(
+  v: unknown,
+  path: string,
+  keys: readonly string[],
+  optional: readonly string[] = [],
+): Obj {
   if (typeof v !== "object" || v === null || Array.isArray(v))
     fail(path, "not an object");
   const o = v as Obj;
-  const extra = Object.keys(o).filter((k) => !keys.includes(k));
+  const extra = Object.keys(o).filter((k) => !keys.includes(k) && !optional.includes(k));
   if (extra.length) fail(path, `unexpected ${extra.join(", ")}`);
   for (const k of keys) if (!(k in o)) fail(path, `missing ${k}`);
   return o;
 }
 
-function str(v: unknown, path: string, max: number, pattern?: RegExp): string {
+export function str(v: unknown, path: string, max: number, pattern?: RegExp): string {
   if (typeof v !== "string") fail(path, "not a string");
   const s = v as string;
   if (s.length > max) fail(path, `longer than ${max}`);
@@ -90,19 +102,19 @@ function str(v: unknown, path: string, max: number, pattern?: RegExp): string {
   return s;
 }
 
-function int(v: unknown, path: string): number {
+export function int(v: unknown, path: string): number {
   if (typeof v !== "number" || !Number.isSafeInteger(v) || v < 0)
     fail(path, "not a whole number");
   return v as number;
 }
 
-function utc(v: unknown, path: string): string {
+export function utc(v: unknown, path: string): string {
   const s = str(v, path, 40, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/);
   if (!Number.isFinite(Date.parse(s))) fail(path, "not a date");
   return s;
 }
 
-const ARCHIVE = /^bethesda-life-\d{8}T\d{6}Z-[0-9a-f]{12}\.tar\.gz$/;
+export const ARCHIVE = /^bethesda-life-\d{8}T\d{6}Z-[0-9a-f]{12}\.tar\.gz$/;
 
 /** The record `backup.sh` writes to status.json, validated; throws on anything else. */
 export function parseBackupStatus(value: unknown): BackupStatus {
@@ -113,16 +125,23 @@ export function parseBackupStatus(value: unknown): BackupStatus {
     fail("backup.attempt.result", "not kept, skipped or failed");
   let kept: BackupStatus["kept"] = null;
   if (s.kept !== null) {
-    const k = object(s.kept, "backup.kept", [
-      "utc",
-      "archive",
-      "sha256",
-      "bytes",
-      "individual",
-      "checkpoint",
-      "tick",
-      "release",
-    ]);
+    const k = object(
+      s.kept,
+      "backup.kept",
+      [
+        "utc",
+        "archive",
+        "sha256",
+        "bytes",
+        "individual",
+        "checkpoint",
+        "tick",
+        "release",
+      ],
+      ["digest", "committed"],
+    );
+    if ("digest" in k !== "committed" in k)
+      fail("backup.kept", "a digest and its commit time come together");
     kept = {
       utc: utc(k.utc, "backup.kept.utc"),
       archive: str(k.archive, "backup.kept.archive", 80, ARCHIVE),
@@ -132,6 +151,8 @@ export function parseBackupStatus(value: unknown): BackupStatus {
       checkpoint: int(k.checkpoint, "backup.kept.checkpoint"),
       tick: int(k.tick, "backup.kept.tick"),
       release: str(k.release, "backup.kept.release", 40, /^[0-9a-f]{40}$/),
+      digest: "digest" in k ? str(k.digest, "backup.kept.digest", 64, HEX64) : null,
+      committed: "committed" in k ? utc(k.committed, "backup.kept.committed") : null,
     };
   }
   let offsite: BackupStatus["offsite"] = null;

@@ -440,9 +440,11 @@ Each run records what it did in `/var/lib/bethesda-life-backup/status.json`
 (schema `bethesda-life-backup/v1`, parsed by `src/bethesda/life/watch.ts`):
 the run (kept, skipped or failed, why, and what became of its off-site
 copy), the newest archive kept (its name, SHA-256, size, individual,
-checkpoint, tick and release) and the newest one uploaded. Caddy serves it
-at `/v1/backup` for the [watcher](#watching-it). It holds nothing of the
-off-site URL.
+checkpoint, tick and release, and its head checkpoint's digest and commit
+time as the check verified them) and the newest one uploaded. Caddy serves
+it at `/v1/backup` for the [watcher](#watching-it) and the
+[ledger](#the-ledger). It holds nothing of the off-site URL. Records
+written before `backup.sh` read the digest lack those two fields.
 
 Before the timer, `backup.sh` ran once on the VM by hand, on 2026-10-26,
 beside an 18-minute-old life with four checkpoints: it took 12 s, its check
@@ -553,6 +555,43 @@ late or be skipped when GitHub is busy, and GitHub stops scheduling it after
 failure of the workflow itself is reported by GitHub's email about failed
 runs, not by an issue.
 
+### The ledger
+
+Every checkpoint names its parent's digest, so one digest fixes the
+individual's whole history up to it. But that chain lives only on the VM,
+which could rewrite it without anyone seeing. So the same workflow keeps a
+public ledger (`src/bethesda/life/ledger.ts`): each time a backup has
+verified a new checkpoint, it appends that checkpoint's sequence, tick,
+digest and commit time, with the archive that holds it, as one line of
+`ledger.jsonl` on the `live-fly-ledger` branch. GitHub records when each
+line arrived; that, not the VM's clock, is the witness. The branch holds no
+code, its `vercel.json` stops Vercel deploying it, and it is append-only:
+nothing in it is edited, removed or force-pushed.
+
+Any archive can be checked against every line:
+
+```sh
+git fetch origin live-fly-ledger && git show origin/live-fly-ledger:ledger.jsonl > ledger.jsonl
+tar -xzf bethesda-life-<UTC>-<commit>.tar.gz -C /tmp/check
+node scripts/run-ts.mjs scripts/bethesda-life-ledger.ts verify --store /tmp/check/store --ledger ledger.jsonl
+```
+
+It checks the archive's whole chain first, then judges each line:
+**confirmed** (the archive holds that checkpoint with that digest, even
+after compaction dropped its graph), **contradicted** (it holds a different
+checkpoint there, or another individual: the history was rewritten, or lost
+to a restore from an older backup, which the ledger then shows openly), or
+**ahead** (the archive ends before it). It exits 1 if any line is
+contradicted. Tried on the archive of 2026-10-30 02:57 (1,019 checkpoints):
+the chain verified in 19 s on a laptop, and planted lines were confirmed,
+contradicted and ahead as they should be.
+
+A line says only that the VM claimed that checkpoint by the time GitHub
+received it, at most about 6 hours after it was committed (one backup).
+Anyone who can push to the repository could still rewrite the branch: a
+ruleset that refuses force pushes and deletion on it, or a copy of the
+ledger elsewhere, guards against that.
+
 ### Recovery
 
 | In `journalctl -u bethesda-life`                                          | What it means                                                          | What to do                                                                                                                                                                 |
@@ -605,6 +644,9 @@ restore it as above.
   `systemctl stop bethesda-life`, `backup.sh`, `systemctl start bethesda-life`.
 - **The watcher is one scheduled job on GitHub** ([above](#watching-it)):
   it can be late, and it cannot report its own absence.
+- **The ledger trusts GitHub** ([above](#the-ledger)) and anchors one
+  checkpoint per kept backup, so it fixes the history up to about 6 hours
+  ago, and nothing from before it began except through the chain.
 - **One observer, on the life's machine.** Viewers reach Caddy and the
   observer on the VM itself, which shares its one core with the life. Not
   load-tested.
@@ -696,4 +738,5 @@ node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /tmp/fly --che
 npx vitest run src/bethesda/life
 bash -n deploy/bethesda-life/install.sh && bash -n deploy/bethesda-life/backup.sh
 node scripts/run-ts.mjs scripts/bethesda-life-watch.ts --url https://129-213-139-78.sslip.io --individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
+node scripts/run-ts.mjs scripts/bethesda-life-ledger.ts verify --store /tmp/check/store --ledger ledger.jsonl
 ```

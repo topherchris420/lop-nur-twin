@@ -759,7 +759,8 @@ The headless life, its durable checkpoints, and the individuality studies.
 Read `docs/INDIVIDUAL_CONTINUITY.md` and `docs/BETHESDA_CONTINUOUS_LIFE.md`
 first. Outside `src/bethesda/` it adds `scripts/bethesda-life-headless.ts`,
 `scripts/bethesda-life-observer.ts`, `deploy/bethesda-life/`,
-`scripts/bethesda-life-watch.ts`, `.github/workflows/bethesda-life-watch.yml`,
+`scripts/bethesda-life-watch.ts`, `scripts/bethesda-life-ledger.ts`,
+`.github/workflows/bethesda-life-watch.yml`, the `live-fly-ledger` branch,
 `scripts/individuality-evaluate.ts`, `scripts/mushroom-body-evaluate.ts`,
 `docs/benchmarks/fly-individuality/`, `docs/benchmarks/fly-mushroom-body/`,
 and `streamPosition`/`seekStream` in `src/lib/noise.ts`. The rule it exists
@@ -803,6 +804,11 @@ verified to be; a copy is always someone else.**
   loosen a threshold to quiet an alert: find out why it fires. The off-site
   URL is a credential that stays in `/etc/bethesda-life/offsite.env` on the
   VM and never enters the repository, a record or a log.
+- **The ledger is append-only.** `ledger.ts` anchors each verified
+  checkpoint on the `live-fly-ledger` branch so that history can be checked
+  later. Never edit, remove or reorder a line, never force-push or delete
+  the branch, and never "fix" a contradicted line: it is the record of a
+  rewrite or a restore.
 - **`/live` is unlisted.** Nothing on the site links to it, so Bethesda stays
   hidden to visitors who were not given the link. It follows the observer's
   stream (`src/bethesda/live/witnessFeed.ts`) and only interpolates between
