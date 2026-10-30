@@ -18,7 +18,7 @@
  * anchor that is not confirmed and a summary, and exits 1 if any is
  * contradicted.
  */
-import { existsSync, readFileSync, writeFileSync, appendFileSync } from "node:fs";
+import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   anchorLine,
@@ -56,7 +56,12 @@ async function append(o: Record<string, string>): Promise<void> {
   if (!o.dir) throw new Error("--dir needs the ledger branch's checkout");
   const file = join(o.dir, LEDGER_FILE);
   // A ledger that does not parse stops here, before anything is added to it.
-  const ledger = existsSync(file) ? parseLedger(readFileSync(file, "utf8")) : [];
+  let ledger: ReturnType<typeof parseLedger> = [];
+  try {
+    ledger = parseLedger(readFileSync(file, "utf8"));
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+  }
 
   let backup: BackupStatus | null;
   try {
@@ -86,11 +91,16 @@ async function append(o: Record<string, string>): Promise<void> {
         ? "the newest verified checkpoint is already the last anchor"
         : "the backup record carries no verified checkpoint's digest yet",
     });
+  // Created only where missing, in one step (no check-then-write race).
   for (const [name, text] of [
     ["README.md", LEDGER_README],
     ["vercel.json", LEDGER_VERCEL],
   ] as const)
-    if (!existsSync(join(o.dir, name))) writeFileSync(join(o.dir, name), text);
+    try {
+      writeFileSync(join(o.dir, name), text, { flag: "wx" });
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+    }
   appendFileSync(file, anchorLine(anchor));
   say({ appended: true, anchor });
 }
