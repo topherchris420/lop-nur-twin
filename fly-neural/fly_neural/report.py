@@ -32,7 +32,8 @@ def _load(results: Path) -> dict[str, dict]:
 def _code(d: dict) -> str:
     c = d.get("code") or {}
     commit = (c.get("commit") or "?")[:7]
-    return f"`{commit}`" + ("" if c.get("clean") else " (uncommitted changes)")
+    state = {False: "", True: " (uncommitted changes)", None: " (tree state unknown)"}[c.get("dirty")]
+    return f"`{commit}`{state}"
 
 
 def _f(x, nd=1) -> str:
