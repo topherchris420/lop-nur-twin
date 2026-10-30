@@ -177,6 +177,20 @@ def cmd_reproduce(args) -> int:
     return 0 if data["identical"] else 3
 
 
+def _config(name: str) -> Path:
+    cfg = Path(name)
+    if not cfg.is_absolute() and not cfg.exists():
+        cfg = Path(__file__).resolve().parents[1] / "experiments" / name
+    return cfg
+
+
+def cmd_mbcode(args) -> int:
+    from .mbcode import sweep
+
+    data = sweep(_config(args.config), compiled_dir(args.connectome), Path(args.out or ADAPTIVE))
+    return 0 if data["selected"] else 3
+
+
 def cmd_serve(args) -> int:
     from .shadow import serve
 
@@ -246,6 +260,11 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("--connectome", default="fafb-v783-shiu")
     rp.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
     rp.set_defaults(fn=cmd_reproduce)
+    mb = sub.add_parser("mbcode", help="the Kenyon-cell census and the pre-registered sparse-code sweep (development odours only)")
+    mb.add_argument("config", nargs="?", default="mb-representation-v783.json")
+    mb.add_argument("--connectome", default="fafb-v783-shiu")
+    mb.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    mb.set_defaults(fn=cmd_mbcode)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)
