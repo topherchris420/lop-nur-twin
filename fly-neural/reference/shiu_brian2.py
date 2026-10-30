@@ -1,6 +1,6 @@
 """Run Shiu et al.'s own Brian 2 model, unmodified, as the reference for fly_neural.lif.
 
-This script needs Brian 2, pandas and pyarrow (see requirements-reference.txt);
+This script needs Brian 2, pandas and pyarrow (see reference/requirements.txt);
 it does not need the rest of fly_neural. It imports ``model.py`` from the data
 cache, at the pinned commit, after checking its SHA-256, and builds every
 network with that file's own ``create_model``, ``silence`` and ``run_trial``.
