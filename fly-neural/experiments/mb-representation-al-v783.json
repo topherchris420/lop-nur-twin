@@ -1,0 +1,44 @@
+{
+ "schema": "fly-neural-mb-representation/v2",
+ "id": "mb-representation-al-v783",
+ "title": "Where two odours start sharing Kenyon cells: the antennal lobe's lateral excitation, and a KC code selected for odour specificity",
+ "preregistration": "Written before any run of this file, after mb-representation-v783 (sealed, ed92c3b) and an exploratory probe on the development odours (A, B, at that sweep's selected point; recorded in docs/ECHO_ADAPTIVE_INTELLIGENCE.md, not a result file). The probe found that 98% of the excitatory drive onto the KCs both odours fire comes from projection neurons; that odour A, which stimulates 3 of 53 glomeruli, fires 553 of 685 PNs and odour B 542, sharing 98% of them; and that 77% of the excitatory drive onto the PNs of glomeruli A does not stimulate, and 96% onto the ORNs it does not stimulate, comes from antennal-lobe local neurons (ALLNs). Development odours only; the held-out odours of plasticity-v2-v783.json are never presented here. The grid, band and selection rule are fixed here and do not change after the first run.",
+ "connectome": "fafb-v783-shiu",
+ "odours": {
+  "A": ["ORN_DL3", "ORN_VM4", "ORN_DM1"],
+  "B": ["ORN_VL1", "ORN_VL2a", "ORN_DL1"],
+  "Asim": ["ORN_DL3", "ORN_VM4", "ORN_VA2"],
+  "note": "plasticity-v2-v783.json's development odours; Asim shares two of A's three glomeruli, so a code that keeps odour similarity should give A and Asim more shared KCs than A and B (reported, not selected on)."
+ },
+ "trial_ms": 500.0,
+ "odour_rate_hz": 80.0,
+ "trials_per_odour": 2,
+ "seed": 4100002,
+ "families": {
+  "al_exc_ln": {
+   "values": [1, 0.5, 0.25, 0.1, 0],
+   "form": "every excitatory synapse made by an ALLN (cell_class ALLN; excitatory in the model because cholinergic) multiplied by the gain; inhibitory ALLN synapses unchanged",
+   "status": "model",
+   "basis": "Lateral excitation between glomeruli exists but is carried mainly by electrical coupling through cholinergic excitatory local neurons (Yaksi & Wilson 2010, Neuron 67:1034-1047, doi:10.1016/j.neuron.2010.08.041); eLN-PN connections combine gap junctions with cholinergic synapses (Huang et al. 2010, Neuron 67:1021-1033, doi:10.1016/j.neuron.2010.08.025). Shiu et al.'s model has no gap junctions and gives each of those chemical synapses the full excitatory weight of any cholinergic synapse, so how strong this pathway should be is not set by the connectome; the gain is ours."
+  },
+  "kc_threshold": {
+   "values": [1, 1.5, 2, 3, 4],
+   "form": "as mb-representation-v783: every weight onto a KC x 1/k, exactly a KC threshold k times further from rest",
+   "status": "model",
+   "basis": "Gruntman & Turner 2013, Nat Neurosci 16:1821-1829, doi:10.1038/nn.3547; the factor is ours."
+  },
+  "fixed": "apl_gain 1 and kc_kc 1 throughout: mb-representation-v783 found APL gain sparsens the code without separating the odours, and KC-KC muting changes nothing."
+ },
+ "grid": "every al_exc_ln x every kc_threshold (25 points)",
+ "measures": [
+  "KC coding level per odour; Jaccard overlap of the KC sets of A and B and of A and Asim (first trial)",
+  "PNs firing per odour; Jaccard of the PN sets of A and B and of A and Asim",
+  "readout-MBON spikes, PAM spikes, APL spikes, all spikes, wall time"
+ ],
+ "target": {
+  "coding_level": [0.02, 0.17],
+  "basis": "as mb-representation-v783 (Honegger, Campbell & Turner 2011, J Neurosci 31:11772-11785, doi:10.1523/JNEUROSCI.1099-11.2011)"
+ },
+ "selection": "Among the grid points where both A and B give a mean coding level in the target band, each drives at least 1% of KCs in every trial, and the readout MBONs fire at least 20 spikes per trial to each, choose the one with the smallest Jaccard(A, B) rounded to 3 decimals; ties go to the larger al_exc_ln (the smaller change), then the smaller kc_threshold. If none qualifies, the result says so and nothing is selected. A and B are the only odours selected on.",
+ "use": "plasticity-v2-v783.json takes its sparse code from this file's selection; mb-representation-v783's selection (threshold only) is kept as a comparison arm there."
+}

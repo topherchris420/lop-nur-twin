@@ -227,8 +227,20 @@ def shuffle_rewards(trials, rng):
     return out
 
 
-def run_subject(c, base: lif.Network, g: Groups, cfg: dict, arm: dict, rep: Representation | None, theta_hz: float, odours: dict, seed_seq) -> dict:
+def odour_rates(cfg: dict, g: Groups, odours: dict) -> dict[str, float]:
+    """Each odour's ORN rate. With ``odour_drive: matched_total`` the rate is scaled so every odour's
+    ORNs together fire as many spikes as the development odour A's do at ``odour_rate_hz`` (glomeruli
+    have from 30 to 126 ORNs), capped at ``odour_rate_cap_hz``; otherwise every odour gets ``odour_rate_hz``."""
+    p = cfg["protocol"]
+    if p.get("odour_drive") != "matched_total":
+        return {k: float(p["odour_rate_hz"]) for k in odours}
+    ref = g.odour(cfg["odours"]["dev"]["A"]).size
+    return {k: float(min(p["odour_rate_cap_hz"], p["odour_rate_hz"] * ref / max(1, v.size))) for k, v in odours.items()}
+
+
+def run_subject(c, base: lif.Network, g: Groups, cfg: dict, arm: dict, rep: Representation | None, theta_hz: float, odours: dict, seed_seq, rates: dict | None = None) -> dict:
     proto = cfg["protocol"]
+    rates = rates or {k: float(proto["odour_rate_hz"]) for k in odours}
     sched_name = arm.get("schedule", "standard")
     timing = proto["schedules"][sched_name]
     net = copy.copy(base)
@@ -255,7 +267,7 @@ def run_subject(c, base: lif.Network, g: Groups, cfg: dict, arm: dict, rep: Repr
     for phase, odour, rewarded, plastic in trials:
         t0 = time.monotonic()
         ms = trial_ms if plastic else float(proto["test_trial_ms"])
-        poi = [lif.Poisson(odours[odour], schedule_rates(proto["odour_rate_hz"], timing.get("odour_ms") if plastic else None, ms), bin_ms=r2.bin_ms, label=odour)]
+        poi = [lif.Poisson(odours[odour], schedule_rates(rates[odour], timing.get("odour_ms") if plastic else None, ms), bin_ms=r2.bin_ms, label=odour)]
         if rewarded:
             poi.append(lif.Poisson(g.pam, schedule_rates(proto["reward_rate_hz"], timing.get("reward_ms"), ms), bin_ms=r2.bin_ms, label="PAM"))
         tr, _ = lif.run(net, lif.Stimulus(poisson=poi, silenced=silenced), ms, rng=rng, max_logged_spikes=5_000_000, log_neurons=log_set)
@@ -379,6 +391,7 @@ def calibrate(cfg_path: Path, compiled: Path, results: Path, out_dir: Path, log=
     net.weight = apply(base, g, rep)
     syn = Synapses(net, g)
     odours = {k: g.odour(v) for k, v in cfg["odours"]["dev"].items()}
+    rates = odour_rates(cfg, g, odours)
     bin_ms = cfg["rule_v2"]["constants"]["bin_ms"]
     ms = float(cfg["protocol"]["test_trial_ms"])
     nb = int(round(ms / bin_ms))
@@ -389,7 +402,7 @@ def calibrate(cfg_path: Path, compiled: Path, results: Path, out_dir: Path, log=
             for odour in cal["odours"]:
                 for rew in (False, True):
                     for _ in range(cal["trials"]):
-                        poi = [lif.Poisson(odours[odour], cfg["protocol"]["odour_rate_hz"], label=odour)]
+                        poi = [lif.Poisson(odours[odour], rates[odour], label=odour)]
                         if rew:
                             poi.append(lif.Poisson(g.pam, cfg["protocol"]["reward_rate_hz"], label="PAM"))
                         tr, _ = lif.run(net, lif.Stimulus(poisson=poi), ms, rng=rng, max_logged_spikes=5_000_000, log_neurons=g.pam)
@@ -435,6 +448,7 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
     base = lif.Network(c)
     g = Groups.from_annotations(c, cfg["rule_v2"]["dan_mbon_min_synapses"])
     rep, rep_src = representation(results, cfg)
+    alts = {name: representation(results, {"representation": {"from": f}}) for name, f in cfg["representation"].get("alternatives", {}).items()}
     cal = load_sealed(out_dir / f"{cfg['id']}-calibration.json", RESULT_SCHEMA)
     if cal["config_sha256"] != config_sha256:
         raise RuntimeError("the calibration was made with another version of the config")
@@ -463,6 +477,7 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
         for spec in cfg["runs"][split]:
             pair = spec["pair"]
             odours = {k: g.odour(v) for k, v in cfg["odours"][pair].items()}
+            rates = odour_rates(cfg, g, odours)
             arms = {}
             for name in spec["arms"]:
                 if only and name not in only:
@@ -480,13 +495,15 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
                     ss = np.random.SeedSequence([base_seed, zlib.crc32(pair.encode()), s])
                     if arm.get("wiring") == "pn-kc-shuffle":
                         ss = np.random.SeedSequence([base_seed, zlib.crc32(pair.encode()), zlib.crc32(name.encode()), s])
-                    r = run_subject(c, base, g, cfg, arm, None if arm["representation"] == "dense" else rep, theta, odours, ss)
+                    r = run_subject(c, base, g, cfg, arm, {"dense": None, "sparse": rep, **{k: v[0] for k, v in alts.items()}}[arm["representation"]], theta, odours, ss, rates)
                     subs.append(r)
                     append_progress(progress, {"name": key, "result": r, "wall_s": round(time.monotonic() - t1, 2)})
                     log(f"  {key}: {json.dumps(r['indices'])} coding {r['coding_level_pretest'].get('A', {}).get('mean')}")
                 arms[name] = {"arm": arm, "subjects": subs, "indices": {f: stats.summary([x["indices"][f] for x in subs if x["indices"].get(f) is not None]) for f in cfg["indices"]}}
             runs[pair] = arms
     echo_mb = json.loads(Path(echo_mb_path).read_text(encoding="utf-8")) if echo_mb_path else None
+    if echo_mb is not None and (echo_mb.get("schema") != "fly-neural-echo-mb/v2" or echo_mb.get("schedule") != cfg["schedules"]["standard"]):
+        raise RuntimeError(f"{Path(echo_mb_path).name} is not ECHO's mushroom body on this config's standard schedule")
     verdicts = []
     for crit in cfg["criteria"]:
         if crit.get("split", split) != split or crit["pair"] not in runs:
@@ -507,15 +524,17 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
         "resumed_subjects": resumed,
         "partial": (subjects is not None and subjects != cfg["subjects"][split]) or bool(only),
         "representation": rep_src,
+        "alternative_representations": {k: v[1] for k, v in alts.items()},
         "calibration": {"file": f"{cfg['id']}-calibration.json", "sha256": cal["sha256"], "theta_hz": theta},
         "connectome": {"path_name": Path(compiled).name, "manifest_sha256": c.manifest.get("sha256")},
         "groups": g.describe(),
         "synapses": Synapses(base, g).describe(),
         "odour_neurons": {p: {k: int(g.odour(v).size) for k, v in cfg["odours"][p].items()} for p in runs},
+        "odour_rates_hz": {p: odour_rates(cfg, g, {k: g.odour(v) for k, v in cfg["odours"][p].items()}) for p in runs},
         "runs": runs,
         "echo_mushroom_body": echo_mb,
         "criteria": verdicts,
-        "failed": [v["id"] for v in verdicts if not v["passed"]],
+        "failed": [f"{v['id']}/{v['pair']}" for v in verdicts if not v["passed"]],
         "resources": {**meter.describe(), "wall_s_of_resumed_subjects": round(sum(earlier[k]["wall_s"] for k in resumed), 2), "machine": machine()},
         "environment": environment(),
         "code": code(),

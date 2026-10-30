@@ -9,13 +9,16 @@ allows:
 
 - ``census``: who makes the synapses onto the KCs, read from the connectome
   (no simulation);
-- ``Representation``: three named changes to the weights of Shiu et al.'s
+- ``Representation``: four named changes to the weights of Shiu et al.'s
   model, each a model assumption with its biological basis in the config:
   the APL -> KC inhibition's gain, a KC spike threshold (applied as a
   scaling of every input onto KCs, which is exactly equivalent because the
-  model resets to its resting potential), and KC -> KC muting (diagnostic);
+  model resets to its resting potential), KC -> KC muting (diagnostic), and
+  the gain on antennal-lobe local neurons' excitatory synapses;
 - ``sweep``: the pre-registered grid on the development odours, and the
-  representation it selects.
+  representation it selects (``mb-representation-v783``: APL gain x KC
+  threshold, smallest change in band; ``mb-representation-al-v783``: local
+  neurons' gain x KC threshold, least A/B overlap in band).
 
 The weights of the connectome itself are never edited: a representation is
 applied to a copy of ``Network.weight`` for one subject.
@@ -40,22 +43,25 @@ from .record import code_watch, environment, sealed, write_json
 from .resources import Meter, machine
 
 SCHEMA = "fly-neural-mb-representation/v1"
+SCHEMA_V2 = "fly-neural-mb-representation/v2"
 
 
 @dataclass(frozen=True)
 class Representation:
-    """Changes to Shiu et al.'s weights for one subject. The identity is (1, 1, 1)."""
+    """Changes to Shiu et al.'s weights for one subject. The identity is all ones."""
 
     apl_gain: float = 1.0
     kc_threshold: float = 1.0
     kc_kc: float = 1.0
+    #: Gain on every excitatory synapse made by an antennal-lobe local neuron (ALLN).
+    al_exc_ln: float = 1.0
 
     @property
     def identity(self) -> bool:
-        return self.apl_gain == 1.0 and self.kc_threshold == 1.0 and self.kc_kc == 1.0
+        return self.apl_gain == 1.0 and self.kc_threshold == 1.0 and self.kc_kc == 1.0 and self.al_exc_ln == 1.0
 
     def label(self) -> str:
-        return f"apl{self.apl_gain:g}-thr{self.kc_threshold:g}-kckc{self.kc_kc:g}"
+        return f"apl{self.apl_gain:g}-thr{self.kc_threshold:g}-kckc{self.kc_kc:g}" + (f"-alln{self.al_exc_ln:g}" if self.al_exc_ln != 1.0 else "")
 
 
 def _labels(c: cx.Connectome) -> tuple[np.ndarray, np.ndarray]:
@@ -87,6 +93,7 @@ class Groups:
             pam=P.resolve("pam_dans", c)[0],
             apl=np.flatnonzero(typ == "APL"),
             pn=np.flatnonzero(cls == "ALPN"),
+            ln=np.flatnonzero(cls == "ALLN"),
             dpm=np.flatnonzero(typ == "DPM"),
             ppl1=np.flatnonzero(np.array([isinstance(t, str) and t.startswith("PPL1") for t in typ])),
             cls=cls,
@@ -94,12 +101,12 @@ class Groups:
             dan_mbon_min_synapses=dan_mbon_min_synapses,
         )
 
-    def __init__(self, c: cx.Connectome, *, kc, mbon, pam, apl, pn, dpm=(), ppl1=(), cls=None, typ=None, dan_mbon_min_synapses: int = 5):
+    def __init__(self, c: cx.Connectome, *, kc, mbon, pam, apl, pn, ln=(), dpm=(), ppl1=(), cls=None, typ=None, dan_mbon_min_synapses: int = 5):
         """Explicit populations (tests build synthetic ones); ``from_annotations`` reads FlyWire's."""
         self.c = c
         as_idx = lambda x: np.sort(np.asarray(x, dtype=np.int64))  # noqa: E731
         self.kc, self.mbon, self.pam, self.apl, self.pn = as_idx(kc), as_idx(mbon), as_idx(pam), as_idx(apl), as_idx(pn)
-        self.dpm, self.ppl1 = as_idx(dpm), as_idx(ppl1)
+        self.dpm, self.ppl1, self.ln = as_idx(dpm), as_idx(ppl1), as_idx(ln)
         self.cls = cls if cls is not None else np.full(c.n, None, dtype=object)
         self.typ = typ if typ is not None else np.full(c.n, None, dtype=object)
         self.is_kc = np.zeros(c.n, dtype=bool)
@@ -108,6 +115,8 @@ class Groups:
         self.is_apl[self.apl] = True
         self.is_pn = np.zeros(c.n, dtype=bool)
         self.is_pn[self.pn] = True
+        self.is_ln = np.zeros(c.n, dtype=bool)
+        self.is_ln[self.ln] = True
         is_mbon = np.zeros(c.n, dtype=bool)
         is_mbon[self.mbon] = True
         # PAM -> MBON reach, as plasticity.Circuit reads it (>= min synapses), and the readout MBONs.
@@ -128,6 +137,7 @@ class Groups:
             "apl": int(self.apl.size),
             "dpm": int(self.dpm.size),
             "projection_neurons_alpn": int(self.pn.size),
+            "antennal_lobe_local_neurons_alln": int(self.ln.size),
             "mbons": int(self.mbon.size),
             "pam_dans": int(self.pam.size),
             "ppl1_dans": int(self.ppl1.size),
@@ -180,6 +190,8 @@ def apply(net: lif.Network, g: Groups, rep: Representation) -> np.ndarray:
         w[onto_kc & g.is_apl[pre]] *= rep.apl_gain
     if rep.kc_kc != 1.0:
         w[onto_kc & g.is_kc[pre]] *= rep.kc_kc
+    if rep.al_exc_ln != 1.0:
+        w[g.is_ln[pre] & (w > 0)] *= rep.al_exc_ln
     return w
 
 
@@ -189,6 +201,7 @@ def odour_trial(net: lif.Network, g: Groups, odour: np.ndarray, rate_hz: float, 
     k = trial.counts[g.kc] > 0
     return {
         "kc_fired": k,
+        "pn_fired": trial.counts[g.pn] > 0,
         "coding_level": float(k.mean()),
         "kc_active": int(k.sum()),
         "readout_spikes": int(trial.counts[g.readout].sum()),
@@ -205,12 +218,20 @@ def measure(c, base: lif.Network, g: Groups, rep: Representation, odours: dict, 
     rng = np.random.default_rng(np.random.SeedSequence([seed, zlib_crc(rep.label())]))
     per = {}
     first = {}
+    first_pn = {}
     for name, idx in odours.items():
         trials = [odour_trial(net, g, idx, cfg["odour_rate_hz"], cfg["trial_ms"], rng) for _ in range(cfg["trials_per_odour"])]
         first[name] = trials[0]["kc_fired"]
+        first_pn[name] = trials[0]["pn_fired"]
         per[name] = {k: [t[k] for t in trials] for k in ("coding_level", "kc_active", "readout_spikes", "pam_spikes", "apl_spikes", "total_spikes", "wall_s")}
+        per[name]["pn_active"] = [int(t["pn_fired"].sum()) for t in trials]
     a, b = first["A"], first["B"]
+    jac = lambda x, y: float((x & y).sum() / max(1, (x | y).sum()))  # noqa: E731
+    extra = {"jaccard_pn_A_B": jac(first_pn["A"], first_pn["B"])}
+    if "Asim" in first:
+        extra |= {"jaccard_A_Asim": jac(first["A"], first["Asim"]), "jaccard_pn_A_Asim": jac(first_pn["A"], first_pn["Asim"])}
     return {
+        **extra,
         "representation": asdict(rep),
         "label": rep.label(),
         "odours": per,
@@ -243,9 +264,19 @@ def select(points: list[dict], cfg: dict) -> dict | None:
     return min(ok, key=key)
 
 
+def select_v2(points: list[dict], cfg: dict) -> dict | None:
+    """The in-band point whose A and B share the fewest KCs; ties (to 3 decimals) to the larger ALLN gain, then the smaller threshold."""
+    ok = [p for p in points if qualifies(p, cfg)]
+    if not ok:
+        return None
+    return min(ok, key=lambda p: (round(p["jaccard_A_B"], 3), -p["representation"]["al_exc_ln"], p["representation"]["kc_threshold"]))
+
+
 def sweep(cfg_path: Path, compiled: Path, out_dir: Path, log=print) -> dict:
     code = code_watch(out_dir)
     cfg = json.loads(Path(cfg_path).read_text(encoding="utf-8"))
+    if cfg.get("schema") == SCHEMA_V2:
+        return sweep_v2(cfg_path, cfg, compiled, out_dir, code, log)
     if cfg.get("schema") != SCHEMA:
         raise ValueError(f"{cfg_path} is not a {SCHEMA} file")
     config_sha256 = hashlib.sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
@@ -282,6 +313,44 @@ def sweep(cfg_path: Path, compiled: Path, out_dir: Path, log=print) -> dict:
         "census": cen,
         "points": points,
         "qualifying": [p["label"] for p in points if p["representation"]["kc_kc"] == 1 and qualifies(p, cfg)],
+        "selected": None if chosen is None else {"label": chosen["label"], "representation": chosen["representation"]},
+        "resources": {**meter.describe(), "machine": machine()},
+        "environment": environment(),
+        "code": code(),
+    }
+    data = sealed(body)
+    write_json(out_dir / f"{cfg['id']}.json", data)
+    log(f"wrote {out_dir / (cfg['id'] + '.json')}: selected {body['selected']}")
+    return data
+
+
+def sweep_v2(cfg_path: Path, cfg: dict, compiled: Path, out_dir: Path, code, log=print) -> dict:
+    """``experiments/mb-representation-al-v783.json``: ALLN excitatory gain x KC threshold, selected by overlap."""
+    config_sha256 = hashlib.sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+    c = cx.load(compiled)
+    base = lif.Network(c)
+    g = Groups.from_annotations(c)
+    odours = {k: g.odour(v) for k, v in cfg["odours"].items() if k in ("A", "B", "Asim")}
+    fam = cfg["families"]
+    grid = [Representation(kc_threshold=float(k), al_exc_ln=float(x)) for x in fam["al_exc_ln"]["values"] for k in fam["kc_threshold"]["values"]]
+    points = []
+    with Meter() as meter:
+        for rep in grid:
+            m = measure(c, base, g, rep, odours, cfg, int(cfg["seed"]))
+            points.append(m)
+            log(f"  {rep.label()}: coding {m['mean_coding_level']}, jaccard KC {m['jaccard_A_B']:.3f} PN {m['jaccard_pn_A_B']:.3f} A-Asim {m.get('jaccard_A_Asim', float('nan')):.3f}, readout {m['mean_readout_spikes']}")
+        chosen = select_v2(points, cfg)
+    body = {
+        "schema": RESULT_SCHEMA,
+        "kind": "mb-representation",
+        "experiment": cfg["id"],
+        "config_file": Path(cfg_path).name,
+        "config_sha256": config_sha256,
+        "connectome": {"path_name": Path(compiled).name, "manifest_sha256": c.manifest.get("sha256")},
+        "groups": g.describe(),
+        "odour_neurons": {k: int(v.size) for k, v in odours.items()},
+        "points": points,
+        "qualifying": [p["label"] for p in points if qualifies(p, cfg)],
         "selected": None if chosen is None else {"label": chosen["label"], "representation": chosen["representation"]},
         "resources": {**meter.describe(), "machine": machine()},
         "environment": environment(),

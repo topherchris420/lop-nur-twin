@@ -188,3 +188,82 @@ def test_indices_and_judge():
     assert v["passed"] and v["sign_test_p"] < 0.004
     v = selective.judge({"id": "L2", "claim": "", "test": "mw_less", "a": "x", "b": "y", "field": "li", "alpha": 0.01}, arms)
     assert v["passed"]
+
+
+def test_odour_rates_match_total_drive_and_cap():
+    class G:
+        @staticmethod
+        def odour(names):
+            return np.arange(sum({"x": 100, "y": 50, "z": 10}[n] for n in names))
+
+    cfg = {"protocol": {"odour_rate_hz": 80.0, "odour_drive": "matched_total", "odour_rate_cap_hz": 200.0}, "odours": {"dev": {"A": ["x"]}}}
+    odours = {k: G.odour(v) for k, v in {"A": ["x"], "B": ["y"], "C": ["z"]}.items()}
+    assert selective.odour_rates(cfg, G, odours) == {"A": 80.0, "B": 160.0, "C": 200.0}
+    cfg["protocol"].pop("odour_drive")
+    assert set(selective.odour_rates(cfg, G, odours).values()) == {80.0}
+
+
+def test_run_subject_runs_every_arm_kind_on_a_small_circuit():
+    c, net, g = _mb()
+    cfg = {
+        "protocol": {
+            "odour_rate_hz": 100.0,
+            "reward_rate_hz": 100.0,
+            "test_trial_ms": 100.0,
+            "schedules": {
+                "standard": {"phases": "standard", "trial_ms": 100.0, "odour_ms": None, "reward_ms": None},
+                "trace": {"phases": "trace", "trial_ms": 200.0, "odour_ms": [0.0, 80.0], "reward_ms": [120.0, 200.0]},
+            },
+        },
+        "schedules": {
+            "standard": [
+                {"name": "pre", "plastic": False, "repeat": 2, "block": ["A", "B"]},
+                {"name": "acq", "plastic": True, "repeat": 4, "block": ["A+", "B"]},
+                {"name": "test1", "plastic": False, "repeat": 2, "block": ["A", "B"]},
+                {"name": "ext", "plastic": True, "repeat": 4, "block": ["A"]},
+                {"name": "test3", "plastic": False, "repeat": 2, "block": ["A", "B"]},
+            ],
+            "trace": [
+                {"name": "pre", "plastic": False, "repeat": 1, "block": ["A", "B"]},
+                {"name": "acq", "plastic": True, "repeat": 3, "block": ["A+", "B"]},
+                {"name": "test1", "plastic": False, "repeat": 1, "block": ["A", "B"]},
+            ],
+        },
+        "pretest_phase": "pre",
+        "acquisition_phase": "acq",
+        "rule_v1": {"eta": 0.3, "e_sat": 3, "D_sat": 20},
+        "rule_v2": {"constants": CONST},
+        "indices": {"li_acq": {"terms": [[1, "test1", "A"], [-1, "test1", "B"]]}, "recovery": {"terms": [[1, "test3", "A"], [-1, "test1", "A"]]}},
+    }
+    arms = {
+        "fixed": {"rule": "none"},
+        "v1": {"rule": "v1"},
+        "v2": {"rule": "v2"},
+        "silenced": {"rule": "v2", "silence_dans": True},
+        "shuffled": {"rule": "v2", "reward": "shuffled"},
+        "rewired": {"rule": "v2", "wiring": "pn-kc-shuffle"},
+        "trace": {"rule": "v2", "schedule": "trace"},
+        "no-trace": {"rule": "v2", "schedule": "trace", "rule_v2_override": {"tau_e_s": 0.001}},
+    }
+    out = {}
+    for name, arm in arms.items():
+        before = net.weight.copy()
+        out[name] = selective.run_subject(c, net, g, cfg, arm, mbcode.Representation(), 20.0, ODOUR, np.random.SeedSequence([1, 2]))
+        assert np.array_equal(net.weight, before), "a subject must work on its own copy of the weights"
+    assert out["fixed"]["updates"]["depressed"]["max"] == 0 and out["silenced"]["updates"]["depressed"]["max"] == 0
+    assert out["v2"]["indices"]["li_acq"] < -0.2 and out["v2"]["indices"]["recovery"] > 0
+    assert out["v1"]["indices"]["recovery"] <= 0.05  # v1 only depresses: nothing to recover
+    assert out["trace"]["indices"]["recovery"] is None and out["trace"]["indices"]["li_acq"] is not None
+    assert out["rewired"]["wiring"]["pn_kc_pairs_permuted"] == 4
+
+
+def test_alln_gain_scales_only_excitatory_local_neuron_synapses():
+    c, net, _ = _mb()
+    # Treat input 8 (excitatory) and the APL 10 (inhibitory) as local neurons.
+    g = mbcode.Groups(c, kc=KC, mbon=MBON, pam=PAM, apl=APL, pn=PN, ln=[8, 10])
+    pre = np.repeat(np.arange(net.n), np.diff(net.indptr))
+    w = mbcode.apply(net, g, mbcode.Representation(al_exc_ln=0.5))
+    assert np.allclose(w[pre == 8], net.weight[pre == 8] / 2)
+    assert np.array_equal(w[pre != 8], net.weight[pre != 8])
+    assert mbcode.Representation(al_exc_ln=0.5).label() == "apl1-thr1-kckc1-alln0.5"
+    assert mbcode.Representation().label() == "apl1-thr1-kckc1" and mbcode.Representation().identity
