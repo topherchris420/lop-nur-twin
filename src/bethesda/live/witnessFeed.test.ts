@@ -5,6 +5,7 @@ import {
   addSample,
   followWitness,
   presentPose,
+  SILENT_AFTER_MS,
   span,
   type Feed,
   type Sample,
@@ -125,6 +126,104 @@ describe("following the witness", () => {
     stop();
     expect(FakeSource.made[1]!.closed).toBe(true);
   });
+
+  it("recovers a silent connection even before its first observation", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("EventSource", FakeSource);
+    const feeds: Feed[] = [];
+    const stop = followWitness((f) => feeds.push(f), { retryMs: 1000 });
+    vi.advanceTimersByTime(SILENT_AFTER_MS);
+    expect(FakeSource.made[0]!.closed).toBe(true);
+    expect(feeds.at(-1)).toMatchObject({ kind: "lost", last: null });
+    vi.advanceTimersByTime(1000);
+    expect(FakeSource.made).toHaveLength(2);
+    stop();
+  });
+
+  it("resets the silence deadline on messages and retains the last witness on loss", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("EventSource", FakeSource);
+    const feeds: Feed[] = [];
+    const stop = followWitness((f) => feeds.push(f), { retryMs: 1000 });
+    const s = FakeSource.made[0]!;
+    const data = JSON.stringify(witness(base, Date.parse(base.observedUtc)));
+    for (let i = 0; i < 3; i++) {
+      vi.advanceTimersByTime(SILENT_AFTER_MS - 1);
+      s.onmessage!({ data });
+      expect(s.closed).toBe(false);
+    }
+    vi.advanceTimersByTime(SILENT_AFTER_MS);
+    expect(feeds.at(-1)).toMatchObject({
+      kind: "lost",
+      last: { observation: { individual: base.individual } },
+    });
+    vi.advanceTimersByTime(1000);
+    FakeSource.made[1]!.onmessage!({ data });
+    expect(feeds.at(-1)).toMatchObject({ kind: "witness" });
+    stop();
+  });
+
+  it("leaves transient reconnection to the browser while messages resume", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("EventSource", FakeSource);
+    const stop = followWitness(() => {}, { retryMs: 1000 });
+    const s = FakeSource.made[0]!;
+    s.readyState = 0;
+    s.onerror!();
+    vi.advanceTimersByTime(1000);
+    expect(FakeSource.made).toHaveLength(1);
+    expect(s.closed).toBe(false);
+    s.onmessage!({ data: JSON.stringify(witness(base, Date.parse(base.observedUtc))) });
+    stop();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("schedules only one retry and ignores callbacks from a replaced connection", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("EventSource", FakeSource);
+    const feeds: Feed[] = [];
+    const stop = followWitness((f) => feeds.push(f), { retryMs: 1000 });
+    const s = FakeSource.made[0]!;
+    const error = s.onerror!;
+    const message = s.onmessage!;
+    s.readyState = FakeSource.CLOSED;
+    error();
+    error();
+    vi.advanceTimersByTime(1000);
+    expect(FakeSource.made).toHaveLength(2);
+    const count = feeds.length;
+    error();
+    message({ data: JSON.stringify(witness(base, Date.parse(base.observedUtc))) });
+    expect(feeds).toHaveLength(count);
+    expect(FakeSource.made[1]!.closed).toBe(false);
+    stop();
+  });
+
+  it.each([false, true])(
+    "stops callbacks and timers with a pending retry: %s",
+    (pending) => {
+      vi.useFakeTimers();
+      vi.stubGlobal("EventSource", FakeSource);
+      const feeds: Feed[] = [];
+      const stop = followWitness((f) => feeds.push(f), { retryMs: 1000 });
+      const s = FakeSource.made[0]!;
+      const message = s.onmessage!;
+      const error = s.onerror!;
+      if (pending) {
+        s.readyState = FakeSource.CLOSED;
+        error();
+      }
+      stop();
+      const count = feeds.length;
+      message({ data: JSON.stringify(witness(base, Date.parse(base.observedUtc))) });
+      error();
+      vi.advanceTimersByTime(30_000);
+      expect(feeds).toHaveLength(count);
+      expect(FakeSource.made).toHaveLength(1);
+      expect(s.closed).toBe(true);
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
 });
 
 describe("spans", () => {

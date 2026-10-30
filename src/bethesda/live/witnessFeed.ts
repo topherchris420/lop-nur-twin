@@ -87,7 +87,8 @@ export type Feed =
 /**
  * Follows the witness stream, calling `onFeed` with every witness and every
  * loss. The browser retries a dropped stream itself; one it refuses (a 429, a
- * proxy error) is opened again after `retryMs`. Returns a function that stops.
+ * proxy error), or one silent for `SILENT_AFTER_MS`, is closed and reopened
+ * after `retryMs`. Returns a function that stops all callbacks and retries.
  */
 export function followWitness(
   onFeed: (feed: Feed) => void,
@@ -95,28 +96,64 @@ export function followWitness(
 ): () => void {
   let source: EventSource | null = null,
     retry: ReturnType<typeof setTimeout> | undefined,
+    silence: ReturnType<typeof setTimeout> | undefined,
     last: Witness | null = null,
     stopped = false;
+  const disconnect = () => {
+    clearTimeout(silence);
+    if (source) {
+      source.onmessage = null;
+      source.onerror = null;
+      source.close();
+      source = null;
+    }
+  };
+  const reconnect = () => {
+    disconnect();
+    if (!stopped && retry === undefined)
+      retry = setTimeout(() => {
+        retry = undefined;
+        open();
+      }, retryMs);
+  };
+  const watchSilence = () => {
+    clearTimeout(silence);
+    silence = setTimeout(() => {
+      if (stopped) return;
+      reconnect();
+      onFeed({
+        kind: "lost",
+        reason: "the observer stopped sending observations; retrying",
+        last,
+      });
+    }, SILENT_AFTER_MS);
+  };
   const open = () => {
-    source = new EventSource(`${origin}/v1/stream`);
-    source.onmessage = (e: MessageEvent<string>) => {
+    if (stopped) return;
+    const current = new EventSource(`${origin}/v1/stream`);
+    source = current;
+    watchSilence();
+    current.onmessage = (e: MessageEvent<string>) => {
+      if (stopped || source !== current) return;
+      watchSilence();
+      let parsed: Witness;
       try {
-        last = parseWitness(JSON.parse(e.data));
-        onFeed({ kind: "witness", witness: last, at: now() });
+        parsed = parseWitness(JSON.parse(e.data));
       } catch (err) {
         onFeed({
           kind: "lost",
           reason: `the observer sent a witness this page cannot read (${err instanceof Error ? err.message : String(err)})`,
           last: null,
         });
+        return;
       }
+      last = parsed;
+      onFeed({ kind: "witness", witness: parsed, at: now() });
     };
-    source.onerror = () => {
+    current.onerror = () => {
+      if (stopped || source !== current) return;
+      if (current.readyState === EventSource.CLOSED) reconnect();
       onFeed({ kind: "lost", reason: "the observer cannot be reached; retrying", last });
-      if (source?.readyState === EventSource.CLOSED && !stopped) {
-        source.close();
-        retry = setTimeout(open, retryMs);
-      }
     };
   };
   onFeed({ kind: "connecting" });
@@ -124,7 +161,7 @@ export function followWitness(
   return () => {
     stopped = true;
     clearTimeout(retry);
-    source?.close();
+    disconnect();
   };
 }
 
