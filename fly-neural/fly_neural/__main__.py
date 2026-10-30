@@ -16,6 +16,8 @@ from pathlib import Path
 from .record import REPO
 
 RESULTS = REPO / "docs" / "benchmarks" / "fly-neural"
+# The adaptive-intelligence results (docs/ECHO_ADAPTIVE_INTELLIGENCE.md), kept apart from the sealed originals.
+ADAPTIVE = RESULTS / "adaptive"
 WORK = REPO / ".fly-neural"
 
 
@@ -160,6 +162,21 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_reproduce(args) -> int:
+    from .reproduce import run
+
+    data = run(
+        RESULTS,
+        WORK,
+        compiled_dir(args.connectome),
+        Path(args.out or ADAPTIVE),
+        tuple(args.scenario or ("looms", "food")),
+        tuple(args.plasticity_arm or ("rule", "fixed")),
+        args.plasticity_subjects,
+    )
+    return 0 if data["identical"] else 3
+
+
 def cmd_serve(args) -> int:
     from .shadow import serve
 
@@ -222,6 +239,13 @@ def main(argv: list[str] | None = None) -> int:
     w = sub.add_parser("report", help="write the results README and figure from the sealed results")
     w.add_argument("--out", help=f"results directory (default {RESULTS})")
     w.set_defaults(fn=cmd_report)
+    rp = sub.add_parser("reproduce", help="re-run the sealed baselines (shadow replays, plasticity dev subjects) and require identical numbers")
+    rp.add_argument("--scenario", action="append", choices=["looms", "food", "wind"], help="replay to repeat; repeatable (default looms, food)")
+    rp.add_argument("--plasticity-arm", action="append", help="plasticity arm to repeat; repeatable (default rule, fixed)")
+    rp.add_argument("--plasticity-subjects", type=int, default=2)
+    rp.add_argument("--connectome", default="fafb-v783-shiu")
+    rp.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    rp.set_defaults(fn=cmd_reproduce)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)
