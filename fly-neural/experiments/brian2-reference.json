@@ -1,0 +1,17 @@
+{
+ "schema": "fly-neural-reference/v1",
+ "id": "brian2-reference",
+ "title": "fly_neural.lif against Shiu et al.'s unmodified model.py under Brian 2, on the full v783 brain",
+ "preregistration": "Written after one Brian 2 probe trial (MN9 53 Hz, 345 neurons fired) and before any comparison of the 30-trial runs. The two simulators share the model and the stimulus, not the random stream, so agreement can only be statistical.",
+ "reference": {
+  "command": "reference/shiu_brian2.py trials --exc <the 21 published sugar ids> --rate 100 --trials 30 --seed 20000",
+  "file": "brian2-sugar100-30.json",
+  "connectome": "Shiu et al.'s Completeness_783.csv and Connectivity_783.parquet (sign policy shiu)"
+ },
+ "engine": {"connectome": "fafb-v783-shiu", "population": "sugar_shiu", "rate_hz": 100.0, "duration_ms": 1000.0, "trials": 30, "seed": 5100001},
+ "criteria": [
+  {"id": "R1", "claim": "MN9's rate is the same in both simulators", "test": "mn9_same", "alpha": 0.01, "threshold_note": "two-sided Mann-Whitney p >= 0.01 AND |mean difference| <= 3 standard errors of the difference (ours)"},
+  {"id": "R2", "claim": "Every neuron's mean rate agrees", "test": "rate_correlation", "min_r": 0.95, "threshold_note": "Pearson r over the neurons that fired in either run, stimulated neurons excluded (ours)"},
+  {"id": "R3", "claim": "The same neurons respond", "test": "responder_jaccard", "min_hz": 1.0, "min_jaccard": 0.8, "threshold_note": "Jaccard index of the neurons at >= 1 Hz mean in each run, stimulated neurons excluded (ours; rarer responders are dominated by sampling noise)"}
+ ]
+}
