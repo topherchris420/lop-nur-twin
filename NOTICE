@@ -165,3 +165,26 @@ https://doi.org/10.7554/eLife.37815
 No authors' source code, figures, trajectories or datasets are included.
 Motor integration and ECHO odor normalization are separately identified model
 choices. This is a behavioral filter implementation, not a neuron reconstruction.
+
+Connectome research backend (fly-neural/)
+-----------------------------------------
+No FlyWire data are included in this repository. `python -m fly_neural
+acquire` downloads FlyWire's public release v783 (Zenodo 10676866), the
+flyconnectome/flywire_annotations v3.2.0 table and four files of
+philshiu/Drosophila_brain_model (commit 91bdd1e) into a local cache, only on
+the user's explicit acceptance of their terms, and verifies each by SHA-256
+(`fly-neural/fly_neural/sources.py`). FlyWire data are CC BY-NC 4.0
+(https://flywire.ai/guidelines): cite Dorkenwald S, et al. Nature 634,
+124-138 (2024), https://doi.org/10.1038/s41586-024-07558-y, and Schlegel P,
+et al. Nature 634, 139-152 (2024), https://doi.org/10.1038/s41586-024-07686-5.
+The model is that of Shiu P, et al. A Drosophila computational brain model
+reveals sensorimotor processing. Nature 634, 210-219 (2024),
+https://doi.org/10.1038/s41586-024-07763-9; their code is MIT-licensed and is
+not copied: `fly-neural/fly_neural/lif.py` is an independent implementation
+of the equations and parameters the paper states, and their `model.py` is run
+unmodified from the cache as a reference. `fly-neural/fly_neural/populations.py`
+lists neuron root ids that Shiu et al.'s `figures.ipynb` names (MIT).
+`fly-neural/tests/data/brian2_conformance.json` is Brian 2's output for that
+`model.py` on synthetic networks and contains no FlyWire data. The results in
+`docs/benchmarks/fly-neural/` are model outputs derived from FlyWire data and
+carry its terms (`docs/benchmarks/fly-neural/LICENSE.md`).

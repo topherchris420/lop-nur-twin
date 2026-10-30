@@ -1,0 +1,20 @@
+# The connectome backend's environment, pinned exactly as it was built and run
+# (Python 3.11.9, Windows ARM64, all native wheels). Install with
+#   python -m venv .venv && .venv/bin/pip install -r requirements.txt -e .
+# scipy is used only by the tests (a cross-check of the statistics); pandas is
+# not imported here. The package itself needs numpy, polars and psutil.
+colorama==0.4.6
+iniconfig==2.3.1
+numpy==2.4.6
+packaging==26.3
+pandas==3.1.0
+pluggy==1.7.0
+polars==2.1.0
+polars-runtime-32==2.1.0
+psutil==7.2.2
+Pygments==2.21.0
+pytest==9.2.0
+python-dateutil==3.0.0
+scipy==1.17.1
+six==1.17.0
+tzdata==2026.6

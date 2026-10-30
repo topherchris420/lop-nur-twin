@@ -292,6 +292,24 @@ is deployed separately from this repository.
 
 </details>
 
+### Computational Neural Research: the connectome backend
+
+[`fly-neural/`](fly-neural/README.md) is a separate research backend, not
+part of the deployed fly. It runs Shiu et al. 2024's leaky
+integrate-and-fire model of the whole adult central brain on FlyWire's
+public connectome, release v783. It never reads, writes or controls the
+shared individual, and nothing in `src/` or `deploy/` uses it.
+
+| Done and measured                                                                                                                                                                                    | Not done                                                                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Import and checks of all of v783: **139,255 neurons, 15,091,983 pairs, 54,492,922 synapses**, downloaded only on acceptance of FlyWire's terms, never committed                                      | No neural controller for the shared fly, and none is planned without separate authorization                                                                                                |
+| The whole brain simulated, matching Brian 2 running the authors' own code (spike for spike on test networks; MN9 62.1 vs 62.5 Hz, per-neuron r = 0.9998 on the full brain)                           | No neuromodulation, gap junctions, morphology or ventral nerve cord: a two-sign spiking model, not the fly's nervous system                                                                |
+| Shiu et al. 2024 reproduced on v783 with pre-registered criteria: **10 of 12 pass on dev and held-out seeds**; water input (S6) and our sign-shuffle control (C3) fail on both, reported as failures | No GPU or cloud compute: one CPU thread                                                                                                                                                    |
+| ECHO Neural Shadow replays of three research flies (never the shared one) through the full brain: wind null, food partial (28%), looms negative (194 false escapes)                                  | No working learning on the connectome: a dopamine-gated rule depresses synapses for both odours alike (negative result); `neural-experimental` mode is tested only with a stand-in readout |
+
+[Methods, results and limits](docs/ECHO_CONNECTOME.md) ·
+[Generated results](docs/benchmarks/fly-neural/README.md)
+
 ### A Life Three Millimeters Long
 
 <details>
@@ -390,16 +408,18 @@ Registered demonstrations, exploratory seeded studies, and model-assisted runs
 are distinguished below; none establishes a claim about a living organism or
 historical society.
 
-| Study and design                                                                                                                       | Recorded finding                                                                                                              | Interpretation                                                                           |
-| -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| **[ECHO-01](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstration                                                        | Path error after a hidden impairment: **0.073 with the self-model vs. 0.370 without**, across nine paired seeds.              | **Supported** under frozen criteria; compensation within a reduced-order simulator.      |
-| **[ECHO-02](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstration                                                        | Hidden-change attribution accuracy: **0.919 vs. 0.537** for a simpler rule.                                                   | **Supported**; held-out calibration remains imperfect.                                   |
-| **[ECHO-03–05](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstrations                                                    | Memory, workspace, and second-look effects did not clear their prespecified thresholds.                                       | **Inconclusive**; the archive preserves the under-powered designs and negative findings. |
-| **[Individual history](docs/benchmarks/fly-individuality/README.md)** · seeded study                                                   | Restored and replayed controller states matched the originals byte for byte in **24/24** individuals.                         | Recorded events reproduced learned place preferences in this simulator.                  |
-| **[Changing food locations](docs/INDIVIDUAL_CONTINUITY.md#study-b-open-ended-adaptation)** · seeded study                              | Memory-bearing flies ate **1.2 fewer meals per life** than matched memory-lesioned runs.                                      | Memory hindered adaptation here; accumulating improvement was not demonstrated.          |
-| **[Mushroom-body learning](docs/benchmarks/fly-mushroom-body/README.md)** · study designed after a pilot                               | Prior feeding changed return flights to an emptied site; the moving-food condition showed no change.                          | The learning circuit affected behavior where the fly encountered the omitted reward.     |
-| **[Live Gemma experiment](docs/rea-research/evaluations/gemma-live/README.md)** · operator-approved model-assisted run                 | A two-arm oscillator experiment replayed and entered the registry as **inconclusive**.                                        | Reproducibility did not overcome failed analytic accuracy guards.                        |
-| **[Noeterra memory](docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/report.md)** · scripted design and authorization | Withholding memory of past treatment reduced mean wars declared from **6.50 to 2.83**, over 40 seasons and six matched seeds. | A result about rule-based simulator agents, not historical societies.                    |
+| Study and design                                                                                                                                      | Recorded finding                                                                                                                          | Interpretation                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **[ECHO-01](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstration                                                                       | Path error after a hidden impairment: **0.073 with the self-model vs. 0.370 without**, across nine paired seeds.                          | **Supported** under frozen criteria; compensation within a reduced-order simulator.                    |
+| **[ECHO-02](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstration                                                                       | Hidden-change attribution accuracy: **0.919 vs. 0.537** for a simpler rule.                                                               | **Supported**; held-out calibration remains imperfect.                                                 |
+| **[ECHO-03–05](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstrations                                                                   | Memory, workspace, and second-look effects did not clear their prespecified thresholds.                                                   | **Inconclusive**; the archive preserves the under-powered designs and negative findings.               |
+| **[Individual history](docs/benchmarks/fly-individuality/README.md)** · seeded study                                                                  | Restored and replayed controller states matched the originals byte for byte in **24/24** individuals.                                     | Recorded events reproduced learned place preferences in this simulator.                                |
+| **[Changing food locations](docs/INDIVIDUAL_CONTINUITY.md#study-b-open-ended-adaptation)** · seeded study                                             | Memory-bearing flies ate **1.2 fewer meals per life** than matched memory-lesioned runs.                                                  | Memory hindered adaptation here; accumulating improvement was not demonstrated.                        |
+| **[Mushroom-body learning](docs/benchmarks/fly-mushroom-body/README.md)** · study designed after a pilot                                              | Prior feeding changed return flights to an emptied site; the moving-food condition showed no change.                                      | The learning circuit affected behavior where the fly encountered the omitted reward.                   |
+| **[Shiu et al. 2024 on FlyWire v783](docs/ECHO_CONNECTOME.md#reproducing-shiu-et-al-2024-on-v783)** · registered reproduction, dev and held-out seeds | **10 of 12** criteria pass on both seed sets; water drives MN9 to 30.3 Hz (the paper: 40), and permuting signs causes runaway excitation. | Most of the published predictions hold in this model of the connectome; the two failures are recorded. |
+| **[Connectome plasticity](docs/ECHO_CONNECTOME.md#plasticity-a-dopamine-gated-rule-on-the-connectome-against-controls)** · registered comparison      | A dopamine-gated rule depresses KC-to-MBON synapses for the paired and unpaired odour alike; learning index near 0.                       | **Negative**: no odour-specific learning under this rule and model.                                    |
+| **[Live Gemma experiment](docs/rea-research/evaluations/gemma-live/README.md)** · operator-approved model-assisted run                                | A two-arm oscillator experiment replayed and entered the registry as **inconclusive**.                                                    | Reproducibility did not overcome failed analytic accuracy guards.                                      |
+| **[Noeterra memory](docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/report.md)** · scripted design and authorization                | Withholding memory of past treatment reduced mean wars declared from **6.50 to 2.83**, over 40 seasons and six matched seeds.             | A result about rule-based simulator agents, not historical societies.                                  |
 
 Start with a report, inspect its producing revision and comparison, then use the
 [verification commands](#validation) appropriate to that archive. Replay checks
@@ -525,16 +545,16 @@ endpoints run server-side. Noeterra's core is **Rust / WebAssembly**; persistent
 Bethesda life runs headlessly, while Eva's garden uses its separate Python
 service. [System architecture](docs/SYSTEM_ARCHITECTURE.md).
 
-| I want to…                           | Start here                                                                                                                                                                                                     |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Understand the fly                   | [Digital fly](docs/DIGITAL_FLY.md), [ECHO](docs/PROJECT_ECHO.md), [organism continuation](docs/ECHO_ORGANISM_CONTINUATION.md), [development priorities](docs/FLY_PRIORITIES.md)                                |
-| Operate or observe a persistent life | [Continuous Bethesda](docs/BETHESDA_CONTINUOUS_LIFE.md), [clay garden](docs/LIVE_GARDEN.md)                                                                                                                    |
-| Assess the reconstruction            | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [uncertainty](docs/UNCERTAINTY_MODEL.md), [white paper](docs/WHITE_PAPER.md)                                                          |
-| Inspect time, space, or revisions    | [Temporal model](docs/TEMPORAL_MODEL.md), [spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md)                                                                           |
-| Navigate the worlds                  | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md), [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md) |
-| Run research                         | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                         |
-| Study research across runs           | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                           |
-| Evaluate a deployment                | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md)  |
+| I want to…                           | Start here                                                                                                                                                                                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Understand the fly                   | [Digital fly](docs/DIGITAL_FLY.md), [ECHO](docs/PROJECT_ECHO.md), [organism continuation](docs/ECHO_ORGANISM_CONTINUATION.md), [development priorities](docs/FLY_PRIORITIES.md), [connectome backend](docs/ECHO_CONNECTOME.md) |
+| Operate or observe a persistent life | [Continuous Bethesda](docs/BETHESDA_CONTINUOUS_LIFE.md), [clay garden](docs/LIVE_GARDEN.md)                                                                                                                                    |
+| Assess the reconstruction            | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [uncertainty](docs/UNCERTAINTY_MODEL.md), [white paper](docs/WHITE_PAPER.md)                                                                          |
+| Inspect time, space, or revisions    | [Temporal model](docs/TEMPORAL_MODEL.md), [spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md)                                                                                           |
+| Navigate the worlds                  | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md), [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md)                 |
+| Run research                         | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                         |
+| Study research across runs           | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                                           |
+| Evaluate a deployment                | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md)                  |
 
 <details>
 <summary>Repository map</summary>
@@ -549,6 +569,7 @@ service. [System architecture](docs/SYSTEM_ARCHITECTURE.md).
 | `src/game/`                      | Blacksite, player controls, model seats, and evaluation.                    |
 | `src/noeterra/`, `noeterra/`     | Civilization interface, Rust engine, scenarios, and workbench.              |
 | `fly-physics/`                   | Separate MuJoCo locomotion evaluation; does not drive the browser fly.      |
+| `fly-neural/`                    | Separate FlyWire connectome research backend; drives no fly.                |
 | `server/`, `api/`                | Server-side research and decision endpoints.                                |
 | `scripts/`, `tools/`             | Importers, validators, research commands, and browser checks.               |
 | `model-history/`, `docs/`        | Release records, guides, source investigations, and experiments.            |
@@ -600,3 +621,6 @@ for sources and attribution. Bundled Bethesda geography has
 [`geography.source.json`](noeterra/data/geography.source.json). FlyBody-derived
 anatomy and Virtual Fly Brain reference material retain the licenses and limits
 in the [digital-fly source register](docs/DIGITAL_FLY.md#sources-and-licences).
+FlyWire connectome data used by `fly-neural/` is downloaded on acceptance of
+its terms and never committed; the results derived from it carry FlyWire's
+terms ([details](docs/benchmarks/fly-neural/LICENSE.md)).

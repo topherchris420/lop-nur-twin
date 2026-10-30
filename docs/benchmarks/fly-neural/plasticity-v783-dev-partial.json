@@ -1,0 +1,783 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "plasticity",
+ "experiment": "plasticity-v783",
+ "config_file": "plasticity-v783.json",
+ "config_sha256": "3c20819a428add3d3780a51a6c18c0ad4168b62fd16aa7c483db0f0a8eb6ae17",
+ "split": "dev",
+ "subjects": 2,
+ "resumed_subjects": [],
+ "partial": true,
+ "connectome": {
+  "path_name": "fafb-v783-shiu",
+  "manifest_sha256": "c5dd83b8bd01cc8ce11cdb235c0d7d76e380c4925bc60708d7904609bdff98dd"
+ },
+ "circuit": {
+  "kenyon_cells": 5177,
+  "mbons": 96,
+  "pam_dans": 307,
+  "kc_mbon_synapse_pairs": 62261,
+  "pam_innervated_mbons": 34,
+  "pam_mbon_links": 630
+ },
+ "odour_neurons": {
+  "A": 222,
+  "B": 218
+ },
+ "arms": {
+  "rule": {
+   "arm": {
+    "name": "rule",
+    "plastic": true,
+    "silence_dans": false,
+    "wiring": "connectome"
+   },
+   "subjects": [
+    {
+     "before": {
+      "A": [
+       1857,
+       1854,
+       1859
+      ],
+      "B": [
+       1832,
+       1835,
+       1830
+      ]
+     },
+     "after": {
+      "A": [
+       398,
+       394,
+       407
+      ],
+      "B": [
+       393,
+       397,
+       397
+      ]
+     },
+     "li": -0.0006756419120728385,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 3492.4,
+      "sd": 74.01664108762796,
+      "median": 3489.0,
+      "min": 3378.0,
+      "max": 3580.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.9547639242295731,
+     "synapses_depressed_per_update": {
+      "n": 20,
+      "mean": 20347.35,
+      "sd": 1493.358992867739,
+      "median": 20323.5,
+      "min": 18629.0,
+      "max": 21901.0
+     }
+    },
+    {
+     "before": {
+      "A": [
+       1855,
+       1853,
+       1855
+      ],
+      "B": [
+       1839,
+       1833,
+       1827
+      ]
+     },
+     "after": {
+      "A": [
+       407,
+       395,
+       402
+      ],
+      "B": [
+       398,
+       396,
+       391
+      ]
+     },
+     "li": 0.0009362576896549402,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 3495.0,
+      "sd": 72.4161947575119,
+      "median": 3491.5,
+      "min": 3387.0,
+      "max": 3582.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.9581329561527582,
+     "synapses_depressed_per_update": {
+      "n": 20,
+      "mean": 20364.6,
+      "sd": 1487.0449467599192,
+      "median": 20338.5,
+      "min": 18681.0,
+      "max": 21931.0
+     }
+    }
+   ],
+   "li": {
+    "n": 2,
+    "mean": 0.00013030788879105082,
+    "sd": 0.0011397851389736075,
+    "median": 0.00013030788879105082,
+    "min": -0.0006756419120728385,
+    "max": 0.0009362576896549402
+   }
+  },
+  "fixed": {
+   "arm": {
+    "name": "fixed",
+    "plastic": false,
+    "silence_dans": false,
+    "wiring": "connectome"
+   },
+   "subjects": [
+    {
+     "before": {
+      "A": [
+       1857,
+       1854,
+       1859
+      ],
+      "B": [
+       1832,
+       1835,
+       1830
+      ]
+     },
+     "after": {
+      "A": [
+       1857,
+       1847,
+       1855
+      ],
+      "B": [
+       1833,
+       1841,
+       1843
+      ]
+     },
+     "li": -0.005613213540011652,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 3449.2,
+      "sd": 91.12201189960403,
+      "median": 3445.5,
+      "min": 3341.0,
+      "max": 3547.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.9493778280542986,
+     "synapses_depressed_per_update": null
+    },
+    {
+     "before": {
+      "A": [
+       1855,
+       1853,
+       1855
+      ],
+      "B": [
+       1839,
+       1833,
+       1827
+      ]
+     },
+     "after": {
+      "A": [
+       1855,
+       1855,
+       1862
+      ],
+      "B": [
+       1840,
+       1830,
+       1817
+      ]
+     },
+     "li": 0.003800047053151734,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 3448.9,
+      "sd": 86.29746596267441,
+      "median": 3456.0,
+      "min": 3350.0,
+      "max": 3536.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.9536067892503536,
+     "synapses_depressed_per_update": null
+    }
+   ],
+   "li": {
+    "n": 2,
+    "mean": -0.0009065832434299592,
+    "sd": 0.006656180398501933,
+    "median": -0.0009065832434299592,
+    "min": -0.005613213540011652,
+    "max": 0.003800047053151734
+   }
+  },
+  "dan-lesion": {
+   "arm": {
+    "name": "dan-lesion",
+    "plastic": true,
+    "silence_dans": true,
+    "wiring": "connectome"
+   },
+   "subjects": [
+    {
+     "before": {
+      "A": [
+       1731,
+       1725,
+       1732
+      ],
+      "B": [
+       1710,
+       1697,
+       1697
+      ]
+     },
+     "after": {
+      "A": [
+       1733,
+       1731,
+       1732
+      ],
+      "B": [
+       1699,
+       1705,
+       1712
+      ]
+     },
+     "li": -0.0008090771324227308,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 3295.2,
+      "sd": 8.069435511464492,
+      "median": 3294.0,
+      "min": 3279.0,
+      "max": 3310.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.9879518072289156,
+     "synapses_depressed_per_update": {
+      "n": 20,
+      "mean": 0.0,
+      "sd": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0
+     }
+    },
+    {
+     "before": {
+      "A": [
+       1726,
+       1728,
+       1732
+      ],
+      "B": [
+       1700,
+       1704,
+       1708
+      ]
+     },
+     "after": {
+      "A": [
+       1731,
+       1719,
+       1733
+      ],
+      "B": [
+       1706,
+       1705,
+       1699
+      ]
+     },
+     "li": -0.00018724421775973,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 3297.05,
+      "sd": 9.327237984583252,
+      "median": 3296.5,
+      "min": 3279.0,
+      "max": 3311.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.9855725879170424,
+     "synapses_depressed_per_update": {
+      "n": 20,
+      "mean": 0.0,
+      "sd": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0
+     }
+    }
+   ],
+   "li": {
+    "n": 2,
+    "mean": -0.0004981606750912304,
+    "sd": 0.0004397022707232036,
+    "median": -0.0004981606750912304,
+    "min": -0.0008090771324227308,
+    "max": -0.00018724421775973
+   }
+  },
+  "rule-degree-preserving": {
+   "arm": {
+    "name": "rule-degree-preserving",
+    "plastic": true,
+    "silence_dans": false,
+    "wiring": "degree-preserving"
+   },
+   "subjects": [
+    {
+     "before": {
+      "A": [
+       3,
+       5,
+       8
+      ],
+      "B": [
+       0,
+       0,
+       0
+      ]
+     },
+     "after": {
+      "A": [
+       7,
+       10,
+       2
+      ],
+      "B": [
+       0,
+       0,
+       0
+      ]
+     },
+     "li": null,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 7.75,
+      "sd": 5.720461887865902,
+      "median": 7.0,
+      "min": 2.0,
+      "max": 16.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.0,
+     "synapses_depressed_per_update": {
+      "n": 20,
+      "mean": 0.5,
+      "sd": 0.512989176042577,
+      "median": 0.5,
+      "min": 0.0,
+      "max": 1.0
+     }
+    },
+    {
+     "before": {
+      "A": [
+       0,
+       0,
+       0
+      ],
+      "B": [
+       0,
+       0,
+       0
+      ]
+     },
+     "after": {
+      "A": [
+       0,
+       0,
+       0
+      ],
+      "B": [
+       0,
+       0,
+       0
+      ]
+     },
+     "li": null,
+     "kc_active_per_training_trial": {
+      "n": 20,
+      "mean": 5.85,
+      "sd": 4.368246667413417,
+      "median": 6.0,
+      "min": 1.0,
+      "max": 12.0
+     },
+     "kenyon_cells": 5177,
+     "kc_overlap_first_trials": 0.0,
+     "synapses_depressed_per_update": {
+      "n": 20,
+      "mean": 0.95,
+      "sd": 0.998683343734455,
+      "median": 0.5,
+      "min": 0.0,
+      "max": 2.0
+     }
+    }
+   ],
+   "li": {
+    "n": 0,
+    "mean": null,
+    "sd": null,
+    "median": null,
+    "min": null,
+    "max": null
+   }
+  }
+ },
+ "echo_mushroom_body": {
+  "schema": "fly-neural-echo-mb/v1",
+  "model": "src/bethesda/fly/mushroomBody/circuit.ts (Bennett, Philippides & Nowotny 2021 MV model, rate units)",
+  "pairs": 10,
+  "note": "A 'fruitless return' trial is the model's unrewarded trial (r = 0); here it only stands for cue B presented without reward.",
+  "arms": {
+   "as-is": [
+    {
+     "seed": 3100003,
+     "before": {
+      "A": 0.07625158656854208,
+      "B": -0.004108217726462193
+     },
+     "after": {
+      "A": 0.9917472543688866,
+      "B": 0.0006427962742053817
+     }
+    },
+    {
+     "seed": 3107922,
+     "before": {
+      "A": 0.058419970651649444,
+      "B": 0.016266359757512283
+     },
+     "after": {
+      "A": 0.9785345159048292,
+      "B": 0.0013468597726924436
+     }
+    },
+    {
+     "seed": 3115841,
+     "before": {
+      "A": -0.003074896729297283,
+      "B": -0.012604665109321678
+     },
+     "after": {
+      "A": 0.989738317989943,
+      "B": 0.0005793810709305847
+     }
+    },
+    {
+     "seed": 3123760,
+     "before": {
+      "A": 0.00937576718209765,
+      "B": -0.03760258302059566
+     },
+     "after": {
+      "A": 0.9876846589983836,
+      "B": 0.001144280494410177
+     }
+    },
+    {
+     "seed": 3131679,
+     "before": {
+      "A": 0.025754463125917004,
+      "B": 0.01089044739118017
+     },
+     "after": {
+      "A": 0.9901695168401132,
+      "B": 0.0008657007082815138
+     }
+    },
+    {
+     "seed": 3139598,
+     "before": {
+      "A": 0.025160175537098706,
+      "B": 0.003793754940852434
+     },
+     "after": {
+      "A": 0.9873050317557279,
+      "B": 0.0006498596052934014
+     }
+    },
+    {
+     "seed": 3147517,
+     "before": {
+      "A": -0.01006654127373946,
+      "B": 0.008257719594479296
+     },
+     "after": {
+      "A": 0.9851646221890966,
+      "B": 0.0003993280085979878
+     }
+    },
+    {
+     "seed": 3155436,
+     "before": {
+      "A": -0.031051747700465482,
+      "B": -0.0003461856142535358
+     },
+     "after": {
+      "A": 0.9937489027050035,
+      "B": 7.265616131879593e-05
+     }
+    }
+   ],
+   "reward-omitted": [
+    {
+     "seed": 3100003,
+     "before": {
+      "A": 0.07625158656854208,
+      "B": -0.004108217726462193
+     },
+     "after": {
+      "A": 9.88590030600589e-05,
+      "B": -2.773792784693807e-05
+     }
+    },
+    {
+     "seed": 3107922,
+     "before": {
+      "A": 0.058419970651649444,
+      "B": 0.016266359757512283
+     },
+     "after": {
+      "A": 0.0003324817360016441,
+      "B": -9.449830824070915e-06
+     }
+    },
+    {
+     "seed": 3115841,
+     "before": {
+      "A": -0.003074896729297283,
+      "B": -0.012604665109321678
+     },
+     "after": {
+      "A": 1.8193146491540801e-06,
+      "B": -1.5230655119713443e-05
+     }
+    },
+    {
+     "seed": 3123760,
+     "before": {
+      "A": 0.00937576718209765,
+      "B": -0.03760258302059566
+     },
+     "after": {
+      "A": 7.424668735023232e-05,
+      "B": -0.00013884494402111036
+     }
+    },
+    {
+     "seed": 3131679,
+     "before": {
+      "A": 0.025754463125917004,
+      "B": 0.01089044739118017
+     },
+     "after": {
+      "A": 4.568831828166697e-05,
+      "B": 1.8179677178431497e-05
+     }
+    },
+    {
+     "seed": 3139598,
+     "before": {
+      "A": 0.025160175537098706,
+      "B": 0.003793754940852434
+     },
+     "after": {
+      "A": 4.7752103269405044e-05,
+      "B": -3.5628217153194086e-06
+     }
+    },
+    {
+     "seed": 3147517,
+     "before": {
+      "A": -0.01006654127373946,
+      "B": 0.008257719594479296
+     },
+     "after": {
+      "A": -2.7461215909851955e-05,
+      "B": 5.03604621171494e-06
+     }
+    },
+    {
+     "seed": 3155436,
+     "before": {
+      "A": -0.031051747700465482,
+      "B": -0.0003461856142535358
+     },
+     "after": {
+      "A": -1.0846719444457253e-05,
+      "B": 7.29104805863301e-07
+     }
+    }
+   ]
+  }
+ },
+ "criteria": [
+  {
+   "id": "P0",
+   "claim": "The odours reach the readout: the PAM-innervated MBONs respond to each odour before training",
+   "test": "readout_responds",
+   "threshold_note": "ours: a precondition, not a learning result",
+   "mean_spikes_before": {
+    "A": 1855.5,
+    "B": 1832.6666666666665
+   },
+   "passed": true
+  },
+  {
+   "id": "P1",
+   "claim": "With the rule, the paired odour's MBON response falls more than the unpaired odour's",
+   "test": "li_negative",
+   "threshold_note": "one-sided sign test over the 8 subjects (all 8 negative gives p = 1/256 = 0.0039)",
+   "li": [
+    -0.0006756419120728385,
+    0.0009362576896549402
+   ],
+   "negative": 1,
+   "n": 2,
+   "sign_test_p": 0.75,
+   "passed": false
+  },
+  {
+   "id": "P2",
+   "claim": "Fixed weights learn nothing",
+   "test": "li_less",
+   "threshold_note": null,
+   "a_li": [
+    -0.0006756419120728385,
+    0.0009362576896549402
+   ],
+   "b_li": [
+    -0.005613213540011652,
+    0.003800047053151734
+   ],
+   "mann_whitney": {
+    "u": 2.0,
+    "p": 0.6507323208483307,
+    "alternative": "less"
+   },
+   "passed": false
+  },
+  {
+   "id": "P3",
+   "claim": "Blocking the DANs' output abolishes the learning",
+   "test": "li_less",
+   "threshold_note": null,
+   "a_li": [
+    -0.0006756419120728385,
+    0.0009362576896549402
+   ],
+   "b_li": [
+    -0.0008090771324227308,
+    -0.00018724421775973
+   ],
+   "mann_whitney": {
+    "u": 3.0,
+    "p": 0.8773609415966136,
+    "alternative": "less"
+   },
+   "passed": false
+  },
+  {
+   "id": "P4",
+   "claim": "The repository's mushroom-body rate model learns the paired cue: its prediction for A rises above B's, and not when the reward is omitted",
+   "test": "echo_mb_discriminates",
+   "threshold_note": "deterministic per subject; discriminate = after(A) - after(B) > 0.05 (ours, on the model's prediction scale where the meal reward is 1); every subject must with the reward and none without it",
+   "after_A_minus_B": [
+    0.9911044580946812,
+    0.9771876561321368,
+    0.9891589369190125,
+    0.9865403785039735,
+    0.9893038161318317,
+    0.9866551721504345,
+    0.9847652941804986,
+    0.9936762465436847
+   ],
+   "reward_omitted_after_A_minus_B": [
+    0.00012659693090699697,
+    0.000341931566825715,
+    1.7049969768867523e-05,
+    0.00021309163137134268,
+    2.7508641103235476e-05,
+    5.131492498472445e-05,
+    -3.2497262121566894e-05,
+    -1.1575824250320554e-05
+   ],
+   "passed": true
+  },
+  {
+   "id": "X1",
+   "claim": "Exploratory: the rule on a degree-preserving rewired connectome",
+   "test": "report_only",
+   "threshold_note": null,
+   "li": [],
+   "passed": true,
+   "note": "exploratory: always reported, never failed"
+  }
+ ],
+ "failed": [
+  "P1",
+  "P2",
+  "P3"
+ ],
+ "resources": {
+  "wall_s": 1879.438,
+  "cpu_s": 1587.422,
+  "rss_start_mb": 308.684,
+  "rss_end_mb": 296.344,
+  "peak_rss_mb_process": 1738.348,
+  "gpu": null,
+  "wall_s_of_resumed_subjects": 0,
+  "machine": {
+   "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+   "arch": "ARM64",
+   "os": "Windows-10-10.0.26200-SP0",
+   "logical_cpus": 8,
+   "total_ram_mb": 15979,
+   "available_ram_mb": 3249,
+   "gpu": null,
+   "physical_cpus": 8,
+   "cpu_busy_percent_over_1s": 20.2
+  }
+ },
+ "environment": {
+  "python": "3.11.9",
+  "implementation": "cpython",
+  "platform": "win32 ARM64",
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "ffe066a273b106ed83e773f5307475e1976f6d38",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "6863c5e3a14e1dcc14094b9943749d85d1b35b57fa4ef5c0660ec435a50eb386",
+   "files": 20
+  },
+  "changed_during_run": []
+ },
+ "sha256": "e5872428a2a66480acc1ac0ce335f14cace19b52b61e1ff43de57c59251491bb"
+}

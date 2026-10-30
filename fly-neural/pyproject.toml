@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fly-neural"
+version = "0.1.0"
+description = "A leaky integrate-and-fire model on the FlyWire v783 connectome, as a shadow predictor beside ECHO"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = ["numpy>=1.26", "polars>=1.0", "psutil>=5.9"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["fly_neural"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

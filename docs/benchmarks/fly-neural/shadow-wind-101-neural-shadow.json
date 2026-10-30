@@ -1,0 +1,498 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "shadow",
+ "mode": "neural-shadow",
+ "recording": {
+  "file": "wind-101-neural-shadow.jsonl",
+  "sha256": "01c1fe01ac45cc4ea9cd177e4af982f4535247b946262b1d1e032a57a65164ef",
+  "header": {
+   "schema": "fly-neural-shadow/v1",
+   "mode": "neural-shadow",
+   "subject": "research-wind-101",
+   "scenario": "wind",
+   "seed": 101,
+   "world": "research-wind",
+   "flyVersion": "digital-fly/8",
+   "echoVersion": "echo-self-model/v3",
+   "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+   "seconds": 60,
+   "stepS": 0.01,
+   "sample_period_s": 0.01,
+   "records": 6000,
+   "recordsDropped": 0,
+   "counts": {
+    "takeoffs": 0,
+    "escapes": 0,
+    "landings": 0,
+    "saccades": 0,
+    "collisions": 0,
+    "contactS": 0,
+    "groomBouts": 0,
+    "rejected": 0,
+    "walkedM": 0.05805204604847439,
+    "flownM": 0,
+    "meals": 0,
+    "feedS": 0,
+    "fedJ": 0,
+    "spentJ": 0.0016787499999995437
+   },
+   "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it."
+  },
+  "records": 6000
+ },
+ "connectome": {
+  "path_name": "fafb-v783-shiu",
+  "manifest_sha256": "c5dd83b8bd01cc8ce11cdb235c0d7d76e380c4925bc60708d7904609bdff98dd",
+  "sign_policy": "shiu"
+ },
+ "mapping": {
+  "sensable_fields": {
+   "looming": "the strongest looming object, as angular size (deg), expansion rate (deg/s) and bearing (+ left, rad), or null",
+   "airflow": "air speed past the antennae (m/s)",
+   "airflowFrom": "bearing the air comes from (+ left, rad), or null",
+   "odour": "food odour at the antennae (relative units)",
+   "onFood": "whether the tarsi touch food (a boolean; what food it is is dropped)"
+  },
+  "dropped_ground_truth": [
+   "id",
+   "kind",
+   "distance",
+   "drive",
+   "p",
+   "v",
+   "yaw",
+   "sites",
+   "landmarks",
+   "target",
+   "home"
+  ],
+  "channels": [
+   {
+    "key": "looming size",
+    "populations": [
+     "lplc2_left",
+     "lplc2_right"
+    ],
+    "form": "rate = 200 Hz * min(1, sizeDeg / 40) on the side the object is on (bearing > 0: left)",
+    "status": "model",
+    "approximation": "LPLC2 encodes angular size; the 40 deg saturation and 200 Hz ceiling are ours",
+    "cite": [
+     "Klapoetke et al. 2017, Nature 551:237-241, doi:10.1038/nature24626 (LPLC2 looming selectivity)",
+     "von Reyn et al. 2017, Neuron 94:1190-1204, doi:10.1016/j.neuron.2017.05.036 (LC4 angular velocity, LPLC2 angular size, into the giant fiber)",
+     "Ache et al. 2019, Curr Biol 29:1073-1081, doi:10.1016/j.cub.2019.01.079 (LPLC2 to giant fiber)"
+    ]
+   },
+   {
+    "key": "looming expansion",
+    "populations": [
+     "lc4_left",
+     "lc4_right"
+    ],
+    "form": "rate = 200 Hz * min(1, expansionDegS / 400) on the object's side",
+    "status": "model",
+    "approximation": "LC4 encodes angular velocity; the 400 deg/s saturation is ours",
+    "cite": [
+     "von Reyn et al. 2017, Neuron 94:1190-1204, doi:10.1016/j.neuron.2017.05.036 (LC4 angular velocity, LPLC2 angular size, into the giant fiber)",
+     "Ache et al. 2019, Curr Biol 29:1073-1081, doi:10.1016/j.cub.2019.01.079 (LPLC2 to giant fiber)"
+    ]
+   },
+   {
+    "key": "airflow",
+    "populations": [
+     "jo_wind_left",
+     "jo_wind_right"
+    ],
+    "form": "rate = 150 Hz * min(1, airflow / 1 m/s) on both antennae",
+    "status": "model",
+    "approximation": "JO-C/E respond to sustained antennal deflection; direction is not encoded here",
+    "cite": [
+     "Yorozu et al. 2009, Nature 458:201-205, doi:10.1038/nature07843 (JO-C/E neurons sense wind)",
+     "Kamikouchi et al. 2009, Nature 458:165-171, doi:10.1038/nature07810 (JO subgroups; C/E sense static deflection)"
+    ]
+   },
+   {
+    "key": "food odour",
+    "populations": [
+     "orn_vinegar_left",
+     "orn_vinegar_right"
+    ],
+    "form": "rate = 100 Hz * min(1, odour) on both antennae",
+    "status": "model",
+    "approximation": "exploratory: the world's one food-odour level stands for vinegar-like odour at DM1 and VA2 ORNs",
+    "cite": [
+     "Semmelhack & Wang 2009, Nature 459:218-223, doi:10.1038/nature07983 (vinegar attraction via DM1 and VA2)"
+    ]
+   },
+   {
+    "key": "food contact",
+    "populations": [
+     "sugar_grn_left",
+     "sugar_grn_right"
+    ],
+    "form": "rate = 100 Hz while on food, else 0",
+    "status": "model",
+    "approximation": "the fly tastes with its tarsi, whose GRNs project to the ventral nerve cord, outside this brain; labellar sugar GRNs stand in for them",
+    "cite": [
+     "Tastekin et al. 2026, Cell, doi:10.1016/j.cell.2026.08.016 (GRN retyping and taste modalities)",
+     "Shiu et al. 2024, Nature 634:210-219, doi:10.1038/s41586-024-07763-9"
+    ]
+   }
+  ],
+  "readouts": {
+   "feed": {
+    "populations": [
+     "mn9_left",
+     "mn9_right"
+    ],
+    "rule": "mean MN9 rate >= 10 Hz over the window",
+    "threshold_hz": 10.0,
+    "cite": [
+     "Gordon & Scott 2009, Neuron 61:373-384, doi:10.1016/j.neuron.2008.12.033 (MN9, proboscis extension)",
+     "Shiu et al. 2024, Nature 634:210-219, doi:10.1038/s41586-024-07763-9"
+    ]
+   },
+   "escape": {
+    "populations": [
+     "giant_fiber_left",
+     "giant_fiber_right"
+    ],
+    "rule": "any giant-fiber spike in the window",
+    "threshold_hz": null,
+    "cite": [
+     "von Reyn et al. 2014, Nat Neurosci 17:962-970, doi:10.1038/nn.3741 (giant fiber spike selects short-mode takeoff)"
+    ]
+   }
+  }
+ },
+ "populations": {
+  "giant_fiber_left": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "DNp01"
+    ],
+    "side": "left"
+   },
+   "selected": 1,
+   "in_connectome": 1,
+   "key": "giant_fiber_left",
+   "label": "giant fiber descending neuron DNp01 (left)",
+   "role": "descending",
+   "cite": [
+    "von Reyn et al. 2014, Nat Neurosci 17:962-970, doi:10.1038/nn.3741 (giant fiber spike selects short-mode takeoff)",
+    "Ache et al. 2019, Curr Biol 29:1073-1081, doi:10.1016/j.cub.2019.01.079 (LPLC2 to giant fiber)"
+   ],
+   "neurons": 1
+  },
+  "giant_fiber_right": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "DNp01"
+    ],
+    "side": "right"
+   },
+   "selected": 1,
+   "in_connectome": 1,
+   "key": "giant_fiber_right",
+   "label": "giant fiber descending neuron DNp01 (right)",
+   "role": "descending",
+   "cite": [
+    "von Reyn et al. 2014, Nat Neurosci 17:962-970, doi:10.1038/nn.3741 (giant fiber spike selects short-mode takeoff)",
+    "Ache et al. 2019, Curr Biol 29:1073-1081, doi:10.1016/j.cub.2019.01.079 (LPLC2 to giant fiber)"
+   ],
+   "neurons": 1
+  },
+  "jo_wind_left": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_sub_class": [
+     "wind_gravity"
+    ],
+    "cell_type_prefix": [
+     "JO-C",
+     "JO-E"
+    ],
+    "side": "left"
+   },
+   "selected": 211,
+   "in_connectome": 211,
+   "key": "jo_wind_left",
+   "label": "JO-C and JO-E wind/gravity neurons (left)",
+   "role": "sensory",
+   "cite": [
+    "Yorozu et al. 2009, Nature 458:201-205, doi:10.1038/nature07843 (JO-C/E neurons sense wind)",
+    "Kamikouchi et al. 2009, Nature 458:165-171, doi:10.1038/nature07810 (JO subgroups; C/E sense static deflection)"
+   ],
+   "neurons": 211
+  },
+  "jo_wind_right": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_sub_class": [
+     "wind_gravity"
+    ],
+    "cell_type_prefix": [
+     "JO-C",
+     "JO-E"
+    ],
+    "side": "right"
+   },
+   "selected": 182,
+   "in_connectome": 182,
+   "key": "jo_wind_right",
+   "label": "JO-C and JO-E wind/gravity neurons (right)",
+   "role": "sensory",
+   "cite": [
+    "Yorozu et al. 2009, Nature 458:201-205, doi:10.1038/nature07843 (JO-C/E neurons sense wind)",
+    "Kamikouchi et al. 2009, Nature 458:165-171, doi:10.1038/nature07810 (JO subgroups; C/E sense static deflection)"
+   ],
+   "neurons": 182
+  },
+  "lc4_left": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "LC4"
+    ],
+    "side": "left"
+   },
+   "selected": 54,
+   "in_connectome": 54,
+   "key": "lc4_left",
+   "label": "LC4 visual projection neurons (left)",
+   "role": "sensory",
+   "cite": [
+    "von Reyn et al. 2017, Neuron 94:1190-1204, doi:10.1016/j.neuron.2017.05.036 (LC4 angular velocity, LPLC2 angular size, into the giant fiber)",
+    "Matsliah et al. 2024, Nature 634:166-180, doi:10.1038/s41586-024-07981-1 (optic lobe types)"
+   ],
+   "neurons": 54
+  },
+  "lc4_right": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "LC4"
+    ],
+    "side": "right"
+   },
+   "selected": 50,
+   "in_connectome": 50,
+   "key": "lc4_right",
+   "label": "LC4 visual projection neurons (right)",
+   "role": "sensory",
+   "cite": [
+    "von Reyn et al. 2017, Neuron 94:1190-1204, doi:10.1016/j.neuron.2017.05.036 (LC4 angular velocity, LPLC2 angular size, into the giant fiber)",
+    "Matsliah et al. 2024, Nature 634:166-180, doi:10.1038/s41586-024-07981-1 (optic lobe types)"
+   ],
+   "neurons": 50
+  },
+  "lplc2_left": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "LPLC2"
+    ],
+    "side": "left"
+   },
+   "selected": 108,
+   "in_connectome": 108,
+   "key": "lplc2_left",
+   "label": "LPLC2 looming-sensitive visual projection neurons (left)",
+   "role": "sensory",
+   "cite": [
+    "Klapoetke et al. 2017, Nature 551:237-241, doi:10.1038/nature24626 (LPLC2 looming selectivity)",
+    "Ache et al. 2019, Curr Biol 29:1073-1081, doi:10.1016/j.cub.2019.01.079 (LPLC2 to giant fiber)",
+    "Matsliah et al. 2024, Nature 634:166-180, doi:10.1038/s41586-024-07981-1 (optic lobe types)"
+   ],
+   "neurons": 108
+  },
+  "lplc2_right": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "LPLC2"
+    ],
+    "side": "right"
+   },
+   "selected": 102,
+   "in_connectome": 102,
+   "key": "lplc2_right",
+   "label": "LPLC2 looming-sensitive visual projection neurons (right)",
+   "role": "sensory",
+   "cite": [
+    "Klapoetke et al. 2017, Nature 551:237-241, doi:10.1038/nature24626 (LPLC2 looming selectivity)",
+    "Ache et al. 2019, Curr Biol 29:1073-1081, doi:10.1016/j.cub.2019.01.079 (LPLC2 to giant fiber)",
+    "Matsliah et al. 2024, Nature 634:166-180, doi:10.1038/s41586-024-07981-1 (optic lobe types)"
+   ],
+   "neurons": 102
+  },
+  "mn9_left": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "CB0701"
+    ],
+    "side": "left"
+   },
+   "selected": 1,
+   "in_connectome": 1,
+   "key": "mn9_left",
+   "label": "MN9 proboscis motor neuron, annotated CB0701 (left)",
+   "role": "motor",
+   "cite": [
+    "Gordon & Scott 2009, Neuron 61:373-384, doi:10.1016/j.neuron.2008.12.033 (MN9, proboscis extension)",
+    "Shiu et al. 2024, Nature 634:210-219, doi:10.1038/s41586-024-07763-9"
+   ],
+   "neurons": 1
+  },
+  "mn9_right": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "CB0701"
+    ],
+    "side": "right"
+   },
+   "selected": 1,
+   "in_connectome": 1,
+   "key": "mn9_right",
+   "label": "MN9 proboscis motor neuron, annotated CB0701 (right)",
+   "role": "motor",
+   "cite": [
+    "Gordon & Scott 2009, Neuron 61:373-384, doi:10.1016/j.neuron.2008.12.033 (MN9, proboscis extension)",
+    "Shiu et al. 2024, Nature 634:210-219, doi:10.1038/s41586-024-07763-9"
+   ],
+   "neurons": 1
+  },
+  "orn_vinegar_left": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "ORN_DM1",
+     "ORN_VA2"
+    ],
+    "side": "left"
+   },
+   "selected": 69,
+   "in_connectome": 69,
+   "key": "orn_vinegar_left",
+   "label": "ORNs of the DM1 and VA2 glomeruli (left)",
+   "role": "sensory",
+   "cite": [
+    "Semmelhack & Wang 2009, Nature 459:218-223, doi:10.1038/nature07983 (vinegar attraction via DM1 and VA2)"
+   ],
+   "neurons": 69
+  },
+  "orn_vinegar_right": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_type": [
+     "ORN_DM1",
+     "ORN_VA2"
+    ],
+    "side": "right"
+   },
+   "selected": 66,
+   "in_connectome": 66,
+   "key": "orn_vinegar_right",
+   "label": "ORNs of the DM1 and VA2 glomeruli (right)",
+   "role": "sensory",
+   "cite": [
+    "Semmelhack & Wang 2009, Nature 459:218-223, doi:10.1038/nature07983 (vinegar attraction via DM1 and VA2)"
+   ],
+   "neurons": 66
+  },
+  "sugar_grn_left": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_sub_class": [
+     "sugar",
+     "sugar/low_salt"
+    ],
+    "side": "left"
+   },
+   "selected": 33,
+   "in_connectome": 33,
+   "key": "sugar_grn_left",
+   "label": "labellar sugar GRNs (left)",
+   "role": "sensory",
+   "cite": [
+    "Tastekin et al. 2026, Cell, doi:10.1016/j.cell.2026.08.016 (GRN retyping and taste modalities)"
+   ],
+   "neurons": 33
+  },
+  "sugar_grn_right": {
+   "kind": "annotation selection",
+   "rule": {
+    "cell_sub_class": [
+     "sugar",
+     "sugar/low_salt"
+    ],
+    "side": "right"
+   },
+   "selected": 24,
+   "in_connectome": 24,
+   "key": "sugar_grn_right",
+   "label": "labellar sugar GRNs (right)",
+   "role": "sensory",
+   "cite": [
+    "Tastekin et al. 2026, Cell, doi:10.1016/j.cell.2026.08.016 (GRN retyping and taste modalities)"
+   ],
+   "neurons": 24
+  }
+ },
+ "seed": 0,
+ "comparison": {
+  "samples": 6000,
+  "match_window_s": 0.5,
+  "escape": {
+   "echo_onsets": 0,
+   "model_gf_episodes": 0,
+   "hits": 0,
+   "misses": 0,
+   "false_alarms": 0,
+   "gf_minus_echo_latency_s": [],
+   "samples_with_gf_spike": 0
+  },
+  "feed": {
+   "echo_feeding_samples": 0,
+   "model_mn9_samples": 0,
+   "both": 0,
+   "model_only": 0,
+   "echo_only": 0,
+   "neither": 6000,
+   "agreement": 1.0
+  }
+ },
+ "windows": 6000,
+ "trace": [],
+ "resources": {
+  "wall_s": 320.75,
+  "cpu_s": 310.25,
+  "rss_start_mb": 298.633,
+  "rss_end_mb": 300.688,
+  "peak_rss_mb_process": 456.492,
+  "gpu": null
+ },
+ "environment": {
+  "python": "3.11.9",
+  "implementation": "cpython",
+  "platform": "win32 ARM64",
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "0ed5036a395d74eb75e8a683a42528fe26fc2217",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "14e5b933e7bce07a832f0aa5203f4d400534bbca8edbea65a492943e081b0d2d",
+   "files": 20
+  },
+  "changed_during_run": []
+ },
+ "sha256": "a5eff8d9bea053fe82155ea168c42c95a7dfd0aca7965a63e556b42c8f010de2"
+}
