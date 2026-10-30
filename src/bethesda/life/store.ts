@@ -275,6 +275,11 @@ export class LifeStore<G, L> {
     return { checkpoint, epoch, committedUtc };
   }
 
+  /** One checkpoint as stored: older ones without their graph. */
+  checkpointAt(sequence: number): LifeCheckpoint<G> {
+    return this.read(sequence).checkpoint;
+  }
+
   private read(sequence: number): StoredCheckpoint<G> {
     return readJson<StoredCheckpoint<G>>(
       join(this.dir, "checkpoints", `${pad(sequence)}.json`),

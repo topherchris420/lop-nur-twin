@@ -44,6 +44,7 @@ function served(
 }
 
 const ARCHIVE = "bethesda-life-20261030T060411Z-cccccccccccc.tar.gz";
+const DIGEST = "a".repeat(64);
 
 /** status.json as backup.sh writes it: each record's own line, as `cat` leaves them. */
 function written(
@@ -54,6 +55,8 @@ function written(
     detail?: string | null;
     offsite?: string;
     individual?: string;
+    /** null: a record from before backup.sh read the head's digest. */
+    digest?: string | null;
   } = {},
 ): string {
   const attempt = JSON.stringify({
@@ -76,6 +79,12 @@ function written(
           checkpoint: 1001,
           tick: 6_006_000,
           release: "c".repeat(40),
+          ...(o.digest === null
+            ? {}
+            : {
+                digest: o.digest ?? DIGEST,
+                committed: iso(AT - (keptAgoS + 40) * 1000),
+              }),
         });
   const offsite =
     offsiteAgoS === null
@@ -256,6 +265,17 @@ describe("the backup record", () => {
     expect(first).toMatchObject({ kept: null, offsite: null, attempt: { detail: "x" } });
   });
 
+  it("carries the archived head's digest and commit time, and parses records from before them", () => {
+    expect(parseBackupStatus(JSON.parse(written())).kept).toMatchObject({
+      digest: DIGEST,
+      committed: iso(AT - 3640 * 1000),
+    });
+    expect(parseBackupStatus(JSON.parse(written({ digest: null }))).kept).toMatchObject({
+      digest: null,
+      committed: null,
+    });
+  });
+
   it.each([
     ["another schema", (s: string) => s.replace("backup/v1", "backup/v2"), /schema/],
     [
@@ -278,6 +298,12 @@ describe("the backup record", () => {
       "a short individual",
       (s: string) => s.replace("b".repeat(64), "b".repeat(63)),
       /individual/,
+    ],
+    ["a malformed digest", (s: string) => s.replace(DIGEST, "A".repeat(64)), /digest/],
+    [
+      "a digest without its commit time",
+      (s: string) => s.replace(/,"committed":"[^"]*"/, ""),
+      /come together/,
     ],
   ])("refuses %s", (_what, change, error) => {
     expect(() => parseBackupStatus(JSON.parse(change(written())))).toThrow(error);

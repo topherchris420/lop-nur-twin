@@ -9,9 +9,14 @@ name: Live fly watch
 # closed with a comment when every check passes again. GitHub notifies the
 # repository's watchers of each.
 #
+# Each new checkpoint a backup verified is also appended to the public ledger
+# on the `live-fly-ledger` branch (src/bethesda/life/ledger.ts says why), so
+# the individual's history can later be checked against what was seen here.
+#
 # It reads only what anyone may read (the observer's /v1/now and the
-# backup's record at /v1/backup) and references no secret; its token may
-# write issues and nothing else. What it cannot see, it cannot report: a
+# backup's record at /v1/backup) and references no secret. The alert job's
+# token may write issues; the ledger job's may push, and it pushes only to
+# the ledger branch, never force. What it cannot see, it cannot report: a
 # scheduled run may start late or be dropped when GitHub is busy, and GitHub
 # stops scheduling it after 60 days without activity in the repository
 # (re-enable it under Actions). A failure of this workflow itself is
@@ -35,6 +40,7 @@ env:
   OBSERVER_URL: https://129-213-139-78.sslip.io
   INDIVIDUAL: 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
   LABEL: live-fly
+  LEDGER_BRANCH: live-fly-ledger
 
 jobs:
   watch:
@@ -109,3 +115,70 @@ jobs:
             grep -qxF "$marker"; then
             gh issue comment "$open" --body-file "$RUNNER_TEMP/body.md"
           fi
+
+  ledger:
+    name: Anchor the newest verified checkpoint
+    if: github.repository == 'topherchris420/lop-nur-twin'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the ledger's script
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+            src/bethesda/life
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Look for the ledger branch
+        id: branch
+        run: |
+          if git ls-remote --exit-code --heads "https://github.com/$GITHUB_REPOSITORY" \
+            "$LEDGER_BRANCH" >/dev/null; then
+            echo "exists=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the ledger
+        if: steps.branch.outputs.exists == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LEDGER_BRANCH }}
+          path: ledger
+
+      # The first run starts the branch with no history of its own (and
+      # fetches as little of main as it can to get there).
+      - name: Start the ledger
+        if: steps.branch.outputs.exists == 'false'
+        uses: actions/checkout@v4
+        with:
+          path: ledger
+          sparse-checkout: .github
+
+      - name: Append the newest verified checkpoint
+        env:
+          EXISTS: ${{ steps.branch.outputs.exists }}
+        run: |
+          if [ "$EXISTS" = false ]; then
+            git -C ledger switch --quiet --orphan "$LEDGER_BRANCH"
+            git -C ledger sparse-checkout disable
+          fi
+          node scripts/run-ts.mjs scripts/bethesda-life-ledger.ts append \
+            --url "$OBSERVER_URL" --individual "$INDIVIDUAL" --dir ledger >"$RUNNER_TEMP/anchor.json"
+          jq . "$RUNNER_TEMP/anchor.json"
+          [ "$(jq -r .appended "$RUNNER_TEMP/anchor.json")" = true ] || exit 0
+          checkpoint=$(jq -r .anchor.checkpoint "$RUNNER_TEMP/anchor.json")
+          git -C ledger add README.md vercel.json ledger.jsonl
+          git -C ledger -c user.name="github-actions[bot]" \
+            -c user.email="41898579+github-actions[bot]@users.noreply.github.com" \
+            commit --quiet -m "Anchor checkpoint $checkpoint of the live fly"
+          git -C ledger push --quiet origin "HEAD:refs/heads/$LEDGER_BRANCH"
+          echo "Anchored checkpoint $checkpoint." >>"$GITHUB_STEP_SUMMARY"
