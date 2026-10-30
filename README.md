@@ -279,6 +279,13 @@ The garden's viewer reads only `GET /api/state`; cameras and clay rendering chan
 presentation alone. Switching controllers in local Bethesda, or restoring only
 an ECHO self-model, does not continue the shared individual.
 
+The garden viewer source also offers **Save observation**: a portable JSON record
+of the displayed state, identity, reported weather and timestamps. The **This moment**
+panel makes the delayed or paused view explicit, while connection status remains
+visible. This is an observation, not a life backup. See the
+[viewer release notes](docs/LIVE_GARDEN.md#keeping-an-observation); the garden VM
+is deployed separately from this repository.
+
 [Service, backup, and recovery](docs/BETHESDA_CONTINUOUS_LIFE.md) ·
 [Identity and history studies](docs/INDIVIDUAL_CONTINUITY.md) ·
 [Clay garden and HTTPS operation](docs/LIVE_GARDEN.md)

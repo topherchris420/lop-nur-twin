@@ -105,6 +105,27 @@ reads them through a function and keeps nothing that could feed back.
   The timeline starts again from it, and the panel says the server now reports
   a different individual.
 
+### Keeping an observation
+
+The current source adds **This moment** to the observation panel: the displayed
+state's tick and UTC timestamp, the age of the newest received state, and whether
+the view is paused. Connection status remains visible while the picture is paused;
+an outage reports that the current state is unknown. **Try connection again**
+requests the same read-only state endpoint, with the usual single-request guard.
+
+**Save observation · JSON** downloads a `garden-observation/v1` record on the
+visitor's device. It includes the source endpoint, local export time, full life
+identity and birth time, the validated public state, and separate presentation
+timing. If the picture lies between two published states, both reported endpoints
+are retained; the discrete facts belong to the earlier one until the next step.
+Missing fields remain `null`. A paused view saves its held observation, even if
+newer states have arrived. No save request is sent to the service.
+
+This is a normalized observation, **not a life backup, full memory archive,
+checkpoint, or biological measurement**. It contains only what the public endpoint
+reported and the viewer's presentation context. These viewer changes require a
+separate garden release deployment; pushing the repository does not update the VM.
+
 ### Stop motion
 
 - Only the picture is stepped. The fly's pose and flight path, the wind, the
@@ -512,7 +533,10 @@ node tools/garden.mjs serve --port 4173                 # look at it: http://127
 `/api/state` is answered in one of three ways:
 
 - `--source replay` (the default) replays real recorded states on a virtual
-  clock, and nothing leaves the machine;
+  clock, and nothing leaves the machine. Without `--recording` or
+  `GARDEN_RECORDING`, it uses the bundled `fence-to-stone` sequence from
+  2026-10-26. At the end it holds the final state and shows it as stale,
+  never inventing additional steps;
 - `--source live` makes a read-only GET to the live garden, at most once a
   second, shared by every local observer;
 - `--source proxy --origin <url>` passes the whole site through unchanged,
@@ -524,6 +548,18 @@ checks the console and CSP, requests, two observers, a reload, an outage and
 recovery, memory across camera and preset changes, and the 2D fallback. It
 writes `report.json` and the photographs to `garden-check/` (ignored by git).
 `record` saves live states, read-only, for replay.
+
+The browser check also downloads an observation and verifies that it belongs to
+the paused view, then checks that an outage remains visible while paused.
+For environments using Chrome Headless Shell, install it with
+`npx puppeteer browsers install chrome-headless-shell` and pass `--headless-shell`
+to `tools/garden.mjs check`. Linux uses SwiftShader; Windows uses Direct3D 11.
+
+`node tools/garden-observation.mjs --headless-shell` runs a focused browser check
+without WebGL: real JSON download, an outage while paused, a labelled synthetic
+identity transition, cleared missing-learning fields, refreshed memory text,
+phone layout and axe accessibility. It uses local fixtures under the garden's CSP
+and writes its report and screenshots to `garden-check/observation/`.
 
 ## Deploying
 

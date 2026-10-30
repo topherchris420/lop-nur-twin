@@ -78,7 +78,7 @@ export function statusOf(c: Connection): StatusView {
           state: "reconnecting",
           text: "Reconnecting",
           detail:
-            "The garden has not answered yet. Retrying automatically; the fly's life continues independently.",
+            "The garden has not answered yet. Retrying automatically; its current state is unknown.",
         }
       : {
           state: "connecting",
@@ -91,7 +91,7 @@ export function statusOf(c: Connection): StatusView {
       ? {
           state: "offline",
           text: "Disconnected",
-          detail: `Last heard from the garden ${ago} ago. Retrying automatically; the fly's life continues on the server.`,
+          detail: `Last heard from the garden ${ago} ago. Retrying automatically; its current state is unknown.`,
         }
       : {
           state: "reconnecting",

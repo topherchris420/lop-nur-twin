@@ -109,11 +109,20 @@ function shifted(value, dt, key = "") {
  * weather; it is for this harness's own pages, which are reloaded after it.
  */
 function replaySource(file) {
-  const states = readFileSync(file, "utf8")
-    .split("\n")
-    .filter(Boolean)
-    .map((l) => JSON.parse(l).state)
-    .sort((a, b) => a.ticks - b.ticks);
+  const states = (
+    file
+      ? readFileSync(file, "utf8")
+          .split("\n")
+          .filter(Boolean)
+          .map((l) => JSON.parse(l).state)
+      : JSON.parse(
+          readFileSync(
+            new URL("../src/garden/core/fixtures/live-2026-10-26.json", import.meta.url),
+            "utf8",
+          ),
+        ).sequences["fence-to-stone"]
+  ).sort((a, b) => a.ticks - b.ticks);
+  if (!states.length) throw new Error("The garden recording contains no states");
   let t0 = 0,
     wall0 = 0,
     dt = 0,
@@ -196,10 +205,9 @@ if (command === "record") {
   process.exit(0);
 }
 if (source === "replay" && !recording) {
-  console.error(
-    "replay needs a recording: --recording file.jsonl (or GARDEN_RECORDING), from `node tools/garden.mjs record`; or use --source live",
+  console.log(
+    "Replaying the bundled 2026-10-26 recording. Its final state is held when the recording ends; no new simulation steps are invented.",
   );
-  process.exit(2);
 }
 /** `--weather rain=2.5,code=63`: numbers, booleans or text replacing the reported weather. */
 const weatherOverrides = (text) =>
@@ -220,7 +228,10 @@ const weatherOverrides = (text) =>
         }),
       )
     : null;
-const api = source === "replay" ? replaySource(path.resolve(recording)) : liveSource();
+const api =
+  source === "replay"
+    ? replaySource(recording ? path.resolve(recording) : null)
+    : liveSource();
 
 /** Passes a GET through to the live garden unchanged, headers included. */
 async function forward(url, res) {
@@ -347,12 +358,13 @@ const report = {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const browser = await puppeteer.launch({
-  headless: has("headed") ? false : true,
+  headless: has("headed") ? false : has("headless-shell") ? "shell" : true,
+  pipe: true,
   args: [
     "--no-sandbox",
     "--ignore-gpu-blocklist",
     "--enable-gpu",
-    "--use-angle=d3d11",
+    process.platform === "win32" ? "--use-angle=d3d11" : "--use-angle=swiftshader",
     "--enable-unsafe-swiftshader",
   ],
 });
@@ -488,7 +500,35 @@ try {
   await second.close();
   await desk.bringToFront();
 
+  // Saving a paused view must export its reported state, not a newer poll.
+  await desk.click("#pause");
+  const pausedTick = await desk.$eval("#observation-tick", (el) =>
+    Number(el.textContent.replaceAll(",", "")),
+  );
+  const downloadDir = path.join(out, `downloads-${Date.now()}`);
+  mkdirSync(downloadDir, { recursive: true });
+  const downloads = await desk.createCDPSession();
+  await downloads.send("Browser.setDownloadBehavior", {
+    behavior: "allow",
+    downloadPath: downloadDir,
+  });
+  await desk.click("#save-observation");
+  const filename = path.join(downloadDir, `garden-observation-${pausedTick}.json`);
+  const downloadDeadline = Date.now() + 10_000;
+  while (!existsSync(filename) && Date.now() < downloadDeadline) await sleep(100);
+  const exported = JSON.parse(readFileSync(filename, "utf8"));
+  report.checks.export = {
+    tick: exported.observation.ticks,
+    schema: exported.schema,
+    ok:
+      exported.schema === "garden-observation/v1" &&
+      exported.observation.ticks === pausedTick &&
+      exported.presentation.paused &&
+      exported.source.endpoint === `${origin}/api/state`,
+  };
+
   // Outage: the page says so, keeps the last picture, and recovers by itself.
+  // A frozen picture must never hide a lost connection.
   outage = true;
   await desk.waitForFunction(
     () =>
@@ -503,10 +543,14 @@ try {
   await shot(desk, "desktop-outage");
   outage = false;
   await desk.waitForFunction(
-    () => document.getElementById("status")?.dataset.state === "live",
+    () =>
+      ["live", "waiting"].includes(
+        document.getElementById("status")?.dataset.state ?? "",
+      ),
     { timeout: 45_000, polling: 500 },
   );
   report.checks.outage = { during, recovered: true, ok: true };
+  await desk.click("#pause");
 
   // Memory: switch cameras and presets, then compare.
   // Collected first, so the heap figure is what is still held, not garbage waiting.

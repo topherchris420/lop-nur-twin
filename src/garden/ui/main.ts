@@ -12,6 +12,7 @@
  */
 import { parseObservation, type Observation } from "../core/observation.js";
 import { PollScheduler } from "../core/poll.js";
+import { observationIn, observationRecord } from "../core/record.js";
 import {
   AdaptiveResolution,
   defaultQuality,
@@ -21,6 +22,7 @@ import {
 } from "../core/quality.js";
 import { clampFps, STOP_MOTION_FPS } from "../core/stopMotion.js";
 import {
+  BROADCAST_DELAY_S,
   PresentationClock,
   ServerClock,
   Timeline,
@@ -32,6 +34,7 @@ import { Fallback2D } from "./fallback2d.js";
 import {
   clockText,
   dayText,
+  durationText,
   establishedFor,
   labelOf,
   learnedOf,
@@ -164,12 +167,18 @@ async function poll() {
       credentials: "same-origin",
       signal: timeout.signal,
     });
-    const received = performance.now();
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const o = parseObservation(await response.json());
+    const received = performance.now();
     serverClock.update(o.serverTime, sent, received);
     const result = timeline.push(o);
-    if (result === "new-life") showLifeChange();
+    if (result === "new-life") {
+      // A paused old frame must not survive an announced identity change.
+      paused = null;
+      syncPause();
+      scene?.invalidate();
+      showLifeChange();
+    }
     lastAnswerMs = received;
     delay = poller.success(
       o.updatedAt,
@@ -297,7 +306,7 @@ function frame(now: number) {
       place(pic);
     }
   } else if (flat && now - lastRaf > 30) {
-    const state = paused ? (paused.iv?.next ?? null) : timeline.stateAt(t);
+    const state = paused ? observationIn(paused.iv) : timeline.stateAt(t);
     const at = flat.draw(
       state,
       now,
@@ -409,11 +418,15 @@ $("pause").addEventListener("click", () => {
     paused = null;
     scene?.invalidate();
   } else if (shownAt !== null) paused = { t: shownAt, iv: timeline.at(shownAt) };
+  syncPause();
+  words(true);
+});
+
+function syncPause() {
   const b = $("pause");
   b.setAttribute("aria-pressed", String(paused !== null));
   b.textContent = paused ? "Resume view" : "Pause view";
-  words(true);
-});
+}
 
 $("picture-toggle").addEventListener("click", () => {
   const form = $("picture");
@@ -446,6 +459,37 @@ document
   ?.addEventListener("click", () => setPanel(true));
 
 $("retry").addEventListener("click", () => void poll());
+$("retry-connection").addEventListener("click", () => void poll());
+
+$("save-observation").addEventListener("click", () => {
+  if (shownAt === null) return;
+  const interval = intervalAt(shownAt);
+  if (!interval) return;
+  const record = observationRecord({
+    interval,
+    presentedAt: shownAt,
+    paused: paused !== null,
+    exportedAt: new Date().toISOString(),
+    source: new URL(STATE_URL, location.origin).href,
+    connection: $("status").dataset.state ?? "connecting",
+  });
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(record, null, 2) + "\n"], {
+      type: "application/json",
+    }),
+  );
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `garden-observation-${record.observation.ticks}.json`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setText(
+    "observation-feedback",
+    "Observation download requested. This is a public state record, not a backup of the life.",
+  );
+});
 
 motionQuery.addEventListener("change", (e) => {
   reduced = e.matches;
@@ -482,14 +526,14 @@ function words(force = false) {
   if (serverNow !== null) setText("clock", clockText(serverNow));
   const t = shownAt;
   const state: Observation | null = paused
-    ? (paused.iv?.next ?? null)
+    ? observationIn(paused.iv)
     : t !== null
       ? timeline.stateAt(t)
       : timeline.latest();
   const latest = timeline.latest();
   const iv = t !== null ? timeline.at(t) : null;
   const status = statusOf({
-    paused: paused !== null,
+    paused: false,
     failures: poller.consecutiveFailures,
     sinceAnswer: lastAnswerMs === null ? null : (now - lastAnswerMs) / 1000,
     newestAge: latest && serverNow !== null ? serverNow - latest.updatedAt : null,
@@ -499,18 +543,41 @@ function words(force = false) {
   pill.dataset.state = status.state;
   setText("status-text", status.text);
   setText("now-status", status.text);
-  setText("now-detail", status.detail);
+  setText(
+    "now-detail",
+    (paused ? "Your view is paused; observing never pauses the simulation. " : "") +
+      (paused && status.state === "live" ? "The garden is responding." : status.detail),
+  );
+  $("retry-connection").hidden = !["reconnecting", "offline", "waiting"].includes(
+    status.state,
+  );
+  $<HTMLButtonElement>("retry-connection").disabled = requesting;
+  $<HTMLButtonElement>("save-observation").disabled = !state || shownAt === null;
   if (!firstPicture) {
     const failing = poller.consecutiveFailures > 0;
     setText(
       "curtain-text",
       failing
-        ? "The garden is taking a moment to answer. The fly's life continues on the server."
+        ? "The garden is taking a moment to answer. Retrying automatically; its current state is not yet available."
         : "Opening a window into the garden…",
     );
     $("retry").hidden = !failing;
   }
   if (!state) return;
+  setText("observation-tick", state.ticks.toLocaleString("en-US"));
+  const observed = $<HTMLTimeElement>("observation-time");
+  observed.dateTime = new Date(state.updatedAt * 1000).toISOString();
+  observed.textContent = observed.dateTime.slice(0, 19).replace("T", " ") + " UTC";
+  setText(
+    "observation-age",
+    latest && serverNow !== null
+      ? `${durationText(serverNow - latest.updatedAt)} ago`
+      : "not reported",
+  );
+  setText(
+    "observation-view",
+    paused ? "Paused on a received state" : `${BROADCAST_DELAY_S}-second delayed view`,
+  );
   setText("weather", weatherOf(state));
   setText(
     "weather-source",
@@ -554,7 +621,7 @@ function words(force = false) {
 let memoryKey = "";
 function renderMemories(state: Observation) {
   const list = memoriesOf(state.moments);
-  const key = list.map((m) => m.key).join(",");
+  const key = `${state.lifeId}|${state.bornAt}|${JSON.stringify(list)}`;
   if (key === memoryKey) return;
   memoryKey = key;
   const ol = $("memories");
@@ -582,6 +649,14 @@ function renderLearned(state: Observation) {
   const l = learnedOf(state.learning);
   const ul = $("learned-movement");
   if (!l) {
+    for (const id of [
+      "learned-trials",
+      "learned-error",
+      "learned-surprises",
+      "learned-condition",
+    ])
+      setText(id, "not reported");
+    for (const id of ["learned-last", "learned-body", "learned-others"]) setText(id, "");
     ul.replaceChildren(
       Object.assign(document.createElement("li"), {
         textContent: "The server did not report learning with this state.",

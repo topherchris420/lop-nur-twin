@@ -166,7 +166,49 @@
               </div>
             </dl>
             <p class="panel-small" id="now-detail">Opening a window into the garden.</p>
+            <button class="quiet-button" id="retry-connection" type="button" hidden>
+              Try connection again
+            </button>
             <p class="panel-alert" id="life-change" hidden></p>
+          </section>
+
+          <section class="panel-section" aria-labelledby="observation-title">
+            <h3 id="observation-title">
+              This moment <span class="tag tag-modelled">Modelled</span>
+            </h3>
+            <dl class="facts">
+              <div>
+                <dt>View</dt>
+                <dd id="observation-view">Waiting for a state</dd>
+              </div>
+              <div>
+                <dt>State tick</dt>
+                <dd id="observation-tick">not reported</dd>
+              </div>
+              <div>
+                <dt>State time</dt>
+                <dd><time id="observation-time">not reported</time></dd>
+              </div>
+              <div>
+                <dt>Newest state</dt>
+                <dd id="observation-age">not reported</dd>
+              </div>
+            </dl>
+            <p class="panel-small">
+              Keep a record of the state behind this view: identity, behaviour, memories,
+              learning and reported weather, with their timestamps.
+            </p>
+            <button class="quiet-button" id="save-observation" type="button" disabled>
+              Save observation · JSON
+            </button>
+            <p
+              class="panel-small"
+              id="observation-feedback"
+              role="status"
+              aria-live="polite"
+            >
+              Downloads to your device. Observing and saving never change the fly.
+            </p>
           </section>
 
           <section class="panel-section" aria-labelledby="life-title">

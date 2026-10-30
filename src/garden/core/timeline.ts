@@ -115,7 +115,13 @@ export class Timeline {
     if (items.length === 0) return null;
     const first = items[0]!;
     if (items.length === 1 || t <= first.updatedAt)
-      return { prev: first, next: first, tau: 1, late: 0, discontinuous: false };
+      return {
+        prev: first,
+        next: first,
+        tau: 1,
+        late: Math.max(0, t - first.updatedAt),
+        discontinuous: false,
+      };
     const last = items.at(-1)!;
     if (t >= last.updatedAt) {
       const prev = items.at(-2)!;
