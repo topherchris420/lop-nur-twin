@@ -191,6 +191,30 @@ def cmd_mbcode(args) -> int:
     return 0 if data["selected"] else 3
 
 
+def cmd_threat(args) -> int:
+    from . import threat
+
+    cfg = _config(args.config)
+    if args.action == "battery":
+        print(f"wrote {threat.write_battery(cfg, args.split, WORK)}")
+        return 0
+    data = threat.run(cfg, args.split, compiled_dir(args.connectome), WORK, Path(args.out or ADAPTIVE), resume=args.resume)
+    return 0 if not data.get("failed") else 3
+
+
+def cmd_selective(args) -> int:
+    from . import selective
+
+    cfg = _config(args.config)
+    out = Path(args.out or ADAPTIVE)
+    if args.action == "calibrate":
+        selective.calibrate(cfg, compiled_dir(args.connectome), ADAPTIVE, out)
+        return 0
+    progress = WORK / "progress" / f"{cfg.stem}-{args.split}{f'-{args.subjects}-subjects' if args.subjects else ''}{'-only-' + '-'.join(args.only) if args.only else ''}.jsonl"
+    data = selective.run(cfg, args.split, compiled_dir(args.connectome), ADAPTIVE, out, Path(args.echo_mb) if args.echo_mb else None, subjects=args.subjects, progress=progress, resume=args.resume, only=args.only)
+    return 0 if not data["failed"] else 3
+
+
 def cmd_serve(args) -> int:
     from .shadow import serve
 
@@ -265,6 +289,25 @@ def main(argv: list[str] | None = None) -> int:
     mb.add_argument("--connectome", default="fafb-v783-shiu")
     mb.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
     mb.set_defaults(fn=cmd_mbcode)
+    th = sub.add_parser("threat", help="threat discrimination (experiments/threat-v783.json): write a battery for the recorder, or replay and score it")
+    th.add_argument("action", choices=["battery", "run"])
+    th.add_argument("--split", required=True, choices=["dev", "heldout"])
+    th.add_argument("--config", default="threat-v783.json")
+    th.add_argument("--connectome", default="fafb-v783-shiu")
+    th.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    th.add_argument("--resume", action="store_true", help="reuse replays an interrupted run of this same commit, config and recording finished (.fly-neural/threat/traces/)")
+    th.set_defaults(fn=cmd_threat)
+    se = sub.add_parser("selective", help="selective associative learning (experiments/plasticity-v2-v783.json): calibrate the dopamine threshold (dev), or run a split")
+    se.add_argument("action", choices=["calibrate", "run"])
+    se.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    se.add_argument("--config", default="plasticity-v2-v783.json")
+    se.add_argument("--connectome", default="fafb-v783-shiu")
+    se.add_argument("--echo-mb", help="result of scripts/echo-neural-plasticity.ts --schedule v2 for the same split")
+    se.add_argument("--subjects", type=int, help="fewer subjects than the file's (the result is marked partial)")
+    se.add_argument("--only", action="append", help="arm name; repeatable (the result is marked partial)")
+    se.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    se.add_argument("--resume", action="store_true")
+    se.set_defaults(fn=cmd_selective)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)
