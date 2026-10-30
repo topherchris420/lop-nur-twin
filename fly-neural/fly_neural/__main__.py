@@ -215,6 +215,18 @@ def cmd_selective(args) -> int:
     return 0 if not data["failed"] else 3
 
 
+def cmd_adaptive(args) -> int:
+    from . import adaptive
+
+    cfg = _config(args.config)
+    codes = WORK / "adaptive" / f"codes-{cfg.stem}.npz"
+    if args.action == "codes":
+        adaptive.build_codes(cfg, compiled_dir(args.connectome), ADAPTIVE, codes)
+        return 0
+    data = adaptive.run(cfg, args.split, codes, Path(args.out or ADAPTIVE))
+    return 0 if not data["failed"] else 3
+
+
 def cmd_serve(args) -> int:
     from .shadow import serve
 
@@ -308,6 +320,13 @@ def main(argv: list[str] | None = None) -> int:
     se.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
     se.add_argument("--resume", action="store_true")
     se.set_defaults(fn=cmd_selective)
+    al = sub.add_parser("adaptive", help="adaptive-life experiments on research subjects (experiments/adaptive-life-v783.json): build the odour codes from the full model, or run a split")
+    al.add_argument("action", choices=["codes", "run"])
+    al.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    al.add_argument("--config", default="adaptive-life-v783.json")
+    al.add_argument("--connectome", default="fafb-v783-shiu")
+    al.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    al.set_defaults(fn=cmd_adaptive)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)
