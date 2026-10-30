@@ -409,7 +409,9 @@ ssh ubuntu@VM sudo cat /var/backups/bethesda-life/NAME.tar.gz > NAME.tar.gz   # 
 The archive is taken while the life runs (every file in the store is
 published whole, so the copy holds the chain up to some checkpoint) and is
 kept only if an unpacked copy passes `--check` with the installed release.
-Its name carries the commit of the release that wrote it.
+If the life commits while tar reads the store, tar reports that the store
+changed, and the run copies it again, up to three times, 10 s apart. The
+archive's name carries the commit of the release that wrote it.
 
 `install.sh --backups` copies `backup.sh` to `/opt/bethesda-life/bin` and
 installs `bethesda-life-backup.service` and its timer, without stopping or
@@ -461,7 +463,10 @@ the archive and its checksum reached the bucket `bethesda-life-backups`
 (us-ashburn-1), and the watcher closed its issue a minute later. Through all
 three the life kept the same process, with no restart. No copy has failed
 its check there and no run has been skipped for memory, so neither refusal
-has happened on a VM.
+has happened on a VM. One run has failed: at 12:48 that day the life
+committed while tar read the store (`file changed as we read it`), and the
+run stopped with no copy kept. A run by hand three minutes later kept
+checkpoint 1137; runs since copy again instead of stopping.
 
 A backup is this individual, not a copy of it. Restore one only in place of a
 store that is lost or broken, and never run it beside a store that still
