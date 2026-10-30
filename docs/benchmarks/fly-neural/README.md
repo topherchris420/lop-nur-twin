@@ -6,6 +6,14 @@ FlyWire v783 connectome (terms: [LICENSE.md](LICENSE.md)). What the
 results mean, and what they do not, is in
 [docs/ECHO_CONNECTOME.md](../../ECHO_CONNECTOME.md).
 
+## Import: `fafb-v783-shiu` ([import-fafb-v783-shiu.json](import-fafb-v783-shiu.json), `a206910`)
+
+139,255 neurons, 15,091,983 connected pairs, 54,492,922 synapses; 0 autapses, 41,333 inhibitory neurons under sign policy `shiu`. Against Shiu et al.'s Connectivity_783: 15,091,983 of 15,091,983 pairs found, 15,091,983 with the same synapse count, 15,091,983 with the same signed weight.
+
+## Import: `fafb-v783-synapse-weighted` ([import-fafb-v783-synapse-weighted.json](import-fafb-v783-synapse-weighted.json), `a206910`)
+
+139,255 neurons, 15,091,983 connected pairs, 54,492,922 synapses; 0 autapses, 43,869 inhibitory neurons under sign policy `synapse-weighted`. Against Shiu et al.'s Connectivity_783: 15,091,983 of 15,091,983 pairs found, 15,091,983 with the same synapse count, 14,912,121 with the same signed weight.
+
 ## Against Brian 2 ([brian2-reference.json](brian2-reference.json), `7d87e82`)
 
 | | Claim | Result | |
@@ -110,3 +118,68 @@ Brian 2: 128.2 s per simulated second; this engine: 4.35 s.
 | jons-140 | connectome | 30 | 0.0 | 44.9 | 16.4 | 16.8 | 492 | 314 |
 
 ![MN9 rate against sugar GRN rate in the model, by split, with the controls at 100 Hz](figure-sugar-mn9.svg)
+
+## Cost on this machine ([benchmark.json](benchmark.json), `8df2e3b`)
+
+| Connectome | Load (s) | Wall s per simulated s | CPU s | RSS (MB) |
+| --- | --- | --- | --- | --- |
+| `fafb-v783-shiu` | 0.2 | 1.30 | 1.30 | 233 |
+| `fafb-v783-synapse-weighted` | 0.3 | 1.34 | 1.32 | 234 |
+
+| Synthetic neurons | Pairs | Driven | Spikes | Synaptic events | Wall s per simulated s | Fired |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1,000 | 102,459 | 20 | 2,012 | 202,610 | 0.25 | 24 |
+| 10,000 | 1,074,149 | 100 | 9,911 | 1,060,598 | 1.00 | 108 |
+| 100,000 | 10,794,223 | 1000 | 99,234 | 10,720,991 | 8.03 | 1,077 |
+| 139,255 | 15,033,691 | 1392 | 138,089 | 14,886,938 | 11.06 | 1,489 |
+
+Machine: ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc, 8 logical CPUs, 15979 MB RAM, Windows-10-10.0.26200-SP0; one (NumPy, no parallelism); GPU: none.
+
+## Cost follows activity (full v783 brain, measured in the runs above)
+
+Wall time per simulated second against spikes per trial, for every condition on the connectome and the sign shuffle; the rewired controls are left out because their time includes rewiring. Other work shared the machine, and the dev run was slowed by paging.
+
+| Condition | Split | Spikes per trial | Wall s per trial |
+| --- | --- | --- | --- |
+| sugar-10 | dev | 228 | 0.62 |
+| sugar-10 | heldout | 229 | 0.21 |
+| sugar-20 | dev | 549 | 1.08 |
+| sugar-20 | heldout | 555 | 0.28 |
+| water-50 | heldout | 1,498 | 0.54 |
+| water-50 | dev | 1,524 | 0.54 |
+| sugar-50 | heldout | 2,694 | 0.73 |
+| sugar-50 | dev | 2,731 | 2.43 |
+| water-100 | dev | 3,342 | 0.91 |
+| water-100 | heldout | 3,376 | 0.87 |
+| bitter-200 | dev | 6,010 | 1.00 |
+| bitter-200 | heldout | 6,026 | 0.93 |
+| jo-f-100 | heldout | 6,384 | 0.73 |
+| jo-f-100 | dev | 6,387 | 0.74 |
+| water-200 | heldout | 7,489 | 1.40 |
+| water-200 | dev | 7,526 | 1.41 |
+| sugar-100-ir94e-50 | heldout | 8,282 | 1.46 |
+| sugar-100-ir94e-50 | dev | 8,303 | 1.39 |
+| sugar-100-bitter-50 | dev | 8,579 | 1.14 |
+| sugar-100-bitter-50 | heldout | 8,714 | 1.21 |
+| sugar-100 | dev | 9,022 | 6.21 |
+| sugar-100 | heldout | 9,042 | 1.56 |
+| jo-ce-100 | dev | 9,365 | 2.06 |
+| jo-ce-100 | heldout | 9,398 | 1.94 |
+| sugar-100-bitter-200 | dev | 9,839 | 1.49 |
+| sugar-100-bitter-200 | heldout | 9,935 | 1.16 |
+| sugar-150 | dev | 12,801 | 4.60 |
+| sugar-150 | heldout | 12,863 | 1.55 |
+| jo-f-200 | dev | 13,111 | 1.36 |
+| jo-f-200 | heldout | 13,144 | 1.29 |
+| jo-f-200-silence-inhibitory | dev | 13,789 | 1.59 |
+| jo-f-200-silence-inhibitory | heldout | 13,863 | 1.47 |
+| sugar-200 | heldout | 16,131 | 2.02 |
+| sugar-200 | dev | 16,211 | 7.15 |
+| sugar-100-ir94e-200 | heldout | 18,827 | 2.69 |
+| jo-ce-200 | heldout | 20,411 | 3.21 |
+| jo-ce-200 | dev | 20,494 | 3.10 |
+| sugar-100-ir94e-200 | dev | 23,213 | 2.69 |
+| jons-140 | dev | 26,241 | 3.78 |
+| jons-140 | heldout | 26,268 | 3.56 |
+| sugar-100-sign-shuffle | heldout | 2,885,467 | 26.59 |
+| sugar-100-sign-shuffle | dev | 3,236,566 | 74.25 |
