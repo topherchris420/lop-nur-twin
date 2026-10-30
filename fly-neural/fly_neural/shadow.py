@@ -101,7 +101,7 @@ def analyse(recording: Path, compiled: Path, out_dir: Path, seed: int = 0, log=p
         "schema": RESULT_SCHEMA,
         "kind": "shadow",
         "mode": "neural-shadow",
-        "recording": {"file": Path(recording).name, "header": head, "records": len(recs)},
+        "recording": {"file": Path(recording).name, "sha256": __import__("hashlib").sha256(Path(recording).read_bytes()).hexdigest(), "header": head, "records": len(recs)},
         "connectome": {"path_name": Path(compiled).name, "manifest_sha256": c.manifest.get("sha256"), "sign_policy": c.manifest.get("sign_policy")},
         "mapping": describe_mapping(),
         "populations": mapper.report,
