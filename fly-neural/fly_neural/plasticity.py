@@ -24,7 +24,7 @@ import numpy as np
 from . import RESULT_SCHEMA, controls, lif, stats
 from . import connectome as cx
 from . import populations as P
-from .record import code_state, environment, sealed, write_json
+from .record import code_watch, environment, sealed, write_json
 from .resources import Meter, machine
 
 SCHEMA = "fly-neural-plasticity/v1"
@@ -115,11 +115,13 @@ def run_subject(c, base_net, circuit, cfg, arm, seed_seq, odours):
         return out
 
     before = test()
-    changed, kc_active = [], []
+    changed, kc_active, kc_sets = [], [], {}
     for _ in range(proto["training_pairs"]):
         for o, rew in (("A", True), ("B", False)):
             counts = trial(o, rew)
-            kc_active.append(int((counts[circuit.kc] > 0).sum()))
+            fired = counts[circuit.kc] > 0
+            kc_active.append(int(fired.sum()))
+            kc_sets.setdefault(o, fired)  # the first training trial of each odour
             if arm["plastic"]:
                 changed.append(circ.update(net.weight, counts, cfg["rule"], arm["silence_dans"]))
     after = test()
@@ -131,6 +133,9 @@ def run_subject(c, base_net, circuit, cfg, arm, seed_seq, odours):
         "after": after,
         "li": None if ra is None or rb is None else ra - rb,
         "kc_active_per_training_trial": stats.summary(kc_active),
+        "kenyon_cells": int(circuit.kc.size),
+        # Jaccard of the KCs that fired in the first A and first B training trial.
+        "kc_overlap_first_trials": float((kc_sets["A"] & kc_sets["B"]).sum() / max(1, (kc_sets["A"] | kc_sets["B"]).sum())),
         "synapses_depressed_per_update": stats.summary(changed) if changed else None,
     }
 
@@ -171,6 +176,7 @@ def judge(crit, arms, echo_mb):
 
 
 def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, echo_mb_path: Path | None, subjects: int | None = None, log=print) -> dict:
+    code = code_watch(out_dir)
     cfg = json.loads(Path(cfg_path).read_text(encoding="utf-8"))
     if cfg.get("schema") != SCHEMA:
         raise ValueError(f"{cfg_path} is not a {SCHEMA} file")
@@ -212,7 +218,7 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, echo_mb_path:
         "failed": [v["id"] for v in verdicts if not v["passed"]],
         "resources": {**meter.describe(), "machine": machine()},
         "environment": environment(),
-        "code": code_state(out_dir),
+        "code": code(),
     }
     data = sealed(body)
     name = f"{cfg['id']}-{split}{'-partial' if body['partial'] else ''}.json"

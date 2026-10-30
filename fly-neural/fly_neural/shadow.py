@@ -28,7 +28,7 @@ import numpy as np
 
 from . import RESULT_SCHEMA, SHADOW_SCHEMA, lif
 from . import connectome as cx
-from .record import code_state, environment, sealed
+from .record import code_watch, environment, sealed
 from .resources import Meter
 from .sensory import Mapper, describe_mapping, observation
 
@@ -75,6 +75,7 @@ def read_recording(path: Path) -> tuple[dict, list[dict]]:
 
 
 def analyse(recording: Path, compiled: Path, out_dir: Path, seed: int = 0, log=print) -> dict:
+    code = code_watch(out_dir)
     head, recs = read_recording(recording)
     c = cx.load(compiled)
     net = lif.Network(c)
@@ -115,7 +116,7 @@ def analyse(recording: Path, compiled: Path, out_dir: Path, seed: int = 0, log=p
         ][:5000],
         "resources": meter.describe(),
         "environment": environment(),
-        "code": code_state(out_dir),
+        "code": code(),
     }
     data = sealed(body)
     from .record import write_json

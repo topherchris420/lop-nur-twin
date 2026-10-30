@@ -57,9 +57,10 @@ def cmd_crosscheck(args) -> int:
     from .importer import crosscheck_shiu
 
     from . import RESULT_SCHEMA
-    from .record import code_state, environment, sealed, write_json
+    from .record import code_watch, environment, sealed, write_json
     from .resources import Meter, machine
 
+    code = code_watch(Path(args.out or RESULTS))
     path = compiled_dir(args.name)
     c = cx.load(path, verify_hashes=True)
     with Meter() as m:
@@ -85,7 +86,7 @@ def cmd_crosscheck(args) -> int:
             "resources": m.describe(),
             "machine": machine(),
             "environment": environment(),
-            "code": code_state(Path(args.out or RESULTS)),
+            "code": code(),
         }
     )
     out = Path(args.out or RESULTS) / f"import-{args.name}.json"

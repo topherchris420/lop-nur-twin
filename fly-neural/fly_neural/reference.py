@@ -18,7 +18,7 @@ import numpy as np
 from . import RESULT_SCHEMA, lif, stats
 from . import connectome as cx
 from . import populations as P
-from .record import code_state, environment, sealed, write_json
+from .record import code_watch, environment, sealed, write_json
 from .resources import Meter, machine
 
 SCHEMA = "fly-neural-reference/v1"
@@ -75,6 +75,7 @@ def read_brian2(paths: list[Path]) -> dict:
 
 
 def run(cfg_path: Path, brian2_paths: list[Path], compiled: Path, out_dir: Path, log=print) -> dict:
+    code = code_watch(out_dir)
     cfg = json.loads(Path(cfg_path).read_text(encoding="utf-8"))
     if cfg.get("schema") != SCHEMA:
         raise ValueError(f"{cfg_path} is not a {SCHEMA} file")
@@ -140,7 +141,7 @@ def run(cfg_path: Path, brian2_paths: list[Path], compiled: Path, out_dir: Path,
         "failed": [v["id"] for v in verdicts if not v["passed"]],
         "machine": machine(),
         "environment": environment(),
-        "code": code_state(out_dir),
+        "code": code(),
     }
     data = sealed(body)
     write_json(out_dir / f"{cfg['id']}.json", data)

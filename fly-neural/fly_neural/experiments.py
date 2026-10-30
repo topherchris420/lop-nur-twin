@@ -24,7 +24,7 @@ import numpy as np
 from . import RESULT_SCHEMA, controls, lif, stats
 from . import connectome as cx
 from . import populations as P
-from .record import code_state, environment, sealed
+from .record import code_watch, environment, sealed
 from .resources import Budget, Meter, machine
 
 EXPERIMENT_SCHEMA = "fly-neural-experiment/v1"
@@ -142,6 +142,7 @@ def judge(crit: dict, res: dict[str, dict], secs: float) -> dict:
 
 
 def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, only: list[str] | None = None, budget: Budget | None = None, log=print) -> dict:
+    code = code_watch(out_dir)
     cfg = load_config(cfg_path)
     if split not in cfg["seeds"]:
         raise ValueError(f"seed split must be one of {sorted(cfg['seeds'])}")
@@ -181,7 +182,7 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, only: list[st
         "resources": {**meter.describe(), "machine": machine()},
         "wall_s": round(time.monotonic() - t0, 2),
         "environment": environment(),
-        "code": code_state(out_dir),
+        "code": code(),
     }
     data = sealed(body)
     from .record import write_json

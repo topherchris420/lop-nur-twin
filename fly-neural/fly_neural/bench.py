@@ -22,7 +22,7 @@ import numpy as np
 from . import RESULT_SCHEMA, lif, stats
 from . import connectome as cx
 from . import populations as P
-from .record import code_state, environment, sealed, write_json
+from .record import code_watch, environment, sealed, write_json
 from .resources import Meter, machine, peak_rss_mb, rss_mb
 
 
@@ -79,6 +79,7 @@ def scaling(sizes: list[int], degree: int, seed: int) -> list[dict]:
 
 
 def run(compiled: list[Path], out_dir: Path, trials: int = 5, sizes: list[int] | None = None, seed: int = 0, log=print) -> dict:
+    code = code_watch(out_dir)
     t0 = time.monotonic()
     fb = full_brain(compiled, trials, seed)
     for r in fb:
@@ -98,7 +99,7 @@ def run(compiled: list[Path], out_dir: Path, trials: int = 5, sizes: list[int] |
         "peak_rss_mb_process": peak_rss_mb(),
         "wall_s": round(time.monotonic() - t0, 2),
         "environment": environment(),
-        "code": code_state(out_dir),
+        "code": code(),
     }
     data = sealed(body)
     write_json(out_dir / "benchmark.json", data)

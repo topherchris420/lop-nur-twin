@@ -93,6 +93,21 @@ def code_state(results: Path | None = None) -> dict:
     }
 
 
+def code_watch(results: Path | None = None):
+    """Take the code state now; the returned function gives it back at the end of a run.
+
+    A result records the code its run started with. If the commit, the tree's
+    cleanliness or this package's source changed before the run finished,
+    ``changed_during_run`` names what changed."""
+    start = code_state(results)
+
+    def finish() -> dict:
+        end = code_state(results)
+        return {**start, "changed_during_run": [k for k in ("commit", "dirty", "fly_neural") if start.get(k) != end.get(k)]}
+
+    return finish
+
+
 def write_json(path: Path, data: dict) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")

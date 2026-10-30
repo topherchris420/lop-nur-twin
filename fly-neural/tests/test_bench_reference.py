@@ -63,7 +63,7 @@ def test_reference_judges_identical_runs_as_agreeing(tmp_path, monkeypatch):
     head = {"schema": "fly-neural-brian2-trials/v1", "t_run_ms": 200.0, "args": {"rate": 100.0}, "environment": {"shiu_model_py_sha256": "x"}}
     (tmp_path / "b2a.json").write_text(json.dumps({**head, "trials": trials[:4]}))
     (tmp_path / "b2b.json").write_text(json.dumps({**head, "trials": trials[4:]}))
-    monkeypatch.setattr(reference, "code_state", lambda _: {"commit": None})
+    monkeypatch.setattr(reference, "code_watch", lambda _: lambda: {"commit": None, "changed_during_run": []})
     data = reference.run(tmp_path / "cfg.json", [tmp_path / "b2a.json", tmp_path / "b2b.json"], compiled, tmp_path / "out", log=lambda *_: None)
     assert data["brian2_run"]["trials"] == 6 and len(data["brian2_run"]["files"]) == 2
     by = {v["id"]: v for v in data["criteria"]}
