@@ -466,9 +466,20 @@ for (const climate of CLIMATE_MONTHS) {
 }
 
 for (const place of OFFSITE_CONTEXT) {
+  if (place.location !== undefined) {
+    check(
+      place.location.distanceFromAirfieldKm * 1000 > SITE_SIZE,
+      `Offsite context "${place.id}" must remain outside the rendered scene`,
+    );
+  } else {
+    check(
+      place.reportedClaim.trim().length > 0,
+      `Offsite context "${place.id}" has no cited position, so it must state what its source reports`,
+    );
+  }
   check(
-    place.distanceFromAirfieldKm * 1000 > SITE_SIZE,
-    `Offsite context "${place.id}" must remain outside the rendered scene`,
+    place.sourceIds.length > 0,
+    `Offsite context "${place.id}" must cite at least one source`,
   );
   for (const sourceId of place.sourceIds) {
     check(

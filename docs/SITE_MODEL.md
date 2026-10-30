@@ -52,6 +52,15 @@ them, and where the two disagree the code is right.
   CSIS's March–June 2020 comparison found no significant visible change and no
   conclusive open-source indicator of a test; the simulator makes no activity or
   function claim about the tunnel area.
+- **Possible new test area — offsite context without a position.** The Open
+  Nuclear Network's June 2024 imagery review reports a possible new test area
+  about 20 km east of the test site's inactive vertical shaft area, where a
+  horizontal tunnel may have been built and potential drilling rigs were seen,
+  and says their purpose remains unclear. It publishes no coordinate, so the
+  twin records the report as low-confidence context with no position or
+  distance and renders nothing. The same report describes an airfield in the
+  former atmospheric test area as built in 2016 and expanded in 2021; that is
+  recorded against the site as a probable, not established, match.
 - **Atmosphere**: sandy `FogExp2` haze, analytic sky, soft cascaded sun
   shadows, a drifting ground-level dust layer, soft **cloud shadows** sweeping
   the plain, and an animated day/night cycle (`N`) with stars, moonlight and

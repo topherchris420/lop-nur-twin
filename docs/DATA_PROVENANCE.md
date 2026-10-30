@@ -111,7 +111,9 @@ One record is emitted per (subject, attesting source) pair for:
 - the runway length, grid bearing and site reference coordinate, as explicit
   measurement subjects carrying their documented uncertainty;
 - the terrain datum and the monthly climatology;
-- site-level context and the offsite Northern Tunnel Test Area;
+- site-level context and the offsite places: the Northern Tunnel Test Area
+  (positioned from a cited coordinate) and the possible new test area (no
+  coordinate published, so no position recorded);
 - every illustrative simulation element, sourced to the model itself.
 
 Record ids are deterministic (`ev-<subject>-<source>`) and the ledger is sorted
