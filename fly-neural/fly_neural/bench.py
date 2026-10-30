@@ -71,10 +71,25 @@ def scaling(sizes: list[int], degree: int, seed: int) -> list[dict]:
         with Meter() as build:
             c = cx.from_edges(np.arange(1, n + 1, dtype=np.int64), pre, post, cnt, sign)
             net = lif.Network(c)
-        drive = np.arange(min(20, n))
+        # 1% of the neurons driven, so activity grows with the network (cost follows spikes, not size).
+        drive = np.arange(max(20, n // 100))
         with Meter() as m_run:
             t, _ = lif.run(net, lif.Stimulus(poisson=[lif.Poisson(drive, 100.0)]), 1000.0, rng=np.random.default_rng(seed))
-        out.append({"neurons": n, "pairs": c.pairs, "synapses": c.synapses, "build": build.describe(), "run": m_run.describe(), "spikes": t.total_spikes, "neurons_fired": int((t.counts > 0).sum()), "neurons_touched": t.active_neurons})
+        events = int((t.counts * np.diff(c.indptr)).sum())
+        out.append(
+            {
+                "neurons": n,
+                "pairs": c.pairs,
+                "synapses": c.synapses,
+                "driven": int(drive.size),
+                "build": build.describe(),
+                "run": m_run.describe(),
+                "spikes": t.total_spikes,
+                "synaptic_events": events,
+                "neurons_fired": int((t.counts > 0).sum()),
+                "neurons_touched": t.active_neurons,
+            }
+        )
     return out
 
 
@@ -91,7 +106,7 @@ def run(compiled: list[Path], out_dir: Path, trials: int = 5, sizes: list[int] |
         "schema": RESULT_SCHEMA,
         "kind": "benchmark",
         "full_brain": fb,
-        "scaling": {"note": "synthetic random graphs (not a connectome), mean out-degree 108 as in v783 (15,091,983 pairs / 139,255 neurons), 30% inhibitory, 20 neurons driven at 100 Hz for 1 s", "rows": sc},
+        "scaling": {"note": "synthetic random graphs (not a connectome), mean out-degree 108 as in v783 (15,091,983 pairs / 139,255 neurons), 30% inhibitory, 1% of neurons (at least 20) driven at 100 Hz for 1 s; synaptic_events = spikes times out-degree", "rows": sc},
         "gpu": None,
         "threads": "one (NumPy, no parallelism)",
         "machine": machine(),

@@ -215,11 +215,29 @@ def write(results: Path) -> Path:
         lines += [f"## Cost on this machine ([{n}]({n}), {_code(d)})", "", "| Connectome | Load (s) | Wall s per simulated s | CPU s | RSS (MB) |", "| --- | --- | --- | --- | --- |"]
         for r in d["full_brain"]:
             lines.append(f"| `{r['connectome']}` | {r['load']['wall_s']:.1f} | {r['wall_s_per_simulated_s']['mean']:.2f} | {r['cpu_s_per_simulated_s']['mean']:.2f} | {r['rss_end_mb']['mean']:.0f} |")
-        lines += ["", "| Synthetic neurons | Pairs | Wall s per simulated s | Fired |", "| --- | --- | --- | --- |"]
+        lines += ["", "| Synthetic neurons | Pairs | Driven | Spikes | Synaptic events | Wall s per simulated s | Fired |", "| --- | --- | --- | --- | --- | --- | --- |"]
         for r in d["scaling"]["rows"]:
-            lines.append(f"| {r['neurons']:,} | {r['pairs']:,} | {r['run']['wall_s']:.2f} | {r['neurons_fired']:,} |")
+            lines.append(f"| {r['neurons']:,} | {r['pairs']:,} | {r.get('driven', '–')} | {r['spikes']:,} | {r.get('synaptic_events', 0):,} | {r['run']['wall_s']:.2f} | {r['neurons_fired']:,} |")
         m = d["machine"]
         lines += ["", f"Machine: {m.get('processor')}, {m.get('logical_cpus')} logical CPUs, {m.get('total_ram_mb')} MB RAM, {m.get('os')}; {d['threads']}; GPU: none.", ""]
+    act = []
+    for split in ("dev", "heldout"):
+        if split in exp:
+            for c in exp[split][1]["conditions"].values():
+                if c["wiring"] in ("connectome", "sign-shuffle"):  # rewired controls also pay for their rewiring
+                    act.append((c["spikes_per_trial"]["mean"], c["resources"]["wall_s"] / c["trials"], c["name"], split, c["wiring"]))
+    if act:
+        lines += [
+            "## Cost follows activity (full v783 brain, measured in the runs above)",
+            "",
+            "Wall time per simulated second against spikes per trial, for every condition on the connectome and the sign shuffle; the rewired controls are left out because their time includes rewiring. Other work shared the machine, and the dev run was slowed by paging.",
+            "",
+            "| Condition | Split | Spikes per trial | Wall s per trial |",
+            "| --- | --- | --- | --- |",
+        ]
+        for spk, wall, name, split, wiring in sorted(act):
+            lines.append(f"| {name} | {split} | {spk:,.0f} | {wall:.2f} |")
+        lines.append("")
     out = results / "README.md"
     out.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     return out

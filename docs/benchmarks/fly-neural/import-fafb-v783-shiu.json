@@ -1,0 +1,164 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "import",
+ "connectome": "fafb-v783-shiu",
+ "manifest_sha256": "c5dd83b8bd01cc8ce11cdb235c0d7d76e380c4925bc60708d7904609bdff98dd",
+ "dataset": "FlyWire FAFB public release v783 (proofread connections)",
+ "sign_policy": "shiu",
+ "transmitter_sign": {
+  "gaba": -1,
+  "ach": 1,
+  "glut": -1,
+  "oct": 1,
+  "ser": 1,
+  "da": 1
+ },
+ "inputs": {
+  "root_ids": {
+   "file": "zenodo-10676866/proofread_root_ids_783.npy",
+   "url": "https://zenodo.org/records/10676866/files/proofread_root_ids_783.npy?download=1",
+   "sha256": "7c7b7e818e9232e5ab64793d52ba20574dbe9da3a6509fbc74193b0f259a01be",
+   "size": 1114168,
+   "terms": "flywire-cc-by-nc-4.0"
+  },
+  "connections": {
+   "file": "zenodo-10676866/proofread_connections_783.feather",
+   "url": "https://zenodo.org/records/10676866/files/proofread_connections_783.feather?download=1",
+   "sha256": "24f960ae3e7d4f8cd30db3b62e99fb5179cc3d1e76d8c155bfb441e9737d3faf",
+   "size": 852022274,
+   "terms": "flywire-cc-by-nc-4.0"
+  },
+  "shiu_connectivity": {
+   "file": "shiu-91bdd1e/Connectivity_783.parquet",
+   "url": "https://raw.githubusercontent.com/philshiu/Drosophila_brain_model/91bdd1e7dcf193f3e7ca5a8933497fcef63b7960/Connectivity_783.parquet",
+   "sha256": "efeb23fb99098e9c390f6869969b2a121a2ee92c833cfc45ecb2c1d8e1af0347",
+   "size": 100804642,
+   "terms": "shiu-mit-code-flywire-data"
+  }
+ },
+ "import_checks": {
+  "root_id_rows": 139255,
+  "duplicate_root_ids": 0,
+  "nonpositive_root_ids": 0,
+  "source_rows": 16847997,
+  "rows_with_unknown_pre": 0,
+  "rows_with_unknown_post": 0,
+  "synapses_dropped_unknown_ids": 0,
+  "null_values": 0,
+  "nonpositive_counts": 0,
+  "probabilities_out_of_range": 0,
+  "probability_sum_off_by_more_than_0.01": 0,
+  "max_probability_sum_error": 2.592678356450051e-07,
+  "unassigned_transmitter_rows": 1732,
+  "unassigned_transmitter_synapses": 30806,
+  "duplicate_pair_neuropil_rows": 0,
+  "pair_neuropil_records": 16847997,
+  "transmitter_calls": {
+   "gaba": 19029,
+   "ach": 90836,
+   "glut": 24840,
+   "oct": 226,
+   "ser": 2206,
+   "da": 868,
+   "none_no_outputs": 1250,
+   "none_outputs_without_prediction": 0
+  },
+  "ambiguous_transmitter_top_below_0.5": 24013,
+  "default_sign_for_uncalled_neurons": 1,
+  "sign_agreement": {
+   "shiu_vs_synapse_weighted": {
+    "neurons_compared": 138005,
+    "same_sign": 132125,
+    "pairs_compared": 15091983,
+    "pairs_same_sign": 14912121
+   },
+   "annotation_vs_synapse_weighted": {
+    "neurons_compared": 137993,
+    "same_transmitter": 129812,
+    "same_sign": 136294,
+    "annotation_null_or_absent_with_outputs": 12
+   }
+  }
+ },
+ "import_resources": {
+  "wall_s": 17.015,
+  "cpu_s": 19.594,
+  "rss_start_mb": 55.348,
+  "rss_end_mb": 1209.945,
+  "peak_rss_mb_process": 1443.988,
+  "gpu": null,
+  "machine": {
+   "logical_cpus": 8,
+   "total_ram_mb": 15979,
+   "available_ram_mb": 4438,
+   "physical_cpus": 8
+  }
+ },
+ "structure_revalidated": {
+  "neurons": 139255,
+  "pairs": 15091983,
+  "synapses": 54492922,
+  "autapses": 0,
+  "neurons_without_outputs": 1250,
+  "neurons_without_inputs": 2165,
+  "isolated_neurons": 616,
+  "max_pair_synapses": 2405,
+  "inhibitory_neurons": 41333
+ },
+ "array_hashes_reverified": true,
+ "shiu_crosscheck": {
+  "shiu_neurons": 138639,
+  "shiu_neurons_in_this_import": 138639,
+  "this_import_neurons": 139255,
+  "neurons_only_here": 616,
+  "neurons_only_here_isolated": 616,
+  "shiu_pairs": 15091983,
+  "this_import_pairs": 15091983,
+  "pairs_found": 15091983,
+  "pairs_same_synapse_count": 15091983,
+  "shiu_synapses": 54492922,
+  "this_import_synapses": 54492922,
+  "pairs_same_sign": 15091983,
+  "pairs_same_signed_weight": 15091983,
+  "sign_policy": "shiu"
+ },
+ "resources": {
+  "wall_s": 5.515,
+  "cpu_s": 5.672,
+  "rss_start_mb": 57.672,
+  "rss_end_mb": 423.566,
+  "peak_rss_mb_process": 751.918,
+  "gpu": null
+ },
+ "machine": {
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "arch": "ARM64",
+  "os": "Windows-10-10.0.26200-SP0",
+  "logical_cpus": 8,
+  "total_ram_mb": 15979,
+  "available_ram_mb": 3262,
+  "gpu": null,
+  "physical_cpus": 8,
+  "cpu_busy_percent_over_1s": 24.0
+ },
+ "environment": {
+  "python": "3.11.9",
+  "implementation": "cpython",
+  "platform": "win32 ARM64",
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "a206910f94fe8d5cbfa4555fbc169b346865f551",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "ee262ab06f9da4e8f5a5164debb62bd7926d0f2b214e8d7bfaea1bbcebf1cfee",
+   "files": 20
+  },
+  "changed_during_run": []
+ },
+ "sha256": "22d777d04368e2d0864a0fe5db6eb4bf678ea4bc6b365ba3ea55b0f00699cac5"
+}
