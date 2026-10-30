@@ -113,10 +113,22 @@ class Meter:
 
 
 def machine() -> dict:
-    info = {"logical_cpus": os.cpu_count(), "total_ram_mb": None, "available_ram_mb": None}
+    import platform
+
+    info = {
+        "processor": platform.processor() or None,
+        "arch": platform.machine(),
+        "os": platform.platform(),
+        "logical_cpus": os.cpu_count(),
+        "total_ram_mb": None,
+        "available_ram_mb": None,
+        "gpu": None,
+    }
     if psutil is not None:
         vm = psutil.virtual_memory()
         info["total_ram_mb"] = round(vm.total / 2**20)
         info["available_ram_mb"] = round(vm.available / 2**20)
         info["physical_cpus"] = psutil.cpu_count(logical=False)
+        # How busy the machine was when measured: other work inflates wall time.
+        info["cpu_busy_percent_over_1s"] = psutil.cpu_percent(interval=1.0)
     return info

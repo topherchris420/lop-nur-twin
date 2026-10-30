@@ -28,6 +28,11 @@ No private Oracle filesystem or service configuration was inspected.
 | Physics        | Reduced-order body; separate open-loop FlyBody/MuJoCo benchmark                                                                         | Existing readiness gate is blocked. Old traces concern fly/4, and include tracking failures. No embodied-neural or biological validation claim follows from this extension |
 | Experiments    | ECHO ablations, individuality studies, mushroom-body studies and behavioral calibration                                                 | Add a finite, prespecified four-arm study and endurance report; report failures and inconclusive evidence                                                                  |
 
+_Later note (2026-10-30):_ the organism above still runs no connectome
+dynamics. A separate research backend, `fly-neural/`, now runs a
+whole-central-brain spiking model on FlyWire v783 for research subjects only,
+never this organism ([ECHO_CONNECTOME.md](ECHO_CONNECTOME.md)).
+
 The source audit covered the fly body, senses, controller, neural command
 gate, circuit proxies, navigation, mushroom-body model, ECHO modules,
 headless city, snapshot/continuity/store, observer, runner, service units,
@@ -158,6 +163,11 @@ Resources investigated, with the integration boundary stated explicitly:
 | FlyGym / NeuroMechFly v2 | [Wang-Chen et al. 2024](https://doi.org/10.1038/s41592-024-02497-y), [official project](https://github.com/NeLy-EPFL/flygym). A candidate for a later closed-loop physical backend, not a replacement for a failing gait or an installed dependency in this change; any future import needs a per-asset license review             |
 | Mushroom body            | [Bennett et al. 2021](https://doi.org/10.1038/s41467-021-22592-4). Reuse the existing independently implemented equations and parameter provenance. No GPL author code is copied                                                                                                                                                   |
 | Sleep homeostasis        | [Donlea, Pimentel & Miesenböck 2014](https://ora.ox.ac.uk/objects/uuid:dc804781-2e33-4c9e-94f4-dc8ba4007919). Motivation for a recoverable pressure variable, not numerical calibration or a dFB circuit implementation                                                                                                            |
+
+_Later note (2026-10-30):_ this organism still downloads and redistributes
+no connectome. `fly-neural/` downloads FlyWire v783 into a local cache only on
+explicit acceptance of its terms, and commits none of it
+([ECHO_CONNECTOME.md](ECHO_CONNECTOME.md)).
 
 Selected ion-channel dynamics, calcium signalling, receptor-specific
 olfaction, identified visual neurons, a central-complex circuit, neural motor

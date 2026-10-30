@@ -1,4 +1,5 @@
-"""``python -m fly_neural <command>``: acquire, import, crosscheck, run, experiment, bench, shadow.
+"""``python -m fly_neural <command>``: status, acquire, import, crosscheck, experiment, reference,
+plasticity, shadow, serve, bench, report.
 
 Data live in ``$FLY_NEURAL_DATA`` (default ``~/.cache/fly-neural``), outside
 the repository. Results are written to ``docs/benchmarks/fly-neural/`` as
@@ -55,8 +56,42 @@ def cmd_crosscheck(args) -> int:
     from . import connectome as cx
     from .importer import crosscheck_shiu
 
-    c = cx.load(compiled_dir(args.name))
-    print(json.dumps(crosscheck_shiu(c), indent=1))
+    from . import RESULT_SCHEMA
+    from .record import code_state, environment, sealed, write_json
+    from .resources import Meter, machine
+
+    path = compiled_dir(args.name)
+    c = cx.load(path, verify_hashes=True)
+    with Meter() as m:
+        structure = cx.validate(c)
+        cross = crosscheck_shiu(c)
+    man = c.manifest
+    # The import's own record, re-checked: what was read, what was found, how it compares.
+    data = sealed(
+        {
+            "schema": RESULT_SCHEMA,
+            "kind": "import",
+            "connectome": args.name,
+            "manifest_sha256": man.get("sha256"),
+            "dataset": man.get("dataset"),
+            "sign_policy": man.get("sign_policy"),
+            "transmitter_sign": man.get("transmitter_sign"),
+            "inputs": man.get("inputs"),
+            "import_checks": man.get("import"),
+            "import_resources": man.get("resources"),
+            "structure_revalidated": structure,
+            "array_hashes_reverified": True,
+            "shiu_crosscheck": cross,
+            "resources": m.describe(),
+            "machine": machine(),
+            "environment": environment(),
+            "code": code_state(Path(args.out or RESULTS)),
+        }
+    )
+    out = Path(args.out or RESULTS) / f"import-{args.name}.json"
+    write_json(out, data)
+    print(json.dumps(cross, indent=1))
+    print(f"wrote {out}")
     return 0
 
 
@@ -89,6 +124,30 @@ def cmd_plasticity(args) -> int:
     return 0 if not data["failed"] else 3
 
 
+def cmd_bench(args) -> int:
+    from .bench import run
+
+    run([compiled_dir(n) for n in args.connectome], Path(args.out or RESULTS), trials=args.trials)
+    return 0
+
+
+def cmd_reference(args) -> int:
+    from .acquire import data_dir
+    from .reference import run
+
+    cfg = Path(__file__).resolve().parents[1] / "experiments" / "brian2-reference.json"
+    b2 = Path(args.brian2) if args.brian2 else data_dir() / "reference-runs" / "brian2-sugar100-30.json"
+    data = run(cfg, b2, compiled_dir(args.connectome), Path(args.out or RESULTS))
+    return 0 if not data["failed"] else 3
+
+
+def cmd_report(args) -> int:
+    from .report import write
+
+    print(f"wrote {write(Path(args.out or RESULTS))}")
+    return 0
+
+
 def cmd_serve(args) -> int:
     from .shadow import serve
 
@@ -111,6 +170,7 @@ def main(argv: list[str] | None = None) -> int:
     i.set_defaults(fn=cmd_import)
     x = sub.add_parser("crosscheck", help="compare a compiled connectome with Shiu et al.'s Connectivity_783")
     x.add_argument("--name", default="fafb-v783-synapse-weighted")
+    x.add_argument("--out", help=f"results directory (default {RESULTS})")
     x.set_defaults(fn=cmd_crosscheck)
     e = sub.add_parser("experiment", help="run a pre-registered experiment file and judge its criteria")
     e.add_argument("config", help="path, or a file name under fly-neural/experiments/")
@@ -135,10 +195,25 @@ def main(argv: list[str] | None = None) -> int:
     q.add_argument("--subjects", type=int, help="fewer subjects than the file's (the result is marked partial)")
     q.add_argument("--out", help=f"results directory (default {RESULTS})")
     q.set_defaults(fn=cmd_plasticity)
+    b = sub.add_parser("bench", help="measure full-brain trials and synthetic scaling on this machine")
+    b.add_argument("--connectome", action="append", default=None, help="name under <data>/compiled/; repeatable")
+    b.add_argument("--trials", type=int, default=5)
+    b.add_argument("--out", help=f"results directory (default {RESULTS})")
+    b.set_defaults(fn=cmd_bench)
+    r = sub.add_parser("reference", help="judge this engine against a Brian 2 run of Shiu et al.'s model.py")
+    r.add_argument("--brian2", help="the trials file reference/shiu_brian2.py wrote (default <data>/reference-runs/brian2-sugar100-30.json)")
+    r.add_argument("--connectome", default="fafb-v783-shiu")
+    r.add_argument("--out", help=f"results directory (default {RESULTS})")
+    r.set_defaults(fn=cmd_reference)
+    w = sub.add_parser("report", help="write the results README and figure from the sealed results")
+    w.add_argument("--out", help=f"results directory (default {RESULTS})")
+    w.set_defaults(fn=cmd_report)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)
     args = p.parse_args(argv)
+    if args.cmd == "bench" and not args.connectome:
+        args.connectome = ["fafb-v783-shiu", "fafb-v783-synapse-weighted"]
     return args.fn(args)
 
 

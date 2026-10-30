@@ -79,8 +79,8 @@ CITE_FLYWIRE = (
 CITE_ANNOTATIONS = (
     "Schlegel et al. 2024, doi:10.1038/s41586-024-07686-5",
     "Matsliah et al. 2024, Neuronal parts list and wiring diagram for a visual system, Nature 634:166-180, doi:10.1038/s41586-024-07981-1",
-    "Berg et al. 2026, Sexual dimorphism in the complete Drosophila male central nervous system connectome, Cell, doi:10.1016/j.cell.2026.08.015",
-    "Tastekin et al. 2026, The complete gustatory connectome of adult Drosophila, Cell, doi:10.1016/j.cell.2026.08.016",
+    "Berg et al. 2026, Sexual dimorphism in the complete Drosophila male central nervous system connectome, Cell 189:5504-5526, doi:10.1016/j.cell.2026.08.015",
+    "Tastekin et al. 2026, The complete gustatory connectome of adult Drosophila reveals how taste guides feeding, foraging, and social behavior, Cell 189:5527-5551, doi:10.1016/j.cell.2026.08.016",
     "Dorkenwald et al. 2024, doi:10.1038/s41586-024-07558-y",
 )
 CITE_SHIU = (

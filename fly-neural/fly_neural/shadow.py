@@ -42,6 +42,8 @@ PRODUCTION_MARKERS = (
     "129.213.139.78",
     "129-213-139-78",
     "bethesda-life-",
+    # The deployed individual (its public witness, /v1/now, names it).
+    "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",
 )
 
 
@@ -105,6 +107,12 @@ def analyse(recording: Path, compiled: Path, out_dir: Path, seed: int = 0, log=p
         "seed": seed,
         "comparison": summary,
         "windows": len(rows),
+        # Every sample where the model's readouts fired or ECHO acted, for inspection.
+        "trace": [
+            {"t": round(r["t"], 3), "gf_spikes": r["neural"]["escape"]["spikes"], "mn9_hz": r["neural"]["feed"]["mean_rate_hz"], "echo": (r.get("echo") or {}).get("mode"), "echo_escape": bool((r.get("echo") or {}).get("escape")), "body": (r.get("outcome") or {}).get("mode"), "input_hz": r["rates"]}
+            for r in rows
+            if r["neural"]["escape"]["spikes"] or r["neural"]["feed"]["spikes"] or (r.get("echo") or {}).get("escape")
+        ][:5000],
         "resources": meter.describe(),
         "environment": environment(),
         "code": code_state(out_dir),
@@ -131,39 +139,56 @@ def _episodes(flags: list[bool], ts: list[float]) -> list[tuple[float, float]]:
     return out
 
 
-def compare(rows: list[dict]) -> dict:
-    """Per sample: did the model predict what ECHO did? For escape, also per episode and latency."""
+def compare(rows: list[dict], match_s: float = 0.5) -> dict:
+    """What the model predicted against what ECHO did.
+
+    Escape is scored by onsets: each escape command ECHO gave (its reflex)
+    against the episodes of giant-fiber firing in the model, matched within
+    ``match_s``; unmatched GF episodes are false alarms. Feeding is scored per
+    sample: the body feeding (ECHO's own state) against MN9 above threshold.
+    """
     if not rows:
         return {"samples": 0}
     ts = [r["t"] for r in rows]
-    out = {"samples": len(rows)}
-    echo_escape = [bool(r["echo"].get("escape")) for r in rows]
-    echo_feed = [bool(r["echo"].get("feeding")) for r in rows]
-    for key, echo in (("escape", echo_escape), ("feed", echo_feed)):
-        neural = [r["neural"][key]["predicted"] for r in rows]
-        tp = sum(a and b for a, b in zip(echo, neural))
-        fp = sum((not a) and b for a, b in zip(echo, neural))
-        fn = sum(a and not b for a, b in zip(echo, neural))
-        tn = len(rows) - tp - fp - fn
-        out[key] = {
-            "echo_samples": sum(echo),
-            "neural_samples": sum(neural),
-            "both": tp,
-            "neural_only": fp,
-            "echo_only": fn,
-            "neither": tn,
-            "agreement": round((tp + tn) / len(rows), 4),
-        }
-    # Escape episodes: ECHO's escape starts, and the first giant-fiber spike near each.
-    starts = [t for (t, _) in _episodes(echo_escape, ts)]
-    gf = [r["t"] for r in rows if r["neural"]["escape"]["predicted"]]
-    lat = []
-    for s in starts:
-        near = [g - s for g in gf if -0.5 <= g - s <= 0.5]
-        lat.append(min(near, key=abs) if near else None)
-    out["escape"]["echo_episodes"] = len(starts)
-    out["escape"]["episodes_with_gf_spike_within_500ms"] = sum(x is not None for x in lat)
-    out["escape"]["gf_minus_echo_latency_s"] = [None if x is None else round(x, 4) for x in lat]
+    out: dict = {"samples": len(rows), "match_window_s": match_s}
+    onsets = [r["t"] for r in rows if (r.get("echo") or {}).get("escape")]
+    gf = [r["neural"]["escape"]["predicted"] for r in rows]
+    gf_eps = [s for s, _ in _episodes(gf, ts)]
+    used, lat = set(), []
+    for s in onsets:
+        best = None
+        for k, g in enumerate(gf_eps):
+            if k not in used and abs(g - s) <= match_s and (best is None or abs(g - s) < abs(gf_eps[best] - s)):
+                best = k
+        if best is None:
+            lat.append(None)
+        else:
+            used.add(best)
+            lat.append(round(gf_eps[best] - s, 4))
+    out["escape"] = {
+        "echo_onsets": len(onsets),
+        "model_gf_episodes": len(gf_eps),
+        "hits": sum(x is not None for x in lat),
+        "misses": sum(x is None for x in lat),
+        "false_alarms": len(gf_eps) - len(used),
+        "gf_minus_echo_latency_s": lat,
+        "samples_with_gf_spike": sum(gf),
+    }
+    feeding = [(r.get("outcome") or {}).get("mode") == "feed" for r in rows]
+    mn9 = [r["neural"]["feed"]["predicted"] for r in rows]
+    tp = sum(a and b for a, b in zip(feeding, mn9))
+    fp = sum((not a) and b for a, b in zip(feeding, mn9))
+    fn = sum(a and not b for a, b in zip(feeding, mn9))
+    tn = len(rows) - tp - fp - fn
+    out["feed"] = {
+        "echo_feeding_samples": sum(feeding),
+        "model_mn9_samples": sum(mn9),
+        "both": tp,
+        "model_only": fp,
+        "echo_only": fn,
+        "neither": tn,
+        "agreement": round((tp + tn) / len(rows), 4),
+    }
     return out
 
 

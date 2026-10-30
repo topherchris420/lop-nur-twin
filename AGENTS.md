@@ -753,6 +753,53 @@ cause.**
   first-person claim of awareness, and never present a result as evidence of
   consciousness.
 
+### The connectome research backend (`fly-neural/`)
+
+Computational Neural Research on the FlyWire connectome: Shiu et al. 2024's
+leaky integrate-and-fire model on FlyWire v783, reproductions of their
+experiments, and an offline shadow of a research fly. Read
+`docs/ECHO_CONNECTOME.md` and `fly-neural/README.md` first. Outside
+`fly-neural/` it adds `scripts/echo-neural-shadow.ts` (with its test),
+`scripts/echo-neural-plasticity.ts`, `docs/benchmarks/fly-neural/`, its
+entries in `NOTICE`, the `.fly-neural/` and `fly-neural/*.egg-info/` lines of
+`.gitignore`, the `.fly-neural/**` line of `eslint.config.js` and its lines in
+`.prettierignore`.
+
+- **Never the original fly.** Nothing here reads or writes the deployed
+  individual, its store, checkpoints or backups, and nothing in `src/` or
+  `deploy/` imports the backend (tests in both languages check). The
+  recorder builds a new research subject from a seed in a research world and
+  imports no store, checkpoint, continuation or life module; it refuses a
+  host with the production directories. `neural-experimental` runs only on
+  such a subject; never give the model a channel to the deployed fly, and
+  never present a research subject as its continuation.
+- **No dataset in the repository.** FlyWire's release, the annotations and
+  Shiu et al.'s files are fetched into `$FLY_NEURAL_DATA` on explicit
+  acceptance of their terms and verified by SHA-256 (`sources.py`); never
+  commit them or anything that reconstructs them. FlyWire data are treated as
+  CC BY-NC 4.0, so the results in `docs/benchmarks/fly-neural/` carry those
+  terms (its `LICENSE.md`). Shiu et al.'s code is run from the cache, never
+  copied. Only `acquire.py` touches the network.
+- **Sensable inputs only.** `sensory.observation` refuses any field but
+  looming size, expansion and bearing, airflow, food odour and food contact
+  (a boolean). Never pass the looming object's id, kind or distance, ECHO's
+  giant-fiber proxy, the fly's position or heading, sites or landmarks.
+- **Pre-registered, and reported as run.** `fly-neural/experiments/*.json`
+  fix conditions, seeds and criteria before a run; their bytes are hashed into
+  each result. Dev seeds may run while code changes; held-out seeds run once,
+  from a clean commit, and are reported whatever they show. Never change a
+  criterion after seeing a result, never edit a result, and never present a
+  control wiring (shuffled, rewired, random) as the connectome.
+- **The integrator answers to Brian 2.** `tests/data/brian2_conformance.json`
+  is Brian 2 running Shiu et al.'s unmodified `model.py` on synthetic
+  networks; `test_lif.py` requires the same spikes, step for step. A change
+  to `lif.py` keeps it passing; regenerate the fixture only with
+  `reference/shiu_brian2.py conformance`.
+- **No claim beyond the model.** It is a two-sign spiking network with one
+  weight per synapse, no neuromodulation, gap junctions, morphology or
+  ventral nerve cord. Never call it the fly's nervous system or brain
+  emulation, and never describe experience or awareness.
+
 ### Individual continuity (`src/bethesda/life/`)
 
 The headless life, its durable checkpoints, and the individuality studies.

@@ -71,6 +71,7 @@ def test_shadow_refuses_anything_but_a_research_subject():
     shadow.check_header(good)
     for bad in (
         {**good, "subject": "04f8c797"},
+        {**good, "subject": "research-copy", "note": "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921"},
         {**good, "subject": "research-x", "lifeId": "abc"},
         {**good, "note": "restored from /var/lib/bethesda-life/store"},
         {**good, "note": "https://129-213-139-78.sslip.io/v1/now"},
@@ -81,15 +82,19 @@ def test_shadow_refuses_anything_but_a_research_subject():
             shadow.check_header(bad)
 
 
-def test_comparison_counts_agreement_and_latency():
+def test_comparison_matches_onsets_and_counts_false_alarms():
     rows = []
-    for k in range(10):
-        esc = 3 <= k <= 5
-        rows.append({"t": k * 0.01, "echo": {"escape": esc, "feeding": False}, "neural": {"escape": {"predicted": k == 4}, "feed": {"predicted": False}}})
+    for k in range(200):
+        t = k * 0.01
+        echo = {"escape": k in (10, 150), "feeding": False} if k % 5 == 0 else None
+        gf = k in (12, 13, 80)  # one hit 20 ms late, one false alarm; the onset at 1.5 s is missed
+        rows.append({"t": t, "echo": echo, "outcome": {"mode": "feed" if k < 50 else "rest"}, "neural": {"escape": {"predicted": gf}, "feed": {"predicted": k < 60}}})
     out = shadow.compare(rows)
-    assert out["escape"]["both"] == 1 and out["escape"]["echo_only"] == 2 and out["escape"]["neural_only"] == 0
-    assert out["escape"]["echo_episodes"] == 1
-    assert out["escape"]["gf_minus_echo_latency_s"] == [pytest.approx(0.01)]
+    e = out["escape"]
+    assert (e["echo_onsets"], e["hits"], e["misses"], e["false_alarms"]) == (2, 1, 1, 1)
+    assert e["gf_minus_echo_latency_s"][0] == pytest.approx(0.02)
+    f = out["feed"]
+    assert (f["both"], f["model_only"], f["echo_only"]) == (50, 10, 0)
 
 
 def test_sign_test():
