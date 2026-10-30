@@ -1,0 +1,111 @@
+name: Live fly watch
+# Every 15 minutes, from outside: is the deployed Bethesda individual alive,
+# the same individual, checkpointing, and backed up on and off its machine?
+# `src/bethesda/life/watch.ts` says what each check means; `scripts/bethesda-life-watch.ts`
+# looks a second time a minute later before calling anything wrong.
+#
+# While something is wrong, one issue labelled `live-fly` stays open: opened
+# when a problem appears, commented on only when the kinds of problem change,
+# closed with a comment when every check passes again. GitHub notifies the
+# repository's watchers of each.
+#
+# It reads only what anyone may read (the observer's /v1/now and the
+# backup's record at /v1/backup) and references no secret; its token may
+# write issues and nothing else. What it cannot see, it cannot report: a
+# scheduled run may start late or be dropped when GitHub is busy, and GitHub
+# stops scheduling it after 60 days without activity in the repository
+# (re-enable it under Actions). A failure of this workflow itself is
+# reported by GitHub's own email about failed runs, not by an issue.
+on:
+  schedule:
+    # Off the hour, when GitHub's scheduler is busiest.
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-fly-watch
+  cancel-in-progress: false
+
+env:
+  # The deployed individual and its observer (docs/BETHESDA_CONTINUOUS_LIFE.md).
+  # The individual never changes; any other there is an alert.
+  OBSERVER_URL: https://129-213-139-78.sslip.io
+  INDIVIDUAL: 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
+  LABEL: live-fly
+
+jobs:
+  watch:
+    name: Look at the live fly
+    # The deployment belongs to this repository; a fork's copy would alert its
+    # owner about someone else's fly. Rename this along with the repository.
+    if: github.repository == 'topherchris420/lop-nur-twin'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Check out the watcher
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+            src/bethesda/life
+
+      # The watcher imports only Node's built-ins and the witness parser, so
+      # it needs no install: Node >= 22.18 runs the TypeScript itself.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Look at the life and its backups
+        run: |
+          node scripts/run-ts.mjs scripts/bethesda-life-watch.ts \
+            --url "$OBSERVER_URL" --individual "$INDIVIDUAL" >"$RUNNER_TEMP/report.json"
+          jq . "$RUNNER_TEMP/report.json"
+
+      - name: Open, update or close the alert
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          report=$RUNNER_TEMP/report.json
+          checked=$(jq -r .checkedUtc "$report")
+          open=$(gh issue list --label "$LABEL" --state open --json number --jq '.[0].number // empty')
+          if [ "$(jq -r .ok "$report")" = true ]; then
+            echo "Every check passed at $checked." >>"$GITHUB_STEP_SUMMARY"
+            if [ -n "$open" ]; then
+              gh issue close "$open" --reason completed \
+                --comment "Every check passed again at $checked ([run]($RUN_URL))."
+            fi
+            exit 0
+          fi
+
+          # The marker names the kinds of problem, so a run comments only when they change.
+          marker="<!-- live-fly-watch: $(jq -r .key "$report") -->"
+          {
+            echo "Checked at $checked ([run]($RUN_URL)):"
+            echo
+            jq -r '.problems[] | "- **\(.code)**: \(.detail)"' "$report"
+            echo
+            echo "What each means, and what to do: [watching it](https://github.com/$GH_REPO/blob/main/docs/BETHESDA_CONTINUOUS_LIFE.md#watching-it)."
+            echo
+            echo "$marker"
+          } >"$RUNNER_TEMP/body.md"
+          cat "$RUNNER_TEMP/body.md" >>"$GITHUB_STEP_SUMMARY"
+          if [ -z "$open" ]; then
+            gh label create "$LABEL" --color B60205 --force \
+              --description "The live fly's watcher found something wrong"
+            gh issue create --title "The live fly needs attention" --label "$LABEL" \
+              --body-file "$RUNNER_TEMP/body.md"
+          elif ! gh issue view "$open" --json body,comments \
+            --jq '[.body, .comments[].body] | map(select(contains("<!-- live-fly-watch: "))) | last' |
+            grep -qxF "$marker"; then
+            gh issue comment "$open" --body-file "$RUNNER_TEMP/body.md"
+          fi

@@ -8,6 +8,15 @@ HOST {
 		Referrer-Policy "no-referrer"
 		-Server
 	}
+	# What the newest backup did (backup.sh records it), for the watcher in
+	# .github/workflows/bethesda-life-watch.yml. That one file and nothing
+	# else; 404 until the first backup.
+	handle /v1/backup {
+		header Cache-Control "no-store"
+		root * /var/lib/bethesda-life-backup
+		rewrite * /status.json
+		file_server
+	}
 	handle /v1/* {
 		# Unbuffered, so the stream reaches viewers as it is written.
 		reverse_proxy 127.0.0.1:8790 {
@@ -15,6 +24,6 @@ HOST {
 		}
 	}
 	handle {
-		respond "The Bethesda life's read-only observer: GET /v1/now, /v1/stream, /v1/health" 404
+		respond "The Bethesda life's read-only observer: GET /v1/now, /v1/stream, /v1/health, /v1/backup" 404
 	}
 }

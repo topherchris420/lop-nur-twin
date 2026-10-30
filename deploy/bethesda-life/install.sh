@@ -7,6 +7,7 @@
 #   sudo deploy/bethesda-life/install.sh              upgrade: the same individual lives on, or nothing changes
 #   sudo deploy/bethesda-life/install.sh --rollback   back to the release before the last upgrade
 #   sudo deploy/bethesda-life/install.sh --prepare    build HEAD without stopping or switching the life
+#   sudo deploy/bethesda-life/install.sh --backups    install backup.sh and its timer (every 6 hours); the life is untouched
 #
 #   --controller echo   with --create: the fly runs Project ECHO's controller
 #   --trial             run the trial life on an upgrade too (the life is paused meanwhile)
@@ -15,7 +16,8 @@
 # Layout: Node and each release under /opt/bethesda-life, the store in
 # /var/lib/bethesda-life/store (the boot volume), logs in the journal. The
 # read-only observer (bethesda-life-observer) is installed beside the life on
-# 127.0.0.1:8790; public.sh puts it on the internet.
+# 127.0.0.1:8790; public.sh puts it on the internet. Once --backups has
+# installed them, every upgrade installs backup.sh and its units too.
 # "Running it on one VM" in docs/BETHESDA_CONTINUOUS_LIFE.md has the steps
 # around it: backup, recovery, and what each refusal means.
 set -euo pipefail
@@ -36,6 +38,7 @@ repo=$(cd "$here/../.." && pwd)
 unit=$here/$SERVICE.service
 OBSERVER=bethesda-life-observer
 observer_unit=$here/$OBSERVER.service
+BACKUP=bethesda-life-backup
 
 say() { printf '%s\n' "$*"; }
 die() {
@@ -50,6 +53,7 @@ while [ $# -gt 0 ]; do
     --create) action=create ;;
     --rollback) action=rollback ;;
     --prepare) action=prepare ;;
+    --backups) action=backups ;;
     --controller)
       [ $# -ge 2 ] || die "--controller needs a value"
       controller=$2
@@ -194,6 +198,7 @@ switch_to() {
   ln -sfn "$node_dir" "$PREFIX/node.new" && mv -T "$PREFIX/node.new" "$PREFIX/node"
   install -m 0644 "$unit" "/etc/systemd/system/$SERVICE.service"
   install -m 0644 "$observer_unit" "/etc/systemd/system/$OBSERVER.service"
+  if [ -f "/etc/systemd/system/$BACKUP.timer" ]; then put_backups; fi
   systemctl daemon-reload
   systemctl enable --quiet "$SERVICE"
   # A release from before the observer has nothing for it to run.
@@ -271,6 +276,46 @@ stop_service() {
   if running; then say "stopping $SERVICE: it commits a last checkpoint and releases its lease"; fi
   systemctl stop "$SERVICE" 2>/dev/null || true
 }
+
+# backup.sh and its units, from this checkout's working tree like the
+# life's units. The records Caddy serves at /v1/backup go in /var/lib/$BACKUP.
+put_backups() {
+  install -d -m 0755 "$PREFIX/bin" "/var/lib/$BACKUP"
+  install -d -m 0700 /var/backups/bethesda-life /etc/bethesda-life
+  install -m 0755 "$here/backup.sh" "$PREFIX/bin/backup.sh"
+  install -m 0644 "$here/$BACKUP.service" "/etc/systemd/system/$BACKUP.service"
+  install -m 0644 "$here/$BACKUP.timer" "/etc/systemd/system/$BACKUP.timer"
+}
+
+# Every 6 hours a copy proven to resume, kept here and, once
+# /etc/bethesda-life/offsite.env names a bucket, off the machine. The life is
+# neither stopped nor changed.
+install_backups() {
+  [ -f "$PREFIX/current/RELEASE" ] ||
+    die "install the life first: each backup is checked with the installed release"
+  put_backups
+  systemctl daemon-reload
+  systemctl enable --now --quiet "$BACKUP.timer"
+  say "backups: $BACKUP.timer runs $PREFIX/bin/backup.sh --keep 8 every 6 hours"
+  systemctl list-timers "$BACKUP.timer" --no-pager | sed -n '1,2p'
+  if [ ! -f /etc/bethesda-life/offsite.env ]; then
+    say "no off-site copies yet: see \"Off-site copies\" in docs/BETHESDA_CONTINUOUS_LIFE.md"
+  fi
+  say "take one now with: sudo systemctl start $BACKUP; journalctl -u $BACKUP"
+}
+
+if [ "$action" = backups ]; then
+  install_backups
+  exit 0
+fi
+
+# A backup's check holds a whole life in memory too: let a running one
+# finish, and start none until this is done (backup.sh takes the same lock).
+exec 9>/run/bethesda-life-backup.lock
+if ! flock -n 9; then
+  say "waiting for a backup to finish (journalctl -u $BACKUP)"
+  flock 9
+fi
 
 check_machine
 ensure_node
