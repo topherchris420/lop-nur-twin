@@ -64,3 +64,9 @@ noeterra/target/
 
 # The Noeterra engine copied in for /noeterra by scripts/copy-noeterra-wasm.mjs.
 public/noeterra/
+
+# fly-neural (fly-neural/README.md): working files and stop file of local runs,
+# and the editable install's metadata. The connectome data never enter the
+# repository: they live in $FLY_NEURAL_DATA (default ~/.cache/fly-neural).
+.fly-neural/
+fly-neural/*.egg-info/

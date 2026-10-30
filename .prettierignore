@@ -114,3 +114,11 @@ src/bethesda/fly/data/
 # The digital fly's calibration against published recordings: written by
 # `scripts/fly-calibration.ts` and checked byte for byte by its `--check`.
 docs/benchmarks/fly-calibration/
+
+# The connectome backend (fly-neural/): results sealed by their own SHA-256 and
+# written by `python -m fly_neural`, the spike fixture written by
+# `fly-neural/reference/shiu_brian2.py conformance`, and the pre-registered
+# experiment files, whose exact bytes every result records.
+docs/benchmarks/fly-neural/
+fly-neural/tests/data/
+fly-neural/experiments/
