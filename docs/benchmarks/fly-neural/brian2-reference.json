@@ -1,0 +1,282 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "reference",
+ "experiment": "brian2-reference",
+ "config_file": "brian2-reference.json",
+ "config_sha256": "55cd62bcc5f3bb0f0684acc4f6330a1878b1268e549512b4e88c0c6b431ae502",
+ "brian2_run": {
+  "files": [
+   {
+    "file": "brian2-sugar100-30.json",
+    "sha256": "6c2e3d215c9e31eaf3cd1a18652c3d6a29f3ec3b6e1aaff6ea8bcdf7b7aa0306",
+    "trials": 26,
+    "seeds": [
+     20000,
+     20001,
+     20002,
+     20003,
+     20004,
+     20005,
+     20006,
+     20007,
+     20008,
+     20009,
+     20010,
+     20011,
+     20012,
+     20013,
+     20014,
+     20015,
+     20016,
+     20017,
+     20018,
+     20019,
+     20020,
+     20021,
+     20022,
+     20023,
+     20024,
+     20025
+    ],
+    "requested_trials": 30,
+    "total_wall_s": 2688.36,
+    "environment": {
+     "python": "3.11.9",
+     "platform": "win32 AMD64",
+     "brian2": "2.9.0",
+     "numpy": "1.26.4",
+     "pandas": "2.2.3",
+     "codegen_target": "numpy",
+     "shiu_model_py_sha256": "fc45837d7122c6ce2a7f3f2f23c515992e4b232aadb919efabb72337fac88e4e",
+     "peak_rss_mb": 3322.5
+    }
+   },
+   {
+    "file": "brian2-sugar100-30-rest-20026.json",
+    "sha256": "4187830cffd95aaa74f6cdc759878a26f590afe9a0bf8a87427f9e04145df2e2",
+    "trials": 2,
+    "seeds": [
+     20026,
+     20027
+    ],
+    "requested_trials": 2,
+    "total_wall_s": 514.16,
+    "environment": {
+     "python": "3.11.9",
+     "platform": "win32 AMD64",
+     "brian2": "2.9.0",
+     "numpy": "1.26.4",
+     "pandas": "2.2.3",
+     "codegen_target": "numpy",
+     "shiu_model_py_sha256": "fc45837d7122c6ce2a7f3f2f23c515992e4b232aadb919efabb72337fac88e4e",
+     "peak_rss_mb": 2701.9
+    }
+   },
+   {
+    "file": "brian2-sugar100-30-rest-20028.json",
+    "sha256": "2f01fa38ffb53a312a18747ee7b87d5afc8328bc0c51ef0c568d6847ad8226d2",
+    "trials": 1,
+    "seeds": [
+     20028
+    ],
+    "requested_trials": 1,
+    "total_wall_s": 315.06,
+    "environment": {
+     "python": "3.11.9",
+     "platform": "win32 AMD64",
+     "brian2": "2.9.0",
+     "numpy": "1.26.4",
+     "pandas": "2.2.3",
+     "codegen_target": "numpy",
+     "shiu_model_py_sha256": "fc45837d7122c6ce2a7f3f2f23c515992e4b232aadb919efabb72337fac88e4e",
+     "peak_rss_mb": 2402.9
+    }
+   },
+   {
+    "file": "brian2-sugar100-30-rest-20029.json",
+    "sha256": "4dd69b89f1b30772fd399b9ce9970911242469b7461ffbda0fb03f091ee24e2b",
+    "trials": 1,
+    "seeds": [
+     20029
+    ],
+    "requested_trials": 1,
+    "total_wall_s": 329.45,
+    "environment": {
+     "python": "3.11.9",
+     "platform": "win32 AMD64",
+     "brian2": "2.9.0",
+     "numpy": "1.26.4",
+     "pandas": "2.2.3",
+     "codegen_target": "numpy",
+     "shiu_model_py_sha256": "fc45837d7122c6ce2a7f3f2f23c515992e4b232aadb919efabb72337fac88e4e",
+     "peak_rss_mb": 2646.8
+    }
+   }
+  ],
+  "trials": 30,
+  "wall_s_per_trial": {
+   "n": 30,
+   "mean": 128.22233333333332,
+   "sd": 66.17359420667647,
+   "median": 102.27,
+   "min": 85.84,
+   "max": 329.44
+  },
+  "missing_ids": [
+   720575940620900446
+  ],
+  "seeds": [
+   20000,
+   20001,
+   20002,
+   20003,
+   20004,
+   20005,
+   20006,
+   20007,
+   20008,
+   20009,
+   20010,
+   20011,
+   20012,
+   20013,
+   20014,
+   20015,
+   20016,
+   20017,
+   20018,
+   20019,
+   20020,
+   20021,
+   20022,
+   20023,
+   20024,
+   20025,
+   20026,
+   20027,
+   20028,
+   20029
+  ]
+ },
+ "engine_run": {
+  "trials": 30,
+  "seed": 5100001,
+  "population": {
+   "kind": "published ids",
+   "published_for": "FlyWire materialization 630",
+   "published": 21,
+   "present_in_this_release": 20,
+   "missing_ids": [
+    720575940620900446
+   ],
+   "key": "sugar_shiu",
+   "label": "labellar sugar GRNs, the set Shiu et al. call right hemisphere",
+   "role": "sensory",
+   "cite": [
+    "Shiu et al. 2024, Nature 634:210-219, doi:10.1038/s41586-024-07763-9"
+   ],
+   "neurons": 20
+  },
+  "resources": {
+   "wall_s": 130.547,
+   "cpu_s": 114.812,
+   "rss_start_mb": 213.871,
+   "rss_end_mb": 234.07,
+   "peak_rss_mb_process": 442.934,
+   "gpu": null
+  },
+  "wall_s_per_trial": 4.352
+ },
+ "connectome": {
+  "path_name": "fafb-v783-shiu",
+  "manifest_sha256": "c5dd83b8bd01cc8ce11cdb235c0d7d76e380c4925bc60708d7904609bdff98dd",
+  "sign_policy": "shiu"
+ },
+ "criteria": [
+  {
+   "id": "R1",
+   "claim": "MN9's rate is the same in both simulators",
+   "test": "mn9_same",
+   "threshold_note": "two-sided Mann-Whitney p >= 0.01 AND |mean difference| <= 3 standard errors of the difference (ours)",
+   "ours": {
+    "n": 30,
+    "mean": 62.1,
+    "sd": 5.517058186613838,
+    "median": 62.0,
+    "min": 50.0,
+    "max": 74.0
+   },
+   "brian2": {
+    "n": 30,
+    "mean": 62.53333333333333,
+    "sd": 3.9456071892617515,
+    "median": 63.0,
+    "min": 55.0,
+    "max": 70.0
+   },
+   "difference_hz": -0.43333333333333,
+   "se_difference_hz": 1.238355726039396,
+   "mann_whitney": {
+    "u": 426.0,
+    "p": 0.7276066639460919,
+    "alternative": "two-sided"
+   },
+   "passed": true
+  },
+  {
+   "id": "R2",
+   "claim": "Every neuron's mean rate agrees",
+   "test": "rate_correlation",
+   "threshold_note": "Pearson r over the neurons that fired in either run, stimulated neurons excluded (ours)",
+   "neurons": 388,
+   "pearson_r": 0.9997823774301359,
+   "passed": true
+  },
+  {
+   "id": "R3",
+   "claim": "The same neurons respond",
+   "test": "responder_jaccard",
+   "threshold_note": "Jaccard index of the neurons at >= 1 Hz mean in each run, stimulated neurons excluded (ours; rarer responders are dominated by sampling noise)",
+   "ours": 323,
+   "brian2": 324,
+   "both": 323,
+   "jaccard": 0.9969135802469136,
+   "only_ours": [],
+   "only_brian2": [
+    "720575940630695798"
+   ],
+   "passed": true
+  }
+ ],
+ "failed": [],
+ "machine": {
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "arch": "ARM64",
+  "os": "Windows-10-10.0.26200-SP0",
+  "logical_cpus": 8,
+  "total_ram_mb": 15979,
+  "available_ram_mb": 1411,
+  "gpu": null,
+  "physical_cpus": 8,
+  "cpu_busy_percent_over_1s": 34.4
+ },
+ "environment": {
+  "python": "3.11.9",
+  "implementation": "cpython",
+  "platform": "win32 ARM64",
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "7d87e82276dbda4c9f8142be4feea248e58c03ca",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "d3c8d68dd3eaa88e778938d5313966f513dfec45716854aee9653ada47c78633",
+   "files": 20
+  }
+ },
+ "sha256": "2168b079127ec9ee958e82dad1488350a5fecc14f52e7f5dc061cda13ccc9d11"
+}
