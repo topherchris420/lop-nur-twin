@@ -587,6 +587,7 @@ function siteAndContextRecords(): EvidenceRecord[] {
   const imagery = getSource("sentinel-2-scene-2025");
   const expansion = getSource("npr-airfield-expansion");
   const spacecraft = getSource("swf-spacecraft-2026");
+  const testBanImagery = getSource("onn-test-ban-imagery-2024");
 
   if (imagery !== undefined) {
     records.push({
@@ -661,28 +662,78 @@ function siteAndContextRecords(): EvidenceRecord[] {
     });
   }
 
+  if (testBanImagery !== undefined) {
+    records.push({
+      id: `ev-${SITE_SUBJECT_ID}-onn-test-ban-imagery-2024`,
+      subjectId: SITE_SUBJECT_ID,
+      claim:
+        "Cited analysis describes an airfield in the former atmospheric test area as built in 2016 and expanded in 2021. It finds no specific information that the airfield supports the test base, while noting its location could allow logistical support if needed.",
+      classification: "reported",
+      confidence: CONFIDENCE_SCALE.low,
+      ...sourceFields(testBanImagery),
+      analystNotes:
+        "Lop Nur section, p. 24, footnotes 73-74. The report gives no coordinate; this record ties its airfield to this one only because both rest on the same NPR reporting. The construction and expansion years are the report's, not observations, and they do not move the runway's timeline date.",
+      uncertainty: {
+        ...(testBanImagery.publishedOn === undefined
+          ? {}
+          : { latestDate: testBanImagery.publishedOn }),
+        identification: "probable",
+        function: "unknown",
+        narrative:
+          "A reported association. The report publishes no position for the airfield it describes, and this model does not establish what the airfield is for.",
+        sourceIds: ["onn-test-ban-imagery-2024"],
+      },
+      subjectKind: "context",
+    });
+  }
+
   for (const place of OFFSITE_CONTEXT) {
     for (const sourceId of place.sourceIds) {
       const source = getSource(sourceId);
       if (source === undefined) continue;
-      records.push({
-        id: `ev-${place.id}-${sourceId}`,
-        subjectId: place.id,
-        claim: `${place.name} lies about ${place.distanceFromAirfieldKm} km from the airfield reference point and is not rendered in this scene.`,
-        classification: "reported",
-        confidence: CONFIDENCE_SCALE.medium,
-        ...sourceFields(source),
-        coordinateReferenceSystem: GEOGRAPHIC_CRS,
-        analystNotes: place.note,
-        uncertainty: {
-          ...(source.publishedOn === undefined ? {} : { latestDate: source.publishedOn }),
-          identification: "probable",
-          function: "unknown",
-          narrative: `Regional context at about ${place.distanceFromAirfieldKm} km. The coordinate is approximate, the place is outside the modeled frame and nothing about it is rendered, so no positional envelope applies inside this scene.`,
-          sourceIds: place.sourceIds,
-        },
-        subjectKind: "context",
-      });
+      const latestDate =
+        source.publishedOn === undefined ? {} : { latestDate: source.publishedOn };
+      if (place.location !== undefined) {
+        const { distanceFromAirfieldKm } = place.location;
+        records.push({
+          id: `ev-${place.id}-${sourceId}`,
+          subjectId: place.id,
+          claim: `${place.name} lies about ${distanceFromAirfieldKm} km from the airfield reference point and is not rendered in this scene.`,
+          classification: "reported",
+          confidence: CONFIDENCE_SCALE[place.confidence],
+          ...sourceFields(source),
+          coordinateReferenceSystem: GEOGRAPHIC_CRS,
+          analystNotes: place.note,
+          uncertainty: {
+            ...latestDate,
+            identification: place.identification,
+            function: "unknown",
+            narrative: `Regional context at about ${distanceFromAirfieldKm} km. The coordinate is approximate, the place is outside the modeled frame and nothing about it is rendered, so no positional envelope applies inside this scene.`,
+            sourceIds: place.sourceIds,
+          },
+          subjectKind: "context",
+        });
+      } else {
+        // No cited coordinate: no CRS, no distance and no positional envelope.
+        records.push({
+          id: `ev-${place.id}-${sourceId}`,
+          subjectId: place.id,
+          claim: place.reportedClaim,
+          classification: "reported",
+          confidence: CONFIDENCE_SCALE[place.confidence],
+          ...sourceFields(source),
+          analystNotes: place.note,
+          uncertainty: {
+            ...latestDate,
+            identification: place.identification,
+            function: "unknown",
+            narrative:
+              "Regional context at a distance the source does not state. No coordinate is published, so no position is recorded and nothing about it is rendered. The source's own hedges are kept rather than promoted.",
+            sourceIds: place.sourceIds,
+          },
+          subjectKind: "context",
+        });
+      }
     }
   }
   return records;

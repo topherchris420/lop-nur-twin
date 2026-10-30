@@ -125,6 +125,18 @@ export const PUBLIC_SOURCES = [
       "Provides regional context and approximate coordinates for the Northern Tunnel Test Area, which is about 127 km from the airfield reference point.",
   },
   {
+    id: "onn-test-ban-imagery-2024",
+    title:
+      "Strengthening Nuclear Test Ban Monitoring and Verification: The Role of Commercial Satellite Imagery",
+    publisher: "Open Nuclear Network",
+    publishedOn: "2024-06-17",
+    accessedOn: "2026-10-30",
+    url: "https://opennuclear.org/open-nuclear-network/publication/strengthening-nuclear-test-ban-monitoring-and-verification-role",
+    role: "analysis",
+    attribution:
+      "Reviews July 2023 to March 2024 commercial imagery of the Lop Nur test site (Lop Nur section, pp. 22-27). Reports a possible new test area where a horizontal tunnel may have been built and potential drilling rigs were seen, states their purpose remains unclear, and identifies no indication of preparation for an imminent test.",
+  },
+  {
     id: "adsb-lol-live",
     title: "ADSB.lol open aircraft feed",
     publisher: "ADSB.lol",
@@ -252,17 +264,62 @@ export const SITE_PROFILE = {
   climatePeriod: "2001-2020",
 } as const;
 
-export const OFFSITE_CONTEXT = [
+/**
+ * A place outside the rendered frame that a cited source describes.
+ *
+ * A position is recorded only where a cited source publishes one. A place a
+ * source describes without coordinates carries no `location`, and its claim is
+ * what the source reports rather than a distance: estimating a coordinate for it
+ * would be placing something the evidence does not place.
+ */
+interface OffsiteContextBase {
+  id: string;
+  name: string;
+  sourceIds: readonly SourceId[];
+  confidence: EvidenceConfidence;
+  /** How firmly the sources identify the place. A source's own hedge is kept. */
+  identification: "probable" | "possible";
+  note: string;
+}
+
+export interface LocatedOffsiteContext extends OffsiteContextBase {
+  location: {
+    latitude: number;
+    longitude: number;
+    distanceFromAirfieldKm: number;
+  };
+}
+
+export interface UnlocatedOffsiteContext extends OffsiteContextBase {
+  location?: undefined;
+  /** What the cited source reports about the place, in its own hedged terms. */
+  reportedClaim: string;
+}
+
+export type OffsiteContextPlace = LocatedOffsiteContext | UnlocatedOffsiteContext;
+
+export const OFFSITE_CONTEXT: readonly OffsiteContextPlace[] = [
   {
     id: "northern-tunnel-test-area",
     name: "Northern Tunnel Test Area",
-    latitude: 41.7051,
-    longitude: 88.3751,
-    distanceFromAirfieldKm: 127,
-    sourceIds: [
-      "lop-nur-test-site-study",
-      "csis-lop-nur-2020",
-    ] as const satisfies readonly SourceId[],
+    location: {
+      latitude: 41.7051,
+      longitude: 88.3751,
+      distanceFromAirfieldKm: 127,
+    },
+    sourceIds: ["lop-nur-test-site-study", "csis-lop-nur-2020"],
+    confidence: "medium",
+    identification: "probable",
     note: "Regional context only. It is not rendered inside the 6.8 km airfield scene, and this project does not claim an exact reconstruction of the remote tunnel complex.",
   },
-] as const;
+  {
+    id: "possible-new-test-area",
+    name: "Possible new test area",
+    sourceIds: ["onn-test-ban-imagery-2024"],
+    confidence: "low",
+    identification: "possible",
+    reportedClaim:
+      "Cited 2024 analysis reports a possible new test area about 20 km east of the test site's inactive vertical shaft area, where a horizontal tunnel may have been built, potential drilling rigs were observed and initial excavations for another underground facility might be underway. It states that their purpose remains unclear and identifies no indication of preparation for an imminent nuclear test.",
+    note: "Regional context only. The source publishes no coordinate, so this project records no position or distance and renders nothing. Its hedged wording is kept as written. Cited pages: executive summary, p. 4; Lop Nur section, pp. 22 and 25-26; images 16-17, pp. 28-29.",
+  },
+];

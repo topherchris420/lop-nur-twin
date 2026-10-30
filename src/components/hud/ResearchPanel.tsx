@@ -336,12 +336,15 @@ export function ResearchPanel() {
               <div className="flex items-baseline justify-between gap-3">
                 <h3 className="text-xs font-semibold">{place.name}</h3>
                 <span className="text-muted-foreground shrink-0 font-mono text-[10px]">
-                  ~{place.distanceFromAirfieldKm} km away
+                  {place.location === undefined
+                    ? "distance not stated"
+                    : `~${place.location.distanceFromAirfieldKm} km away`}
                 </span>
               </div>
               <p className="text-muted-foreground mt-1 font-mono text-[10px]">
-                {coordinate(place.latitude, "N", "S")},{" "}
-                {coordinate(place.longitude, "E", "W")}
+                {place.location === undefined
+                  ? "No coordinate published by the source"
+                  : `${coordinate(place.location.latitude, "N", "S")}, ${coordinate(place.location.longitude, "E", "W")}`}
               </p>
               <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
                 {place.note}
