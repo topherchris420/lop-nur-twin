@@ -5,6 +5,7 @@ import pytest
 
 from fly_neural import connectome as cx
 from fly_neural import experiments
+from fly_neural.record import ProgressMismatch
 
 # Synthetic: neuron 0 ("src") drives 1-4, which drive 5 ("out"). Not FlyWire's.
 POPS = {"src": [0], "out": [5]}
@@ -64,7 +65,7 @@ def test_progress_of_another_run_is_refused(tmp_path, monkeypatch):
     prog = tmp_path / "progress.jsonl"
     experiments.run(cfg, "dev", compiled, tmp_path / "a", log=lambda *_: None, progress=prog)
     cfg2, _ = _setup(tmp_path, monkeypatch, {"seeds": {"dev": 2}})  # a different config, same file name
-    with pytest.raises(experiments.ProgressMismatch, match="config_sha256"):
+    with pytest.raises(ProgressMismatch, match="config_sha256"):
         experiments.run(cfg2, "dev", compiled, tmp_path / "a", log=lambda *_: None, progress=prog, resume=True)
 
 

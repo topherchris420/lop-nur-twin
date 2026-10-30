@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import time
 import zlib
 from pathlib import Path
 
@@ -24,7 +25,7 @@ import numpy as np
 from . import RESULT_SCHEMA, controls, lif, stats
 from . import connectome as cx
 from . import populations as P
-from .record import code_watch, environment, sealed, write_json
+from .record import PROGRESS_SCHEMA, append_progress, code_watch, environment, resume_progress, sealed, write_json
 from .resources import Meter, machine
 
 SCHEMA = "fly-neural-plasticity/v1"
@@ -175,7 +176,17 @@ def judge(crit, arms, echo_mb):
     return out
 
 
-def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, echo_mb_path: Path | None, subjects: int | None = None, log=print) -> dict:
+def run(
+    cfg_path: Path,
+    split: str,
+    compiled: Path,
+    out_dir: Path,
+    echo_mb_path: Path | None,
+    subjects: int | None = None,
+    log=print,
+    progress: Path | None = None,
+    resume: bool = False,
+) -> dict:
     code = code_watch(out_dir)
     cfg = json.loads(Path(cfg_path).read_text(encoding="utf-8"))
     if cfg.get("schema") != SCHEMA:
@@ -186,16 +197,38 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, echo_mb_path:
     odours = {k: _odour_idx(c, v) for k, v in cfg["odours"].items() if k in ("A", "B")}
     n_sub = subjects or cfg["subjects_per_split"]
     base_seed = int(cfg["seeds"][split])
+    config_sha256 = hashlib.sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+    start = code.start
+    header = {
+        "schema": PROGRESS_SCHEMA,
+        "experiment": cfg["id"],
+        "split": split,
+        "subjects": n_sub,
+        "config_sha256": config_sha256,
+        "commit": start.get("commit"),
+        "dirty": start.get("dirty"),
+        "fly_neural": start.get("fly_neural"),
+        "connectome_manifest_sha256": c.manifest.get("sha256"),
+    }
+    earlier = resume_progress(progress, header, resume, "subjects", log)
+    resumed = []
     arms = {}
     with Meter() as meter:
         for arm in cfg["arms"]:
             subs = []
             for s in range(n_sub):
+                key = f"{arm['name']}/{s}"
+                if key in earlier:
+                    subs.append(earlier[key]["result"])
+                    resumed.append(key)
+                    continue
+                t1 = time.monotonic()
                 ss = np.random.SeedSequence([base_seed, zlib.crc32(arm["name"].encode()), s])
                 # The same subject seed across arms where the wiring is the same, so arms differ only by the arm.
                 if arm["wiring"] == "connectome":
                     ss = np.random.SeedSequence([base_seed, s])
                 subs.append(run_subject(c, base, circuit, cfg, arm, ss, odours))
+                append_progress(progress, {"name": key, "result": subs[-1], "wall_s": round(time.monotonic() - t1, 2)})
                 log(f"  {arm['name']} subject {s}: LI {subs[-1]['li']}")
             arms[arm["name"]] = {"arm": arm, "subjects": subs, "li": stats.summary([x["li"] for x in subs if x["li"] is not None])}
     echo_mb = json.loads(Path(echo_mb_path).read_text(encoding="utf-8")) if echo_mb_path else None
@@ -205,9 +238,11 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, echo_mb_path:
         "kind": "plasticity",
         "experiment": cfg["id"],
         "config_file": Path(cfg_path).name,
-        "config_sha256": hashlib.sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
+        "config_sha256": config_sha256,
         "split": split,
         "subjects": n_sub,
+        # Subjects finished by an earlier process of this same run (see record.resume_progress), carried over unchanged.
+        "resumed_subjects": resumed,
         "partial": subjects is not None and subjects != cfg["subjects_per_split"],
         "connectome": {"path_name": Path(compiled).name, "manifest_sha256": c.manifest.get("sha256")},
         "circuit": circuit.describe(),
@@ -216,7 +251,7 @@ def run(cfg_path: Path, split: str, compiled: Path, out_dir: Path, echo_mb_path:
         "echo_mushroom_body": echo_mb,
         "criteria": verdicts,
         "failed": [v["id"] for v in verdicts if not v["passed"]],
-        "resources": {**meter.describe(), "machine": machine()},
+        "resources": {**meter.describe(), "wall_s_of_resumed_subjects": round(sum(earlier[k]["wall_s"] for k in resumed), 2), "machine": machine()},
         "environment": environment(),
         "code": code(),
     }

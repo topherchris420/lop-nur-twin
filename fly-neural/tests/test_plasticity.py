@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 
 from fly_neural import connectome as cx
@@ -54,3 +56,43 @@ def test_fixed_and_lesioned_arms_change_no_weight(monkeypatch):
         s = out["synapses_depressed_per_update"]
         assert s is None or s["max"] == 0, (arm["name"], s)
     assert np.array_equal(net.weight, w0)  # the subject's network is a copy
+
+
+def test_a_resumed_run_equals_an_uninterrupted_one(tmp_path, monkeypatch):
+    c, _, _ = _mb(monkeypatch)
+    compiled = cx.save(c, tmp_path / "mb")
+    monkeypatch.setattr(plasticity, "_odour_idx", lambda c, types: ODOUR[types[0]])
+    start = {"commit": "f" * 40, "dirty": False, "fly_neural": "digest"}
+
+    def watch(_):
+        def finish():
+            return {**start, "changed_during_run": []}
+
+        finish.start = start
+        return finish
+
+    monkeypatch.setattr(plasticity, "code_watch", watch)
+    arms = [{"name": "rule", "plastic": True, "silence_dans": False, "wiring": "connectome"}, {"name": "fixed", "plastic": False, "silence_dans": False, "wiring": "connectome"}]
+    cfg = tmp_path / "mb.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "schema": plasticity.SCHEMA,
+                "id": "mb",
+                **CFG,
+                "odours": {"A": ["A"], "B": ["B"]},
+                "seeds": {"dev": 7},
+                "subjects_per_split": 2,
+                "arms": arms,
+                "criteria": [{"id": "T0", "claim": "", "test": "readout_responds", "arm": "fixed", "min_mean_spikes": 1}],
+            }
+        )
+    )
+    prog, quiet = tmp_path / "progress.jsonl", lambda *_: None
+    whole = plasticity.run(cfg, "dev", compiled, tmp_path / "a", None, log=quiet, progress=prog)
+    lines = prog.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 5 and whole["resumed_subjects"] == []
+    prog.write_text("\n".join(lines[:3]) + "\n", encoding="utf-8")  # as if stopped after two subjects
+    resumed = plasticity.run(cfg, "dev", compiled, tmp_path / "b", None, log=quiet, progress=prog, resume=True)
+    assert resumed["resumed_subjects"] == ["rule/0", "rule/1"]
+    assert resumed["arms"] == whole["arms"] and resumed["criteria"] == whole["criteria"]

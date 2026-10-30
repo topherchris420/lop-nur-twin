@@ -71,7 +71,7 @@ Brian 2: 128.2 s per simulated second; this engine: 4.35 s.
 | jo-f-200-silence-inhibitory | connectome | 30 | 0.0 | 29.2 | 7.5 | 7.9 | 131 | 81 |
 | jons-140 | connectome | 30 | 0.0 | 44.1 | 15.7 | 16.3 | 478 | 316 |
 
-## Shiu et al. 2024 on v783, heldout seeds ([shiu2024-v783-heldout.json](shiu2024-v783-heldout.json), `a27844a`)
+## Shiu et al. 2024 on v783, heldout seeds ([shiu2024-v783-heldout.json](shiu2024-v783-heldout.json), `a27844a`, 23 of them resumed from an earlier process of the same run)
 
 10 of 12 criteria passed; failed: S6, C3.
 
@@ -118,6 +118,18 @@ Brian 2: 128.2 s per simulated second; this engine: 4.35 s.
 | jons-140 | connectome | 30 | 0.0 | 44.9 | 16.4 | 16.8 | 492 | 314 |
 
 ![MN9 rate against sugar GRN rate in the model, by split, with the controls at 100 Hz](figure-sugar-mn9.svg)
+
+## Neural shadow: `research-food-101` ([shadow-food-101-neural-shadow.json](shadow-food-101-neural-shadow.json), `0ed5036`)
+
+6000 samples. Escape: ECHO 0 onsets, model giant-fiber episodes 0; 0 hits, 0 misses, 0 false alarms. Feeding: body feeding in 5994 samples, model MN9 ≥ threshold in 1703; both 1703, agreement 0.2848.
+
+## Neural shadow: `research-looms-101` ([shadow-looms-101-neural-shadow.json](shadow-looms-101-neural-shadow.json), `062fa11`)
+
+6000 samples. Escape: ECHO 5 onsets, model giant-fiber episodes 197; 3 hits, 2 misses, 194 false alarms. Feeding: body feeding in 0 samples, model MN9 ≥ threshold in 0; both 0, agreement 1.0.
+
+## Neural shadow: `research-wind-101` ([shadow-wind-101-neural-shadow.json](shadow-wind-101-neural-shadow.json), `0ed5036`)
+
+6000 samples. Escape: ECHO 0 onsets, model giant-fiber episodes 0; 0 hits, 0 misses, 0 false alarms. Feeding: body feeding in 0 samples, model MN9 ≥ threshold in 0; both 0, agreement 1.0.
 
 ## Cost on this machine ([benchmark.json](benchmark.json), `8df2e3b`)
 

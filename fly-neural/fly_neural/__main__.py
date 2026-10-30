@@ -122,7 +122,17 @@ def cmd_plasticity(args) -> int:
     cfg = Path(args.config)
     if not cfg.is_absolute() and not cfg.exists():
         cfg = Path(__file__).resolve().parents[1] / "experiments" / args.config
-    data = run(cfg, args.split, compiled_dir(args.connectome), Path(args.out or RESULTS), Path(args.echo_mb) if args.echo_mb else None, subjects=args.subjects)
+    progress = WORK / "progress" / f"{cfg.stem}-{args.split}{f'-{args.subjects}-subjects' if args.subjects else ''}.jsonl"
+    data = run(
+        cfg,
+        args.split,
+        compiled_dir(args.connectome),
+        Path(args.out or RESULTS),
+        Path(args.echo_mb) if args.echo_mb else None,
+        subjects=args.subjects,
+        progress=progress,
+        resume=args.resume,
+    )
     return 0 if not data["failed"] else 3
 
 
@@ -197,6 +207,7 @@ def main(argv: list[str] | None = None) -> int:
     q.add_argument("--echo-mb", help="result of scripts/echo-neural-plasticity.ts for the same split")
     q.add_argument("--subjects", type=int, help="fewer subjects than the file's (the result is marked partial)")
     q.add_argument("--out", help=f"results directory (default {RESULTS})")
+    q.add_argument("--resume", action="store_true", help="reuse the subjects an interrupted run of this same commit, config and connectome finished (.fly-neural/progress/)")
     q.set_defaults(fn=cmd_plasticity)
     b = sub.add_parser("bench", help="measure full-brain trials and synthetic scaling on this machine")
     b.add_argument("--connectome", action="append", default=None, help="name under <data>/compiled/; repeatable")

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -107,6 +108,51 @@ def code_watch(results: Path | None = None):
 
     finish.start = start
     return finish
+
+
+PROGRESS_SCHEMA = "fly-neural-progress/v1"
+
+
+class ProgressMismatch(RuntimeError):
+    pass
+
+
+def resume_progress(path: Path | None, header: dict, resume: bool, what: str, log=print) -> dict[str, dict]:
+    """The units (conditions, subjects) an earlier process of this exact run finished, if ``resume``.
+
+    The file's first line is the run's identity: experiment, split, config
+    hash, commit, cleanliness, this package's source digest and the
+    connectome's manifest hash. Every unit has its own seeds, so a unit
+    finished by an earlier process is the one this process would compute.
+    Anything else in the file is refused, never mixed in. Without
+    ``resume`` the file starts again."""
+    if path is None or not resume or not path.exists():
+        if path is not None:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(header, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+        return {}
+    lines = path.read_text(encoding="utf-8").splitlines()
+    old = json.loads(lines[0])
+    if old != header:
+        diff = sorted(k for k in set(old) | set(header) if old.get(k) != header.get(k))
+        raise ProgressMismatch(f"{path} is from a different run ({', '.join(diff)} differ); remove it or run without --resume")
+    done = {}
+    for ln in lines[1:]:
+        if ln.strip():
+            r = json.loads(ln)
+            done[r["name"]] = r
+    log(f"resuming: {len(done)} {what} finished by an earlier process: {', '.join(done) or 'none'}")
+    return done
+
+
+def append_progress(path: Path | None, row: dict) -> None:
+    """One finished unit, on disk before the next starts."""
+    if path is None:
+        return
+    with open(path, "a", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps(row, sort_keys=True) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
 
 
 def write_json(path: Path, data: dict) -> Path:
