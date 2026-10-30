@@ -160,7 +160,17 @@ check=$(mktemp -d "$STATE/backup-check.XXXXXX")
 # Every file in the store is published whole (written aside, then linked or
 # renamed into place), so a copy taken while the life runs holds whole files:
 # the chain up to some checkpoint, perhaps not the one being written as it ran.
-tar --create --gzip --file "$part" --exclude='*.tmp' --directory "$STATE" store
+# GNU tar still exits 1 ("file changed as we read it") when the life commits
+# while it reads the store, so it copies again, up to three times, 10 s
+# apart. Whichever copy is kept, the check below proves it resumes.
+for try in 1 2 3; do
+  status=0
+  tar --create --gzip --file "$part" --exclude='*.tmp' --directory "$STATE" store || status=$?
+  [ "$status" -eq 1 ] && [ "$try" -lt 3 ] || break
+  printf 'backup.sh: the store changed while it was copied; copying again (%s of 3)\n' "$((try + 1))" >&2
+  sleep 10
+done
+[ "$status" -eq 0 ] || die "tar could not copy the store (exit $status, try $try of 3)"
 tar --extract --gzip --file "$part" --directory "$check"
 chown -R "$SERVICE:$SERVICE" "$check"
 if checked=$(cd "$release" && runuser -u "$SERVICE" -- "$PREFIX/node/bin/node" \
