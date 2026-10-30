@@ -1,0 +1,48 @@
+# Backs up the Bethesda life's store, keeping only copies proven to resume,
+# and uploads each one off the machine when /etc/bethesda-life/offsite.env
+# names a bucket (backup.sh, which install.sh --backups copies to
+# /opt/bethesda-life/bin). bethesda-life-backup.timer starts it every 6 hours.
+#
+# It runs beside the life, which must not notice: the lowest CPU and I/O
+# priority, and if memory runs out the kernel stops this before the life
+# (whose OOMScoreAdjust is 500). Its check holds a whole life in memory, and
+# backup.sh starts none unless the machine can spare that.
+
+[Unit]
+Description=Back up the Bethesda life (copies proven to resume, then off the machine)
+Documentation=https://github.com/topherchris420/lop-nur-twin/blob/main/docs/BETHESDA_CONTINUOUS_LIFE.md#backup
+RequiresMountsFor=/var/lib/bethesda-life /var/backups
+Wants=network-online.target
+After=network-online.target bethesda-life.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bethesda-life/bin/backup.sh --keep 8
+# 75: no memory to spare, or another backup or install.sh at work. The next
+# run tries again; the watcher alerts if none succeeds for 13 hours.
+SuccessExitStatus=75
+# A few minutes for the check, and an upload retries for up to 45.
+TimeoutStartSec=1h
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bethesda-life-backup
+Nice=19
+CPUWeight=1
+IOSchedulingClass=idle
+OOMScoreAdjust=1000
+# The check peaked at 3.36 GB on the VM; a larger one is stopped here, and
+# nothing is kept, before it can take the life's memory.
+MemoryMax=4608M
+
+# Root, to read the store and check the copy as bethesda-life; it writes
+# only the copy being checked (beside the store), the archives, the records
+# Caddy serves and the lock install.sh shares.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/bethesda-life /var/lib/bethesda-life-backup -/var/backups/bethesda-life /run
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes

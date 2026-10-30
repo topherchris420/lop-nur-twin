@@ -110,6 +110,10 @@ jobs:
       - name: ESLint
         run: bun run lint
 
+      # The live fly's deploy scripts run only on its VM; here they must at least parse.
+      - name: Deploy scripts parse
+        run: for f in deploy/bethesda-life/*.sh; do bash -n "$f"; done
+
       # The R.A.I.N. Lab runs civilization experiments on the Noeterra engine in
       # process, as an import-free WebAssembly module. It is built here rather than
       # committed (the repository holds no binaries), and its tests skip only

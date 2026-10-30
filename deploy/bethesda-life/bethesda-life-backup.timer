@@ -1,0 +1,16 @@
+# Starts bethesda-life-backup.service every 6 hours (install.sh --backups
+# installs and enables it).
+
+[Unit]
+Description=Back up the Bethesda life every 6 hours
+
+[Timer]
+OnCalendar=*-*-* 00/6:00:00
+# Spread out, so a backup does not always meet the life at the same moment.
+RandomizedDelaySec=20min
+# A run missed while the machine was off is not made up at boot, when the
+# life resumes and needs the most memory; the next one is at most 6 hours away.
+Persistent=false
+
+[Install]
+WantedBy=timers.target

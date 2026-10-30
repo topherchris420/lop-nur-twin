@@ -759,6 +759,7 @@ The headless life, its durable checkpoints, and the individuality studies.
 Read `docs/INDIVIDUAL_CONTINUITY.md` and `docs/BETHESDA_CONTINUOUS_LIFE.md`
 first. Outside `src/bethesda/` it adds `scripts/bethesda-life-headless.ts`,
 `scripts/bethesda-life-observer.ts`, `deploy/bethesda-life/`,
+`scripts/bethesda-life-watch.ts`, `.github/workflows/bethesda-life-watch.yml`,
 `scripts/individuality-evaluate.ts`, `scripts/mushroom-body-evaluate.ts`,
 `docs/benchmarks/fly-individuality/`, `docs/benchmarks/fly-mushroom-body/`,
 and `streamPosition`/`seekStream` in `src/lib/noise.ts`. The rule it exists
@@ -795,6 +796,13 @@ verified to be; a copy is always someone else.**
   unavailable) and never puts a fly of its own in the shared fly's place.
   The runner takes the observation's path from `BETHESDA_LIFE_OBSERVE`, not
   an argument, so the unit still starts a release from before it.
+- **The watcher reads only what anyone may.** `watch.ts` judges the deployed
+  life from the public witness and the backup's record (`/v1/backup`, which
+  `backup.sh` writes and Caddy serves); its workflow pins the deployed
+  individual. Never give it a secret or a way onto the machine, and never
+  loosen a threshold to quiet an alert: find out why it fires. The off-site
+  URL is a credential that stays in `/etc/bethesda-life/offsite.env` on the
+  VM and never enters the repository, a record or a log.
 - **`/live` is unlisted.** Nothing on the site links to it, so Bethesda stays
   hidden to visitors who were not given the link. It follows the observer's
   stream (`src/bethesda/live/witnessFeed.ts`) and only interpolates between
