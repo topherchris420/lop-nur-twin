@@ -29,9 +29,22 @@
 <path d="M224.6,32.0 L228.6,25.0 L232.6,32.0 Z" fill="#9b59b6"/>
 <text x="235.6" y="32.0" fill="#9b59b6" font-size="10">sign-shuffle 183 Hz (dev), off scale</text>
 <rect x="225.6" y="293.0" width="6" height="6" fill="#222"/>
-<rect x="428" y="53" width="6" height="6" fill="#888"/><text x="446" y="60">weight-shuffle (100 Hz)</text>
-<rect x="428" y="71" width="6" height="6" fill="#5a9e4b"/><text x="446" y="78">degree-preserving (100 Hz)</text>
-<rect x="428" y="89" width="6" height="6" fill="#9b59b6"/><text x="446" y="96">sign-shuffle (100 Hz)</text>
-<rect x="428" y="107" width="6" height="6" fill="#222"/><text x="446" y="114">random-graph (100 Hz)</text>
-<text x="422" y="136" fill="#555" font-size="10">bars: ±1 SD over trials</text>
+<polyline fill="none" stroke="#c0562b" stroke-width="2" points="72.9,296.0 89.7,296.0 140.3,268.8 224.6,156.0 308.9,120.8 393.1,96.0"/>
+<line x1="72.9" x2="72.9" y1="296.0" y2="296.0" stroke="#c0562b"/><circle cx="72.9" cy="296.0" r="3.5" fill="#c0562b"/>
+<line x1="89.7" x2="89.7" y1="296.0" y2="296.0" stroke="#c0562b"/><circle cx="89.7" cy="296.0" r="3.5" fill="#c0562b"/>
+<line x1="140.3" x2="140.3" y1="278.1" y2="259.6" stroke="#c0562b"/><circle cx="140.3" cy="268.8" r="3.5" fill="#c0562b"/>
+<line x1="224.6" x2="224.6" y1="167.5" y2="144.4" stroke="#c0562b"/><circle cx="224.6" cy="156.0" r="3.5" fill="#c0562b"/>
+<line x1="308.9" x2="308.9" y1="133.5" y2="108.2" stroke="#c0562b"/><circle cx="308.9" cy="120.8" r="3.5" fill="#c0562b"/>
+<line x1="393.1" x2="393.1" y1="109.6" y2="82.5" stroke="#c0562b"/><circle cx="393.1" cy="96.0" r="3.5" fill="#c0562b"/>
+<line x1="422" x2="440" y1="56" y2="56" stroke="#c0562b" stroke-width="2"/><text x="446" y="60">connectome, held-out</text>
+<rect x="217.6" y="293.0" width="6" height="6" fill="#888"/>
+<rect x="217.6" y="293.0" width="6" height="6" fill="#5a9e4b"/>
+<path d="M216.6,32.0 L220.6,25.0 L224.6,32.0 Z" fill="#9b59b6"/>
+<text x="227.6" y="44.0" fill="#9b59b6" font-size="10">sign-shuffle 162 Hz (held-out), off scale</text>
+<rect x="217.6" y="293.0" width="6" height="6" fill="#222"/>
+<rect x="428" y="71" width="6" height="6" fill="#888"/><text x="446" y="78">weight-shuffle (100 Hz)</text>
+<rect x="428" y="89" width="6" height="6" fill="#5a9e4b"/><text x="446" y="96">degree-preserving (100 Hz)</text>
+<rect x="428" y="107" width="6" height="6" fill="#9b59b6"/><text x="446" y="114">sign-shuffle (100 Hz)</text>
+<rect x="428" y="125" width="6" height="6" fill="#222"/><text x="446" y="132">random-graph (100 Hz)</text>
+<text x="422" y="154" fill="#555" font-size="10">bars: ±1 SD over trials</text>
 </svg>

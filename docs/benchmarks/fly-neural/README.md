@@ -63,4 +63,50 @@ Brian 2: 128.2 s per simulated second; this engine: 4.35 s.
 | jo-f-200-silence-inhibitory | connectome | 30 | 0.0 | 29.2 | 7.5 | 7.9 | 131 | 81 |
 | jons-140 | connectome | 30 | 0.0 | 44.1 | 15.7 | 16.3 | 478 | 316 |
 
+## Shiu et al. 2024 on v783, heldout seeds ([shiu2024-v783-heldout.json](shiu2024-v783-heldout.json), `a27844a`)
+
+10 of 12 criteria passed; failed: S6, C3.
+
+| | Claim | Result | |
+| --- | --- | --- | --- |
+| S1 | Sugar GRNs at 100 Hz activate MN9 in every simulation | 30/30 trials (Wilson 95% 0.886–1.000) | **pass** |
+| S2 | More neurons respond to stronger sugar GRN activation | 24 → 425 responders (sugar-10 → sugar-200) | **pass** |
+| S3 | Shuffling the connectome's weights abolishes sugar-evoked MN9 activation | 0/100 trials (Wilson 95% 0.000–0.037) | **pass** |
+| S4 | Bitter GRN activity inhibits sugar-evoked MN9 firing | 0.0 vs 62.7 Hz, one-sided Mann-Whitney p = 5.9e-13 | **pass** |
+| S5 | Ir94e GRN activity inhibits sugar-evoked MN9 firing | 2.3 vs 62.7 Hz, one-sided Mann-Whitney p = 1.3e-11 | **pass** |
+| S6 | Water GRN activation activates MN9 | 30.3 Hz | **fail** |
+| G1 | JO-CE neurons drive aBN1 robustly and JO-F neurons do not, despite synapsing onto it | 68.2 vs 3.2 Hz, one-sided Mann-Whitney p = 1.2e-11, ratio 0.05 | **pass** |
+| G2 | Silencing the inhibitory neurons between JO-F and aBN1 lets JO-F drive aBN1 | 29.7 vs 3.2 Hz, one-sided Mann-Whitney p = 1.3e-11 | **pass** |
+| G3 | JON activation activates the antennal grooming neurons aBN1, aDN1 and aDN2 | abn1_shiu 44.9 Hz, adn1_shiu 16.4 Hz, adn2_shiu 16.8 Hz | **pass** |
+| C1 | Degree-preserving rewiring abolishes sugar-evoked MN9 activation | 0/30 trials (Wilson 95% 0.000–0.114) | **pass** |
+| C2 | A random graph of the same size and weights does not produce sugar-evoked MN9 activation | 0/30 trials (Wilson 95% 0.000–0.114) | **pass** |
+| C3 | Permuting neuron signs disrupts sugar-evoked MN9 activation | 161.6 vs 62.7 Hz, one-sided Mann-Whitney p = 1 | **fail** |
+
+| Condition | Wiring | Trials | MN9 (Hz) | aBN1 | aDN1 | aDN2 | Responders > 0 Hz | ≥ 1 Hz |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| sugar-10 | connectome | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 24 | 5 |
+| sugar-20 | connectome | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 49 | 22 |
+| sugar-50 | connectome | 30 | 12.2 | 0.0 | 0.0 | 0.0 | 344 | 196 |
+| sugar-100 | connectome | 30 | 62.7 | 0.0 | 0.0 | 0.0 | 375 | 324 |
+| sugar-150 | connectome | 30 | 78.4 | 0.0 | 0.0 | 0.0 | 414 | 343 |
+| sugar-200 | connectome | 30 | 89.5 | 0.0 | 0.0 | 0.0 | 425 | 360 |
+| sugar-100-weight-shuffle | weight-shuffle | 100 | 0.0 | 0.0 | 0.0 | 0.0 | 360 | 63 |
+| sugar-100-degree-preserving | degree-preserving | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 1307 | 55 |
+| sugar-100-sign-shuffle | sign-shuffle | 30 | 161.6 | 70.7 | 87.2 | 74.7 | 97192 | 89369 |
+| sugar-100-random-graph | random-graph | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 774 | 61 |
+| sugar-100-bitter-50 | connectome | 30 | 32.2 | 0.0 | 0.0 | 0.0 | 371 | 289 |
+| sugar-100-bitter-200 | connectome | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 256 | 154 |
+| sugar-100-ir94e-50 | connectome | 30 | 36.6 | 0.0 | 0.0 | 0.0 | 393 | 302 |
+| sugar-100-ir94e-200 | connectome | 30 | 2.3 | 0.0 | 0.0 | 0.0 | 8724 | 3120 |
+| bitter-200 | connectome | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 70 | 63 |
+| water-50 | connectome | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 36 | 23 |
+| water-100 | connectome | 30 | 0.0 | 0.0 | 0.0 | 0.0 | 77 | 59 |
+| water-200 | connectome | 30 | 30.3 | 0.0 | 0.0 | 0.0 | 359 | 202 |
+| jo-ce-100 | connectome | 30 | 0.0 | 25.8 | 0.5 | 2.6 | 245 | 157 |
+| jo-ce-200 | connectome | 30 | 0.0 | 68.2 | 28.6 | 32.6 | 427 | 284 |
+| jo-f-100 | connectome | 30 | 0.0 | 0.6 | 0.0 | 0.0 | 37 | 22 |
+| jo-f-200 | connectome | 30 | 0.0 | 3.2 | 0.2 | 0.2 | 77 | 49 |
+| jo-f-200-silence-inhibitory | connectome | 30 | 0.0 | 29.7 | 7.8 | 8.2 | 130 | 83 |
+| jons-140 | connectome | 30 | 0.0 | 44.9 | 16.4 | 16.8 | 492 | 314 |
+
 ![MN9 rate against sugar GRN rate in the model, by split, with the controls at 100 Hz](figure-sugar-mn9.svg)
