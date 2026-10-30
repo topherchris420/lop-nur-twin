@@ -136,7 +136,7 @@ def cmd_reference(args) -> int:
     from .reference import run
 
     cfg = Path(__file__).resolve().parents[1] / "experiments" / "brian2-reference.json"
-    b2 = Path(args.brian2) if args.brian2 else data_dir() / "reference-runs" / "brian2-sugar100-30.json"
+    b2 = [Path(x) for x in args.brian2] if args.brian2 else [data_dir() / "reference-runs" / "brian2-sugar100-30.json"]
     data = run(cfg, b2, compiled_dir(args.connectome), Path(args.out or RESULTS))
     return 0 if not data["failed"] else 3
 
@@ -201,7 +201,7 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--out", help=f"results directory (default {RESULTS})")
     b.set_defaults(fn=cmd_bench)
     r = sub.add_parser("reference", help="judge this engine against a Brian 2 run of Shiu et al.'s model.py")
-    r.add_argument("--brian2", help="the trials file reference/shiu_brian2.py wrote (default <data>/reference-runs/brian2-sugar100-30.json)")
+    r.add_argument("--brian2", action="append", help="a trials file reference/shiu_brian2.py wrote; repeat to pool runs of the same setup (default <data>/reference-runs/brian2-sugar100-30.json)")
     r.add_argument("--connectome", default="fafb-v783-shiu")
     r.add_argument("--out", help=f"results directory (default {RESULTS})")
     r.set_defaults(fn=cmd_reference)

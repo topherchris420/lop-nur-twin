@@ -25,13 +25,60 @@ SCHEMA = "fly-neural-reference/v1"
 MN9 = 720575940660219265
 
 
-def run(cfg_path: Path, brian2_path: Path, compiled: Path, out_dir: Path, log=print) -> dict:
+# What must match between Brian 2 runs whose trials are pooled.
+SAME_SETUP = ("exc", "exc2", "silence", "rate", "rate2")
+
+
+def read_brian2(paths: list[Path]) -> dict:
+    """One or more Brian 2 trial files of the same setup, pooled; each is read as written.
+
+    A run stopped part way keeps the trials it finished (they are written one
+    at a time), and the rest can be run with their own seeds; pooling checks
+    that every file ran the same stimulus, model file and population, and
+    that no seed repeats."""
+    runs = []
+    for p in paths:
+        d = json.loads(Path(p).read_text(encoding="utf-8"))
+        if d.get("schema") != "fly-neural-brian2-trials/v1":
+            raise ValueError(f"{p} is not a Brian 2 trials file")
+        runs.append((Path(p), d))
+    first = runs[0][1]
+    for p, d in runs[1:]:
+        for k in SAME_SETUP:
+            if d["args"].get(k) != first["args"].get(k):
+                raise ValueError(f"{p.name}: {k} differs from {runs[0][0].name}")
+        for k in ("missing_ids", "neurons", "t_run_ms"):
+            if d.get(k) != first.get(k):
+                raise ValueError(f"{p.name}: {k} differs from {runs[0][0].name}")
+        if d["environment"].get("shiu_model_py_sha256") != first["environment"].get("shiu_model_py_sha256"):
+            raise ValueError(f"{p.name}: a different model.py")
+    trials = [tr for _, d in runs for tr in d["trials"]]
+    seeds = [tr["brian2_seed"] for tr in trials]
+    if len(set(seeds)) != len(seeds):
+        raise ValueError("a Brian 2 seed repeats across the files")
+    return {
+        **first,
+        "trials": sorted(trials, key=lambda tr: tr["brian2_seed"]),
+        "files": [
+            {
+                "file": p.name,
+                "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                "trials": len(d["trials"]),
+                "seeds": [tr["brian2_seed"] for tr in d["trials"]],
+                "requested_trials": d["args"].get("trials"),
+                "total_wall_s": d.get("total_wall_s"),
+                "environment": d.get("environment"),
+            }
+            for p, d in runs
+        ],
+    }
+
+
+def run(cfg_path: Path, brian2_paths: list[Path], compiled: Path, out_dir: Path, log=print) -> dict:
     cfg = json.loads(Path(cfg_path).read_text(encoding="utf-8"))
     if cfg.get("schema") != SCHEMA:
         raise ValueError(f"{cfg_path} is not a {SCHEMA} file")
-    b2 = json.loads(Path(brian2_path).read_text(encoding="utf-8"))
-    if b2.get("schema") != "fly-neural-brian2-trials/v1":
-        raise ValueError(f"{brian2_path} is not a Brian 2 trials file")
+    b2 = read_brian2([Path(x) for x in brian2_paths])
     eng = cfg["engine"]
     c = cx.load(compiled)
     net = lif.Network(c)
@@ -86,7 +133,7 @@ def run(cfg_path: Path, brian2_path: Path, compiled: Path, out_dir: Path, log=pr
         "experiment": cfg["id"],
         "config_file": Path(cfg_path).name,
         "config_sha256": hashlib.sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
-        "brian2_run": {"file": Path(brian2_path).name, "sha256": hashlib.sha256(Path(brian2_path).read_bytes()).hexdigest(), "trials": n_b2, "environment": b2.get("environment"), "total_wall_s": b2.get("total_wall_s"), "wall_s_per_trial": stats.summary([tr["wall_s"] for tr in b2["trials"]]), "missing_ids": b2.get("missing_ids"), "seeds": [tr["brian2_seed"] for tr in b2["trials"]]},
+        "brian2_run": {"files": b2["files"], "trials": n_b2, "wall_s_per_trial": stats.summary([tr["wall_s"] for tr in b2["trials"]]), "missing_ids": b2.get("missing_ids"), "seeds": [tr["brian2_seed"] for tr in b2["trials"]]},
         "engine_run": {"trials": eng["trials"], "seed": eng["seed"], "population": pop, "resources": meter.describe(), "wall_s_per_trial": round(meter.describe()["wall_s"] / eng["trials"], 3)},
         "connectome": {"path_name": Path(compiled).name, "manifest_sha256": c.manifest.get("sha256"), "sign_policy": c.manifest.get("sign_policy")},
         "criteria": verdicts,

@@ -59,9 +59,13 @@ def test_reference_judges_identical_runs_as_agreeing(tmp_path, monkeypatch):
     for k in range(6):
         t, _ = lif.run(net, lif.Stimulus(poisson=[lif.Poisson(idx, 100.0)]), 200.0, rng=np.random.default_rng([99, k]))
         trials.append({"counts": {str(int(ids[i])): int(t.counts[i]) for i in np.flatnonzero(t.counts)}, "wall_s": 0.1, "brian2_seed": 99 + k})
-    (tmp_path / "b2.json").write_text(json.dumps({"schema": "fly-neural-brian2-trials/v1", "t_run_ms": 200.0, "trials": trials}))
+    # Pooled from two runs, as when a run is stopped part way and the rest are run separately.
+    head = {"schema": "fly-neural-brian2-trials/v1", "t_run_ms": 200.0, "args": {"rate": 100.0}, "environment": {"shiu_model_py_sha256": "x"}}
+    (tmp_path / "b2a.json").write_text(json.dumps({**head, "trials": trials[:4]}))
+    (tmp_path / "b2b.json").write_text(json.dumps({**head, "trials": trials[4:]}))
     monkeypatch.setattr(reference, "code_state", lambda _: {"commit": None})
-    data = reference.run(tmp_path / "cfg.json", tmp_path / "b2.json", compiled, tmp_path / "out", log=lambda *_: None)
+    data = reference.run(tmp_path / "cfg.json", [tmp_path / "b2a.json", tmp_path / "b2b.json"], compiled, tmp_path / "out", log=lambda *_: None)
+    assert data["brian2_run"]["trials"] == 6 and len(data["brian2_run"]["files"]) == 2
     by = {v["id"]: v for v in data["criteria"]}
     assert by["R1"]["ours"]["mean"] > 0
     assert by["R2"]["neurons"] >= 5
@@ -69,7 +73,18 @@ def test_reference_judges_identical_runs_as_agreeing(tmp_path, monkeypatch):
     assert (tmp_path / "out" / "toy-reference.json").exists()
 
 
+def test_pooling_refuses_a_different_setup_or_a_repeated_seed(tmp_path):
+    head = {"schema": "fly-neural-brian2-trials/v1", "t_run_ms": 1000.0, "args": {"rate": 100.0}, "environment": {"shiu_model_py_sha256": "x"}}
+    (tmp_path / "a.json").write_text(json.dumps({**head, "trials": [{"brian2_seed": 1}]}))
+    (tmp_path / "b.json").write_text(json.dumps({**head, "args": {"rate": 50.0}, "trials": [{"brian2_seed": 2}]}))
+    (tmp_path / "c.json").write_text(json.dumps({**head, "trials": [{"brian2_seed": 1}]}))
+    with pytest.raises(ValueError, match="rate"):
+        reference.read_brian2([tmp_path / "a.json", tmp_path / "b.json"])
+    with pytest.raises(ValueError, match="seed repeats"):
+        reference.read_brian2([tmp_path / "a.json", tmp_path / "c.json"])
+
+
 def test_reference_refuses_other_files(tmp_path):
     (tmp_path / "x.json").write_text(json.dumps({"schema": "nope"}))
     with pytest.raises(ValueError):
-        reference.run(tmp_path / "x.json", tmp_path / "x.json", tmp_path, tmp_path)
+        reference.run(tmp_path / "x.json", [tmp_path / "x.json"], tmp_path, tmp_path)

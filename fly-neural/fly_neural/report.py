@@ -169,7 +169,12 @@ def write(results: Path) -> Path:
     for n, d in pick("reference"):
         lines += [f"## Against Brian 2 ([{n}]({n}), {_code(d)})", "", *_criteria(d), ""]
         b2, en = d["brian2_run"], d["engine_run"]
-        lines += [f"Brian 2: {b2['wall_s_per_trial']['mean']:.1f} s per simulated second; this engine: {en['wall_s_per_trial']:.2f} s.", ""]
+        pooled = "; ".join(f"`{f['file']}` {f['trials']} of {f['requested_trials']} requested" for f in b2["files"])
+        lines += [
+            f"{b2['trials']} Brian 2 trials (seeds {min(b2['seeds'])} to {max(b2['seeds'])}) from {len(b2['files'])} run(s): {pooled}.",
+            f"Brian 2: {b2['wall_s_per_trial']['mean']:.1f} s per simulated second; this engine: {en['wall_s_per_trial']:.2f} s.",
+            "",
+        ]
     exp = {d["split"]: (n, d) for n, d in pick("experiment")}
     for split in ("dev", "heldout"):
         if split not in exp:
