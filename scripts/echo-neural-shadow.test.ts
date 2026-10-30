@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalJson } from "../src/lib/canonicalJson";
@@ -15,11 +15,12 @@ import {
 
 const SENSABLE_KEYS = ["airflow", "airflowFrom", "looming", "odour", "onFood"];
 
-function files(dir: string, out: string[] = []): string[] {
-  for (const name of readdirSync(dir)) {
-    const p = join(dir, name);
-    if (statSync(p).isDirectory()) files(p, out);
-    else if (/\.(ts|tsx|js|mjs)$/.test(name)) out.push(p);
+// Typed by the directory read itself, so nothing is checked and then opened.
+function files(dir: string, keep = /\.(ts|tsx|js|mjs)$/, out: string[] = []): string[] {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) files(p, keep, out);
+    else if (e.isFile() && keep.test(e.name)) out.push(p);
   }
   return out;
 }
@@ -144,14 +145,11 @@ describe("ECHO Neural Shadow recorder", () => {
       expect(readFileSync(f, "utf8"), f).not.toMatch(
         /fly-neural|fly_neural|echo-neural-shadow/,
       );
-    for (const f of readdirSync(join(__dirname, "..", "deploy"), {
-      recursive: true,
-    }) as string[]) {
-      const p = join(__dirname, "..", "deploy", f);
-      if (statSync(p).isFile())
-        expect(readFileSync(p, "utf8"), p).not.toMatch(
-          /fly-neural|fly_neural|echo-neural-shadow/,
-        );
-    }
+    const deployed = files(join(__dirname, "..", "deploy"), /./);
+    expect(deployed.length).toBeGreaterThan(0);
+    for (const p of deployed)
+      expect(readFileSync(p, "utf8"), p).not.toMatch(
+        /fly-neural|fly_neural|echo-neural-shadow/,
+      );
   });
 });
