@@ -231,3 +231,10 @@ def resolve(key: str, c: Connectome, root: Path | None = None) -> tuple[np.ndarr
         report = {"kind": "annotation selection", "rule": pop.select, "selected": int(ids.size), "in_connectome": int(present.sum())}
     report.update({"key": key, "label": pop.label, "role": pop.role, "cite": [CITE[k] for k in pop.cite], "neurons": int(idx.size)})
     return np.sort(idx), report
+
+
+def select_ids_in(c: Connectome, rule: dict, root: Path | None = None) -> np.ndarray:
+    """Indices in ``c`` of an annotation selection (ids absent from ``c`` are skipped)."""
+    ids = select_ids(rule, root)
+    present = np.array([c.has(int(x)) for x in ids], dtype=bool)
+    return c.index_of(ids[present]) if present.any() else np.zeros(0, dtype=np.int64)

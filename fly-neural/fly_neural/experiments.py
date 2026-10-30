@@ -101,7 +101,7 @@ def run_condition(c: cx.Connectome, net: lif.Network, cond: dict, cfg: dict, spl
     }
     if wiring_stats:
         out["wiring_stats"] = {k: stats.summary([w[k] for w in wiring_stats]) for k in ("autapses", "repeated_pairs", "inhibitory_pairs", "synapses")}
-    log(f"  {cond['name']}: " + ", ".join(f"{k} {v['mean']:.1f} Hz" for k, v in out["readout_summary_hz"].items() if v["mean"]) + f"; responders {out['responders_gt0']}; {meter.describe()['wall_s']:.1f} s")
+    log(f"  {cond['name']}: " + ", ".join(f"{k} {v['mean']:.1f} Hz" for k, v in out["readout_summary_hz"].items()) + f"; responders {out['responders_gt0']}; {meter.describe()['wall_s']:.1f} s")
     return out
 
 

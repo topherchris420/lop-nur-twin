@@ -72,6 +72,29 @@ def cmd_experiment(args) -> int:
     return 0 if not data["failed"] else 3
 
 
+def cmd_shadow(args) -> int:
+    from .shadow import analyse
+
+    analyse(Path(args.recording), compiled_dir(args.connectome), Path(args.out or RESULTS), seed=args.seed)
+    return 0
+
+
+def cmd_plasticity(args) -> int:
+    from .plasticity import run
+
+    cfg = Path(args.config)
+    if not cfg.is_absolute() and not cfg.exists():
+        cfg = Path(__file__).resolve().parents[1] / "experiments" / args.config
+    data = run(cfg, args.split, compiled_dir(args.connectome), Path(args.out or RESULTS), Path(args.echo_mb) if args.echo_mb else None, subjects=args.subjects)
+    return 0 if not data["failed"] else 3
+
+
+def cmd_serve(args) -> int:
+    from .shadow import serve
+
+    return serve(compiled_dir(args.connectome))
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m fly_neural", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -98,6 +121,23 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--max-wall-s", type=float, default=None)
     e.add_argument("--max-rss-mb", type=float, default=None)
     e.set_defaults(fn=cmd_experiment)
+    s = sub.add_parser("shadow", help="replay a research fly's recording into the model (neural-shadow mode)")
+    s.add_argument("recording", help="a .jsonl written by scripts/echo-neural-shadow.ts")
+    s.add_argument("--connectome", default="fafb-v783-shiu")
+    s.add_argument("--seed", type=int, default=0)
+    s.add_argument("--out", help=f"results directory (default {RESULTS})")
+    s.set_defaults(fn=cmd_shadow)
+    q = sub.add_parser("plasticity", help="run the pre-registered plasticity comparison")
+    q.add_argument("config", nargs="?", default="plasticity-v783.json")
+    q.add_argument("--split", required=True, choices=["dev", "heldout"])
+    q.add_argument("--connectome", default="fafb-v783-shiu")
+    q.add_argument("--echo-mb", help="result of scripts/echo-neural-plasticity.ts for the same split")
+    q.add_argument("--subjects", type=int, help="fewer subjects than the file's (the result is marked partial)")
+    q.add_argument("--out", help=f"results directory (default {RESULTS})")
+    q.set_defaults(fn=cmd_plasticity)
+    v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
+    v.add_argument("--connectome", default="fafb-v783-shiu")
+    v.set_defaults(fn=cmd_serve)
     args = p.parse_args(argv)
     return args.fn(args)
 

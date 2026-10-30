@@ -60,14 +60,11 @@ def wiring(c: Connectome, kind: str, seed: int) -> tuple[tuple[np.ndarray, np.nd
         np.cumsum(np.bincount(pre, minlength=c.n), out=indptr[1:])
     else:
         raise ValueError(f"unknown control {kind!r}; choose from {CONTROLS}")
-    key = pre * c.n + indices
-    stats = {
-        "control": kind,
-        "seed": seed,
-        "pairs": int(indices.size),
-        "autapses": int((pre == indices).sum()),
-        "repeated_pairs": int(key.size - np.unique(key).size),
-        "inhibitory_pairs": int((signed < 0).sum()),
-        "synapses": int(np.abs(signed).sum()),
-    }
+    stats = {"control": kind, "seed": seed, "pairs": int(indices.size), "inhibitory_pairs": int((signed < 0).sum()), "synapses": int(np.abs(signed).sum())}
+    if kind in ("weight-shuffle", "sign-shuffle"):
+        # The connectome's own topology: no autapses or repeated pairs (connectome.validate).
+        stats.update(autapses=0, repeated_pairs=0)
+    else:
+        key = pre * c.n + indices
+        stats.update(autapses=int((pre == indices).sum()), repeated_pairs=int(key.size - np.unique(key).size))
     return (indptr, indices.astype(np.int32), signed), stats
