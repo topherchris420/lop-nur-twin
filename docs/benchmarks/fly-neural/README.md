@@ -119,6 +119,28 @@ Brian 2: 128.2 s per simulated second; this engine: 4.35 s.
 
 ![MN9 rate against sugar GRN rate in the model, by split, with the controls at 100 Hz](figure-sugar-mn9.svg)
 
+## Plasticity, dev seeds ([plasticity-v783-dev-partial.json](plasticity-v783-dev-partial.json), `ffe066a`, partial)
+
+| | Claim | Result | |
+| --- | --- | --- | --- |
+| P0 | The odours reach the readout: the PAM-innervated MBONs respond to each odour before training | before training: A 1855.5, B 1832.7 readout spikes per trial | **pass** |
+| P1 | With the rule, the paired odour's MBON response falls more than the unpaired odour's | 1/2 subjects negative, sign test p = 0.75; LI -0.001, +0.001 | **fail** |
+| P2 | Fixed weights learn nothing | mean LI 0.000 vs -0.001, one-sided Mann-Whitney p = 0.65 | **fail** |
+| P3 | Blocking the DANs' output abolishes the learning | mean LI 0.000 vs -0.000, one-sided Mann-Whitney p = 0.88 | **fail** |
+| P4 | The repository's mushroom-body rate model learns the paired cue: its prediction for A rises above B's, and not when the reward is omitted | after(A) − after(B): 0.977 to 0.994 with reward, -0.000 to 0.000 without | **pass** |
+| X1 | Exploratory: the rule on a degree-preserving rewired connectome | LI undefined in every subject (no readout response to compare) | report only |
+
+## Plasticity, heldout seeds ([plasticity-v783-heldout.json](plasticity-v783-heldout.json), `8051eef`, 24 of 32 subjects resumed from an earlier process of the same run)
+
+| | Claim | Result | |
+| --- | --- | --- | --- |
+| P0 | The odours reach the readout: the PAM-innervated MBONs respond to each odour before training | before training: A 1851.7, B 1834.9 readout spikes per trial | **pass** |
+| P1 | With the rule, the paired odour's MBON response falls more than the unpaired odour's | 3/8 subjects negative, sign test p = 0.855; LI +0.001, +0.004, +0.002, +0.000, +0.000, -0.004, -0.001, -0.001 | **fail** |
+| P2 | Fixed weights learn nothing | mean LI 0.000 vs -0.001, one-sided Mann-Whitney p = 0.89 | **fail** |
+| P3 | Blocking the DANs' output abolishes the learning | mean LI 0.000 vs 0.000, one-sided Mann-Whitney p = 0.52 | **fail** |
+| P4 | The repository's mushroom-body rate model learns the paired cue: its prediction for A rises above B's, and not when the reward is omitted | after(A) − after(B): 0.986 to 0.994 with reward, -0.000 to 0.000 without | **pass** |
+| X1 | Exploratory: the rule on a degree-preserving rewired connectome | LI undefined in every subject (no readout response to compare) | report only |
+
 ## Neural shadow: `research-food-101` ([shadow-food-101-neural-shadow.json](shadow-food-101-neural-shadow.json), `0ed5036`)
 
 6000 samples. Escape: ECHO 0 onsets, model giant-fiber episodes 0; 0 hits, 0 misses, 0 false alarms. Feeding: body feeding in 5994 samples, model MN9 ≥ threshold in 1703; both 1703, agreement 0.2848.

@@ -82,7 +82,8 @@ def _verdict(v: dict) -> str:
         d, z = v["after_A_minus_B"], v["reward_omitted_after_A_minus_B"]
         return f"after(A) − after(B): {min(d):.3f} to {max(d):.3f} with reward, {min(z):.3f} to {max(z):.3f} without"
     if t == "report_only":
-        return "LI " + ", ".join(f"{x:+.3f}" for x in v["li"])
+        # The index needs a response to both odours, before and after; without one it is undefined.
+        return ("LI " + ", ".join(f"{x:+.3f}" for x in v["li"])) if v["li"] else "LI undefined in every subject (no readout response to compare)"
     return ""
 
 

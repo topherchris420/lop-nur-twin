@@ -56,6 +56,7 @@ python -m fly_neural experiment shiu2024-v783.json --split heldout   # once, fro
 python -m fly_neural plasticity --split dev --echo-mb ../.fly-neural/echo-mb-dev.json
 python -m fly_neural shadow ../.fly-neural/shadow/looms-101-neural-shadow.jsonl
 python -m fly_neural bench
+python -m fly_neural report                             # docs/benchmarks/fly-neural/README.md and its figure
 python -m pytest -q                                     # no download needed
 ```
 
@@ -66,7 +67,13 @@ of this package's source, the machine and the resources used) written to
 
 Long runs take a budget: `--max-wall-s`, `--max-rss-mb`, and a stop file
 (`.fly-neural/STOP`) checked every 1,000 steps. Nothing here starts cloud
-compute.
+compute. `experiment` and `plasticity` also take `--resume`. Each finished
+condition or subject is saved in `.fly-neural/progress/` under the run's
+commit, source digest, config and connectome, so a stopped run continues
+where it was. A progress file from any other run is refused.
+
+What has been run, and what came of it, is in
+[docs/ECHO_CONNECTOME.md](../docs/ECHO_CONNECTOME.md).
 
 ## Layout
 
