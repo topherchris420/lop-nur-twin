@@ -77,21 +77,37 @@ def _labels(c: cx.Connectome) -> tuple[np.ndarray, np.ndarray]:
 class Groups:
     """The mushroom-body populations of one connectome, as index arrays and masks."""
 
-    def __init__(self, c: cx.Connectome, dan_mbon_min_synapses: int = 5):
-        self.c = c
-        self.kc, _ = P.resolve("kenyon_cells", c)
-        self.mbon, _ = P.resolve("mbons", c)
-        self.pam, _ = P.resolve("pam_dans", c)
+    @classmethod
+    def from_annotations(cls_, c: cx.Connectome, dan_mbon_min_synapses: int = 5) -> "Groups":
         cls, typ = _labels(c)
-        self.apl = np.flatnonzero(typ == "APL").astype(np.int64)
-        self.dpm = np.flatnonzero(typ == "DPM").astype(np.int64)
-        self.ppl1 = np.flatnonzero(np.array([isinstance(t, str) and t.startswith("PPL1") for t in typ])).astype(np.int64)
-        self.pn = np.flatnonzero(cls == "ALPN").astype(np.int64)
-        self.cls, self.typ = cls, typ
+        return cls_(
+            c,
+            kc=P.resolve("kenyon_cells", c)[0],
+            mbon=P.resolve("mbons", c)[0],
+            pam=P.resolve("pam_dans", c)[0],
+            apl=np.flatnonzero(typ == "APL"),
+            pn=np.flatnonzero(cls == "ALPN"),
+            dpm=np.flatnonzero(typ == "DPM"),
+            ppl1=np.flatnonzero(np.array([isinstance(t, str) and t.startswith("PPL1") for t in typ])),
+            cls=cls,
+            typ=typ,
+            dan_mbon_min_synapses=dan_mbon_min_synapses,
+        )
+
+    def __init__(self, c: cx.Connectome, *, kc, mbon, pam, apl, pn, dpm=(), ppl1=(), cls=None, typ=None, dan_mbon_min_synapses: int = 5):
+        """Explicit populations (tests build synthetic ones); ``from_annotations`` reads FlyWire's."""
+        self.c = c
+        as_idx = lambda x: np.sort(np.asarray(x, dtype=np.int64))  # noqa: E731
+        self.kc, self.mbon, self.pam, self.apl, self.pn = as_idx(kc), as_idx(mbon), as_idx(pam), as_idx(apl), as_idx(pn)
+        self.dpm, self.ppl1 = as_idx(dpm), as_idx(ppl1)
+        self.cls = cls if cls is not None else np.full(c.n, None, dtype=object)
+        self.typ = typ if typ is not None else np.full(c.n, None, dtype=object)
         self.is_kc = np.zeros(c.n, dtype=bool)
         self.is_kc[self.kc] = True
         self.is_apl = np.zeros(c.n, dtype=bool)
         self.is_apl[self.apl] = True
+        self.is_pn = np.zeros(c.n, dtype=bool)
+        self.is_pn[self.pn] = True
         is_mbon = np.zeros(c.n, dtype=bool)
         is_mbon[self.mbon] = True
         # PAM -> MBON reach, as plasticity.Circuit reads it (>= min synapses), and the readout MBONs.
@@ -129,7 +145,7 @@ def census(c: cx.Connectome, g: Groups) -> dict:
     cls = g.cls[pre_k]
     typ = g.typ[pre_k]
     group = np.full(pre_k.size, "other", dtype=object)
-    group[cls == "ALPN"] = "projection neurons (ALPN)"
+    group[g.is_pn[pre_k]] = "projection neurons (ALPN)"
     group[g.is_kc[pre_k]] = "Kenyon cells"
     group[g.is_apl[pre_k]] = "APL"
     group[typ == "DPM"] = "DPM"
@@ -235,7 +251,7 @@ def sweep(cfg_path: Path, compiled: Path, out_dir: Path, log=print) -> dict:
     config_sha256 = hashlib.sha256(Path(cfg_path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
     c = cx.load(compiled)
     base = lif.Network(c)
-    g = Groups(c)
+    g = Groups.from_annotations(c)
     odours = {k: g.odour(v) for k, v in cfg["odours"].items() if k in ("A", "B")}
     fam = cfg["families"]
     grid = [Representation(apl_gain=float(a), kc_threshold=float(k)) for k in fam["kc_threshold"]["values"] for a in fam["apl_gain"]["values"]]
