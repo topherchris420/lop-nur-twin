@@ -49,6 +49,17 @@
       "manifestSchemaVersion": "1.2.0",
       "contentKey": "sha256:f38c069299d9d096d54f44bdcabe4f598dcbb865cfa471e8286a288c538b60d9",
       "recordedAt": "2026-10-07T07:44:05Z"
+    },
+    {
+      "revision": 5,
+      "commit": "ae46ae68faa7a3719378e4b23184d19f02f0b9b0",
+      "committedAt": "2026-10-30T13:00:43Z",
+      "title": "Record the Open Nuclear Network's 2024 Lop Nur review as reported context",
+      "manifest": "manifests/r5.json",
+      "manifestSha256": "sha256:97fa1e1e13bcf9279db687cd7b149316cc184c6500a812c1d6b2156001daf4a6",
+      "manifestSchemaVersion": "1.2.0",
+      "contentKey": "sha256:55b3178c73cd0c4d74b8a18e6c84d7be85f331822006fa667b3725b307c1042d",
+      "recordedAt": "2026-10-30T13:00:48Z"
     }
   ],
   "subjects": {
