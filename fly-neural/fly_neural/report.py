@@ -35,9 +35,9 @@ def _code(d: dict) -> str:
     state = {False: "", True: " (uncommitted changes)", None: " (tree state unknown)"}[c.get("dirty")]
     if c.get("changed_during_run"):
         state += f", code changed during the run: {', '.join(c['changed_during_run'])}"
-    resumed = d.get("resumed_conditions") or d.get("resumed_subjects")
-    if resumed:
-        state += f", {len(resumed)} of them resumed from an earlier process of the same run"
+    for unit, total in (("conditions", len(d.get("conditions") or {})), ("subjects", d.get("subjects", 0) * len(d.get("arms") or {}))):
+        if d.get(f"resumed_{unit}"):
+            state += f", {len(d[f'resumed_{unit}'])} of {total} {unit} resumed from an earlier process of the same run"
     return f"`{commit}`{state}"
 
 

@@ -71,7 +71,7 @@ Brian 2: 128.2 s per simulated second; this engine: 4.35 s.
 | jo-f-200-silence-inhibitory | connectome | 30 | 0.0 | 29.2 | 7.5 | 7.9 | 131 | 81 |
 | jons-140 | connectome | 30 | 0.0 | 44.1 | 15.7 | 16.3 | 478 | 316 |
 
-## Shiu et al. 2024 on v783, heldout seeds ([shiu2024-v783-heldout.json](shiu2024-v783-heldout.json), `a27844a`, 23 of them resumed from an earlier process of the same run)
+## Shiu et al. 2024 on v783, heldout seeds ([shiu2024-v783-heldout.json](shiu2024-v783-heldout.json), `a27844a`, 23 of 24 conditions resumed from an earlier process of the same run)
 
 10 of 12 criteria passed; failed: S6, C3.
 
