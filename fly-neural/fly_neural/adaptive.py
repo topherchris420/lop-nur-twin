@@ -179,10 +179,17 @@ class Codes:
 
     def save(self, path: Path) -> str:
         path.parent.mkdir(parents=True, exist_ok=True)
-        arrays = {f"kc__{r}": v for r, v in self.kc.items()} | {f"pam__{r}": v for r, v in self.pam.items()}
-        np.savez_compressed(path, pre=self.pre, post=self.post, w0=self.w0, reach=self.reach, **arrays)
+        arrays = {"pre": self.pre, "post": self.post, "w0": self.w0, "reach": self.reach} | {f"kc__{r}": v for r, v in self.kc.items()} | {f"pam__{r}": v for r, v in self.pam.items()}
+        np.savez_compressed(path, **arrays)
         meta_path = path.with_suffix(".json")
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        # The file's hash changes with the zip entries' timestamps; this one changes only with the codes.
+        content = hashlib.sha256()
+        for k in sorted(arrays):
+            a = np.ascontiguousarray(arrays[k])
+            content.update(f"{k}|{a.dtype.str}|{a.shape}|".encode())
+            content.update(a.tobytes())
+        self.meta = {**self.meta, "arrays_sha256": content.hexdigest()}
         write_json(meta_path, {**self.meta, "odours": self.odours, "npz_sha256": digest})
         return digest
 
@@ -633,7 +640,7 @@ def run(cfg_path: Path, split: str, codes_path: Path, out_dir: Path, log=print) 
         "config_sha256": config_sha256,
         "split": split,
         "subjects": len(seeds),
-        "codes": {"npz_sha256": codes.meta["npz_sha256"], "representations": codes.meta["representations"], "connectome": codes.meta["connectome"], "summary": code_summary(codes)},
+        "codes": {"npz_sha256": codes.meta["npz_sha256"], "arrays_sha256": codes.meta.get("arrays_sha256"), "representations": codes.meta["representations"], "connectome": codes.meta["connectome"], "summary": code_summary(codes)},
         "results": results,
         "criteria": verdicts,
         "failed": [v["id"] for v in verdicts if not v["passed"]],

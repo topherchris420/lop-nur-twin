@@ -192,7 +192,11 @@ def test_run_end_to_end_on_synthetic_codes(tmp_path):
     codes.kc["thr-only"], codes.pam["thr-only"] = codes.kc["sparse"], codes.pam["sparse"]
     codes.meta = {"config_sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "representations": {}, "connectome": {}}
     codes.save(tmp_path / "codes.npz")
+    first = codes.meta["arrays_sha256"]
+    codes.save(tmp_path / "again.npz")
+    assert codes.meta["arrays_sha256"] == first == ad.Codes.load(tmp_path / "again.npz").meta["arrays_sha256"]
     data = ad.run(path, "dev", tmp_path / "codes.npz", tmp_path / "out", log=lambda *_: None)
+    assert data["codes"]["arrays_sha256"] == first
     assert check_seal(data) and set(data["results"]) == set(real["run_experiments"])
     assert set(data["results"]["long-life"]) == {"full", "echo-mb"}
     assert {v["id"] for v in data["criteria"]} == {"XD", "A1", "E1", "P1", "P3"}

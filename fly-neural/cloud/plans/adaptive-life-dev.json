@@ -1,0 +1,14 @@
+{
+  "name": "adaptive-life-dev",
+  "what": "adaptive-life-v783, dev split: build the odour codes from the full model (every odour of the config, under the dense, threshold-only and sparse representations), then run the dev split on research subjects and seal adaptive-life-v783-dev.json. The codes stay on the job; the result records their content hash",
+  "connectome": "fafb-v783-shiu",
+  "phases": [
+    {
+      "commands": [["adaptive", "codes"]]
+    },
+    {
+      "commands": [["adaptive", "run", "--split", "dev"]],
+      "ok_exit": [0, 3]
+    }
+  ]
+}
