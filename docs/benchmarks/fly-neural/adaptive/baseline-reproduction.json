@@ -1,0 +1,244 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "reproduction",
+ "reproduction_schema": "fly-neural-reproduction/v1",
+ "what": "The sealed baseline results re-run on this commit, from the same inputs and seeds; each must match exactly.",
+ "replays": [
+  {
+   "scenario": "looms",
+   "ran": true,
+   "sealed_result": "shadow-looms-101-neural-shadow.json",
+   "sealed_result_sha256": "08ea17c625215374b71b4a6218d745477a91927f9288ed826ccd24405ae54b15",
+   "recording_sha256": "c79af12d9f0cfe0716f3e0d38c5dae03635ed0b1fdbf06fa13318fdf9e0bdbaf",
+   "recording_identical": true,
+   "comparison": {
+    "samples": 6000,
+    "match_window_s": 0.5,
+    "escape": {
+     "echo_onsets": 5,
+     "model_gf_episodes": 197,
+     "hits": 3,
+     "misses": 2,
+     "false_alarms": 194,
+     "gf_minus_echo_latency_s": [
+      -0.27,
+      -0.39,
+      -0.5,
+      null,
+      null
+     ],
+     "samples_with_gf_spike": 837
+    },
+    "feed": {
+     "echo_feeding_samples": 0,
+     "model_mn9_samples": 0,
+     "both": 0,
+     "model_only": 0,
+     "echo_only": 0,
+     "neither": 6000,
+     "agreement": 1.0
+    }
+   },
+   "sealed_comparison": {
+    "samples": 6000,
+    "match_window_s": 0.5,
+    "escape": {
+     "echo_onsets": 5,
+     "model_gf_episodes": 197,
+     "hits": 3,
+     "misses": 2,
+     "false_alarms": 194,
+     "gf_minus_echo_latency_s": [
+      -0.27,
+      -0.39,
+      -0.5,
+      null,
+      null
+     ],
+     "samples_with_gf_spike": 837
+    },
+    "feed": {
+     "echo_feeding_samples": 0,
+     "model_mn9_samples": 0,
+     "both": 0,
+     "model_only": 0,
+     "echo_only": 0,
+     "neither": 6000,
+     "agreement": 1.0
+    }
+   },
+   "identical": true,
+   "wall_s": 544.422
+  },
+  {
+   "scenario": "food",
+   "ran": true,
+   "sealed_result": "shadow-food-101-neural-shadow.json",
+   "sealed_result_sha256": "ed17b0c748b9651b80439e5e6a3071b86931baa6b06a97ff4a1e3c1dfe00dce0",
+   "recording_sha256": "a9dec8ed68dcf6c23a37f6c86e12c6b393e7e240298a95de739664d8e1f8e53e",
+   "recording_identical": true,
+   "comparison": {
+    "samples": 6000,
+    "match_window_s": 0.5,
+    "escape": {
+     "echo_onsets": 0,
+     "model_gf_episodes": 0,
+     "hits": 0,
+     "misses": 0,
+     "false_alarms": 0,
+     "gf_minus_echo_latency_s": [],
+     "samples_with_gf_spike": 0
+    },
+    "feed": {
+     "echo_feeding_samples": 5994,
+     "model_mn9_samples": 1703,
+     "both": 1703,
+     "model_only": 0,
+     "echo_only": 4291,
+     "neither": 6,
+     "agreement": 0.2848
+    }
+   },
+   "sealed_comparison": {
+    "samples": 6000,
+    "match_window_s": 0.5,
+    "escape": {
+     "echo_onsets": 0,
+     "model_gf_episodes": 0,
+     "hits": 0,
+     "misses": 0,
+     "false_alarms": 0,
+     "gf_minus_echo_latency_s": [],
+     "samples_with_gf_spike": 0
+    },
+    "feed": {
+     "echo_feeding_samples": 5994,
+     "model_mn9_samples": 1703,
+     "both": 1703,
+     "model_only": 0,
+     "echo_only": 4291,
+     "neither": 6,
+     "agreement": 0.2848
+    }
+   },
+   "identical": true,
+   "wall_s": 1518.718
+  }
+ ],
+ "plasticity": {
+  "sealed_result": "plasticity-v783-dev-partial.json",
+  "sealed_result_sha256": "e5872428a2a66480acc1ac0ce335f14cace19b52b61e1ff43de57c59251491bb",
+  "config_sha256": "3c20819a428add3d3780a51a6c18c0ad4168b62fd16aa7c483db0f0a8eb6ae17",
+  "subjects": [
+   {
+    "arm": "rule",
+    "subject": 0,
+    "identical": true,
+    "fields": {
+     "before": true,
+     "after": true,
+     "li": true,
+     "kc_overlap_first_trials": true,
+     "kc_active_per_training_trial": true,
+     "synapses_depressed_per_update": true
+    },
+    "li": -0.0006756419120728385,
+    "sealed_li": -0.0006756419120728385,
+    "kc_overlap_first_trials": 0.9547639242295731,
+    "wall_s": 420.5
+   },
+   {
+    "arm": "rule",
+    "subject": 1,
+    "identical": true,
+    "fields": {
+     "before": true,
+     "after": true,
+     "li": true,
+     "kc_overlap_first_trials": true,
+     "kc_active_per_training_trial": true,
+     "synapses_depressed_per_update": true
+    },
+    "li": 0.0009362576896549402,
+    "sealed_li": 0.0009362576896549402,
+    "kc_overlap_first_trials": 0.9581329561527582,
+    "wall_s": 427.59
+   },
+   {
+    "arm": "fixed",
+    "subject": 0,
+    "identical": true,
+    "fields": {
+     "before": true,
+     "after": true,
+     "li": true,
+     "kc_overlap_first_trials": true,
+     "kc_active_per_training_trial": true,
+     "synapses_depressed_per_update": true
+    },
+    "li": -0.005613213540011652,
+    "sealed_li": -0.005613213540011652,
+    "kc_overlap_first_trials": 0.9493778280542986,
+    "wall_s": 417.59
+   },
+   {
+    "arm": "fixed",
+    "subject": 1,
+    "identical": true,
+    "fields": {
+     "before": true,
+     "after": true,
+     "li": true,
+     "kc_overlap_first_trials": true,
+     "kc_active_per_training_trial": true,
+     "synapses_depressed_per_update": true
+    },
+    "li": 0.003800047053151734,
+    "sealed_li": 0.003800047053151734,
+    "kc_overlap_first_trials": 0.9536067892503536,
+    "wall_s": 396.86
+   }
+  ],
+  "identical": true
+ },
+ "identical": true,
+ "resources": {
+  "wall_s": 3732.859,
+  "cpu_s": 3614.234,
+  "rss_start_mb": 40.496,
+  "rss_end_mb": 90.105,
+  "peak_rss_mb_process": 650.02,
+  "gpu": null,
+  "machine": {
+   "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+   "arch": "ARM64",
+   "os": "Windows-10-10.0.26200-SP0",
+   "logical_cpus": 8,
+   "total_ram_mb": 15979,
+   "available_ram_mb": 2108,
+   "gpu": null,
+   "physical_cpus": 8,
+   "cpu_busy_percent_over_1s": 51.0
+  }
+ },
+ "environment": {
+  "python": "3.11.9",
+  "implementation": "cpython",
+  "platform": "win32 ARM64",
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "0252eaa38cb6e28b24f1663901fc89936aeac74d",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "e59145ba69da6819e1bc1d843da62b29f249d09169f90c2d6af0b84dc2733724",
+   "files": 21
+  },
+  "changed_during_run": []
+ },
+ "sha256": "1f8cfa6ca02f397eab729103eb7e6a2600f26be63fe7d56cc3f31746b9788c39"
+}
