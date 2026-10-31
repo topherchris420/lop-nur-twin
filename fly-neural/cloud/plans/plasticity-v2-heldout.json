@@ -1,6 +1,6 @@
 {
   "name": "plasticity-v2-heldout",
-  "what": "plasticity-v2-v783, heldout split: one process per arm (every pair of the split), then one process that merges them into the full result and judges it",
+  "what": "plasticity-v2-v783, held-out split, run once: 32 processes, each every 32-th subject of the split (selective --shard), then one process that merges them into the full result and judges it. Needs a core per shard (cpu-performance)",
   "connectome": "fafb-v783-shiu",
   "phases": [
     {
@@ -12,8 +12,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "fixed",
+          "--shard",
+          "0/32",
           "--resume"
         ],
         [
@@ -23,8 +23,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v1-dense",
+          "--shard",
+          "1/32",
           "--resume"
         ],
         [
@@ -34,8 +34,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v1-sparse",
+          "--shard",
+          "2/32",
           "--resume"
         ],
         [
@@ -45,8 +45,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2",
+          "--shard",
+          "3/32",
           "--resume"
         ],
         [
@@ -56,8 +56,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-dense",
+          "--shard",
+          "4/32",
           "--resume"
         ],
         [
@@ -67,8 +67,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-thr-only",
+          "--shard",
+          "5/32",
           "--resume"
         ],
         [
@@ -78,8 +78,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-no-threshold",
+          "--shard",
+          "6/32",
           "--resume"
         ],
         [
@@ -89,8 +89,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-dan-silenced",
+          "--shard",
+          "7/32",
           "--resume"
         ],
         [
@@ -100,8 +100,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-reward-shuffled",
+          "--shard",
+          "8/32",
           "--resume"
         ],
         [
@@ -111,8 +111,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-pnkc-shuffled",
+          "--shard",
+          "9/32",
           "--resume"
         ],
         [
@@ -122,8 +122,8 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-trace",
+          "--shard",
+          "10/32",
           "--resume"
         ],
         [
@@ -133,12 +133,231 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "--only",
-          "v2-trace-no-trace",
+          "--shard",
+          "11/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "12/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "13/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "14/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "15/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "16/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "17/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "18/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "19/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "20/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "21/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "22/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "23/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "24/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "25/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "26/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "27/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "28/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "29/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "30/32",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "31/32",
           "--resume"
         ]
-      ],
-      "ok_exit": [0, 3]
+      ]
     },
     {
       "commands": [
@@ -149,7 +368,7 @@
           "heldout",
           "--echo-mb",
           "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
-          "@progress:plasticity-v2-v783-heldout-only-*.jsonl"
+          "@progress:plasticity-v2-v783-heldout-shard-*-of-32.jsonl"
         ]
       ],
       "ok_exit": [0, 3]

@@ -441,7 +441,18 @@ def calibrate(cfg_path: Path, compiled: Path, results: Path, out_dir: Path, log=
     return data
 
 
-def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path, echo_mb_path: Path | None = None, subjects: int | None = None, log=print, progress: Path | None = None, resume: bool = False, only: list[str] | None = None, merge: list[Path] | None = None) -> dict:
+def unit_keys(cfg: dict, split: str, n_sub: int, only: list[str] | None = None) -> list[str]:
+    """Every subject of the split, ``pair/arm/subject``, in the order ``run`` takes them."""
+    return [f"{spec['pair']}/{name}/{s}" for spec in cfg["runs"][split] for name in spec["arms"] if not only or name in only for s in range(n_sub)]
+
+
+def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path, echo_mb_path: Path | None = None, subjects: int | None = None, log=print, progress: Path | None = None, resume: bool = False, only: list[str] | None = None, merge: list[Path] | None = None, shard: tuple[int, int] | None = None) -> dict:
+    """Runs the split's subjects, judges the criteria and seals the result.
+
+    With ``shard`` ``(i, n)`` it runs only every n-th subject from the i-th, in
+    ``unit_keys`` order, into its progress file, and returns without judging:
+    each subject has its own seeds, so a final run that merges every shard's
+    progress (``merge``) is the run one process would have made."""
     code = code_watch(out_dir)
     cfg, config_sha256 = _cfg(cfg_path)
     c = cx.load(compiled)
@@ -469,6 +480,7 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
         "fly_neural": start.get("fly_neural"),
         # The arrays, not the manifest: a relaunched cloud job imports the same data again, with a new manifest.
         "connectome_arrays_sha256": cx.arrays_digest(c),
+        **({"shard": list(shard)} if shard else {}),
     }
     earlier = resume_progress(progress, header, resume, "subjects", log)
     if merge:
@@ -476,6 +488,12 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
     resumed = []
     runs = {}
     arm_by = {a["name"]: a for a in cfg["arms"]}
+    mine = None
+    if shard:
+        i, n = shard
+        if not 0 <= i < n:
+            raise ValueError(f"shard {i}/{n}: need 0 <= i < n")
+        mine = set(unit_keys(cfg, split, n_sub, only)[i::n])
     with Meter() as meter:
         for spec in cfg["runs"][split]:
             pair = spec["pair"]
@@ -489,6 +507,8 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
                 subs = []
                 for s in range(n_sub):
                     key = f"{pair}/{name}/{s}"
+                    if mine is not None and key not in mine:
+                        continue
                     if key in earlier:
                         subs.append(earlier[key]["result"])
                         resumed.append(key)
@@ -504,6 +524,9 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
                     log(f"  {key}: {json.dumps(r['indices'])} coding {r['coding_level_pretest'].get('A', {}).get('mean')}")
                 arms[name] = {"arm": arm, "subjects": subs, "indices": {f: stats.summary([x["indices"][f] for x in subs if x["indices"].get(f) is not None]) for f in cfg["indices"]}}
             runs[pair] = arms
+    if mine is not None:
+        log(f"shard {shard[0]}/{shard[1]}: {len(mine)} subjects done; merge every shard's progress to judge them")
+        return {"shard": list(shard), "subjects": sorted(mine), "failed": []}
     echo_mb = json.loads(Path(echo_mb_path).read_text(encoding="utf-8")) if echo_mb_path else None
     if echo_mb is not None and (echo_mb.get("schema") != "fly-neural-echo-mb/v2" or echo_mb.get("schedule") != cfg["schedules"]["standard"]):
         raise RuntimeError(f"{Path(echo_mb_path).name} is not ECHO's mushroom body on this config's standard schedule")

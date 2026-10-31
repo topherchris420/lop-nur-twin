@@ -37,15 +37,22 @@ def test_every_command_parses_and_names_real_arms(plan, monkeypatch):
                 assert (ROOT / args.echo_mb).resolve().is_file(), args.echo_mb
 
 
-def test_split_plans_cover_every_arm_once_then_merge():
+def test_split_plans_cover_every_subject_once_then_merge():
     cfg = json.loads((ROOT / "experiments" / "plasticity-v2-v783.json").read_text(encoding="utf-8"))
-    for split in ("dev", "heldout"):
-        p = json.loads((ROOT / "cloud" / "plans" / f"plasticity-v2-{split}.json").read_text(encoding="utf-8"))
-        workers, final = p["phases"]
-        only = [c[c.index("--only") + 1] for c in workers["commands"]]
-        assert sorted(only) == sorted(a["name"] for a in cfg["arms"])
-        assert all("--resume" in c and c[c.index("--split") + 1] == split for c in workers["commands"])
-        assert final["commands"][0][-1] == f"@progress:plasticity-v2-v783-{split}-only-*.jsonl"
+    p = json.loads((ROOT / "cloud" / "plans" / "plasticity-v2-dev.json").read_text(encoding="utf-8"))
+    workers, final = p["phases"]
+    only = [c[c.index("--only") + 1] for c in workers["commands"]]
+    assert sorted(only) == sorted(a["name"] for a in cfg["arms"])
+    assert all("--resume" in c and c[c.index("--split") + 1] == "dev" for c in workers["commands"])
+    assert final["commands"][0][-1] == "@progress:plasticity-v2-v783-dev-only-*.jsonl"
+    p = json.loads((ROOT / "cloud" / "plans" / "plasticity-v2-heldout.json").read_text(encoding="utf-8"))
+    workers, final = p["phases"]
+    shards = [c[c.index("--shard") + 1] for c in workers["commands"]]
+    n = len(shards)
+    assert shards == [f"{i}/{n}" for i in range(n)]
+    assert all("--resume" in c and c[c.index("--split") + 1] == "heldout" and "--only" not in c for c in workers["commands"])
+    assert final["commands"][0][-1] == f"@progress:plasticity-v2-v783-heldout-shard-*-of-{n}.jsonl"
+    assert all(c[c.index("--echo-mb") + 1].endswith("echo-mb-v2-heldout.json") for c in workers["commands"] + final["commands"])
 
 
 def test_progress_tokens_expand_to_merge_options(tmp_path, monkeypatch):

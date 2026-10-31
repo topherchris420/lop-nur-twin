@@ -97,3 +97,32 @@ def test_parallel_workers_merge_only_into_the_same_run(tmp_path):
     with pytest.raises(ProgressMismatch, match="differs between workers"):
         merge_progress([a, b], head, "subjects", log=lambda *_: None)
     assert json.loads(a.read_text(encoding="utf-8").splitlines()[0])["only"] == ["v2"]
+
+
+def test_shards_partition_the_split_and_merge_like_arm_workers(tmp_path):
+    import json
+    from pathlib import Path
+
+    from fly_neural.record import append_progress, merge_progress, resume_progress
+    from fly_neural.selective import unit_keys
+
+    cfg = json.loads((Path(__file__).parents[1] / "experiments" / "plasticity-v2-v783.json").read_text(encoding="utf-8"))
+    keys = unit_keys(cfg, "heldout", cfg["subjects"]["heldout"])
+    assert len(keys) == len(set(keys)) == sum(len(r["arms"]) for r in cfg["runs"]["heldout"]) * cfg["subjects"]["heldout"]
+    first = cfg["runs"]["heldout"][0]
+    assert keys[0] == f"{first['pair']}/{first['arms'][0]}/0"
+    assert unit_keys(cfg, "heldout", 2, only=["fixed"]) == [f"{r['pair']}/fixed/{s}" for r in cfg["runs"]["heldout"] if "fixed" in r["arms"] for s in range(2)]
+    shards = [keys[i::32] for i in range(32)]
+    assert sorted(k for s in shards for k in s) == sorted(keys)
+    head = {"experiment": "x", "split": "heldout", "config_sha256": "c", "commit": "abc", "dirty": False, "only": None}
+    files = []
+    for i in (0, 1):
+        f = tmp_path / f"s{i}.jsonl"
+        resume_progress(f, {**head, "shard": [i, 32]}, False, "subjects")
+        append_progress(f, {"name": shards[i][0], "result": {"li": i}, "wall_s": 1})
+        files.append(f)
+    assert set(merge_progress(files, head, "subjects", log=lambda *_: None)) == {shards[0][0], shards[1][0]}
+    other = tmp_path / "other.jsonl"
+    resume_progress(other, {**head, "config_sha256": "d", "shard": [2, 32]}, False, "subjects")
+    with pytest.raises(ProgressMismatch, match="config_sha256"):
+        merge_progress([*files, other], head, "subjects", log=lambda *_: None)
