@@ -1,0 +1,20 @@
+{
+  "schema": "augmentation-advisor-study/v1",
+  "id": "giant-fiber-advisor-v1",
+  "question": "Observing only what the fly senses, does the giant-fiber advisor predict the escape onsets of each existing controller within 100 ms, well enough to clear the advice criteria on held-out seeds?",
+  "controllers": ["reduced-order", "echo", "organism"],
+  "phases": {
+    "development": { "seedBase": 500000, "subjects": 12 },
+    "held-out": { "seedBase": 600000, "subjects": 40 }
+  },
+  "durationS": 60,
+  "windowS": 0.1,
+  "looms": {
+    "count": 6,
+    "firstS": 5,
+    "intervalS": 8,
+    "distanceM": [0.3, 0.45],
+    "speedMS": [0.4, 1.5],
+    "radiusM": [0.005, 0.03]
+  }
+}

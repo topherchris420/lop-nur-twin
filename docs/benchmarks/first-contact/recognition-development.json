@@ -1,0 +1,2665 @@
+{
+  "ranFrom": "`6b53602`",
+  "platform": "Node 22.23.4, linux x64",
+  "schema": "first-contact-recognition/v1",
+  "protocol": {
+    "id": "first-contact-recognition-v1",
+    "sha256": "b3044fa9ab424f805903245faa6f753e49a6f73424eb36b973c52e5a04285b9f"
+  },
+  "phase": "development",
+  "partners": [
+    {
+      "id": "research-fc-partner-development-0",
+      "seed": 900000,
+      "stretches": 28,
+      "meanPassSpeedMS": 0.2425
+    },
+    {
+      "id": "research-fc-partner-development-1",
+      "seed": 900001,
+      "stretches": 19,
+      "meanPassSpeedMS": 0.2393
+    },
+    {
+      "id": "research-fc-partner-development-2",
+      "seed": 900002,
+      "stretches": 29,
+      "meanPassSpeedMS": 0.249
+    },
+    {
+      "id": "research-fc-partner-development-3",
+      "seed": 900003,
+      "stretches": 29,
+      "meanPassSpeedMS": 0.2416
+    },
+    {
+      "id": "research-fc-partner-development-4",
+      "seed": 900004,
+      "stretches": 3,
+      "meanPassSpeedMS": 0.2415
+    },
+    {
+      "id": "research-fc-partner-development-5",
+      "seed": 900005,
+      "stretches": 18,
+      "meanPassSpeedMS": 0.2519
+    },
+    {
+      "id": "research-fc-partner-development-6",
+      "seed": 900006,
+      "stretches": 26,
+      "meanPassSpeedMS": 0.2422
+    },
+    {
+      "id": "research-fc-partner-development-7",
+      "seed": 900007,
+      "stretches": 16,
+      "meanPassSpeedMS": 0.2415
+    }
+  ],
+  "arms": [
+    {
+      "arm": "reduced-order",
+      "approximations": [],
+      "groups": {
+        "naive": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 9,
+          "escape": { "estimate": 0.375, "low": 0.2116, "high": 0.5729 },
+          "seenShare": 0.9167,
+          "responsivenessAtTest": 1,
+          "testPassSpeedMS": 0.247,
+          "selfModelEpisodesAdded": null
+        },
+        "familiar": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 13,
+          "escape": { "estimate": 0.5417, "low": 0.3507, "high": 0.7211 },
+          "seenShare": 1,
+          "responsivenessAtTest": 0.754,
+          "testPassSpeedMS": 0.2438,
+          "selfModelEpisodesAdded": null
+        },
+        "stranger": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 8,
+          "escape": { "estimate": 0.3333, "low": 0.1797, "high": 0.5329 },
+          "seenShare": 1,
+          "responsivenessAtTest": 0.7606,
+          "testPassSpeedMS": 0.2504,
+          "selfModelEpisodesAdded": null
+        },
+        "familiar-late": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 12,
+          "escape": { "estimate": 0.5, "low": 0.3143, "high": 0.6857 },
+          "seenShare": 0.9167,
+          "responsivenessAtTest": 1,
+          "testPassSpeedMS": 0.2438,
+          "selfModelEpisodesAdded": null
+        }
+      },
+      "habituationCurve": [
+        { "index": 1, "tested": 72, "escaped": 43, "share": 0.5972 },
+        { "index": 2, "tested": 72, "escaped": 40, "share": 0.5556 },
+        { "index": 3, "tested": 71, "escaped": 44, "share": 0.6197 },
+        { "index": 4, "tested": 72, "escaped": 37, "share": 0.5139 },
+        { "index": 5, "tested": 72, "escaped": 34, "share": 0.4722 },
+        { "index": 6, "tested": 72, "escaped": 39, "share": 0.5417 }
+      ],
+      "manipulation": {
+        "passed": true,
+        "detail": "naive 0.9167, familiar 1, stranger 1, familiar-late 0.9167"
+      },
+      "balance": {
+        "familiarMinusStrangerMS": {
+          "estimate": -0.0067,
+          "low": -0.0275,
+          "high": 0.0141
+        },
+        "passed": true
+      },
+      "contrasts": [
+        {
+          "id": "H1",
+          "difference": "P(escape | familiar) − P(escape | naive)",
+          "estimate": { "estimate": 0.1667, "low": -0.1083, "high": 0.4093 },
+          "fisherP": 0.385159,
+          "verdict": "not supported",
+          "withinMargin": false
+        },
+        {
+          "id": "H2",
+          "difference": "P(escape | stranger) − P(escape | familiar)",
+          "estimate": { "estimate": -0.2083, "low": -0.4445, "high": 0.0679 },
+          "fisherP": 0.244315,
+          "verdict": "not supported",
+          "withinMargin": false
+        },
+        {
+          "id": "H3",
+          "difference": "P(escape | familiar-late) − P(escape | naive)",
+          "estimate": { "estimate": 0.125, "low": -0.1464, "high": 0.3724 },
+          "fisherP": 0.561215,
+          "verdict": "not supported",
+          "withinMargin": false
+        }
+      ]
+    },
+    {
+      "arm": "echo",
+      "approximations": [],
+      "groups": {
+        "naive": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 16,
+          "escape": { "estimate": 0.6667, "low": 0.4671, "high": 0.8203 },
+          "seenShare": 0.9583,
+          "responsivenessAtTest": 1,
+          "testPassSpeedMS": 0.2394,
+          "selfModelEpisodesAdded": 0
+        },
+        "familiar": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 11,
+          "escape": { "estimate": 0.4583, "low": 0.2789, "high": 0.6493 },
+          "seenShare": 1,
+          "responsivenessAtTest": 0.7771,
+          "testPassSpeedMS": 0.2383,
+          "selfModelEpisodesAdded": 0.0417
+        },
+        "stranger": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 13,
+          "escape": { "estimate": 0.5417, "low": 0.3507, "high": 0.7211 },
+          "seenShare": 0.9583,
+          "responsivenessAtTest": 0.7339,
+          "testPassSpeedMS": 0.2437,
+          "selfModelEpisodesAdded": 0
+        },
+        "familiar-late": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 16,
+          "escape": { "estimate": 0.6667, "low": 0.4671, "high": 0.8203 },
+          "seenShare": 1,
+          "responsivenessAtTest": 1,
+          "testPassSpeedMS": 0.2491,
+          "selfModelEpisodesAdded": 0.5417
+        }
+      },
+      "habituationCurve": [
+        { "index": 1, "tested": 72, "escaped": 45, "share": 0.625 },
+        { "index": 2, "tested": 72, "escaped": 43, "share": 0.5972 },
+        { "index": 3, "tested": 71, "escaped": 36, "share": 0.507 },
+        { "index": 4, "tested": 72, "escaped": 45, "share": 0.625 },
+        { "index": 5, "tested": 72, "escaped": 38, "share": 0.5278 },
+        { "index": 6, "tested": 72, "escaped": 32, "share": 0.4444 }
+      ],
+      "manipulation": {
+        "passed": true,
+        "detail": "naive 0.9583, familiar 1, stranger 0.9583, familiar-late 1"
+      },
+      "balance": {
+        "familiarMinusStrangerMS": {
+          "estimate": -0.0054,
+          "low": -0.0275,
+          "high": 0.0167
+        },
+        "passed": true
+      },
+      "contrasts": [
+        {
+          "id": "H1",
+          "difference": "P(escape | familiar) − P(escape | naive)",
+          "estimate": { "estimate": -0.2083, "low": -0.4445, "high": 0.0679 },
+          "fisherP": 0.244315,
+          "verdict": "not supported",
+          "withinMargin": false
+        },
+        {
+          "id": "H2",
+          "difference": "P(escape | stranger) − P(escape | familiar)",
+          "estimate": { "estimate": 0.0833, "low": -0.1867, "high": 0.3371 },
+          "fisherP": 0.77324,
+          "verdict": "not supported",
+          "withinMargin": false
+        },
+        {
+          "id": "H3",
+          "difference": "P(escape | familiar-late) − P(escape | naive)",
+          "estimate": { "estimate": 0, "low": -0.2519, "high": 0.2519 },
+          "fisherP": 1,
+          "verdict": "not supported",
+          "withinMargin": false
+        }
+      ]
+    },
+    {
+      "arm": "organism",
+      "approximations": [
+        "physiology held at its initial state: OrganismLife advances it each tick, an arena does not",
+        "olfaction samples zero odour: the arena has no food"
+      ],
+      "groups": {
+        "naive": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 16,
+          "escape": { "estimate": 0.6667, "low": 0.4671, "high": 0.8203 },
+          "seenShare": 1,
+          "responsivenessAtTest": 1,
+          "testPassSpeedMS": 0.2475,
+          "selfModelEpisodesAdded": 0
+        },
+        "familiar": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 10,
+          "escape": { "estimate": 0.4167, "low": 0.2447, "high": 0.6117 },
+          "seenShare": 1,
+          "responsivenessAtTest": 0.7413,
+          "testPassSpeedMS": 0.2416,
+          "selfModelEpisodesAdded": 0.0833
+        },
+        "stranger": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 11,
+          "escape": { "estimate": 0.4583, "low": 0.2789, "high": 0.6493 },
+          "seenShare": 1,
+          "responsivenessAtTest": 0.7524,
+          "testPassSpeedMS": 0.2488,
+          "selfModelEpisodesAdded": 0.0417
+        },
+        "familiar-late": {
+          "assigned": 24,
+          "tested": 24,
+          "skipped": 0,
+          "escaped": 12,
+          "escape": { "estimate": 0.5, "low": 0.3143, "high": 0.6857 },
+          "seenShare": 1,
+          "responsivenessAtTest": 1,
+          "testPassSpeedMS": 0.2436,
+          "selfModelEpisodesAdded": 0.25
+        }
+      },
+      "habituationCurve": [
+        { "index": 1, "tested": 72, "escaped": 38, "share": 0.5278 },
+        { "index": 2, "tested": 72, "escaped": 41, "share": 0.5694 },
+        { "index": 3, "tested": 72, "escaped": 40, "share": 0.5556 },
+        { "index": 4, "tested": 72, "escaped": 32, "share": 0.4444 },
+        { "index": 5, "tested": 71, "escaped": 38, "share": 0.5352 },
+        { "index": 6, "tested": 72, "escaped": 35, "share": 0.4861 }
+      ],
+      "manipulation": {
+        "passed": true,
+        "detail": "naive 1, familiar 1, stranger 1, familiar-late 1"
+      },
+      "balance": {
+        "familiarMinusStrangerMS": {
+          "estimate": -0.0072,
+          "low": -0.0289,
+          "high": 0.0145
+        },
+        "passed": true
+      },
+      "contrasts": [
+        {
+          "id": "H1",
+          "difference": "P(escape | familiar) − P(escape | naive)",
+          "estimate": { "estimate": -0.25, "low": -0.4806, "high": 0.029 },
+          "fisherP": 0.146807,
+          "verdict": "not supported",
+          "withinMargin": false
+        },
+        {
+          "id": "H2",
+          "difference": "P(escape | stranger) − P(escape | familiar)",
+          "estimate": { "estimate": 0.0417, "low": -0.2233, "high": 0.2986 },
+          "fisherP": 1,
+          "verdict": "not supported",
+          "withinMargin": false
+        },
+        {
+          "id": "H3",
+          "difference": "P(escape | familiar-late) − P(escape | naive)",
+          "estimate": { "estimate": -0.1667, "low": -0.4077, "high": 0.106 },
+          "fisherP": 0.380129,
+          "verdict": "not supported",
+          "withinMargin": false
+        }
+      ]
+    }
+  ],
+  "approximations": [
+    "the other fly is seen as a sphere whose diameter is FlyBody's measured body length (no wings, no elongation, no wingbeat flicker)",
+    "the other fly is seen, never touched: like every moving thing in a world (world.ts), it casts no contact, wind or odour",
+    "it reaches the receiver only through the receiver's own eyes, which compute its angular size, expansion and bearing"
+  ],
+  "subjects": [
+    {
+      "id": "research-fc-development-reduced-order-0",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100000,
+      "tests": "E",
+      "logHead": "6109cc949f5e537c052cc0ef880ada445cdb198e199265fb962d437ab109596d"
+    },
+    {
+      "id": "research-fc-development-reduced-order-1",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100001,
+      "tests": "EEnEnnE",
+      "logHead": "94b3c130becc01ed7dee188003e0301fd8c7f1786385ea70f18286b5342d763c"
+    },
+    {
+      "id": "research-fc-development-reduced-order-2",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100002,
+      "tests": "EEn?Ennn",
+      "logHead": "cba53e6257f9b83d4fda446e1145cb59d9d50fb5c008585e90a8121e5bbf7c15"
+    },
+    {
+      "id": "research-fc-development-reduced-order-3",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100003,
+      "tests": "EEEnEEE",
+      "logHead": "00eb8ee9a08134dbac9b0177e38ce9ddc53f3e144a3fb0a2debcebbd3416c097"
+    },
+    {
+      "id": "research-fc-development-reduced-order-4",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100004,
+      "tests": "n",
+      "logHead": "4528f78d35a1c40f078fead3000d63a89e62221b999f8c1d079fde4a2b667e20"
+    },
+    {
+      "id": "research-fc-development-reduced-order-5",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100005,
+      "tests": "EEnnEnE",
+      "logHead": "8bd1e2936c42b49c5cca87a2a0c46eae8e66e0b3901cc93506191ad03d47f0f3"
+    },
+    {
+      "id": "research-fc-development-reduced-order-6",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100006,
+      "tests": "nEEnEnn",
+      "logHead": "d9fa8a6b906efc8ceb6a3629c382d82be824e4817ecf27fa1128b5cc9d08b22b"
+    },
+    {
+      "id": "research-fc-development-reduced-order-7",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100007,
+      "tests": "nEEnnnn",
+      "logHead": "27f23a789f774a933c2526d5da041caecc62dc04cc5212a06be7182fcc9b3561"
+    },
+    {
+      "id": "research-fc-development-reduced-order-8",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100008,
+      "tests": "n",
+      "logHead": "14d488cb1eac4551492f072eef944b25a5c36a9672fd8b881344db4372fe0a4a"
+    },
+    {
+      "id": "research-fc-development-reduced-order-9",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100009,
+      "tests": "EEn?nEnE",
+      "logHead": "935a8c13b2d7f8f9811e814b28d207d4086b8356922c30d4dcd44ee5645b2996"
+    },
+    {
+      "id": "research-fc-development-reduced-order-10",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100010,
+      "tests": "nnnnEnE",
+      "logHead": "47db58be1c31812ae4ba65137f9009b03ff4910bfa7be273493f29d7fa1708ee"
+    },
+    {
+      "id": "research-fc-development-reduced-order-11",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100011,
+      "tests": "EnEEnnn?",
+      "logHead": "6cd0bd30b9f92d21578cafc91af2a2db40b05465d36833b2deedfec976095329"
+    },
+    {
+      "id": "research-fc-development-reduced-order-12",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100012,
+      "tests": "E",
+      "logHead": "335e1944f25e7ac006f4c56f10d74a701eb75345684ac183e56c0efe75b17c1f"
+    },
+    {
+      "id": "research-fc-development-reduced-order-13",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100013,
+      "tests": "nEnnnnn",
+      "logHead": "1605e68e98e77988001a8294042534db4c06996c860f5195084f0a86dbde71f9"
+    },
+    {
+      "id": "research-fc-development-reduced-order-14",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100014,
+      "tests": "n?nnnEnE",
+      "logHead": "1ecb00359a343c2f755a0c208c1ad5bb0de26a62a00d68a60b3c2c0d936977d6"
+    },
+    {
+      "id": "research-fc-development-reduced-order-15",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100015,
+      "tests": "En?EEEnE",
+      "logHead": "adadcb834efe43e6af8fb702c98ae3bee3e2587e02a7fcff81eb1b32db5cb3b7"
+    },
+    {
+      "id": "research-fc-development-reduced-order-16",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100016,
+      "tests": "E",
+      "logHead": "4f768d88ba00e68a89e6d5c92015a8effa09736e78d9b1a382a875141244b7f1"
+    },
+    {
+      "id": "research-fc-development-reduced-order-17",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100017,
+      "tests": "EnEnnEn",
+      "logHead": "ff5c05849123a546a5a9d27b3630f9f273efe11be97040fce228b621e1029868"
+    },
+    {
+      "id": "research-fc-development-reduced-order-18",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100018,
+      "tests": "nnnnEEn",
+      "logHead": "3cb93d9ab2be0c9982c6a7ef16ecce702cae468acd649a65ad9bd1c2658e16b1"
+    },
+    {
+      "id": "research-fc-development-reduced-order-19",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100019,
+      "tests": "nnEn?nnn",
+      "logHead": "0c3cd53cdef85a6bafebaf75836afc8fb6830aa9a21d18a6d3bcab840538e2ea"
+    },
+    {
+      "id": "research-fc-development-reduced-order-20",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100020,
+      "tests": "n",
+      "logHead": "cdf91c22ba2b9a5ba768c47baa0830a639ea6db1c4035367d271dfb230676255"
+    },
+    {
+      "id": "research-fc-development-reduced-order-21",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100021,
+      "tests": "EnnEnEE",
+      "logHead": "ccc63039700ca99ddeef7cac243a765b7107243e6ca2aaff18c87fc1338b4f26"
+    },
+    {
+      "id": "research-fc-development-reduced-order-22",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100022,
+      "tests": "EnEEEEn",
+      "logHead": "2a6a302d2d9bc8c949d663aaa432c1a60d9b11810379e2298ea2be78ab742a24"
+    },
+    {
+      "id": "research-fc-development-reduced-order-23",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100023,
+      "tests": "EEEEnEn",
+      "logHead": "35c24ee84000d3eb75e13b58d0a3b5f54b479849e67ea27724ac837583024d3c"
+    },
+    {
+      "id": "research-fc-development-reduced-order-24",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100024,
+      "tests": "n",
+      "logHead": "0c1fd9799352a79105cd7075c10f8564c146bf58d61431beda6380e376db3040"
+    },
+    {
+      "id": "research-fc-development-reduced-order-25",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100025,
+      "tests": "n?EEEnEE",
+      "logHead": "e0d7bfdbcfcd45e395807870fab8c018568c05441b80a2078489e0efea4f2e4c"
+    },
+    {
+      "id": "research-fc-development-reduced-order-26",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100026,
+      "tests": "EEEnnnn",
+      "logHead": "a751a6830f82f418171850a781c24d94c70b727201a0b678286a99601299f3b0"
+    },
+    {
+      "id": "research-fc-development-reduced-order-27",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100027,
+      "tests": "EEEEnEE",
+      "logHead": "d12215c288c12139eeae1221fc2bf42af5b394e2749079f0baba389decd63c65"
+    },
+    {
+      "id": "research-fc-development-reduced-order-28",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100028,
+      "tests": "n",
+      "logHead": "8196e7ce02f01b11364ec6cdbf6238b1302630595b78b0da5e3c32ca0e48343b"
+    },
+    {
+      "id": "research-fc-development-reduced-order-29",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100029,
+      "tests": "EnnnnEE",
+      "logHead": "295e1772ac9ef8cf34cdcfa6e554ffc1640ab7f356b88610b7cdd52ce9aa9961"
+    },
+    {
+      "id": "research-fc-development-reduced-order-30",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100030,
+      "tests": "EEnEEn?n",
+      "logHead": "4b92fefdd9bc5f00b4f806654db8dc09af721e5bdc46999d3e6538c874c5fe97"
+    },
+    {
+      "id": "research-fc-development-reduced-order-31",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100031,
+      "tests": "nnnnEEE",
+      "logHead": "8c50124f3f213d2ef238a54599be5d648e2f43a34c76701574c45a875ade09c0"
+    },
+    {
+      "id": "research-fc-development-reduced-order-32",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100032,
+      "tests": "n",
+      "logHead": "32d5d78f32f7171081a57ce3f3f59aa153107d6f51c7ef92392f49327e954ca0"
+    },
+    {
+      "id": "research-fc-development-reduced-order-33",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100033,
+      "tests": "EEnEnEn",
+      "logHead": "30026e0283b1a6d5cd1879016ae25b1013a3b2a830dac590f770b0de5279f765"
+    },
+    {
+      "id": "research-fc-development-reduced-order-34",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100034,
+      "tests": "EEEnnnE",
+      "logHead": "60b346ad08bab2a609326c8724d26de98f8a1844238258d57b5342561c8878ba"
+    },
+    {
+      "id": "research-fc-development-reduced-order-35",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100035,
+      "tests": "nEEEnEn",
+      "logHead": "cd72d293d7df51a429376e697520cab11698647b49625a3a745c629c27aad5a7"
+    },
+    {
+      "id": "research-fc-development-reduced-order-36",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100036,
+      "tests": "n",
+      "logHead": "c86d4e2f0d0048a4b40b88e036a4b1ffe57e7231acf466adbff1c99dd1af12fb"
+    },
+    {
+      "id": "research-fc-development-reduced-order-37",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100037,
+      "tests": "EnEEnEE",
+      "logHead": "abf7a0bb76698b5afd3351ea1f44ca4dab932048c891f661423cf98a61575876"
+    },
+    {
+      "id": "research-fc-development-reduced-order-38",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100038,
+      "tests": "nnnEEEE",
+      "logHead": "e8bb4a65c5fa04a1bd6122ddf9dba7edcea3a9a7de216407619e9408ee144ac8"
+    },
+    {
+      "id": "research-fc-development-reduced-order-39",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100039,
+      "tests": "EEEEnnn",
+      "logHead": "adbbfa74c3e22a4094cc81eed0afd4e4e38a4c96df3832024282e83000695078"
+    },
+    {
+      "id": "research-fc-development-reduced-order-40",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100040,
+      "tests": "E",
+      "logHead": "23dc254ea8669cb4baa6faa94a3d46931290ace77cc04555ae669f831a494dfe"
+    },
+    {
+      "id": "research-fc-development-reduced-order-41",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100041,
+      "tests": "nEnEEnn",
+      "logHead": "8969995e47e8f9a76cde3ee2066bf212edcced12b57a03bd2cc0a18d7e7a5b5e"
+    },
+    {
+      "id": "research-fc-development-reduced-order-42",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100042,
+      "tests": "EEnnEEn",
+      "logHead": "16b20addf8874930df37b8ee55d132b4041d82d4a3cd834e1ec07fbc785e700d"
+    },
+    {
+      "id": "research-fc-development-reduced-order-43",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100043,
+      "tests": "nEEnEEn",
+      "logHead": "8ac0e4a8b0ca63140f57b78c4a3d2cc7b2d8e53f3b83fff8260ad06fc5699487"
+    },
+    {
+      "id": "research-fc-development-reduced-order-44",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100044,
+      "tests": "n",
+      "logHead": "32a83b4df4c80b4ae5ebec1e6369bbc9eb8536bdf70b6f029431fdf08cd33928"
+    },
+    {
+      "id": "research-fc-development-reduced-order-45",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100045,
+      "tests": "EEEEnEn",
+      "logHead": "362c3331604b407d158607da7971dceb08ac0ccde5eed339762b7cef65f19a75"
+    },
+    {
+      "id": "research-fc-development-reduced-order-46",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100046,
+      "tests": "EEEn?EEn",
+      "logHead": "55311fc635a85b227ec0be69db40020bfbf592f1ca5eafda6acebb21094a2c62"
+    },
+    {
+      "id": "research-fc-development-reduced-order-47",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100047,
+      "tests": "EnEnEnE",
+      "logHead": "5cd9e7553afd79b827d90d725801eb0702c5ff8f72246b83c0f5ba818f7bceee"
+    },
+    {
+      "id": "research-fc-development-reduced-order-48",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100048,
+      "tests": "n",
+      "logHead": "687dcad1cc0f7649ba01e3dcc29d921bd2a5b958952b7a24e19b6c4f205ea70e"
+    },
+    {
+      "id": "research-fc-development-reduced-order-49",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100049,
+      "tests": "nnEnEEE",
+      "logHead": "ed23aae54bb2dd66afac21e13c8e5fdbf04c1aab51a0f661b829a0d8f4b246d6"
+    },
+    {
+      "id": "research-fc-development-reduced-order-50",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100050,
+      "tests": "EEEEnEn",
+      "logHead": "c62e41d396aa4e432301ba3fabf6d8889f3a07b6a3f4262a34c2e9da01e82471"
+    },
+    {
+      "id": "research-fc-development-reduced-order-51",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100051,
+      "tests": "nnn?nnEn?",
+      "logHead": "02e44aa0041d065fba4eea3c98c3375c30c9e26f1117577adc9d0d9a1d9659d6"
+    },
+    {
+      "id": "research-fc-development-reduced-order-52",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100052,
+      "tests": "n",
+      "logHead": "b88157835c26d019f3ce658f55de42e535d4d602136da20d8fdae8b5d6b6c406"
+    },
+    {
+      "id": "research-fc-development-reduced-order-53",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100053,
+      "tests": "EEEEnEE",
+      "logHead": "a49eafd1adf7e2bd8e72f59a717f6569ac5ef3756546fbd01dba83237e4d2070"
+    },
+    {
+      "id": "research-fc-development-reduced-order-54",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100054,
+      "tests": "EEnnnEn",
+      "logHead": "e910a1c0570509ff56eb925eba7decf9aaddb2164f4f97be108caf8cd4f36f51"
+    },
+    {
+      "id": "research-fc-development-reduced-order-55",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100055,
+      "tests": "EEEnnEE",
+      "logHead": "cd740c2f53d5c7dfcff7ffa8e8c40d4aeb6e7f6f0b8e8091c1a95d4107e8c471"
+    },
+    {
+      "id": "research-fc-development-reduced-order-56",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100056,
+      "tests": "E",
+      "logHead": "d471d9c933a4ec79224d5ff45742f8b66b96036cac5d1a724798a8d249119dc9"
+    },
+    {
+      "id": "research-fc-development-reduced-order-57",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100057,
+      "tests": "nnEnnnn",
+      "logHead": "2ae0c31de3d51b52a258b5aa45303b7d99c9190159e916e61e85aca0e532e006"
+    },
+    {
+      "id": "research-fc-development-reduced-order-58",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100058,
+      "tests": "EnnEEnn",
+      "logHead": "d07e0d690d76e02debfd948186b6ef2d8cafca9591fbece36ae4bcd36bedd79e"
+    },
+    {
+      "id": "research-fc-development-reduced-order-59",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100059,
+      "tests": "EEnEnnn",
+      "logHead": "f7f08d4063df90171357da881c9d6f6c67b9d3f9504905f893358ab7247fb7a1"
+    },
+    {
+      "id": "research-fc-development-reduced-order-60",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100060,
+      "tests": "n",
+      "logHead": "e45141cc17dbb0261c841dff6c99f373dd485ad36c02ce2deef26bafacf75a00"
+    },
+    {
+      "id": "research-fc-development-reduced-order-61",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100061,
+      "tests": "EEEnnEn",
+      "logHead": "55a9015dbe23df8389e11c65f1e99cc535dcd0244c154d89a9a2334f5226ea9a"
+    },
+    {
+      "id": "research-fc-development-reduced-order-62",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100062,
+      "tests": "EEnnEnn",
+      "logHead": "dac26f01f7c366be9e4acfa5dbc07c1aa91dd87b14cd31ece02f9a8b7dc9f2b9"
+    },
+    {
+      "id": "research-fc-development-reduced-order-63",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100063,
+      "tests": "nnEEEnn",
+      "logHead": "3c23c2aea374be781fecf84729a0b8d4475317687698d583c8dd37eb53b5c1bb"
+    },
+    {
+      "id": "research-fc-development-reduced-order-64",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100064,
+      "tests": "n",
+      "logHead": "9e6329369b6f790e0b66a3684f31fe8eba046f435fa6fd375c960d8edd7135a5"
+    },
+    {
+      "id": "research-fc-development-reduced-order-65",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100065,
+      "tests": "nEEEEEn",
+      "logHead": "517d755ea477c0d2e3975ab69a6bf0417a1f9cd47dd8defdb5bfccf96e359f0c"
+    },
+    {
+      "id": "research-fc-development-reduced-order-66",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100066,
+      "tests": "nnEnnnE",
+      "logHead": "ac0eb33662b54a38174d07e7ca83c6306147e2e81e577ff834d84c0a4fed55cc"
+    },
+    {
+      "id": "research-fc-development-reduced-order-67",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100067,
+      "tests": "EnEEEnE",
+      "logHead": "596ec7fde4d12c0c77c2abc029339e955dafe5bf4e208802f61a18a1c889a3f3"
+    },
+    {
+      "id": "research-fc-development-reduced-order-68",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100068,
+      "tests": "E",
+      "logHead": "394cbbab1d8e72a1277de87faca76a7d57d7eab551efc64fc417b2e93b357ca5"
+    },
+    {
+      "id": "research-fc-development-reduced-order-69",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100069,
+      "tests": "n?EnEEEE",
+      "logHead": "ee99bdc2c25f0a68e15e1987c2d246c66ce92b3a77960a8475ec33c3ec8e5ab6"
+    },
+    {
+      "id": "research-fc-development-reduced-order-70",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100070,
+      "tests": "EnnnEEE",
+      "logHead": "c6a53df1fdd0c28c7b3f390dab3704ae9a26f37230953b1eb654208d4e2fa3f3"
+    },
+    {
+      "id": "research-fc-development-reduced-order-71",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100071,
+      "tests": "nEEnnEn",
+      "logHead": "82a78afe935e4d6ad159ea34d64e530b120be27b97690811f8bf472dd85ce95d"
+    },
+    {
+      "id": "research-fc-development-reduced-order-72",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100072,
+      "tests": "E",
+      "logHead": "2207fc8131e938ac4bca7bbe48a947453be0145ebb5553555e1d4b047c885020"
+    },
+    {
+      "id": "research-fc-development-reduced-order-73",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100073,
+      "tests": "nEEEnnE",
+      "logHead": "d887d554910b344d5f70619895fe76cea168862740f920edc8899a2ac829fffc"
+    },
+    {
+      "id": "research-fc-development-reduced-order-74",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100074,
+      "tests": "nEnEEnE",
+      "logHead": "880baf01a5177dacba8d5f54a2b0a2479677bc6addf7f7fb42688f583434fc15"
+    },
+    {
+      "id": "research-fc-development-reduced-order-75",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100075,
+      "tests": "nnEEEnE",
+      "logHead": "3e81197ccae3e33e9ef2f44d0961daf9f46a71a428f98dfbf25fbf1401ab65fc"
+    },
+    {
+      "id": "research-fc-development-reduced-order-76",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100076,
+      "tests": "E",
+      "logHead": "6bb07ffc34fe54f91487b109deb4a8b4ebaf158a956739980be10e2eae10459e"
+    },
+    {
+      "id": "research-fc-development-reduced-order-77",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100077,
+      "tests": "EEsnnEE",
+      "logHead": "619597d51594325ce2f770e4792bf832cceaaf2e1c3290b2bc4633904c64a618"
+    },
+    {
+      "id": "research-fc-development-reduced-order-78",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100078,
+      "tests": "nEEEnnn",
+      "logHead": "038b73a63f99933eeb92bb4aec2c4a1817818cc157e752e121d5cde4c0b1bffa"
+    },
+    {
+      "id": "research-fc-development-reduced-order-79",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100079,
+      "tests": "nEEEEEE",
+      "logHead": "5f1574a7a296942cb1a1515cdeac65490daf947467548257dc2bb739aa3a304a"
+    },
+    {
+      "id": "research-fc-development-reduced-order-80",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100080,
+      "tests": "n",
+      "logHead": "5c15b62828a36070c8d329afd5675902bc8cc821cd1090dc076cad4272908c37"
+    },
+    {
+      "id": "research-fc-development-reduced-order-81",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100081,
+      "tests": "EnEnEEn",
+      "logHead": "6f94a7c80ef9f7e2f826aaf4fd0ed6f11aded3c2291b900e1f625ac78128c43a"
+    },
+    {
+      "id": "research-fc-development-reduced-order-82",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100082,
+      "tests": "EEnEEnn",
+      "logHead": "61c700866f5761f370813add06e705f5663c3a5e2eea07063d25d032c3d03e23"
+    },
+    {
+      "id": "research-fc-development-reduced-order-83",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100083,
+      "tests": "EnEnEEn",
+      "logHead": "a882f2be9dac2e8e6852ca2653e73297eb60029c9bd7cd92f8f4afebfc5f9a7f"
+    },
+    {
+      "id": "research-fc-development-reduced-order-84",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100084,
+      "tests": "E",
+      "logHead": "2010f6edd66ccd23769268fed9849454c7395170f1784c45a5b201b25e11f6d0"
+    },
+    {
+      "id": "research-fc-development-reduced-order-85",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100085,
+      "tests": "EnEEnnE",
+      "logHead": "41c5c2e48db0c653ce5b71997fbe46a735cf1dd977c929bc3e0f23dec4c52537"
+    },
+    {
+      "id": "research-fc-development-reduced-order-86",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100086,
+      "tests": "nnEEEnE",
+      "logHead": "94a968a8f1347b0ecf78490f90ae093a081316a911e72ad769bbec9f0a08842c"
+    },
+    {
+      "id": "research-fc-development-reduced-order-87",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100087,
+      "tests": "nnEEnEE",
+      "logHead": "0e126a16c81ed5b7e8033cdceecaafea7786315cf36b186a07a03613fb82d7cb"
+    },
+    {
+      "id": "research-fc-development-reduced-order-88",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100088,
+      "tests": "n?",
+      "logHead": "d886801b932bf7c0cc8db0ffe5c9d6ea704c1d7811aa548773183233f77743da"
+    },
+    {
+      "id": "research-fc-development-reduced-order-89",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100089,
+      "tests": "nEEEnEn",
+      "logHead": "95e8d9e11ec45c861e1bc71fda2d853e5e4c0a173ed378d21145a0a6f2084888"
+    },
+    {
+      "id": "research-fc-development-reduced-order-90",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100090,
+      "tests": "EnEnEEn",
+      "logHead": "48825b0ab4a3757f68e520451ed1127b00283e5d449f5d4c69a055915696d50f"
+    },
+    {
+      "id": "research-fc-development-reduced-order-91",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100091,
+      "tests": "EnEn?nnE",
+      "logHead": "3362541ef47667cafd2f8c97e837675c9fdb441e5db9ff4d9c086bec13ba0c27"
+    },
+    {
+      "id": "research-fc-development-reduced-order-92",
+      "arm": "reduced-order",
+      "group": "naive",
+      "seed": 100092,
+      "tests": "n?",
+      "logHead": "db40beb6d6d8b5c73a670eedcce822b4a8018110c2733ba5419bf008515f3aa8"
+    },
+    {
+      "id": "research-fc-development-reduced-order-93",
+      "arm": "reduced-order",
+      "group": "familiar",
+      "seed": 100093,
+      "tests": "EEnnnEn",
+      "logHead": "f4e3fccd3cd12472126b88885a66c538a09ce800ca1df1c3efb41913e8dc845b"
+    },
+    {
+      "id": "research-fc-development-reduced-order-94",
+      "arm": "reduced-order",
+      "group": "stranger",
+      "seed": 100094,
+      "tests": "Enn?EnEn",
+      "logHead": "f51da0a807c421efa1ca1e9bfde4b1102a88db25012646cae332a56982d32e6a"
+    },
+    {
+      "id": "research-fc-development-reduced-order-95",
+      "arm": "reduced-order",
+      "group": "familiar-late",
+      "seed": 100095,
+      "tests": "EnEEEEE",
+      "logHead": "f575c16d0a3349105e7565612adb1117c0deaa8aeac7b8d5aeaef895f12efbf3"
+    },
+    {
+      "id": "research-fc-development-echo-0",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110000,
+      "tests": "E",
+      "logHead": "c007db8aa92a0fe9f41b40ad65ac2b0a4465f5c0ce8d1bfed2b0d854b426043f"
+    },
+    {
+      "id": "research-fc-development-echo-1",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110001,
+      "tests": "EnEnnnE",
+      "logHead": "cde7916c513e90471044f1dd4dd0b9d693f8f56b6997d49a905cfc32d86f5dfd"
+    },
+    {
+      "id": "research-fc-development-echo-2",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110002,
+      "tests": "EEnEEnn",
+      "logHead": "5ad4100d56ad07e1f722c263d6ac28c779884d62d5fdda53a20a749654dc732b"
+    },
+    {
+      "id": "research-fc-development-echo-3",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110003,
+      "tests": "EnEEnEn",
+      "logHead": "95bed647ae391c692d99f6324cc96ad9bfa5537d4844e050ca316e533b0e4c84"
+    },
+    {
+      "id": "research-fc-development-echo-4",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110004,
+      "tests": "n?",
+      "logHead": "abaef0b02098bb1e35c38a34988fb52c08e7e8c3e15b6f7f932a06fc247814e2"
+    },
+    {
+      "id": "research-fc-development-echo-5",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110005,
+      "tests": "EEn?nEnE",
+      "logHead": "0278576974fc039120d2c7570db21eadd1e993e057354bfe657ec230b18bad5c"
+    },
+    {
+      "id": "research-fc-development-echo-6",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110006,
+      "tests": "EEnEnnn",
+      "logHead": "8380569af38d0524e9af6d270ad52c1756e008e7612d7ce88ec17e93e3f5dbf7"
+    },
+    {
+      "id": "research-fc-development-echo-7",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110007,
+      "tests": "nnnEEnE",
+      "logHead": "6e9deab8007eecc9cf5cdfc4606b6363529d4166d977ba33ea3b6ea820dcbd48"
+    },
+    {
+      "id": "research-fc-development-echo-8",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110008,
+      "tests": "E",
+      "logHead": "66b16bf7443145eaa988b4e22ed87747f9a716d45a974b62c8b40f637aac964b"
+    },
+    {
+      "id": "research-fc-development-echo-9",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110009,
+      "tests": "EEnnEEn",
+      "logHead": "b00f6c5c6621e7d9dfca871f6a54316db29f23574026bfcb30e4678da283032c"
+    },
+    {
+      "id": "research-fc-development-echo-10",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110010,
+      "tests": "EEnEnnn",
+      "logHead": "98ed218695134834fb703085d938bc6e0d65834b040bccf9b0715bfd7989c4b1"
+    },
+    {
+      "id": "research-fc-development-echo-11",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110011,
+      "tests": "EEEnEEE",
+      "logHead": "f6bbbe4f0cb0f7ff51e4460a961a806a28fe24dc446ad4aebfb5a7830e054dfa"
+    },
+    {
+      "id": "research-fc-development-echo-12",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110012,
+      "tests": "E",
+      "logHead": "5985132057f55bac7ffc1751954270cee7dd9290eb98955aed5f8617d903f45a"
+    },
+    {
+      "id": "research-fc-development-echo-13",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110013,
+      "tests": "nnnEnEE",
+      "logHead": "cbaf17ee71809274169a24c44f4d05eaeccf1baa5ba8c7e62a1bee352ae35b6b"
+    },
+    {
+      "id": "research-fc-development-echo-14",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110014,
+      "tests": "EEEEnnE",
+      "logHead": "5939d5e3db3521a554d11bfe6ab20998495fa1b102b85f8945571c8d2dda8561"
+    },
+    {
+      "id": "research-fc-development-echo-15",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110015,
+      "tests": "nEEnEEn",
+      "logHead": "daebde7596a844f1e35a4b53fcea92e33f8d4829849d72508a9cb450247500f3"
+    },
+    {
+      "id": "research-fc-development-echo-16",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110016,
+      "tests": "n",
+      "logHead": "c632c8998d7ff2739e00aaf80613f18062c631b22f10bcb4e4dcca70abec49ba"
+    },
+    {
+      "id": "research-fc-development-echo-17",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110017,
+      "tests": "EEEEnnE",
+      "logHead": "99c75415659262a45d04291303c9b0fa6637c1187342ee6c12a26ddd81251f10"
+    },
+    {
+      "id": "research-fc-development-echo-18",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110018,
+      "tests": "nEnnEEn",
+      "logHead": "447a813a51ced26f2730b87aa047599a32edbfc50b720c7d3f67da7a9544892c"
+    },
+    {
+      "id": "research-fc-development-echo-19",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110019,
+      "tests": "EEnEEnn",
+      "logHead": "6ec704539b38391e30ad8de17baef3bcd2fcaba74b4215b854f42da4e162aa92"
+    },
+    {
+      "id": "research-fc-development-echo-20",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110020,
+      "tests": "E",
+      "logHead": "570a2683498c514ecf567609549b145ec49d1d1491a201a9673f1616995eb889"
+    },
+    {
+      "id": "research-fc-development-echo-21",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110021,
+      "tests": "EEEnnnn",
+      "logHead": "564166c37ed4935b332aa807becc9cc2750cd4f3cd7053078bdd3ba1fa662bbf"
+    },
+    {
+      "id": "research-fc-development-echo-22",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110022,
+      "tests": "EnEnEEn",
+      "logHead": "a7dd859c10a128d3c70d7e934d284db80425c177a62fbd666bdafa130a7751ad"
+    },
+    {
+      "id": "research-fc-development-echo-23",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110023,
+      "tests": "EEEEEEn",
+      "logHead": "6b03c7c43b5bf2c31ce061504ed4090adc5e98e8a6f69cf2bb64cf7db83f34af"
+    },
+    {
+      "id": "research-fc-development-echo-24",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110024,
+      "tests": "E",
+      "logHead": "5df629f790b0ae47a2c222233a1f5e86dca1d29b438e11a7c33bc2ceca6db8c2"
+    },
+    {
+      "id": "research-fc-development-echo-25",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110025,
+      "tests": "EEEEnnE",
+      "logHead": "f9bcd2264a163bfeef33850b1ce7ba301b25b53dd28f06b6d5b12e226b198b2b"
+    },
+    {
+      "id": "research-fc-development-echo-26",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110026,
+      "tests": "EEEnEEE",
+      "logHead": "0fad7504748bfd49f3d78af85387069efcde715031bf86ba4d7893af57e28ab3"
+    },
+    {
+      "id": "research-fc-development-echo-27",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110027,
+      "tests": "EEEEnEE",
+      "logHead": "abee3afef8ea9c3664cdcb487293cbc7324d0bd5446456482ea0b7b405556538"
+    },
+    {
+      "id": "research-fc-development-echo-28",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110028,
+      "tests": "E",
+      "logHead": "1b9d9375f4e629de1a9654f05ebaab26a56aa395d71e897821302bbea91e2ee3"
+    },
+    {
+      "id": "research-fc-development-echo-29",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110029,
+      "tests": "EEnEEnn",
+      "logHead": "008d64d44f1fe46de252ca2cee792402b620a77027cc897910e12fdeaca9ee3d"
+    },
+    {
+      "id": "research-fc-development-echo-30",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110030,
+      "tests": "nEEEEnE",
+      "logHead": "74e1fb83a45e85558e83e827b09227f7af52c5f93835efd3161216f9a7daadf0"
+    },
+    {
+      "id": "research-fc-development-echo-31",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110031,
+      "tests": "EEnEnnE",
+      "logHead": "9f269732cee430c48eb288bc611a8519f04dc48d2846e7a8f45d524648be3f8a"
+    },
+    {
+      "id": "research-fc-development-echo-32",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110032,
+      "tests": "E",
+      "logHead": "b3037a399da1dc4a3a5b3ea8a3daad21b4ad3eb5c60c564ef095225b9a3ec8ab"
+    },
+    {
+      "id": "research-fc-development-echo-33",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110033,
+      "tests": "nEEnEnn",
+      "logHead": "efc0985537dba3fcf83a1274a85d005ff12a676ff82b556cf0695bd179b958bd"
+    },
+    {
+      "id": "research-fc-development-echo-34",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110034,
+      "tests": "EEn?EEnn",
+      "logHead": "82afead6041f9bf1173c68a6e61ba78fd1fba4c9601f9f1348c72b98d24642ff"
+    },
+    {
+      "id": "research-fc-development-echo-35",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110035,
+      "tests": "EnEEnnE",
+      "logHead": "9094e28652e7235f6a9eae21f8fa345b5342ebab1438aa7825207d59643c3efe"
+    },
+    {
+      "id": "research-fc-development-echo-36",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110036,
+      "tests": "n",
+      "logHead": "869e959b2beac9ba4e66517ded1defac671b8a23150037a04ba979f9e14d4f75"
+    },
+    {
+      "id": "research-fc-development-echo-37",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110037,
+      "tests": "nEEEnnn",
+      "logHead": "351b028c3acc6d75b18a482d1c6e70e58976b473072157484692bbecee1ea41c"
+    },
+    {
+      "id": "research-fc-development-echo-38",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110038,
+      "tests": "nEnEnnn",
+      "logHead": "c2009cc452de7249b31e0bd2163b2a18ab5ed52cbe8c14fae72a6f0e263d6b5c"
+    },
+    {
+      "id": "research-fc-development-echo-39",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110039,
+      "tests": "EnEEEnE",
+      "logHead": "23977efffe72dfc785d9a818226019af47de2730d18698babc1e1bf8d9381000"
+    },
+    {
+      "id": "research-fc-development-echo-40",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110040,
+      "tests": "n",
+      "logHead": "ee797c5ae1cdc0d04f36a8a53c08ccb62ec770a7c278c527c38c68b847f6b060"
+    },
+    {
+      "id": "research-fc-development-echo-41",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110041,
+      "tests": "n?nnnEnE",
+      "logHead": "db5795d7a19a2d61b4b9871f107e43453fa00265f50777e666c0c74806c68aad"
+    },
+    {
+      "id": "research-fc-development-echo-42",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110042,
+      "tests": "nnnEEnn?",
+      "logHead": "53bf7fc09e9be63069b3154c74a4ad29f40f41871f408f45a706747edc523bfb"
+    },
+    {
+      "id": "research-fc-development-echo-43",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110043,
+      "tests": "nnnEEEn",
+      "logHead": "7c7bb0e9e102599981d01d103ebab576a750bd6f8fbe3d7b91c2bb2dfe047c9e"
+    },
+    {
+      "id": "research-fc-development-echo-44",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110044,
+      "tests": "E",
+      "logHead": "e1a295425896efa56fc26d9ff373093eda6fc6d2bf7848e9b948e426df6e37e8"
+    },
+    {
+      "id": "research-fc-development-echo-45",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110045,
+      "tests": "EnnEnnn",
+      "logHead": "299b23c8f6833910b4bfd71ada901f44e38335a76a193ba8e98def43c1afbc1b"
+    },
+    {
+      "id": "research-fc-development-echo-46",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110046,
+      "tests": "nnEEEEn",
+      "logHead": "22a01fbe9652d361ff1a119ddbf2e9b1d720812f2b206462bc82efe8eea6236b"
+    },
+    {
+      "id": "research-fc-development-echo-47",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110047,
+      "tests": "EEnEn?EE",
+      "logHead": "8e0050155f4ff8fa736aa64e93ec6f548f6f666fe817d1ac3a374f26c0afb687"
+    },
+    {
+      "id": "research-fc-development-echo-48",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110048,
+      "tests": "E",
+      "logHead": "62eab689913a417d01197a95ac1479fd67edb59931591ea05317cf5ca55672fd"
+    },
+    {
+      "id": "research-fc-development-echo-49",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110049,
+      "tests": "EEnn?EEE",
+      "logHead": "425b3e83111abf36a487027a7e98f069ddb7e178ea8b54b60a9b66a15ecb63b4"
+    },
+    {
+      "id": "research-fc-development-echo-50",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110050,
+      "tests": "EEnnEEn",
+      "logHead": "f58dd7ec18365f6ccd319d5c5d4dce4514fbd82f561969e6311d9bed3f56282b"
+    },
+    {
+      "id": "research-fc-development-echo-51",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110051,
+      "tests": "n?Enn?nnE",
+      "logHead": "f33a1ad18b2ead6b83f0ad57665c1a08852f7b5aa8850bd09405db82ed1bc096"
+    },
+    {
+      "id": "research-fc-development-echo-52",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110052,
+      "tests": "E",
+      "logHead": "8727450189de4e4500622e4e1bad59150568a3bf9658bbc9b5db07e7185d0844"
+    },
+    {
+      "id": "research-fc-development-echo-53",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110053,
+      "tests": "nnnnEEn",
+      "logHead": "a8b0eaa194bfa4a739738938e5bec5b6a81d118591b55c483e4d7be3d34a4710"
+    },
+    {
+      "id": "research-fc-development-echo-54",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110054,
+      "tests": "EEEnEnE",
+      "logHead": "d5a8aa098b9228375b923b00c45332cdeb8ea2babd670f270a986d9e13941238"
+    },
+    {
+      "id": "research-fc-development-echo-55",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110055,
+      "tests": "EnEEnEn",
+      "logHead": "cc85e90087ef3e6a4b35033b5b0a773a93cfc42a34809c56bd1efa4c3aeb7c8c"
+    },
+    {
+      "id": "research-fc-development-echo-56",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110056,
+      "tests": "E",
+      "logHead": "4ac63481c712af50aec6ee7b2145c65f994da678a0f19e603324aa0516e286b8"
+    },
+    {
+      "id": "research-fc-development-echo-57",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110057,
+      "tests": "nnnEnEn",
+      "logHead": "d422927ce84f45053484cc308dd52fd66b70eb233c4d5ba99101c7e8e88de635"
+    },
+    {
+      "id": "research-fc-development-echo-58",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110058,
+      "tests": "EEsEEnE",
+      "logHead": "67f71f6a06bbb1ddf67f91609c3734bfcbe16f030408391e5636ab58a9b26053"
+    },
+    {
+      "id": "research-fc-development-echo-59",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110059,
+      "tests": "nEEnEnE",
+      "logHead": "47bc5251842110b62786c8b178d35997f22a77a02234db00cfa24ba5aade91b8"
+    },
+    {
+      "id": "research-fc-development-echo-60",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110060,
+      "tests": "n",
+      "logHead": "19a7d28ee6a105dba94009eaa494df83ddedb82ba502beebfc0c606fa9124213"
+    },
+    {
+      "id": "research-fc-development-echo-61",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110061,
+      "tests": "nnEEEnn",
+      "logHead": "78fe285b0df728ad7e802fd5c4e89d50b0497bb7a8c5fa1913ce371bac2cb997"
+    },
+    {
+      "id": "research-fc-development-echo-62",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110062,
+      "tests": "EnEEnnn",
+      "logHead": "03faf7cc2dbb5545d9411e57c29e2a021cb8674cf2ec41215540daf825f72b61"
+    },
+    {
+      "id": "research-fc-development-echo-63",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110063,
+      "tests": "nEnnnnE",
+      "logHead": "c2f59117aeda382e981e3215b3cc5f4a0ddcf8f933465de92f913b927e735931"
+    },
+    {
+      "id": "research-fc-development-echo-64",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110064,
+      "tests": "E",
+      "logHead": "fa79be8bdfec1c18b675f96c2895d3cbe8705a7c5056daa8a66d50f20a07760a"
+    },
+    {
+      "id": "research-fc-development-echo-65",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110065,
+      "tests": "EnnEEnE",
+      "logHead": "08b3587f17acc848fe782b2c5f161031860273a8cab7b147661dc7805980ab28"
+    },
+    {
+      "id": "research-fc-development-echo-66",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110066,
+      "tests": "EEnEnEE",
+      "logHead": "9de732848d0db09dab3ebf9ff92f9ffd0d4d91e85eabe7c56c0324d1d935a6a4"
+    },
+    {
+      "id": "research-fc-development-echo-67",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110067,
+      "tests": "nnnEEEE",
+      "logHead": "25cc22a28de66b2ea0ce5789b98d466267e83e35a28feb86bff96bb0a093f4bb"
+    },
+    {
+      "id": "research-fc-development-echo-68",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110068,
+      "tests": "n",
+      "logHead": "37fc13dac8388fb601bd0ab3ffe53354e4f9329830273b2fee4272faff9907dd"
+    },
+    {
+      "id": "research-fc-development-echo-69",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110069,
+      "tests": "EEEEnEn",
+      "logHead": "b3e437f97fb1acc6a96f947a58782b59f6bfee6da12618150dae2f7439c1cc40"
+    },
+    {
+      "id": "research-fc-development-echo-70",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110070,
+      "tests": "EnnnnEE",
+      "logHead": "0cef90ee5b18105e750dbdf1c2ddcbfaa1f500c0b78b8f7b4a6ee36919676be2"
+    },
+    {
+      "id": "research-fc-development-echo-71",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110071,
+      "tests": "EnEEnEn",
+      "logHead": "f977682c2907a450d48f830f1584178a43caa697857632e7f85df637a1fd7fc1"
+    },
+    {
+      "id": "research-fc-development-echo-72",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110072,
+      "tests": "E",
+      "logHead": "19419a9aee8f791f18ad625fe2dc92f3affe4f8edf1535c9216ece60a82e5eb7"
+    },
+    {
+      "id": "research-fc-development-echo-73",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110073,
+      "tests": "EnEEEnn",
+      "logHead": "d8583eefa1ac87ef69dc27eb9433b612b23a65b28c912a5b51da84fc32c9b90b"
+    },
+    {
+      "id": "research-fc-development-echo-74",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110074,
+      "tests": "EEEnnEE",
+      "logHead": "899dcbdb59895d2d0c7b30e60f693fa6241bee1dd28bfb64bd431225d140ae44"
+    },
+    {
+      "id": "research-fc-development-echo-75",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110075,
+      "tests": "nEEEnnE",
+      "logHead": "972adee481eee1b2260f333d4f688d332cab6cc53f0b2ac93de2c611bcb834dd"
+    },
+    {
+      "id": "research-fc-development-echo-76",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110076,
+      "tests": "E",
+      "logHead": "9c93f89d308d34a40ce6de1f2f3d8ad4ee7d2cf92b08967287de6ec93715f6de"
+    },
+    {
+      "id": "research-fc-development-echo-77",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110077,
+      "tests": "nnnEEnn",
+      "logHead": "0e3b0cdda8502e398a9031450589b3d54ae5045fc1759086f64c25e207409e1e"
+    },
+    {
+      "id": "research-fc-development-echo-78",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110078,
+      "tests": "nn?nnEEE",
+      "logHead": "ae7d7bf4efaf8162e32af1753cb36ed00c37909a94477ec4aee54887430dbc72"
+    },
+    {
+      "id": "research-fc-development-echo-79",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110079,
+      "tests": "EnnnnnE",
+      "logHead": "6a0cf681b22ee631edf1c61b6bf5bfcc260d085f4b8183e31d92ca40b484ec53"
+    },
+    {
+      "id": "research-fc-development-echo-80",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110080,
+      "tests": "E",
+      "logHead": "dc74a0808d974905a4712df039de8f8d3158909a915a63293947e6d5525ff95b"
+    },
+    {
+      "id": "research-fc-development-echo-81",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110081,
+      "tests": "nnEEEnE",
+      "logHead": "4a3b4fbec4940c63ee67a1894f516d113151090e55593e213fca718fe2ca5188"
+    },
+    {
+      "id": "research-fc-development-echo-82",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110082,
+      "tests": "nnEnEEE",
+      "logHead": "b84907ad364a872382ff3a1ccd929f7e1397fd69cc702faf411c6fbd14eacdbc"
+    },
+    {
+      "id": "research-fc-development-echo-83",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110083,
+      "tests": "EEnEEn?E",
+      "logHead": "a29f64a6e994409c6018c9ebfc00c2ade427651059a6438a5a6075ddb6d60b14"
+    },
+    {
+      "id": "research-fc-development-echo-84",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110084,
+      "tests": "E",
+      "logHead": "5e2478a78f8d34888ea570e771827efd98cec52cb579ed04a152fd94015633cf"
+    },
+    {
+      "id": "research-fc-development-echo-85",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110085,
+      "tests": "EEEnnEE",
+      "logHead": "d01b6726d0d04c8e16b4c514494a77683c5e953c9d8fbd77bfeffe518f4a271d"
+    },
+    {
+      "id": "research-fc-development-echo-86",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110086,
+      "tests": "EEEnnn?E",
+      "logHead": "d75370b2ee548a7998da629cf83fb55cc444998b637e9e980079af05d36ebe33"
+    },
+    {
+      "id": "research-fc-development-echo-87",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110087,
+      "tests": "EnEEEEE",
+      "logHead": "73b1f3d77513018d030cc0f5b0538136d3062a0a2317154fc0e2396d0233121c"
+    },
+    {
+      "id": "research-fc-development-echo-88",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110088,
+      "tests": "n",
+      "logHead": "2c7632919db8aef5dbd01ca919e41689b3a5471fe1f0db69715136aa299d6734"
+    },
+    {
+      "id": "research-fc-development-echo-89",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110089,
+      "tests": "nnnEnEE",
+      "logHead": "839e36540b299ce57fc90edbe567295094c3faefcf1861cfe0d04141d6d117fe"
+    },
+    {
+      "id": "research-fc-development-echo-90",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110090,
+      "tests": "EEEEnEE",
+      "logHead": "52d6abf478b05e8ea3e2f214068ebf6b38c99965c46f9f4a35df49358bff2271"
+    },
+    {
+      "id": "research-fc-development-echo-91",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110091,
+      "tests": "nEnEnnE",
+      "logHead": "c4bb046e861310800dc1390e1bb755b82a59ef4c7a3fdb8bffd0394f227347b1"
+    },
+    {
+      "id": "research-fc-development-echo-92",
+      "arm": "echo",
+      "group": "naive",
+      "seed": 110092,
+      "tests": "n",
+      "logHead": "713bdc09a3169247b512436206bef072fc7478bee646f19c153581b8038d05c9"
+    },
+    {
+      "id": "research-fc-development-echo-93",
+      "arm": "echo",
+      "group": "familiar",
+      "seed": 110093,
+      "tests": "EEEnEnn",
+      "logHead": "790d19eeb8328e8a76ef8c47e38500ca705efdf822a56b049dcec615d542b9d1"
+    },
+    {
+      "id": "research-fc-development-echo-94",
+      "arm": "echo",
+      "group": "stranger",
+      "seed": 110094,
+      "tests": "nEEnEEE",
+      "logHead": "60bf1a1fca8e0ebc48da3f4e53f38e35699e4abc2c557c94c45a11de6574b610"
+    },
+    {
+      "id": "research-fc-development-echo-95",
+      "arm": "echo",
+      "group": "familiar-late",
+      "seed": 110095,
+      "tests": "EEnEnEn",
+      "logHead": "3cfa3f4c4522a59d6bef14f6958d4c5987bb173e27272b8eb6e18fd01117f106"
+    },
+    {
+      "id": "research-fc-development-organism-0",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120000,
+      "tests": "E",
+      "logHead": "ec1bd37ff55e06e9a0167517a9ee4ccdbabe364986ae85aac776ea02f30dbb34"
+    },
+    {
+      "id": "research-fc-development-organism-1",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120001,
+      "tests": "nnnEEEE",
+      "logHead": "dd6a720f7ddf9b413757c1ed4541eff659cb5d94c98f5548a11da7776286b69a"
+    },
+    {
+      "id": "research-fc-development-organism-2",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120002,
+      "tests": "nnEEEnn",
+      "logHead": "8a31e7f98db349bbda2be22f545705c7bce65a22f5bf388a2ca99b12e859de50"
+    },
+    {
+      "id": "research-fc-development-organism-3",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120003,
+      "tests": "EnnEEnn",
+      "logHead": "916a0f11fa24f0f79e10ee53b86a985aeb280aa77206f4cd587d373e00ab74a8"
+    },
+    {
+      "id": "research-fc-development-organism-4",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120004,
+      "tests": "n",
+      "logHead": "e40ed1e93d69b0e2aa19542d82d7e3a01e948f54838e460676e498e7f4aa4bd6"
+    },
+    {
+      "id": "research-fc-development-organism-5",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120005,
+      "tests": "nEEEEEn",
+      "logHead": "6af3422766ea7ae77da159d7207987d254f90bfe51c7fa3bc64f1e5d31fe9c19"
+    },
+    {
+      "id": "research-fc-development-organism-6",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120006,
+      "tests": "EEnEnEE",
+      "logHead": "a00165f954191eb22076f945c83cab4f104e37449f528598bf745e4d2994e627"
+    },
+    {
+      "id": "research-fc-development-organism-7",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120007,
+      "tests": "EnEnEnE",
+      "logHead": "d412d44a52d4c5a4b4ea38e82ff6294fcb7ea96d5b631a8cb359e1d505685616"
+    },
+    {
+      "id": "research-fc-development-organism-8",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120008,
+      "tests": "E",
+      "logHead": "cc3f97a775dff4267fa3be64a5645e26e9617c8a5247f8a326b608c271731ef3"
+    },
+    {
+      "id": "research-fc-development-organism-9",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120009,
+      "tests": "nnEnn?En",
+      "logHead": "c7d6fa19a61a595aa3688cfb47ebddc56feaa317a07110f33ba4d9fcec3fd478"
+    },
+    {
+      "id": "research-fc-development-organism-10",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120010,
+      "tests": "EEEnnEE",
+      "logHead": "9ed13f56e0107a841aaddfc26017fe2d4bb1eed6d5850e70b8bbd96e3bef578d"
+    },
+    {
+      "id": "research-fc-development-organism-11",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120011,
+      "tests": "EEEnnnE",
+      "logHead": "feb75770be1cd3a06707b1cb7787d256c2a7c79bddb86a9ec115d652fada2dce"
+    },
+    {
+      "id": "research-fc-development-organism-12",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120012,
+      "tests": "n",
+      "logHead": "9abd01c3f75a25deb7801acac89c20bc435809f804c041160f4023456867bc1a"
+    },
+    {
+      "id": "research-fc-development-organism-13",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120013,
+      "tests": "nEnEEnn",
+      "logHead": "3951ad8e194563eb815c2f2b762ddcc75171df85a6b39716fcbbab1f94acbf13"
+    },
+    {
+      "id": "research-fc-development-organism-14",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120014,
+      "tests": "nEnnnnE",
+      "logHead": "bcaeec94a9e230327c9aa2b9181678486adfd5a08f648cf3c159770e7d339bbc"
+    },
+    {
+      "id": "research-fc-development-organism-15",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120015,
+      "tests": "EnEEnnE",
+      "logHead": "51b12bd1f26bdca6309075e84c4fd4840c2e205db2934a9d74efbefd4c4f567e"
+    },
+    {
+      "id": "research-fc-development-organism-16",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120016,
+      "tests": "E",
+      "logHead": "fb804eaa44c9299f974176920803494d9fb41958270337dae24c234fb1483223"
+    },
+    {
+      "id": "research-fc-development-organism-17",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120017,
+      "tests": "EEnEEnE",
+      "logHead": "439e79d88696275ef808b65908056d78a415ed7e4bbb4bd3f2ec1d2db4775042"
+    },
+    {
+      "id": "research-fc-development-organism-18",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120018,
+      "tests": "nEnEEnE",
+      "logHead": "a0fe2d0df81c31c6bbd6846142573d3b653ca7980c1311d46b087f6fa0f48d25"
+    },
+    {
+      "id": "research-fc-development-organism-19",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120019,
+      "tests": "nEEnnEE",
+      "logHead": "c462baf88d5209f2b50bbf31946b8ad2d503585084987f4911741feae5ee733b"
+    },
+    {
+      "id": "research-fc-development-organism-20",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120020,
+      "tests": "E",
+      "logHead": "b8b65d3cf3b535298ddd66eda8e99772674bee6226ed030e61a0cf1d96ad47ff"
+    },
+    {
+      "id": "research-fc-development-organism-21",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120021,
+      "tests": "EEnnEnn",
+      "logHead": "42fc7efa609edf25c6be4749387fe1ba8338deab2670a7bcbe26c8e94a3c556e"
+    },
+    {
+      "id": "research-fc-development-organism-22",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120022,
+      "tests": "EnEnEEn",
+      "logHead": "06c2005e4a5a927617fb81be7915b13f385ad2d6c5b2d24b04b39df96fc3467c"
+    },
+    {
+      "id": "research-fc-development-organism-23",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120023,
+      "tests": "nnEnnn?n",
+      "logHead": "4ce10903d283d347737603e39581e4d56a0991048b9cb995a14f4a4bcc609055"
+    },
+    {
+      "id": "research-fc-development-organism-24",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120024,
+      "tests": "E",
+      "logHead": "f30caf09dc95ce3cdb35a2592e59733aefcb12da220c5e6a3a3aecc8583a5bf6"
+    },
+    {
+      "id": "research-fc-development-organism-25",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120025,
+      "tests": "nEEnEEn",
+      "logHead": "7595897fce3ec17019e1e7469e451c957b50d5432faafecb44e7964784c233b4"
+    },
+    {
+      "id": "research-fc-development-organism-26",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120026,
+      "tests": "nnEEEEE",
+      "logHead": "2e316ab30388f24ce85939543eb8be7c3f6ced0c3fc0729c5b99f2c8f0107ef4"
+    },
+    {
+      "id": "research-fc-development-organism-27",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120027,
+      "tests": "EnEnEnn",
+      "logHead": "d5c72c9b1a2df39e953e11708a9487829c56466f393adae76c70258c97f8ff3f"
+    },
+    {
+      "id": "research-fc-development-organism-28",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120028,
+      "tests": "n",
+      "logHead": "75459242084b7e5968c99f28bf4cc45780f993068ef08aac9879e9a56fee232b"
+    },
+    {
+      "id": "research-fc-development-organism-29",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120029,
+      "tests": "EEEnnEn",
+      "logHead": "f129a2e9afaeee2f1856a660c3a27b877fed83fe8635e798fc7f4c58de6d7ad1"
+    },
+    {
+      "id": "research-fc-development-organism-30",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120030,
+      "tests": "nEEnnnn",
+      "logHead": "7289e4183fae57d813daee7e5fbda09acc547f579fcd46730648260076b69b01"
+    },
+    {
+      "id": "research-fc-development-organism-31",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120031,
+      "tests": "nnnEEEn",
+      "logHead": "3324249708c4b5f289fdd2759afc1e36f35109ba731860befb30015694840cf5"
+    },
+    {
+      "id": "research-fc-development-organism-32",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120032,
+      "tests": "n",
+      "logHead": "a294c81286b55b2801e886ff4b9321621d0b1d32c154d8b43aa27e7081ecaf55"
+    },
+    {
+      "id": "research-fc-development-organism-33",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120033,
+      "tests": "nEEnnnn",
+      "logHead": "eee9f11e804fa8321a934bdd0957910e16c1d9361df34a75ed84a51bac0eaf81"
+    },
+    {
+      "id": "research-fc-development-organism-34",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120034,
+      "tests": "nnn?nEEE",
+      "logHead": "e00d1976c7fe0dd46c3f2198bf6d09ed90b0acb515b9aa7f2f5a47b1e328c2d1"
+    },
+    {
+      "id": "research-fc-development-organism-35",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120035,
+      "tests": "EnnnEnE",
+      "logHead": "f75b09c1398fd855cde58ffeaa1179c2826894ab572717a55b6a04612ab6b379"
+    },
+    {
+      "id": "research-fc-development-organism-36",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120036,
+      "tests": "E",
+      "logHead": "d5a73071a66598a227a049acd4077406f41715ff2c44bfd98dc6bde9279d543a"
+    },
+    {
+      "id": "research-fc-development-organism-37",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120037,
+      "tests": "EEnnEEn",
+      "logHead": "bede65e68da45a4a1e2d14db503b92175e35af5b282cc9ba183ecc862b023fe7"
+    },
+    {
+      "id": "research-fc-development-organism-38",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120038,
+      "tests": "EnEEEEn",
+      "logHead": "90967ec7f314ea3d3eedf8b81ec21e1baa8d903f5b0c945cfff91e147fe54db5"
+    },
+    {
+      "id": "research-fc-development-organism-39",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120039,
+      "tests": "EEEnnEE",
+      "logHead": "e98120c9655c866c65e14195500ae716db3b5c9a406eff57c4a0af68eb7bdec4"
+    },
+    {
+      "id": "research-fc-development-organism-40",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120040,
+      "tests": "E",
+      "logHead": "afb32605d803378c75448437498f07aa88f5f0818ebc21bd20ffe248d062fe0a"
+    },
+    {
+      "id": "research-fc-development-organism-41",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120041,
+      "tests": "EnEEnEn",
+      "logHead": "f19de618e8910532541fdb157eb86566270ef50977cc114078d9d22da45c4f14"
+    },
+    {
+      "id": "research-fc-development-organism-42",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120042,
+      "tests": "nnnEnnE",
+      "logHead": "e1f28041fc2a92ba7bfeef345d08de2c6fe73689ecf68bf327e351bc1c7aae28"
+    },
+    {
+      "id": "research-fc-development-organism-43",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120043,
+      "tests": "EEEEnnE",
+      "logHead": "848cb07b551a3b7c52c63fc6d29337709d695a7c1c7fe494ada8bf646d1dc314"
+    },
+    {
+      "id": "research-fc-development-organism-44",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120044,
+      "tests": "n",
+      "logHead": "3791d60d94e132a3437f3ee3c0a291cb5a5b7731472ddf5607e5b82707c6baaa"
+    },
+    {
+      "id": "research-fc-development-organism-45",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120045,
+      "tests": "EEEnEnE",
+      "logHead": "3bc2d799ce6417039f73d2837a35fee7067c138202e019b546ca78090b8d4d16"
+    },
+    {
+      "id": "research-fc-development-organism-46",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120046,
+      "tests": "nEEEEnE",
+      "logHead": "6a66beef69ab20391f2d92aa469c37c94ee4b6bb540420f094e7e77049aa82ab"
+    },
+    {
+      "id": "research-fc-development-organism-47",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120047,
+      "tests": "EnEnEnn",
+      "logHead": "4124147e655db41dc4d9d15401338215f8c5804aae60e3ea380c68d3052f1d1a"
+    },
+    {
+      "id": "research-fc-development-organism-48",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120048,
+      "tests": "E",
+      "logHead": "6573e48f3e8f1de118b3b60e2896db98b9c61b5b39e2c1615c4c3aa3ef61c0ee"
+    },
+    {
+      "id": "research-fc-development-organism-49",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120049,
+      "tests": "EnnnnEE",
+      "logHead": "4028f90f786d9bc5b344f5f0b1f4984b5784af861cb794245ec571a9c0b8b386"
+    },
+    {
+      "id": "research-fc-development-organism-50",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120050,
+      "tests": "EnnnnEn",
+      "logHead": "bac0dcebc6cb4fdd0b22e5b5326f1c3bd342b1a9d76d85ea5d8172587cd87649"
+    },
+    {
+      "id": "research-fc-development-organism-51",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120051,
+      "tests": "nnEEnEn",
+      "logHead": "255c9c127046f740bc381ef8fdde006838872edd847c13151bc3616dda8c93d4"
+    },
+    {
+      "id": "research-fc-development-organism-52",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120052,
+      "tests": "E",
+      "logHead": "581d85737d99ae574943d244a9e514fca1ea3af2596186e60995e5793524be4f"
+    },
+    {
+      "id": "research-fc-development-organism-53",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120053,
+      "tests": "nEnEEnE",
+      "logHead": "c345524ea4e8730660554a69a2448a2dcf48629ab778a6bc5e4901ccc5576f2c"
+    },
+    {
+      "id": "research-fc-development-organism-54",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120054,
+      "tests": "En?nEnnn",
+      "logHead": "b8cb9bcff4d2c9e7ccf09932be8231f7516663f7e57e02b83003798680745f39"
+    },
+    {
+      "id": "research-fc-development-organism-55",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120055,
+      "tests": "EEnEn?nn",
+      "logHead": "bdcbbf47afbd9c2531a37d6c14e32f1ce429d2ebd2527ad9708f72bbfaa03d8a"
+    },
+    {
+      "id": "research-fc-development-organism-56",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120056,
+      "tests": "n",
+      "logHead": "8e4aa1fefc80a4952e467dbe28e5bc60bdefd95ad11426154e855a31de8792cd"
+    },
+    {
+      "id": "research-fc-development-organism-57",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120057,
+      "tests": "nnEnnnn",
+      "logHead": "908386c75c845a8ea86e2684f3b4035f0441ed884eada69ea8dba24f322a66c5"
+    },
+    {
+      "id": "research-fc-development-organism-58",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120058,
+      "tests": "EnEnEEn",
+      "logHead": "d22984c66241a3eaee72be42799c2392b8565460b2f8ded4f3eedad16e0a716e"
+    },
+    {
+      "id": "research-fc-development-organism-59",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120059,
+      "tests": "nnnnEEn",
+      "logHead": "0284d5e47529af68320de89d362eb169a7a9ebb186bfac8b6de07979293fecd0"
+    },
+    {
+      "id": "research-fc-development-organism-60",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120060,
+      "tests": "n",
+      "logHead": "2394e608900acd30fa0434e80c027bbcaf1b91599b02b8d8891a8dc4ca1db7a4"
+    },
+    {
+      "id": "research-fc-development-organism-61",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120061,
+      "tests": "nnnnEEn",
+      "logHead": "dfcfb1e94ed7bf8e365e569287be4f6f987725d7e16f52e7b00920592a33f60c"
+    },
+    {
+      "id": "research-fc-development-organism-62",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120062,
+      "tests": "Ennn?nEn",
+      "logHead": "6689e74b51f1095a38593449b1c2c7bf4c4a7d8b675c4546ac1c53970af9f189"
+    },
+    {
+      "id": "research-fc-development-organism-63",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120063,
+      "tests": "EEnnnEE",
+      "logHead": "dd3596871164d7861a6f65b503776f6be3ea16a52f3ad34ee63bae96c06ffcde"
+    },
+    {
+      "id": "research-fc-development-organism-64",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120064,
+      "tests": "E",
+      "logHead": "38f70959eb6e4794a9a062f350c5481d68269e4571dea7059c52bf6e0172d9ac"
+    },
+    {
+      "id": "research-fc-development-organism-65",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120065,
+      "tests": "nEnnEEE",
+      "logHead": "1b8e0d4194a62a1cd106fce78f15f1a2000f2a137814d5845863a237203687a7"
+    },
+    {
+      "id": "research-fc-development-organism-66",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120066,
+      "tests": "nEEnEEn",
+      "logHead": "9828b1bcb3803d823f0e0e3774d0a1fe0d43a955ba320e52cee755b5d2be61a8"
+    },
+    {
+      "id": "research-fc-development-organism-67",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120067,
+      "tests": "nEnEEEE",
+      "logHead": "966fe8680401b0553633bc1cc79b3c0879d27e788c813952e3801622fba036a8"
+    },
+    {
+      "id": "research-fc-development-organism-68",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120068,
+      "tests": "E",
+      "logHead": "e74bb905d58df3a6b84418a41ccd75fd025b463f54c394ecf124f96586b4f813"
+    },
+    {
+      "id": "research-fc-development-organism-69",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120069,
+      "tests": "n?EEnEnE",
+      "logHead": "ad8c4582761496ca0c9b65f3552e199751275f84e4361c2c01b9fc102d10029c"
+    },
+    {
+      "id": "research-fc-development-organism-70",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120070,
+      "tests": "EEnEEnE",
+      "logHead": "e0be290b7513d1ca0d679a57b653153685954fa18136a4d847bb9004d9d85cb3"
+    },
+    {
+      "id": "research-fc-development-organism-71",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120071,
+      "tests": "EEnnEnn",
+      "logHead": "e53b27d9a94cf6ffc4723642e336c4c043e5588af4beee6d8033ed413c335eb8"
+    },
+    {
+      "id": "research-fc-development-organism-72",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120072,
+      "tests": "E",
+      "logHead": "59fc9ebc11bc21cb79e02c68515857240f55f8cffb6f98b2c7e94c93bfb7d082"
+    },
+    {
+      "id": "research-fc-development-organism-73",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120073,
+      "tests": "nEnEEnE",
+      "logHead": "834424dba1863a2dab0367aafa99631899266944580a28b12b40dd78bf026faa"
+    },
+    {
+      "id": "research-fc-development-organism-74",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120074,
+      "tests": "nnEEEEn",
+      "logHead": "003a5097ba590e5dfa33a2378543dd3a29bfff75ad7a581a0ca8428b96836247"
+    },
+    {
+      "id": "research-fc-development-organism-75",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120075,
+      "tests": "EEnnnEE",
+      "logHead": "fc4c1e85848e0935c99f92042d4bfed2eb0a102cc9aa11d7c281b64d9c792cf1"
+    },
+    {
+      "id": "research-fc-development-organism-76",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120076,
+      "tests": "E",
+      "logHead": "ae40a434596d6e35c04d8d41b27e7deb0faa95dbbe032b6b54df7cc9ce33ac95"
+    },
+    {
+      "id": "research-fc-development-organism-77",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120077,
+      "tests": "EEEEEEn",
+      "logHead": "de2567b36e4ed320e8431f63f77b580b9205597e2bd0135458231892508ca931"
+    },
+    {
+      "id": "research-fc-development-organism-78",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120078,
+      "tests": "EEEnnnE",
+      "logHead": "f328e925ddd5743e6dc2a8734aaa65e54ff26b40af9304a29380fa753dcfab46"
+    },
+    {
+      "id": "research-fc-development-organism-79",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120079,
+      "tests": "EEEnnnE",
+      "logHead": "414c9e5e2e75a8ca626ca4402491b2b05a9f7bf2512e1a8363a47caab47a1691"
+    },
+    {
+      "id": "research-fc-development-organism-80",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120080,
+      "tests": "E",
+      "logHead": "39a1eaead8109de3f5ee3a69d666908911a4af7c114f5c6bdf19b59166de15eb"
+    },
+    {
+      "id": "research-fc-development-organism-81",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120081,
+      "tests": "n?EEEsEn",
+      "logHead": "eebbeeb195337186db36046569900b74cc8016d49f87a769f45782757e49054f"
+    },
+    {
+      "id": "research-fc-development-organism-82",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120082,
+      "tests": "nEEEnnn",
+      "logHead": "be237065ddbd25723f62ca0e10b8a68ecdbb4a1967afef8432c69ea5b234cd6e"
+    },
+    {
+      "id": "research-fc-development-organism-83",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120083,
+      "tests": "EEnnnEn",
+      "logHead": "074b232e02d6db594ba9a7317f0f7e3d10698a7dc6faadbd13dc7dd510d94a82"
+    },
+    {
+      "id": "research-fc-development-organism-84",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120084,
+      "tests": "E",
+      "logHead": "2cc273de36a333472d61ceb9ebabd06b3cbff357cccd5e89160beb9e8608413a"
+    },
+    {
+      "id": "research-fc-development-organism-85",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120085,
+      "tests": "nnEEEnE",
+      "logHead": "f8cbf75fd4b8fe1cd25d301b5efdbd673b3885bef38a68a734c1b756da9e608b"
+    },
+    {
+      "id": "research-fc-development-organism-86",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120086,
+      "tests": "EEnEnnn",
+      "logHead": "f6f03513e97aff5e41da204076a2aaa4a8814c80cf3c4d56389b18eaaef4cbce"
+    },
+    {
+      "id": "research-fc-development-organism-87",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120087,
+      "tests": "EEnEEEE",
+      "logHead": "75705b9fe114ae8f19d77ef9f0217861c572314a12167d3f674c30b90c7fbe5d"
+    },
+    {
+      "id": "research-fc-development-organism-88",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120088,
+      "tests": "n",
+      "logHead": "76bf96ed1c7269fd7e9d6d319599b92a3ccde710f1b1487573cf4e226b8dafc5"
+    },
+    {
+      "id": "research-fc-development-organism-89",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120089,
+      "tests": "nEEEnnE",
+      "logHead": "97e75fcdf61c0eceef4d8ff47a3a9caf7b6987abdfe82bc27c4ac4f01ec21c46"
+    },
+    {
+      "id": "research-fc-development-organism-90",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120090,
+      "tests": "EEn?nEnn",
+      "logHead": "89d7a87e2709cf4f457835ed19284936b02e695f374693705b6bd1dcb857bd6c"
+    },
+    {
+      "id": "research-fc-development-organism-91",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120091,
+      "tests": "EEEnnEn",
+      "logHead": "5db0dd1185a8fbd48f15350d772a1d3346b4c5d18630c4bb504a5180f990e54d"
+    },
+    {
+      "id": "research-fc-development-organism-92",
+      "arm": "organism",
+      "group": "naive",
+      "seed": 120092,
+      "tests": "E",
+      "logHead": "8ff8e86b58c61248d37ee593b82a9201a1f56767c0b919d8c289ae258c044814"
+    },
+    {
+      "id": "research-fc-development-organism-93",
+      "arm": "organism",
+      "group": "familiar",
+      "seed": 120093,
+      "tests": "EnEnnnn",
+      "logHead": "e5a7581ac9e630f557f81a19809de31f13ef08790d8f947460f1c9d4800baece"
+    },
+    {
+      "id": "research-fc-development-organism-94",
+      "arm": "organism",
+      "group": "stranger",
+      "seed": 120094,
+      "tests": "nnEnEEE",
+      "logHead": "4293bf5893b6680dc16ba7c23c74ebe500b1090de1c35bab56e4fc3f95047de0"
+    },
+    {
+      "id": "research-fc-development-organism-95",
+      "arm": "organism",
+      "group": "familiar-late",
+      "seed": 120095,
+      "tests": "nnEEnnn",
+      "logHead": "3ac919c247c89f13ec2f47345ef222cfd8569712cbea306aba9f883ae8616ff4"
+    }
+  ],
+  "digest": "a8d93eee01395e445074b7d2777292273a25dc31729c5270d4043ce68b7ef42f"
+}

@@ -57,6 +57,12 @@ CITE = {
     "aso2014": "Aso et al. 2014, eLife 3:e04577, doi:10.7554/eLife.04577 (mushroom body cell types, MBON valence)",
     "matsliah2024": "Matsliah et al. 2024, Nature 634:166-180, doi:10.1038/s41586-024-07981-1 (optic lobe types)",
     "schlegel2024": "Schlegel et al. 2024, Nature 634:139-152, doi:10.1038/s41586-024-07686-5",
+    "bidaye2014": "Bidaye et al. 2014, Science 344:97-101, doi:10.1126/science.1249964 (MDN drives backward walking)",
+    "bidaye2020": "Bidaye et al. 2020, Neuron 108:469-485, doi:10.1016/j.neuron.2020.07.032 (P9, annotated DNp09, initiates forward walking with an ipsilateral turn)",
+    "rayshubskiy2020": "Rayshubskiy et al., Neural circuit mechanisms for steering control in walking Drosophila, bioRxiv doi:10.1101/2020.04.04.024703, eLife 102230 (DNa02 predicts high-gain ipsilateral steering)",
+    "ache2019nn": "Ache et al. 2019, Nat Neurosci 22:1132-1139, doi:10.1038/s41593-019-0413-4 (DNp07 and DNp10 drive landing; their visual responses are gated by flight)",
+    "keles2017": "Keles & Frye 2017, Curr Biol 27:680-687, doi:10.1016/j.cub.2017.01.012 (LC11 responds to small moving objects, not to wide-field motion)",
+    "ribeiro2018": "Ribeiro et al. 2018, Cell 174:607-621, doi:10.1016/j.cell.2018.06.020 (LC10 prefers small moving objects; shown for male courtship)",
 }
 
 
@@ -176,6 +182,15 @@ for side in ("left", "right"):
     _add(Population(f"orn_vinegar_{side}", f"ORNs of the DM1 and VA2 glomeruli ({side})", "sensory", ("semmelhack2009",), select={"cell_type": ["ORN_DM1", "ORN_VA2"], "side": side}))
     _add(Population(f"giant_fiber_{side}", f"giant fiber descending neuron DNp01 ({side})", "descending", ("vonreyn2014", "ache2019"), select={"cell_type": ["DNp01"], "side": side}))
     _add(Population(f"mn9_{side}", f"MN9 proboscis motor neuron, annotated CB0701 ({side})", "motor", ("gordon2009", "shiu2024"), select={"cell_type": ["CB0701"], "side": side}, note="cell_type of the MN9 id Shiu et al. analysed (720575940660219265)"))
+    # whole-brain/v2: the other fly as a small moving object, and more of the brain's descending commands.
+    _add(Population(f"lc11_{side}", f"LC11 small-object visual projection neurons ({side})", "sensory", ("keles2017", "matsliah2024"), select={"cell_type": ["LC11"], "side": side}))
+    _add(Population(f"lc10a_{side}", f"LC10a small-object visual projection neurons ({side})", "sensory", ("ribeiro2018", "matsliah2024"), select={"cell_type": ["LC10a"], "side": side}, note="LC10's role was shown in males; this brain (FAFB) is a female's"))
+    _add(Population(f"dnp09_{side}", f"DNp09 (P9) forward-walking descending neuron ({side})", "descending", ("bidaye2020",), select={"cell_type": ["DNp09"], "side": side}))
+    _add(Population(f"mdn_{side}", f"MDN backward-walking descending neurons ({side})", "descending", ("bidaye2014",), select={"cell_type": ["MDN"], "side": side}))
+    _add(Population(f"dna02_{side}", f"DNa02 steering descending neuron ({side})", "descending", ("rayshubskiy2020",), select={"cell_type": ["DNa02"], "side": side}))
+    _add(Population(f"adn_{side}", f"aDN1 and aDN2 antennal-grooming descending neurons, annotated DNg62 and DNge078 ({side})", "descending", ("hampel2015", "shiu2024"), select={"cell_type": ["DNg62", "DNge078"], "side": side}, note="the cell types of the aDN1 and aDN2 ids Shiu et al. published (720575940616185531, 720575940629806974)"))
+    _add(Population(f"dn_landing_{side}", f"DNp07 and DNp10 landing descending neurons ({side})", "descending", ("ache2019nn",), select={"cell_type": ["DNp07", "DNp10"], "side": side}))
+_add(Population("descending_all", "every neuron annotated descending", "descending", ("schlegel2024",), select={"super_class": ["descending"]}))
 _add(Population("kenyon_cells", "Kenyon cells", "interneuron", ("aso2014", "schlegel2024"), select={"cell_class": ["Kenyon_Cell"]}))
 _add(Population("mbons", "mushroom body output neurons", "interneuron", ("aso2014",), select={"cell_class": ["MBON"]}))
 _add(Population("pam_dans", "PAM dopaminergic neurons", "interneuron", ("aso2014",), select={"cell_class": ["DAN"], "cell_type_prefix": ["PAM"]}))
@@ -185,7 +200,7 @@ _add(Population("pam_dans", "PAM dopaminergic neurons", "interneuron", ("aso2014
 def _annotations(path: str):
     import polars as pl
 
-    cols = ["root_id", "cell_class", "cell_sub_class", "cell_type", "side"]
+    cols = ["root_id", "super_class", "cell_class", "cell_sub_class", "cell_type", "side"]
     return pl.read_csv(path, separator="\t", columns=cols, schema_overrides={c: (pl.Int64 if c == "root_id" else pl.String) for c in cols})
 
 

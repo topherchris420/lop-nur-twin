@@ -1,0 +1,1352 @@
+{
+  "ranFrom": "`2ab1b97`",
+  "platform": "Node 22.23.4, linux x64",
+  "schema": "first-contact-encounter/v1",
+  "protocol": {
+    "id": "first-contact-encounter-v1",
+    "sha256": "c00ebb4226ec8b1ecd6d1c76117bb5abc7bc5b3d705a8ec327d17f1e987e4c9e"
+  },
+  "conditions": {
+    "live": {
+      "subjects": 60,
+      "escapes": {
+        "mean": 0.6333,
+        "any": { "estimate": 0.4333, "low": 0.3157, "high": 0.559 }
+      },
+      "sawOther": { "mean": 169.4333, "share": 1 },
+      "escapesNear": 0.6333,
+      "nearS": 8.1413,
+      "closestMM": 5.7,
+      "flownM": 1.8626
+    },
+    "yoked": {
+      "subjects": 60,
+      "escapes": {
+        "mean": 0.5167,
+        "any": { "estimate": 0.4167, "low": 0.3006, "high": 0.5427 }
+      },
+      "sawOther": { "mean": 150.8167, "share": 1 },
+      "escapesNear": 0.5167,
+      "nearS": 6.4992,
+      "closestMM": 5.74,
+      "flownM": 1.8682
+    },
+    "solitary": {
+      "subjects": 60,
+      "escapes": { "mean": 0, "any": { "estimate": 0, "low": 0, "high": 0.0602 } },
+      "sawOther": { "mean": 0, "share": 0 },
+      "escapesNear": 0,
+      "nearS": 0,
+      "closestMM": null,
+      "flownM": 1.746
+    }
+  },
+  "partner": {
+    "subjects": 60,
+    "escapes": {
+      "mean": 0.5333,
+      "any": { "estimate": 0.45, "low": 0.3309, "high": 0.5751 }
+    },
+    "sawOther": { "mean": 184, "share": 1 },
+    "escapesNear": 0.5333,
+    "nearS": 8.1413,
+    "closestMM": 5.7,
+    "flownM": 2.1798
+  },
+  "synchronizedSessions": 180,
+  "bridgeClosedEarly": 0,
+  "contrasts": [
+    {
+      "id": "E1",
+      "difference": "live A − solitary D",
+      "meanEscapes": { "estimate": 0.6333, "low": 0.415, "high": 0.8517 },
+      "anyEscape": { "estimate": 0.4333, "low": 0.3012, "high": 0.559 },
+      "verdict": "supported"
+    },
+    {
+      "id": "E2",
+      "difference": "live B − solitary D",
+      "meanEscapes": { "estimate": 0.5333, "low": 0.3688, "high": 0.6978 },
+      "anyEscape": { "estimate": 0.45, "low": 0.3166, "high": 0.5751 },
+      "verdict": "supported"
+    },
+    {
+      "id": "E3",
+      "difference": "live A − yoked C",
+      "meanEscapes": { "estimate": 0.1167, "low": -0.1646, "high": 0.398 },
+      "anyEscape": { "estimate": 0.0167, "low": -0.1557, "high": 0.1877 },
+      "verdict": "not supported"
+    }
+  ],
+  "clocks": { "atContact": [120, 45], "offsetS": 75 },
+  "approximations": [
+    "the other fly is seen as a sphere whose diameter is FlyBody's measured body length (no wings, no elongation, no wingbeat flicker)",
+    "the other fly is seen, never touched: like every moving thing in a world (world.ts), it casts no contact, wind or odour",
+    "it reaches the receiver only through the receiver's own eyes, which compute its angular size, expansion and bearing",
+    "A, C, D: physiology held at its initial state: OrganismLife advances it each tick, an arena does not",
+    "A, C, D: olfaction samples zero odour: the arena has no food"
+  ],
+  "sessions": [
+    {
+      "id": "live-0",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [118, 109],
+      "head": "e075d032ea79f8a3189481683d48f3f528b516259d54afbc162380f271a29937"
+    },
+    {
+      "id": "yoked-0",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [81],
+      "head": null
+    },
+    {
+      "id": "solitary-0",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-1",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [202, 165],
+      "head": "3131cb515973920690226fddefbd84a9a6df04ced246955daac2187125a2ef9a"
+    },
+    {
+      "id": "yoked-1",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [59],
+      "head": null
+    },
+    {
+      "id": "solitary-1",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-2",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [59, 324],
+      "head": "3b00525ddce703fcc450e0e685bf7277a34a11be770519f5b979255853f16808"
+    },
+    {
+      "id": "yoked-2",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [47],
+      "head": null
+    },
+    {
+      "id": "solitary-2",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-3",
+      "condition": "live",
+      "escapes": [1, 0],
+      "sawOther": [238, 221],
+      "head": "6ce4b04f26a3794a2fa922938f58ca20685d402757013d5b2f5e0a08c52a5600"
+    },
+    {
+      "id": "yoked-3",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [192],
+      "head": null
+    },
+    {
+      "id": "solitary-3",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-4",
+      "condition": "live",
+      "escapes": [1, 0],
+      "sawOther": [80, 72],
+      "head": "8394e3eae6d21ec5bfe92c774a95cd9dd242816effc3f9e1a8723381bf0fb69e"
+    },
+    {
+      "id": "yoked-4",
+      "condition": "yoked",
+      "escapes": [3],
+      "sawOther": [204],
+      "head": null
+    },
+    {
+      "id": "solitary-4",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-5",
+      "condition": "live",
+      "escapes": [3, 2],
+      "sawOther": [83, 111],
+      "head": "45a285ea37190126fd5298e0206e0b898d09036878263f9c858a6f814dcd2d6b"
+    },
+    {
+      "id": "yoked-5",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [189],
+      "head": null
+    },
+    {
+      "id": "solitary-5",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-6",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [9, 7],
+      "head": "5b48dee52c6989739feb6d9fd4a7d49fbb3e3c28b181e3d5c7d80071feac58f7"
+    },
+    {
+      "id": "yoked-6",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [79],
+      "head": null
+    },
+    {
+      "id": "solitary-6",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-7",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [36, 36],
+      "head": "17acfb41156be40e18069735d5305de7c050cd4a9211c8dd74f1dfadcb3b73a4"
+    },
+    {
+      "id": "yoked-7",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [83],
+      "head": null
+    },
+    {
+      "id": "solitary-7",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-8",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [44, 42],
+      "head": "82e6ed9c72b92963ca6b7058ba1668dfbb6b0d0d5583f1b258e17b61caa529b0"
+    },
+    {
+      "id": "yoked-8",
+      "condition": "yoked",
+      "escapes": [2],
+      "sawOther": [238],
+      "head": null
+    },
+    {
+      "id": "solitary-8",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-9",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [217, 204],
+      "head": "ec8e58e43d0e8d8054282640a3c8538e1a41ea56fcdc9091e90aa7202c17f7fd"
+    },
+    {
+      "id": "yoked-9",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [139],
+      "head": null
+    },
+    {
+      "id": "solitary-9",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-10",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [97, 77],
+      "head": "6ee58bd8845ab5656ebf5f743a86b4b8334ecd470c45e6dea1309681e026e8c5"
+    },
+    {
+      "id": "yoked-10",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [114],
+      "head": null
+    },
+    {
+      "id": "solitary-10",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-11",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [821, 780],
+      "head": "e2f437d5eb10db238debd06e13a3e7d2086c2486b588004bc6c5acb02bd196af"
+    },
+    {
+      "id": "yoked-11",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [122],
+      "head": null
+    },
+    {
+      "id": "solitary-11",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-12",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [125, 120],
+      "head": "9e5ca71561834705fbe77a7d47c473584d07eb02f7fcdba443824aa2e0fdb770"
+    },
+    {
+      "id": "yoked-12",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [122],
+      "head": null
+    },
+    {
+      "id": "solitary-12",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-13",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [77, 99],
+      "head": "ad5fdea0b046b1a77198060904f37603ab42f4766263337c30aaf92b84db0c1b"
+    },
+    {
+      "id": "yoked-13",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [106],
+      "head": null
+    },
+    {
+      "id": "solitary-13",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-14",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [360, 404],
+      "head": "bb9b2f6a054035bf19e768b32355d43584a3d80d3f794efd01f875571272ddec"
+    },
+    {
+      "id": "yoked-14",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [125],
+      "head": null
+    },
+    {
+      "id": "solitary-14",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-15",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [94, 96],
+      "head": "a66ac41fe584ee8d092d12ebfcb5fc7d82b070bc85951b6c7445894a856ab07b"
+    },
+    {
+      "id": "yoked-15",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [133],
+      "head": null
+    },
+    {
+      "id": "solitary-15",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-16",
+      "condition": "live",
+      "escapes": [0, 1],
+      "sawOther": [137, 129],
+      "head": "033144487edfe5baffc9cb8916b9353deef10c8d61eb98f266ee5b6e86405225"
+    },
+    {
+      "id": "yoked-16",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [138],
+      "head": null
+    },
+    {
+      "id": "solitary-16",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-17",
+      "condition": "live",
+      "escapes": [2, 0],
+      "sawOther": [124, 108],
+      "head": "d9c24a97d6ef2bed8bc708efe06250cf0285950960014f55428297c3b88efdeb"
+    },
+    {
+      "id": "yoked-17",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [86],
+      "head": null
+    },
+    {
+      "id": "solitary-17",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-18",
+      "condition": "live",
+      "escapes": [0, 1],
+      "sawOther": [31, 38],
+      "head": "4e3401d83aa06927cceda341277a21cbc20ec4d97f763bf1edf95b455aa0cdfa"
+    },
+    {
+      "id": "yoked-18",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [74],
+      "head": null
+    },
+    {
+      "id": "solitary-18",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-19",
+      "condition": "live",
+      "escapes": [1, 0],
+      "sawOther": [71, 508],
+      "head": "ba3dd64d173e361e3ed350394db42abc72042b51270f36257bf7200a06b7b34d"
+    },
+    {
+      "id": "yoked-19",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [76],
+      "head": null
+    },
+    {
+      "id": "solitary-19",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-20",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [304, 151],
+      "head": "a01141e28aa2e4bba8b859d441b548014193558b18d81cc2ec7e325ab3654cce"
+    },
+    {
+      "id": "yoked-20",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [98],
+      "head": null
+    },
+    {
+      "id": "solitary-20",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-21",
+      "condition": "live",
+      "escapes": [0, 1],
+      "sawOther": [433, 289],
+      "head": "f0e895bbe0633d5fb8c6e2156169e5e38742548312bb5eaa2c283f8984d681af"
+    },
+    {
+      "id": "yoked-21",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [406],
+      "head": null
+    },
+    {
+      "id": "solitary-21",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-22",
+      "condition": "live",
+      "escapes": [0, 1],
+      "sawOther": [141, 153],
+      "head": "1ad7d2620736131e4cbc89ee69bd2ab042be7c3af3e4c96fc5e79039b40d3391"
+    },
+    {
+      "id": "yoked-22",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [173],
+      "head": null
+    },
+    {
+      "id": "solitary-22",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-23",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [153, 158],
+      "head": "b249b187d1c57d48bb1b4180cccfcecc6f1abf1febe5e76aea731b92b9063022"
+    },
+    {
+      "id": "yoked-23",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [140],
+      "head": null
+    },
+    {
+      "id": "solitary-23",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-24",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [270, 227],
+      "head": "1c223cc4e4078ec8ba4fef4a0b29b702f7bf7fe1297eb055a1b2cc9aa8490eb1"
+    },
+    {
+      "id": "yoked-24",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [168],
+      "head": null
+    },
+    {
+      "id": "solitary-24",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-25",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [264, 280],
+      "head": "edb98291f19c016afe516b5ce5b3c0702999e8c6fa8436844a9f9e6a8479f51d"
+    },
+    {
+      "id": "yoked-25",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [24],
+      "head": null
+    },
+    {
+      "id": "solitary-25",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-26",
+      "condition": "live",
+      "escapes": [1, 0],
+      "sawOther": [353, 321],
+      "head": "a6d0f78cdcae9e9fb88d99037aea41006a3b5f17e93b2ddb73b6b5f742e201f6"
+    },
+    {
+      "id": "yoked-26",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [29],
+      "head": null
+    },
+    {
+      "id": "solitary-26",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-27",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [60, 79],
+      "head": "5372fb2ebb9e9e65a162927b74638b08fa261eb5ff314d315a572ec16b963a89"
+    },
+    {
+      "id": "yoked-27",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [71],
+      "head": null
+    },
+    {
+      "id": "solitary-27",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-28",
+      "condition": "live",
+      "escapes": [2, 1],
+      "sawOther": [228, 206],
+      "head": "59a6a3e0cba691e4f79802e8fdc2a5154bf88afb0eccb0d9a9cd9002183e80ba"
+    },
+    {
+      "id": "yoked-28",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [41],
+      "head": null
+    },
+    {
+      "id": "solitary-28",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-29",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [174, 131],
+      "head": "f7ace5253f82a664a7a83e4661ecbe927d11dbb97ac82602c6f699a6d31dd4d3"
+    },
+    {
+      "id": "yoked-29",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [185],
+      "head": null
+    },
+    {
+      "id": "solitary-29",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-30",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [302, 238],
+      "head": "e22901ec99b4a9540afd6de704bc84b2692c76b8adc7def83f3d19397830bc35"
+    },
+    {
+      "id": "yoked-30",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [291],
+      "head": null
+    },
+    {
+      "id": "solitary-30",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-31",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [110, 124],
+      "head": "80e4f3d26a7dd1306eaad1364b5f5c82eb5a91503de63c148f192fab8d6d2a8d"
+    },
+    {
+      "id": "yoked-31",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [114],
+      "head": null
+    },
+    {
+      "id": "solitary-31",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-32",
+      "condition": "live",
+      "escapes": [2, 1],
+      "sawOther": [235, 617],
+      "head": "30e3a72dc74b7883f81d1aa1b99bcb3e8fe83ea804f85b5de91538718d08afb4"
+    },
+    {
+      "id": "yoked-32",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [257],
+      "head": null
+    },
+    {
+      "id": "solitary-32",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-33",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [222, 228],
+      "head": "52346cad9d60e97be17b9f600b1c0330c1191a905c2c587fbb476c704c20243c"
+    },
+    {
+      "id": "yoked-33",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [117],
+      "head": null
+    },
+    {
+      "id": "solitary-33",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-34",
+      "condition": "live",
+      "escapes": [0, 2],
+      "sawOther": [111, 235],
+      "head": "abd891caf432d1984da2f79beff38add0433402a6b605cc72f3b85d03c7bdc73"
+    },
+    {
+      "id": "yoked-34",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [108],
+      "head": null
+    },
+    {
+      "id": "solitary-34",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-35",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [31, 22],
+      "head": "0d0212133f6853accf1b8cbb772bd6551268c09a99a5555f876aa2e13ee088cc"
+    },
+    {
+      "id": "yoked-35",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [61],
+      "head": null
+    },
+    {
+      "id": "solitary-35",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-36",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [159, 136],
+      "head": "393dd2119972c196f8f0c8e6683e483abe2c4224ce6c8472e8456a0c1939a374"
+    },
+    {
+      "id": "yoked-36",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [167],
+      "head": null
+    },
+    {
+      "id": "solitary-36",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-37",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [354, 97],
+      "head": "fa858ff2bd0fd8259d29a40ae33e823f6b561d2202148051ca9f879386fe7ffd"
+    },
+    {
+      "id": "yoked-37",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [303],
+      "head": null
+    },
+    {
+      "id": "solitary-37",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-38",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [119, 204],
+      "head": "f6c8a0cc7615ef32e4c31ff8fa5fa6209c30c48163f616bc77a0d498dee331a5"
+    },
+    {
+      "id": "yoked-38",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [305],
+      "head": null
+    },
+    {
+      "id": "solitary-38",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-39",
+      "condition": "live",
+      "escapes": [2, 1],
+      "sawOther": [216, 210],
+      "head": "86af505c16be1fe05682c2eae35182763d0a8295ac910e7543c615b967b395ca"
+    },
+    {
+      "id": "yoked-39",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [10],
+      "head": null
+    },
+    {
+      "id": "solitary-39",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-40",
+      "condition": "live",
+      "escapes": [2, 2],
+      "sawOther": [167, 200],
+      "head": "e4708b7c6b975c2e82be19360ad76939c7f65c64c399b09f60a4b504fbd50d93"
+    },
+    {
+      "id": "yoked-40",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [168],
+      "head": null
+    },
+    {
+      "id": "solitary-40",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-41",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [251, 248],
+      "head": "a8dee0dd286a9ae8c51c80f114be77b2b79c0af4f7d98c97a826e91f26cb9f7d"
+    },
+    {
+      "id": "yoked-41",
+      "condition": "yoked",
+      "escapes": [2],
+      "sawOther": [223],
+      "head": null
+    },
+    {
+      "id": "solitary-41",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-42",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [88, 75],
+      "head": "be9624bd21673a0ec51db2a299a73a0ff5603c113bbe587c6ce1867267769249"
+    },
+    {
+      "id": "yoked-42",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [86],
+      "head": null
+    },
+    {
+      "id": "solitary-42",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-43",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [410, 423],
+      "head": "00e3daac5db9826f5660d318808f7e2ab9f6cd4189ff198eb260fdfab7db10b6"
+    },
+    {
+      "id": "yoked-43",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [101],
+      "head": null
+    },
+    {
+      "id": "solitary-43",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-44",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [147, 288],
+      "head": "51993fe9854fce26f1366ef730b1efb0da582f7a79da793ff941e83560bf06f1"
+    },
+    {
+      "id": "yoked-44",
+      "condition": "yoked",
+      "escapes": [2],
+      "sawOther": [320],
+      "head": null
+    },
+    {
+      "id": "solitary-44",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-45",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [57, 116],
+      "head": "b29cd837d230820a1659a7f87461d093a2d5dd26e604066795e4f1485fa2fd00"
+    },
+    {
+      "id": "yoked-45",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [130],
+      "head": null
+    },
+    {
+      "id": "solitary-45",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-46",
+      "condition": "live",
+      "escapes": [1, 2],
+      "sawOther": [166, 192],
+      "head": "4301b110427ce9424c53b3c713ff4d46eab5261fb1c025c22834b44685ffb5b9"
+    },
+    {
+      "id": "yoked-46",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [242],
+      "head": null
+    },
+    {
+      "id": "solitary-46",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-47",
+      "condition": "live",
+      "escapes": [2, 1],
+      "sawOther": [273, 333],
+      "head": "ef70e42809c4f17204efc8eba4bdd8347b9f4a7229496cdd47233f3df0c0cfdb"
+    },
+    {
+      "id": "yoked-47",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [66],
+      "head": null
+    },
+    {
+      "id": "solitary-47",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-48",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [153, 153],
+      "head": "d864e1df83d5a3b5ce7315d5cb2f0453dab04c2eaedc038b9377d4ead0a4becd"
+    },
+    {
+      "id": "yoked-48",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [342],
+      "head": null
+    },
+    {
+      "id": "solitary-48",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-49",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [105, 131],
+      "head": "e64213c7631d3a4d963ae5720642a09a96327e07d0674b11031ecfa5b3d1baf4"
+    },
+    {
+      "id": "yoked-49",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [265],
+      "head": null
+    },
+    {
+      "id": "solitary-49",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-50",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [128, 134],
+      "head": "607f47341f529810cdc07615e3bfa6e57796006f8f9a537360122358cfbfac84"
+    },
+    {
+      "id": "yoked-50",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [154],
+      "head": null
+    },
+    {
+      "id": "solitary-50",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-51",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [130, 156],
+      "head": "cc38ba2361c2b6bad084070db2a6f5bc0de255775044fb668e73ae2b06110337"
+    },
+    {
+      "id": "yoked-51",
+      "condition": "yoked",
+      "escapes": [2],
+      "sawOther": [333],
+      "head": null
+    },
+    {
+      "id": "solitary-51",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-52",
+      "condition": "live",
+      "escapes": [0, 1],
+      "sawOther": [11, 12],
+      "head": "1e2ec8c743aadd091135b8aae211cb1b13b29c76438ab54eea4f4b5b4d3c6c73"
+    },
+    {
+      "id": "yoked-52",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [67],
+      "head": null
+    },
+    {
+      "id": "solitary-52",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-53",
+      "condition": "live",
+      "escapes": [3, 2],
+      "sawOther": [266, 271],
+      "head": "67a9a83f32f466d2295c7d37a7516cef94f9f8739325a7f412ac457aa8daaab3"
+    },
+    {
+      "id": "yoked-53",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [178],
+      "head": null
+    },
+    {
+      "id": "solitary-53",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-54",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [83, 85],
+      "head": "c1c0029b3800a8b289a9640d7d9cd9c5a61173d34e2e91a470385a94afa93ed2"
+    },
+    {
+      "id": "yoked-54",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [39],
+      "head": null
+    },
+    {
+      "id": "solitary-54",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-55",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [10, 8],
+      "head": "1997bee8574bb87f23434ed1200ef048627f6f4e188fc5ef4bfaeefd8527ab64"
+    },
+    {
+      "id": "yoked-55",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [180],
+      "head": null
+    },
+    {
+      "id": "solitary-55",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-56",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [38, 33],
+      "head": "8177cf2481b06d774952d4809f6523337049790789cf9f2117a44216ef2b2795"
+    },
+    {
+      "id": "yoked-56",
+      "condition": "yoked",
+      "escapes": [0],
+      "sawOther": [284],
+      "head": null
+    },
+    {
+      "id": "solitary-56",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-57",
+      "condition": "live",
+      "escapes": [3, 1],
+      "sawOther": [199, 219],
+      "head": "509375866776f2da7a897f8f6a8409890e3caeb75d3d40f5cbd51a4ba366fcf9"
+    },
+    {
+      "id": "yoked-57",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [222],
+      "head": null
+    },
+    {
+      "id": "solitary-57",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-58",
+      "condition": "live",
+      "escapes": [1, 1],
+      "sawOther": [207, 193],
+      "head": "87d11741b3521e269d31c6766fcded51f5553f918cd330335b1fe6a9cf49e2a9"
+    },
+    {
+      "id": "yoked-58",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [91],
+      "head": null
+    },
+    {
+      "id": "solitary-58",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    },
+    {
+      "id": "live-59",
+      "condition": "live",
+      "escapes": [0, 0],
+      "sawOther": [15, 14],
+      "head": "355c52ab107d3d8d5da4231d40c47cb5a302fada69a3b59f79753689eda73f04"
+    },
+    {
+      "id": "yoked-59",
+      "condition": "yoked",
+      "escapes": [1],
+      "sawOther": [83],
+      "head": null
+    },
+    {
+      "id": "solitary-59",
+      "condition": "solitary",
+      "escapes": [0, 0],
+      "sawOther": [0, 0],
+      "head": null
+    }
+  ],
+  "digest": "e01683d81f6a2e951abec5266d078d43f2703ab958ca679b7e5111b77868d55b"
+}

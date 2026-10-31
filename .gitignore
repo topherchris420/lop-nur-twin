@@ -70,3 +70,7 @@ public/noeterra/
 # repository: they live in $FLY_NEURAL_DATA (default ~/.cache/fly-neural).
 .fly-neural/
 fly-neural/*.egg-info/
+
+# First contact (docs/FIRST_CONTACT.md): read-only recordings of the two public
+# observation streams, written by scripts/first-contact-observe.ts.
+.first-contact/
