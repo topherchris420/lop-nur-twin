@@ -5,7 +5,10 @@ A person launches it (the command is in docs/ECHO_ADAPTIVE_INTELLIGENCE.md,
 Inside the job it:
 
 1. requires the checkout to be the commit asked for, with a clean tree;
-2. installs fly-neural, fetches the pinned sources onto the job's own disk
+2. installs fly-neural (and, if the plan names a ``node`` release, that
+   Node.js tarball, checked against its SHA-256, and the repository's
+   locked npm dependencies without install scripts), fetches the pinned
+   sources onto the job's own disk
    under the terms named in ``FLY_NEURAL_ACCEPT`` (the person launching it
    accepts them), compiles the connectome and prints every array's SHA-256
    so the import can be compared with a local one;
@@ -140,6 +143,24 @@ class Uploader:
                 say(f"upload failed ({type(e).__name__}: {e}); will retry")
 
 
+def install_node(spec: dict) -> None:
+    """The official linux-x64 tarball of ``spec["version"]``, refused unless its SHA-256 is ``spec["sha256"]``."""
+    import tarfile
+    import urllib.request
+
+    name = f"node-{spec['version']}-linux-x64"
+    tarball = Path("/work") / f"{name}.tar.xz"
+    urllib.request.urlretrieve(f"https://nodejs.org/dist/{spec['version']}/{name}.tar.xz", tarball)
+    digest = hashlib.sha256(tarball.read_bytes()).hexdigest()
+    if digest != spec["sha256"]:
+        raise SystemExit(f"{tarball.name} is {digest}, not {spec['sha256']}")
+    with tarfile.open(tarball) as tf:
+        tf.extractall("/work", filter="tar")
+    os.environ["PATH"] = f"/work/{name}/bin{os.pathsep}{os.environ['PATH']}"
+    subprocess.run(["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund"], cwd=REPO, check=True, stdout=subprocess.DEVNULL)
+    say(f"node {sh('node', '--version').strip()} and the locked npm dependencies installed")
+
+
 def setup(connectome: str, accept: list[str]) -> None:
     sh(sys.executable, "-m", "pip", "install", "-q", "-e", str(FLY), "huggingface_hub>=0.30")
     importlib.invalidate_caches()  # huggingface_hub is imported below, by this already-running interpreter
@@ -195,6 +216,8 @@ def main() -> int:
     accept = [t for t in os.environ.get("FLY_NEURAL_ACCEPT", "").split(",") if t]
     os.environ.setdefault("FLY_NEURAL_DATA", "/work/data")
     say(f"plan {plan['name']} at {head[:12]}; cpus {os.cpu_count()}; accepting {accept}")
+    if plan.get("node"):
+        install_node(plan["node"])
     setup(plan.get("connectome", "fafb-v783-shiu"), accept)
     if sh("git", "status", "--porcelain", "--untracked-files=all").strip():
         raise SystemExit(f"setup left the tree dirty:\n{sh('git', 'status', '--porcelain')}")

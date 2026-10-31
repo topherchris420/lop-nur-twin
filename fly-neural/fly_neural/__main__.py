@@ -232,7 +232,7 @@ def cmd_closedloop(args) -> int:
 
     if args.action == "serve":
         return closedloop.serve(compiled_dir(args.connectome), ADAPTIVE)
-    data = closedloop.run(_config(args.config), args.split, REPO, ADAPTIVE, Path(args.out or ADAPTIVE), sys.executable)
+    data = closedloop.run(_config(args.config), args.split, REPO, ADAPTIVE, Path(args.out or ADAPTIVE), sys.executable, units=args.unit, resume=args.resume)
     return 0 if not data["failed"] else 3
 
 
@@ -344,6 +344,8 @@ def main(argv: list[str] | None = None) -> int:
     cl.add_argument("--config", default="closed-loop-v783.json")
     cl.add_argument("--connectome", default="fafb-v783-shiu")
     cl.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    cl.add_argument("--unit", action="append", help="only run SCENARIO:SEED:ARM (e.g. looms:9100101:neural-selected) and stop; repeatable. A later --resume run judges them all")
+    cl.add_argument("--resume", action="store_true", help="reuse runs a process of this same commit, config and readouts finished (.fly-neural/closed-loop/)")
     cl.set_defaults(fn=cmd_closedloop)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")

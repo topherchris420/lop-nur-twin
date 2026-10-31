@@ -149,6 +149,16 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def arrays_digest(c: Connectome) -> str | None:
+    """SHA-256 over the arrays' own hashes and the sign policy: equal for two imports of the same data
+    on any machine, unlike the manifest's hash, which also covers when, where and by what code it was made."""
+    files = c.manifest.get("files")
+    if not files:
+        return None
+    ident = {"sign_policy": c.manifest.get("sign_policy"), "files": {k: v["sha256"] for k, v in sorted(files.items())}}
+    return hashlib.sha256(json.dumps(ident, sort_keys=True).encode()).hexdigest()
+
+
 def save(c: Connectome, out: Path) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     files = {}

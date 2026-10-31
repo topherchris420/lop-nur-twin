@@ -16,7 +16,10 @@ for ``scripts/echo-closed-loop.ts``:
 
 ``run`` drives the pre-registered experiment: one node process per research
 subject, arm and scenario, each spawning this server; their summaries are
-judged by the config's criteria and sealed.
+judged by the config's criteria and sealed. Each finished run is kept with
+its identity (config, commit, cleanliness, source, escape readouts), so
+``units`` can split the runs among parallel processes and a final
+``resume`` run judges them all, exactly as one process would have.
 """
 
 from __future__ import annotations
@@ -167,17 +170,32 @@ def _cfg(path: Path) -> tuple[dict, str]:
     return cfg, hashlib.sha256(Path(path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
-def run(cfg_path: Path, split: str, repo: Path, results: Path, out_dir: Path, python: str, log=print) -> dict:
+def run(cfg_path: Path, split: str, repo: Path, results: Path, out_dir: Path, python: str, log=print, units: list[str] | None = None, resume: bool = False) -> dict:
     code = code_watch(out_dir)
     cfg, config_sha256 = _cfg(cfg_path)
     work = repo / ".fly-neural" / "closed-loop"
     work.mkdir(parents=True, exist_ok=True)
+    every = [f"{sc}:{seed}:{arm}" for sc in cfg["scenarios"] for seed in cfg["seeds"][split] for arm in cfg["arms"]]
+    if units is not None and set(units) - set(every):
+        raise ValueError(f"no such run in the {split} split: {sorted(set(units) - set(every))}")
+    readouts = {a: escape_spec(a, results) for a in cfg["arms"] if a != "baseline"}
+    ident = {"config_sha256": config_sha256, "readouts_sha256": hashlib.sha256(json.dumps(readouts, sort_keys=True).encode()).hexdigest(), **{k: code.start.get(k) for k in ("commit", "dirty", "fly_neural")}}
     runs = []
     with Meter() as meter:
         for scenario in cfg["scenarios"]:
             for seed in cfg["seeds"][split]:
                 for arm in cfg["arms"]:
+                    if units is not None and f"{scenario}:{seed}:{arm}" not in units:
+                        continue
+                    kept = work / f"{split}-{scenario}-{seed}-{arm}.row.json"
+                    if resume and kept.exists():
+                        old = json.loads(kept.read_text(encoding="utf-8"))
+                        if old.get("ident") == ident:
+                            runs.append({**old["row"], "resumed": True})
+                            log(f"  {split} {scenario} {seed} {arm}: resumed")
+                            continue
                     summary = work / f"{split}-{scenario}-{seed}-{arm}.json"
+                    summary.unlink(missing_ok=True)
                     cmd = ["node", "scripts/run-ts.mjs", "scripts/echo-closed-loop.ts", "--scenario", scenario, "--seed", str(seed), "--arm", arm, "--seconds", str(cfg["seconds"]), "--python", python, "--summary", str(summary.relative_to(repo)).replace("\\", "/")]
                     w0 = time.monotonic()
                     p = subprocess.run(cmd, cwd=repo, capture_output=True, text=True, timeout=cfg["limits"]["run_timeout_s"])
@@ -187,7 +205,10 @@ def run(cfg_path: Path, split: str, repo: Path, results: Path, out_dir: Path, py
                     else:
                         row["stderr_tail"] = p.stderr[-2000:]
                     runs.append(row)
+                    write_json(kept, {"ident": ident, "row": row})
                     log(f"  {split} {scenario} {seed} {arm}: exit {p.returncode}, {json.dumps((row.get('summary') or {}).get('outcome'))}")
+    if units is not None:
+        return {"ran": [f"{r['scenario']}:{r['seed']}:{r['arm']}" for r in runs], "failed": []}
     verdicts = [judge(cr, runs) for cr in cfg["criteria"] if cr.get("split", split) == split]
     body = {
         "schema": RESULT_SCHEMA,
@@ -196,7 +217,7 @@ def run(cfg_path: Path, split: str, repo: Path, results: Path, out_dir: Path, py
         "config_file": Path(cfg_path).name,
         "config_sha256": config_sha256,
         "split": split,
-        "escape_readouts": {a: escape_spec(a, results) for a in cfg["arms"] if a != "baseline"},
+        "escape_readouts": readouts,
         "runs": runs,
         "criteria": verdicts,
         "failed": [v["id"] for v in verdicts if not v["passed"]],

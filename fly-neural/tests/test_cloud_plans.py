@@ -137,3 +137,14 @@ def test_the_runner_fetches_restores_runs_and_uploads(tmp_path, monkeypatch):
     last = hub.uploads[-1]
     assert {"state/.fly-neural/progress/run.jsonl", "state/.fly-neural/threat/traces/old.json", "logs/phase0-0.log"} <= set(last)
     assert not any(k.startswith("state/.fly-neural/threat/recording") for k in last)
+
+
+def test_closed_loop_units_cover_every_run_once_then_judge():
+    cfg = json.loads((ROOT / "experiments" / "closed-loop-v783.json").read_text(encoding="utf-8"))
+    for split in ("dev", "heldout"):
+        p = json.loads((ROOT / "cloud" / "plans" / f"closed-loop-{split}.json").read_text(encoding="utf-8"))
+        workers, final = p["phases"]
+        units = [c[c.index("--unit") + 1] for c in workers["commands"]]
+        assert sorted(units) == sorted(f"{sc}:{s}:{a}" for sc in cfg["scenarios"] for s in cfg["seeds"][split] for a in cfg["arms"])
+        assert final["commands"] == [["closedloop", "run", "--split", split, "--resume"]]
+        assert p["node"]["version"].startswith("v") and len(p["node"]["sha256"]) == 64

@@ -83,3 +83,42 @@ def test_judge_wording_follows_the_production_ratio():
     ]
     v = cl.judge({"id": "x", "claim": "", "test": "produced", "arm": "neural-selected", "scenario": "looms", "field_issued": "issued_escape", "field_done": "executed_escape", "min_ratio": 0.9}, runs)
     assert v["ratio"] == 0.6 and not v["passed"] and v["wording"] == "predictive"
+
+
+def test_parallel_units_then_a_resumed_run_equal_one_process(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    cfg = json.loads((Path(cl.__file__).parents[1] / "experiments" / "closed-loop-v783.json").read_text(encoding="utf-8"))
+    cfg |= {"arms": ["baseline", "neural-merged"], "scenarios": ["looms", "food"], "seeds": {"dev": [1], "heldout": [2]}}
+    cfg["criteria"] = [{"id": "C", "claim": "every neural run completed", "test": "completed"}]
+    path = tmp_path / "cfg.json"
+    path.write_text(json.dumps(cfg), encoding="utf-8")
+    calls = []
+
+    class Done:
+        returncode, stderr = 0, ""
+
+    real = cl.subprocess.run
+
+    def fake_node(cmd, *args, **kw):
+        if cmd[0] != "node":
+            return real(cmd, *args, **kw)
+        cwd = kw["cwd"]
+        calls.append(cmd)
+        out = Path(cwd) / cmd[cmd.index("--summary") + 1]
+        out.write_text(json.dumps({"scenario": cmd[cmd.index("--scenario") + 1], "outcome": {"aborted": False}}), encoding="utf-8")
+        return Done()
+
+    monkeypatch.setattr(cl.subprocess, "run", fake_node)
+    monkeypatch.setattr(cl, "code_watch", lambda out: type("W", (), {"start": {"commit": "c", "dirty": False, "fly_neural": {"sha256": "s"}}, "__call__": lambda self: {}})())
+    with pytest.raises(ValueError, match="no such run"):
+        cl.run(path, "dev", tmp_path, tmp_path, tmp_path, "py", log=lambda *_: None, units=["looms:2:baseline"])
+    for u in ("looms:1:baseline", "looms:1:neural-merged", "food:1:baseline", "food:1:neural-merged"):
+        assert cl.run(path, "dev", tmp_path, tmp_path, tmp_path, "py", log=lambda *_: None, units=[u])["ran"] == [u]
+    assert len(calls) == 4
+    data = cl.run(path, "dev", tmp_path, tmp_path, tmp_path, "py", log=lambda *_: None, resume=True)
+    assert len(calls) == 4 and all(r["resumed"] for r in data["runs"]) and data["failed"] == []
+    assert [(r["scenario"], r["arm"]) for r in data["runs"]] == [("looms", "baseline"), ("looms", "neural-merged"), ("food", "baseline"), ("food", "neural-merged")]
+    path.write_text(json.dumps(cfg | {"seconds": cfg["seconds"] + 1}), encoding="utf-8")
+    cl.run(path, "dev", tmp_path, tmp_path, tmp_path, "py", log=lambda *_: None, resume=True)
+    assert len(calls) == 8, "another config must not reuse these runs"

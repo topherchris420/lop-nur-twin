@@ -467,7 +467,8 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
         "commit": start.get("commit"),
         "dirty": start.get("dirty"),
         "fly_neural": start.get("fly_neural"),
-        "connectome_manifest_sha256": c.manifest.get("sha256"),
+        # The arrays, not the manifest: a relaunched cloud job imports the same data again, with a new manifest.
+        "connectome_arrays_sha256": cx.arrays_digest(c),
     }
     earlier = resume_progress(progress, header, resume, "subjects", log)
     if merge:
