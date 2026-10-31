@@ -1,0 +1,147 @@
+{
+ "schema": "fly-neural-plasticity/v2",
+ "id": "plasticity-v2-v783",
+ "title": "Odour-specific associative learning on the connectome's mushroom body: a sparse Kenyon-cell code and a three-factor, synapse-specific rule, against fixed weights, the merged rule, a dopamine lesion, shuffled rewards, rewired PN-KC wiring and the repository's mushroom-body rate model",
+ "preregistration": "Written before any learning run of this file. The rule and its constants, the protocol, the odours (development by hand; held-out by the seeded draw below, done once and written here), the arms and the criteria are fixed here. The only quantity set from data is the dopamine threshold, by the calibration rule below, on development odours and seeds only, before any learning run. Development runs may repeat while code changes; the held-out split runs once, from a clean commit, and is reported whatever it shows. No criterion changes after a result is seen.",
+ "connectome": "fafb-v783-shiu",
+ "representation": {
+  "from": "mb-representation-al-v783.json",
+  "alternatives": {"thr-only": "mb-representation-v783.json"},
+  "what": "sparse: the Kenyon-cell code selected by experiments/mb-representation-al-v783.json (antennal-lobe local neurons' excitatory gain x KC threshold, chosen for the least A/B overlap). thr-only: mb-representation-v783's selection (KC threshold x3, sparse but as overlapping as before). dense: Shiu et al.'s weights as they are."
+ },
+ "rule_v1": {"eta": 0.3, "e_sat": 3, "D_sat": 20, "what": "plasticity-v783's rule, unchanged"},
+ "rule_v2": {
+  "dan_mbon_min_synapses": 5,
+  "constants": {"eta_dep": 0.5, "eta_ext": 0.3, "floor": 0.2, "e_sat": 3, "tau_e_s": 1.0, "t_r_s": 0.1, "bin_ms": 10.0, "da_window_ms": 50.0},
+  "status": "model: every constant is ours, chosen before any run, none fitted",
+  "basis": "Depression of KC-to-MBON synapses needs KC activity paired with dopamine (Hige et al. 2015, Neuron 88:985-998, doi:10.1016/j.neuron.2015.11.003; Cohn et al. 2015, Cell 163:1742-1755, doi:10.1016/j.cell.2015.11.019); the order of KC activity and dopamine sets its sign and a trace links them over seconds (Handler et al. 2019, Cell 178:60-75, doi:10.1016/j.cell.2019.05.040); unreinforced re-exposure extinguishes a memory (Felsenberg et al. 2017, Nature 544:240-244, doi:10.1038/nature21716; Felsenberg et al. 2018, Cell 175:709-722, doi:10.1016/j.cell.2018.08.021). The per-synapse Rescorla-Wagner form, the threshold and the bounded weight are ours (status model)."
+ },
+ "protocol": {
+  "odour_rate_hz": 80.0,
+  "odour_drive": "matched_total",
+  "odour_rate_cap_hz": 200.0,
+  "odour_drive_note": "Every odour's ORNs together fire as many spikes as development odour A's do at 80 Hz (its 222 ORNs), because the held-out glomeruli have about half as many ORNs; capped at 200 Hz. Ours.",
+  "reward_rate_hz": 100.0,
+  "test_trial_ms": 500.0,
+  "schedules": {
+   "standard": {"phases": "standard", "trial_ms": 500.0, "odour_ms": null, "reward_ms": null},
+   "trace": {"phases": "trace", "trial_ms": 1000.0, "odour_ms": [0.0, 400.0], "reward_ms": [600.0, 1000.0]}
+  },
+  "readout": "spikes of the readout MBONs (those receiving at least 5 synapses from some PAM DAN) summed over a 500 ms test trial, plasticity off; the brain starts each trial from rest",
+  "reward": "PAM DANs driven at reward_rate_hz (all of them) over the reward window"
+ },
+ "schedules": {
+  "standard": [
+   {"name": "pre", "plastic": false, "repeat": 2, "block": ["A", "B", "Asim"]},
+   {"name": "acq", "plastic": true, "repeat": 8, "block": ["A+", "B"]},
+   {"name": "test1", "plastic": false, "repeat": 2, "block": ["A", "B", "Asim"]},
+   {"name": "distract", "plastic": true, "repeat": 4, "block": ["C"]},
+   {"name": "test2", "plastic": false, "repeat": 2, "block": ["A", "B", "Asim"]},
+   {"name": "ext", "plastic": true, "repeat": 6, "block": ["A"]},
+   {"name": "test3", "plastic": false, "repeat": 2, "block": ["A", "B", "Asim"]},
+   {"name": "rev", "plastic": true, "repeat": 8, "block": ["B+", "A"]},
+   {"name": "test4", "plastic": false, "repeat": 2, "block": ["A", "B", "Asim"]}
+  ],
+  "trace": [
+   {"name": "pre", "plastic": false, "repeat": 2, "block": ["A", "B", "Asim"]},
+   {"name": "acq", "plastic": true, "repeat": 8, "block": ["A+", "B"]},
+   {"name": "test1", "plastic": false, "repeat": 2, "block": ["A", "B", "Asim"]}
+  ]
+ },
+ "pretest_phase": "pre",
+ "acquisition_phase": "acq",
+ "indices": {
+  "li_acq": {"terms": [[1, "test1", "A"], [-1, "test1", "B"]], "what": "A's response after acquisition relative to before, minus B's: negative when the paired odour's MBON response fell more (learning)"},
+  "a_change": {"terms": [[1, "test1", "A"]], "offset": -1.0, "what": "A's relative change after acquisition"},
+  "b_change": {"terms": [[1, "test1", "B"]], "offset": -1.0, "what": "B's relative change after acquisition: near 0 when the unpaired odour is spared"},
+  "li_ret": {"terms": [[1, "test2", "A"], [-1, "test2", "B"]], "what": "the same after the distractor odour C was presented, unrewarded, 4 times"},
+  "recovery": {"terms": [[1, "test3", "A"], [-1, "test1", "A"]], "what": "A's response after 6 unrewarded A trials minus after acquisition: positive when extinction restored it"},
+  "li_rev": {"terms": [[1, "test4", "A"], [-1, "test4", "B"]], "what": "after B was rewarded and A not: positive when B's response now fell more than A's"},
+  "generalization": {"terms": [[1, "test1", "Asim"]], "offset": -1.0, "what": "the change in the response to Asim, which shares two of A's three glomeruli"}
+ },
+ "odours": {
+  "note": "Abstract odours: the ORNs of three glomeruli each, both sides. No chemical identity or valence is claimed. Asim shares two of A's glomeruli.",
+  "dev": {
+   "A": ["ORN_DL3", "ORN_VM4", "ORN_DM1"],
+   "B": ["ORN_VL1", "ORN_VL2a", "ORN_DL1"],
+   "Asim": ["ORN_DL3", "ORN_VM4", "ORN_VA2"],
+   "C": ["ORN_DM2", "ORN_DM3", "ORN_VA6"]
+  },
+  "heldout_draw": "From the ORN types with at least 30 neurons in FlyWire's annotations, less the 10 glomeruli development uses (24 left, sorted by name): numpy default_rng(3700002).permutation; H1 takes A = perm[0:3], B = perm[3:6], Asim = A[0:2] + perm[6], C = perm[7:10]; H2 the same from perm[10:20]. Done once, before any run, and written below.",
+  "H1": {
+   "A": ["ORN_DM4", "ORN_DC3", "ORN_DA3"],
+   "B": ["ORN_VM6m", "ORN_DA4l", "ORN_VM2"],
+   "Asim": ["ORN_DM4", "ORN_DC3", "ORN_VM3"],
+   "C": ["ORN_VA1v", "ORN_VM5d", "ORN_DM6"]
+  },
+  "H2": {
+   "A": ["ORN_VA4", "ORN_DC1", "ORN_DL5"],
+   "B": ["ORN_V", "ORN_DA4m", "ORN_DP1m"],
+   "Asim": ["ORN_VA4", "ORN_DC1", "ORN_DA1"],
+   "C": ["ORN_D", "ORN_DA2", "ORN_VM7d"]
+  }
+ },
+ "calibration": {
+  "rule": "theta_hz = the midpoint of (a) the 0.999 quantile of the compartment dopamine rate over all 10 ms bins of unrewarded test-length trials and (b) the median of the same over rewarded ones; development odours A and B, development seeds, the selected representation; before any learning run",
+  "subjects": 2,
+  "odours": ["A", "B"],
+  "trials": 2,
+  "unrewarded_quantile": 0.999,
+  "rewarded_quantile": 0.5
+ },
+ "seeds": {"dev": 4200001, "heldout": 4700001},
+ "subjects": {"dev": 3, "heldout": 8},
+ "arms": [
+  {"name": "fixed", "rule": "none", "representation": "sparse", "what": "fixed weights"},
+  {"name": "v1-dense", "rule": "v1", "representation": "dense", "what": "the merged rule on the merged representation: the existing mechanism"},
+  {"name": "v1-sparse", "rule": "v1", "representation": "sparse", "what": "the merged rule on the sparse code"},
+  {"name": "v2", "rule": "v2", "representation": "sparse", "what": "the improved rule on the sparse code"},
+  {"name": "v2-dense", "rule": "v2", "representation": "dense", "what": "the improved rule without the sparse code"},
+  {"name": "v2-thr-only", "rule": "v2", "representation": "thr-only", "what": "the improved rule on a code made sparse by the KC threshold alone, without the antennal-lobe change"},
+  {"name": "v2-no-threshold", "rule": "v2", "representation": "sparse", "no_threshold": true, "what": "every PAM spike counts as reward (theta 0)"},
+  {"name": "v2-dan-silenced", "rule": "v2", "representation": "sparse", "silence_dans": true, "what": "PAM DANs silenced and their output blocked"},
+  {"name": "v2-reward-shuffled", "rule": "v2", "representation": "sparse", "reward": "shuffled", "what": "each plastic phase's rewards reassigned to random trials of that phase"},
+  {"name": "v2-pnkc-shuffled", "rule": "v2", "representation": "sparse", "wiring": "pn-kc-shuffle", "what": "PN->KC synapses' targets permuted among KCs (each PN's out-degree and each KC's in-degree kept): disrupted connectivity"},
+  {"name": "v2-trace", "rule": "v2", "representation": "sparse", "schedule": "trace", "what": "odour 0-400 ms, reward 600-1000 ms"},
+  {"name": "v2-trace-no-trace", "rule": "v2", "representation": "sparse", "schedule": "trace", "rule_v2_override": {"tau_e_s": 0.001}, "what": "the same with the eligibility trace removed (1 ms)"}
+ ],
+ "runs": {
+  "dev": [{"pair": "dev", "arms": ["fixed", "v1-dense", "v1-sparse", "v2", "v2-dense", "v2-thr-only", "v2-no-threshold", "v2-dan-silenced", "v2-reward-shuffled", "v2-pnkc-shuffled", "v2-trace", "v2-trace-no-trace"]}],
+  "heldout": [
+   {"pair": "H1", "arms": ["fixed", "v1-dense", "v1-sparse", "v2", "v2-dense", "v2-thr-only", "v2-no-threshold", "v2-dan-silenced", "v2-reward-shuffled", "v2-pnkc-shuffled", "v2-trace", "v2-trace-no-trace"]},
+   {"pair": "H2", "arms": ["fixed", "v1-dense", "v1-sparse", "v2", "v2-dense", "v2-dan-silenced", "v2-reward-shuffled"]}
+  ]
+ },
+ "echo_mb": {
+  "what": "The repository's mushroom-body rate model (src/bethesda/fly/mushroomBody/circuit.ts, Bennett, Philippides & Nowotny 2021), run by scripts/echo-neural-plasticity.ts --schedule v2 on the standard schedule (the run refuses its result if the schedules differ). Arms: as-is, and with the DANs' output blocked in unrewarded trials. Its indices are differences on its own prediction scale, which rises with reward; reported, not judged.",
+  "subjects": 8,
+  "seeds": {"dev": 4200001, "heldout": 4700001}
+ },
+ "criteria": [
+  {"id": "L0", "split": "heldout", "pair": "H1", "claim": "Precondition: each odour reaches the readout MBONs before training (fixed weights, sparse code)", "test": "readout_responds", "arm": "fixed", "phase": "pre", "odours": ["A", "B", "Asim"], "min_mean_spikes": 5.0, "threshold_note": "ours: a precondition, not a learning result"},
+  {"id": "L0", "split": "heldout", "pair": "H2", "claim": "Precondition: each odour reaches the readout MBONs before training", "test": "readout_responds", "arm": "fixed", "phase": "pre", "odours": ["A", "B", "Asim"], "min_mean_spikes": 5.0},
+  {"id": "L1", "split": "heldout", "pair": "H1", "claim": "With rule v2 on the sparse code, the paired odour's response falls more than the unpaired one's, in every subject, by at least 0.10 on average", "test": "all_negative", "arm": "v2", "field": "li_acq", "alpha": 0.01, "mean_at_most": -0.10, "threshold_note": "one-sided sign test over 8 subjects (all 8 gives p = 0.0039); the 0.10 effect size is ours"},
+  {"id": "L1", "split": "heldout", "pair": "H2", "claim": "The same on the second held-out pair", "test": "all_negative", "arm": "v2", "field": "li_acq", "alpha": 0.01, "mean_at_most": -0.10},
+  {"id": "L2", "split": "heldout", "pair": "H1", "claim": "Fixed weights learn less", "test": "mw_less", "a": "v2", "b": "fixed", "field": "li_acq", "alpha": 0.01},
+  {"id": "L2", "split": "heldout", "pair": "H2", "claim": "Fixed weights learn less", "test": "mw_less", "a": "v2", "b": "fixed", "field": "li_acq", "alpha": 0.01},
+  {"id": "L3", "split": "heldout", "pair": "H1", "claim": "Silencing the DANs abolishes it", "test": "mw_less", "a": "v2", "b": "v2-dan-silenced", "field": "li_acq", "alpha": 0.01},
+  {"id": "L3", "split": "heldout", "pair": "H2", "claim": "Silencing the DANs abolishes it", "test": "mw_less", "a": "v2", "b": "v2-dan-silenced", "field": "li_acq", "alpha": 0.01},
+  {"id": "L4", "split": "heldout", "pair": "H1", "claim": "It depends on which odour was rewarded: shuffling rewards within a phase removes it", "test": "mw_less", "a": "v2", "b": "v2-reward-shuffled", "field": "li_acq", "alpha": 0.01},
+  {"id": "L4", "split": "heldout", "pair": "H2", "claim": "Shuffling rewards removes it", "test": "mw_less", "a": "v2", "b": "v2-reward-shuffled", "field": "li_acq", "alpha": 0.01},
+  {"id": "L5", "split": "heldout", "pair": "H1", "claim": "v2 on the sparse code is more odour-specific than the merged mechanism (v1 on the dense code)", "test": "mw_less", "a": "v2", "b": "v1-dense", "field": "li_acq", "alpha": 0.01},
+  {"id": "L5", "split": "heldout", "pair": "H2", "claim": "More odour-specific than the merged mechanism", "test": "mw_less", "a": "v2", "b": "v1-dense", "field": "li_acq", "alpha": 0.01},
+  {"id": "L6", "split": "heldout", "pair": "H1", "claim": "It spares the unpaired odour more than the merged mechanism does (less nonspecific depression of B)", "test": "mw_greater", "a": "v2", "b": "v1-dense", "field": "b_change", "alpha": 0.01},
+  {"id": "L6", "split": "heldout", "pair": "H2", "claim": "It spares the unpaired odour more", "test": "mw_greater", "a": "v2", "b": "v1-dense", "field": "b_change", "alpha": 0.01},
+  {"id": "L7", "split": "heldout", "pair": "H1", "claim": "The memory survives an unrelated, unrewarded odour: the index after the distractor is negative in every subject and at least half the acquisition index on average", "test": "all_negative", "arm": "v2", "field": "li_ret", "alpha": 0.01, "mean_fraction_of": {"arm": "v2", "field": "li_acq", "fraction": 0.5}},
+  {"id": "L8", "split": "heldout", "pair": "H1", "claim": "Unrewarded re-exposure to A extinguishes the memory: A's response recovers in every subject", "test": "all_positive", "arm": "v2", "field": "recovery", "alpha": 0.01},
+  {"id": "L9", "split": "heldout", "pair": "H1", "claim": "and recovers more than under the merged rule, which can only depress", "test": "mw_greater", "a": "v2", "b": "v1-sparse", "field": "recovery", "alpha": 0.01},
+  {"id": "L10", "split": "heldout", "pair": "H1", "claim": "Reversal: after B is rewarded and A not, B's response falls below A's in every subject", "test": "all_positive", "arm": "v2", "field": "li_rev", "alpha": 0.01},
+  {"id": "L11", "split": "heldout", "pair": "H1", "claim": "With a 200 ms gap between odour and reward, the eligibility trace carries the association", "test": "mw_less", "a": "v2-trace", "b": "v2-trace-no-trace", "field": "li_acq", "alpha": 0.01},
+  {"id": "L12", "split": "heldout", "pair": "H1", "claim": "The dopamine threshold matters: counting odour-evoked PAM activity as reward makes learning less specific", "test": "mw_less", "a": "v2", "b": "v2-no-threshold", "field": "li_acq", "alpha": 0.01},
+  {"id": "L13", "split": "heldout", "pair": "H1", "claim": "The sparse code matters: rule v2 on the dense code is less specific", "test": "mw_less", "a": "v2", "b": "v2-dense", "field": "li_acq", "alpha": 0.01},
+  {"id": "L14", "split": "heldout", "pair": "H1", "claim": "The antennal-lobe change matters beyond sparseness: rule v2 on the threshold-only code is less specific", "test": "mw_less", "a": "v2", "b": "v2-thr-only", "field": "li_acq", "alpha": 0.01},
+  {"id": "X1", "split": "heldout", "pair": "H1", "claim": "Exploratory: rule v2 with PN->KC targets permuted; generalization to Asim; every arm's indices", "test": "report_only", "arms": ["fixed", "v1-dense", "v1-sparse", "v2", "v2-dense", "v2-thr-only", "v2-no-threshold", "v2-dan-silenced", "v2-reward-shuffled", "v2-pnkc-shuffled", "v2-trace", "v2-trace-no-trace"], "fields": ["li_acq", "a_change", "b_change", "li_ret", "recovery", "li_rev", "generalization"]},
+  {"id": "X1", "split": "heldout", "pair": "H2", "claim": "Exploratory: every arm's indices", "test": "report_only", "arms": ["fixed", "v1-dense", "v1-sparse", "v2", "v2-dense", "v2-dan-silenced", "v2-reward-shuffled"], "fields": ["li_acq", "a_change", "b_change", "li_ret", "recovery", "li_rev", "generalization"]},
+  {"id": "XD", "split": "dev", "pair": "dev", "claim": "Development: every arm's indices (3 subjects; nothing judged)", "test": "report_only", "arms": ["fixed", "v1-dense", "v1-sparse", "v2", "v2-dense", "v2-thr-only", "v2-no-threshold", "v2-dan-silenced", "v2-reward-shuffled", "v2-pnkc-shuffled", "v2-trace", "v2-trace-no-trace"], "fields": ["li_acq", "a_change", "b_change", "li_ret", "recovery", "li_rev", "generalization"]}
+ ]
+}

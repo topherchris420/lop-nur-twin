@@ -16,6 +16,8 @@ from pathlib import Path
 from .record import REPO
 
 RESULTS = REPO / "docs" / "benchmarks" / "fly-neural"
+# The adaptive-intelligence results (docs/ECHO_ADAPTIVE_INTELLIGENCE.md), kept apart from the sealed originals.
+ADAPTIVE = RESULTS / "adaptive"
 WORK = REPO / ".fly-neural"
 
 
@@ -160,6 +162,81 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_reproduce(args) -> int:
+    from .reproduce import run
+
+    data = run(
+        RESULTS,
+        WORK,
+        compiled_dir(args.connectome),
+        Path(args.out or ADAPTIVE),
+        tuple(args.scenario or ("looms", "food")),
+        tuple(args.plasticity_arm or ("rule", "fixed")),
+        args.plasticity_subjects,
+    )
+    return 0 if data["identical"] else 3
+
+
+def _config(name: str) -> Path:
+    cfg = Path(name)
+    if not cfg.is_absolute() and not cfg.exists():
+        cfg = Path(__file__).resolve().parents[1] / "experiments" / name
+    return cfg
+
+
+def cmd_mbcode(args) -> int:
+    from .mbcode import sweep
+
+    data = sweep(_config(args.config), compiled_dir(args.connectome), Path(args.out or ADAPTIVE))
+    return 0 if data["selected"] else 3
+
+
+def cmd_threat(args) -> int:
+    from . import threat
+
+    cfg = _config(args.config)
+    if args.action == "battery":
+        print(f"wrote {threat.write_battery(cfg, args.split, WORK)}")
+        return 0
+    data = threat.run(cfg, args.split, compiled_dir(args.connectome), WORK, Path(args.out or ADAPTIVE), resume=args.resume, replays=args.replay)
+    return 0 if not data.get("failed") else 3
+
+
+def cmd_selective(args) -> int:
+    from . import selective
+
+    cfg = _config(args.config)
+    out = Path(args.out or ADAPTIVE)
+    if args.action == "calibrate":
+        selective.calibrate(cfg, compiled_dir(args.connectome), ADAPTIVE, out)
+        return 0
+    shard = tuple(int(x) for x in args.shard.split("/")) if args.shard else None
+    progress = WORK / "progress" / f"{cfg.stem}-{args.split}{f'-{args.subjects}-subjects' if args.subjects else ''}{'-only-' + '-'.join(args.only) if args.only else ''}{f'-shard-{shard[0]}-of-{shard[1]}' if shard else ''}.jsonl"
+    data = selective.run(cfg, args.split, compiled_dir(args.connectome), ADAPTIVE, out, Path(args.echo_mb) if args.echo_mb else None, subjects=args.subjects, progress=progress, resume=args.resume, only=args.only, merge=[Path(m) for m in args.merge_from or []], shard=shard)
+    return 0 if not data["failed"] else 3
+
+
+def cmd_adaptive(args) -> int:
+    from . import adaptive
+
+    cfg = _config(args.config)
+    codes = WORK / "adaptive" / f"codes-{cfg.stem}.npz"
+    if args.action == "codes":
+        adaptive.build_codes(cfg, compiled_dir(args.connectome), ADAPTIVE, codes)
+        return 0
+    data = adaptive.run(cfg, args.split, codes, Path(args.out or ADAPTIVE))
+    return 0 if not data["failed"] else 3
+
+
+def cmd_closedloop(args) -> int:
+    from . import closedloop
+
+    if args.action == "serve":
+        return closedloop.serve(compiled_dir(args.connectome), ADAPTIVE)
+    data = closedloop.run(_config(args.config), args.split, REPO, ADAPTIVE, Path(args.out or ADAPTIVE), sys.executable, units=args.unit, resume=args.resume)
+    return 0 if not data["failed"] else 3
+
+
 def cmd_serve(args) -> int:
     from .shadow import serve
 
@@ -254,6 +331,56 @@ def main(argv: list[str] | None = None) -> int:
     w = sub.add_parser("report", help="write the results README and figure from the sealed results")
     w.add_argument("--out", help=f"results directory (default {RESULTS})")
     w.set_defaults(fn=cmd_report)
+    rp = sub.add_parser("reproduce", help="re-run the sealed baselines (shadow replays, plasticity dev subjects) and require identical numbers")
+    rp.add_argument("--scenario", action="append", choices=["looms", "food", "wind"], help="replay to repeat; repeatable (default looms, food)")
+    rp.add_argument("--plasticity-arm", action="append", help="plasticity arm to repeat; repeatable (default rule, fixed)")
+    rp.add_argument("--plasticity-subjects", type=int, default=2)
+    rp.add_argument("--connectome", default="fafb-v783-shiu")
+    rp.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    rp.set_defaults(fn=cmd_reproduce)
+    mb = sub.add_parser("mbcode", help="the Kenyon-cell census and the pre-registered sparse-code sweep (development odours only)")
+    mb.add_argument("config", nargs="?", default="mb-representation-v783.json")
+    mb.add_argument("--connectome", default="fafb-v783-shiu")
+    mb.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    mb.set_defaults(fn=cmd_mbcode)
+    th = sub.add_parser("threat", help="threat discrimination (experiments/threat-v783.json): write a battery for the recorder, or replay and score it")
+    th.add_argument("action", choices=["battery", "run"])
+    th.add_argument("--split", required=True, choices=["dev", "heldout"])
+    th.add_argument("--config", default="threat-v783.json")
+    th.add_argument("--connectome", default="fafb-v783-shiu")
+    th.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    th.add_argument("--resume", action="store_true", help="reuse replays an interrupted run of this same commit, config and recording finished (.fly-neural/threat/traces/)")
+    th.add_argument("--replay", action="append", help="only replay MAPPING:SEED (e.g. v2@20:7100001) into the trace cache and stop; repeatable. A later --resume run scores them all")
+    th.set_defaults(fn=cmd_threat)
+    se = sub.add_parser("selective", help="selective associative learning (experiments/plasticity-v2-v783.json): calibrate the dopamine threshold (dev), or run a split")
+    se.add_argument("action", choices=["calibrate", "run"])
+    se.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    se.add_argument("--config", default="plasticity-v2-v783.json")
+    se.add_argument("--connectome", default="fafb-v783-shiu")
+    se.add_argument("--echo-mb", help="result of scripts/echo-neural-plasticity.ts --schedule v2 for the same split")
+    se.add_argument("--subjects", type=int, help="fewer subjects than the file's (the result is marked partial)")
+    se.add_argument("--only", action="append", help="arm name; repeatable (the result is marked partial)")
+    se.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    se.add_argument("--resume", action="store_true")
+    se.add_argument("--merge-from", action="append", help="progress file of a parallel worker of this exact run (--only some arms, or --shard); repeatable")
+    se.add_argument("--shard", help="I/N: run only every N-th subject from the I-th (0-based) into this shard's progress file, and stop; a final run with --merge-from every shard judges them all")
+    se.set_defaults(fn=cmd_selective)
+    al = sub.add_parser("adaptive", help="adaptive-life experiments on research subjects (experiments/adaptive-life-v783.json): build the odour codes from the full model, or run a split")
+    al.add_argument("action", choices=["codes", "run"])
+    al.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    al.add_argument("--config", default="adaptive-life-v783.json")
+    al.add_argument("--connectome", default="fafb-v783-shiu")
+    al.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    al.set_defaults(fn=cmd_adaptive)
+    cl = sub.add_parser("closedloop", help="closed-loop control of research subjects (experiments/closed-loop-v783.json): the readout server, or a pre-registered run")
+    cl.add_argument("action", choices=["serve", "run"])
+    cl.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    cl.add_argument("--config", default="closed-loop-v783.json")
+    cl.add_argument("--connectome", default="fafb-v783-shiu")
+    cl.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    cl.add_argument("--unit", action="append", help="only run SCENARIO:SEED:ARM (e.g. looms:9100101:neural-selected) and stop; repeatable. A later --resume run judges them all")
+    cl.add_argument("--resume", action="store_true", help="reuse runs a process of this same commit, config and readouts finished (.fly-neural/closed-loop/)")
+    cl.set_defaults(fn=cmd_closedloop)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)

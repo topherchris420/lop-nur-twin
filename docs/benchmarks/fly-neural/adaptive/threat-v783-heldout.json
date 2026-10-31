@@ -1,0 +1,2674 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "threat",
+ "experiment": "threat-v783",
+ "config_file": "threat-v783.json",
+ "config_sha256": "8b620ffdbed7625903878891edde9ad73208dbe2cd38db5fdbb46da017b1f7fb",
+ "split": "heldout",
+ "battery": {
+  "sha256": "b9658af127fed6923200eb285bd6197590837b34d54153f2a5782f873f41cd9d",
+  "stimuli": 34,
+  "threats": 16,
+  "duration_s": 120.42275,
+  "kinds": [
+   "accelerating",
+   "approach",
+   "approach_stop",
+   "near_miss",
+   "recede",
+   "stationary",
+   "zigzag"
+  ]
+ },
+ "recording": {
+  "file": "recording-heldout.jsonl",
+  "sha256": "98a9729d9662f48e5438c5c9f0251ae94b89426a0ee0d4727a11350954b6b107",
+  "header": {
+   "schema": "fly-neural-shadow/v1",
+   "mode": "baseline",
+   "subject": "research-threats-heldout-7700101",
+   "scenario": "threats",
+   "seed": 7700101,
+   "held": true,
+   "battery_sha256": "b9658af127fed6923200eb285bd6197590837b34d54153f2a5782f873f41cd9d",
+   "world": "research-threats",
+   "flyVersion": "digital-fly/8",
+   "echoVersion": "echo-self-model/v3",
+   "controller": "echo-self-model/v3/full over reduced-order-fsm/v1, held perched",
+   "seconds": 120.42275,
+   "stepS": 0.01,
+   "sample_period_s": 0.01,
+   "records": 12042,
+   "recordsDropped": 0,
+   "commandsHeld": 210,
+   "counts": {
+    "takeoffs": 0,
+    "escapes": 0,
+    "landings": 0,
+    "saccades": 0,
+    "collisions": 0,
+    "contactS": 0,
+    "groomBouts": 0,
+    "rejected": 0,
+    "walkedM": 0,
+    "flownM": 0,
+    "meals": 0,
+    "feedS": 0,
+    "fedJ": 0,
+    "spentJ": 0.003010500000000429
+   },
+   "note": "A research subject created for this run and held perched. Not the deployed fly, not a copy or continuation of it."
+  },
+  "samples": 12042
+ },
+ "connectome": {
+  "path_name": "fafb-v783-shiu",
+  "manifest_sha256": "2407f4d0178ac9c9b4c09e26b981fa1278a423196b532eef045909c531c9720e"
+ },
+ "seeds": [
+  7700001,
+  7700002,
+  7700003
+ ],
+ "replays": {
+  "v1/7700001": {
+   "total_spikes": 1168706,
+   "wall_s": 1879.9,
+   "resumed": true,
+   "gf_spikes": 9472,
+   "dn_spikes": 7126
+  },
+  "v1/7700002": {
+   "total_spikes": 1170373,
+   "wall_s": 1690.2,
+   "resumed": true,
+   "gf_spikes": 9569,
+   "dn_spikes": 7142
+  },
+  "v1/7700003": {
+   "total_spikes": 1173680,
+   "wall_s": 1821.88,
+   "resumed": true,
+   "gf_spikes": 9555,
+   "dn_spikes": 7143
+  },
+  "v2@35/7700001": {
+   "total_spikes": 130685,
+   "wall_s": 1793.26,
+   "resumed": true,
+   "gf_spikes": 1057,
+   "dn_spikes": 2123
+  },
+  "v2@35/7700002": {
+   "total_spikes": 131011,
+   "wall_s": 1513.98,
+   "resumed": true,
+   "gf_spikes": 1053,
+   "dn_spikes": 2128
+  },
+  "v2@35/7700003": {
+   "total_spikes": 130954,
+   "wall_s": 1672.55,
+   "resumed": true,
+   "gf_spikes": 1046,
+   "dn_spikes": 2116
+  }
+ },
+ "candidates": [
+  {
+   "candidate": {
+    "name": "v1/any",
+    "mapping": "v1",
+    "readout": "any"
+   },
+   "metrics": {
+    "recall": 1.0,
+    "precision": 0.4705882352941176,
+    "f1": 0.64,
+    "false_alarms_per_min": 8.9684,
+    "median_lead_s": 0.3495166666666667,
+    "misses": 0.0,
+    "false_alarms": 18.0
+   },
+   "per_seed": [
+    {
+     "threats": 16,
+     "harmless": 18,
+     "decisions": 34,
+     "hits": 16,
+     "misses": 0,
+     "false_alarms": 18,
+     "false_alarms_per_min": 8.9684,
+     "false_alarms_with_nothing_showing": 0,
+     "precision": 0.47058823529411764,
+     "recall": 1.0,
+     "f1": 0.64,
+     "median_lead_s": 0.35285,
+     "min_lead_s": 0.01,
+     "median_latency_from_visible_s": 0.01,
+     "per_stimulus": [
+      {
+       "index": 0,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.084,
+       "latency_from_visible_s": 0.04
+      },
+      {
+       "index": 1,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.1873,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 2,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0757,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 3,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.01,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 4,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 3.6957,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 5,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.045,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 6,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.195,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 7,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.147,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 8,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 6.0832,
+       "latency_from_visible_s": 0.02
+      },
+      {
+       "index": 9,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3895,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 10,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3162,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 11,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2578,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 12,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.504,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 13,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 3.1213,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 14,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2993,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 15,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.8311,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 16,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 17,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 18,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 19,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 20,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 21,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 22,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 23,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 24,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 25,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 26,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 27,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 28,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 29,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 30,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 31,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 32,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 33,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      }
+     ]
+    },
+    {
+     "threats": 16,
+     "harmless": 18,
+     "decisions": 34,
+     "hits": 16,
+     "misses": 0,
+     "false_alarms": 18,
+     "false_alarms_per_min": 8.9684,
+     "false_alarms_with_nothing_showing": 0,
+     "precision": 0.47058823529411764,
+     "recall": 1.0,
+     "f1": 0.64,
+     "median_lead_s": 0.34785,
+     "min_lead_s": 0.01,
+     "median_latency_from_visible_s": 0.01,
+     "per_stimulus": [
+      {
+       "index": 0,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.094,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 1,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.1873,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 2,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0657,
+       "latency_from_visible_s": 0.02
+      },
+      {
+       "index": 3,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.01,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 4,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 3.6857,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 5,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.045,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 6,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.205,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 7,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.147,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 8,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 6.0932,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 9,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3895,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 10,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3062,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 11,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2578,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 12,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.504,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 13,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 3.1213,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 14,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2993,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 15,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.8211,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 16,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 17,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 18,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 19,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 20,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 21,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 22,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 23,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 24,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 25,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 26,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 27,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 28,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 29,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 30,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 31,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 32,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 33,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      }
+     ]
+    },
+    {
+     "threats": 16,
+     "harmless": 18,
+     "decisions": 34,
+     "hits": 16,
+     "misses": 0,
+     "false_alarms": 18,
+     "false_alarms_per_min": 8.9684,
+     "false_alarms_with_nothing_showing": 0,
+     "precision": 0.47058823529411764,
+     "recall": 1.0,
+     "f1": 0.64,
+     "median_lead_s": 0.34785,
+     "min_lead_s": 0.01,
+     "median_latency_from_visible_s": 0.01,
+     "per_stimulus": [
+      {
+       "index": 0,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.094,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 1,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.1873,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 2,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0757,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 3,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.01,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 4,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 3.6857,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 5,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.045,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 6,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.185,
+       "latency_from_visible_s": 0.02
+      },
+      {
+       "index": 7,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.147,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 8,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 6.0832,
+       "latency_from_visible_s": 0.02
+      },
+      {
+       "index": 9,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3895,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 10,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3062,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 11,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2678,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 12,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.504,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 13,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 3.1213,
+       "latency_from_visible_s": 0.01
+      },
+      {
+       "index": 14,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2993,
+       "latency_from_visible_s": 0.03
+      },
+      {
+       "index": 15,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 1.8311,
+       "latency_from_visible_s": 0.0
+      },
+      {
+       "index": 16,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 17,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 18,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 19,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 20,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 21,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 22,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 23,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 24,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 25,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 26,
+       "kind": "recede",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 27,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 28,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 29,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 30,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 31,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 32,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 33,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "candidate": {
+    "name": "v2@35/int-k3-tau10",
+    "mapping": "v2@35",
+    "readout": "integrated",
+    "k": 3,
+    "tau_ms": 10
+   },
+   "metrics": {
+    "recall": 0.625,
+    "precision": 0.38461538461538464,
+    "f1": 0.47619033333333327,
+    "false_alarms_per_min": 7.971933333333333,
+    "median_lead_s": 0.07221666666666667,
+    "misses": 6.0,
+    "false_alarms": 16.0
+   },
+   "per_seed": [
+    {
+     "threats": 16,
+     "harmless": 18,
+     "decisions": 26,
+     "hits": 9,
+     "misses": 7,
+     "false_alarms": 17,
+     "false_alarms_per_min": 8.4702,
+     "false_alarms_with_nothing_showing": 0,
+     "precision": 0.34615384615384615,
+     "recall": 0.5625,
+     "f1": 0.428571,
+     "median_lead_s": 0.084,
+     "min_lead_s": 0.017,
+     "median_latency_from_visible_s": 1.05,
+     "per_stimulus": [
+      {
+       "index": 0,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.074,
+       "latency_from_visible_s": 1.05
+      },
+      {
+       "index": 1,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 2,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 3,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 4,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3857,
+       "latency_from_visible_s": 3.31
+      },
+      {
+       "index": 5,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.055,
+       "latency_from_visible_s": 1.02
+      },
+      {
+       "index": 6,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 7,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.017,
+       "latency_from_visible_s": 0.14
+      },
+      {
+       "index": 8,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.4232,
+       "latency_from_visible_s": 5.68
+      },
+      {
+       "index": 9,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2195,
+       "latency_from_visible_s": 0.17
+      },
+      {
+       "index": 10,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.1462,
+       "latency_from_visible_s": 0.17
+      },
+      {
+       "index": 11,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 12,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.084,
+       "latency_from_visible_s": 1.45
+      },
+      {
+       "index": 13,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 14,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 15,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0511,
+       "latency_from_visible_s": 1.78
+      },
+      {
+       "index": 16,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 17,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 18,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 19,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 20,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 21,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 22,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 23,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 24,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 25,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 26,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 27,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 28,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 29,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 30,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 31,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 32,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 33,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      }
+     ]
+    },
+    {
+     "threats": 16,
+     "harmless": 18,
+     "decisions": 26,
+     "hits": 10,
+     "misses": 6,
+     "false_alarms": 16,
+     "false_alarms_per_min": 7.9719,
+     "false_alarms_with_nothing_showing": 0,
+     "precision": 0.38461538461538464,
+     "recall": 0.625,
+     "f1": 0.47619,
+     "median_lead_s": 0.08865,
+     "min_lead_s": 0.004,
+     "median_latency_from_visible_s": 1.275,
+     "per_stimulus": [
+      {
+       "index": 0,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.174,
+       "latency_from_visible_s": 0.95
+      },
+      {
+       "index": 1,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 2,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 3,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 4,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.4057,
+       "latency_from_visible_s": 3.29
+      },
+      {
+       "index": 5,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.055,
+       "latency_from_visible_s": 1.02
+      },
+      {
+       "index": 6,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 7,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 8,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.4232,
+       "latency_from_visible_s": 5.68
+      },
+      {
+       "index": 9,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2395,
+       "latency_from_visible_s": 0.15
+      },
+      {
+       "index": 10,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.1162,
+       "latency_from_visible_s": 0.2
+      },
+      {
+       "index": 11,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0078,
+       "latency_from_visible_s": 0.26
+      },
+      {
+       "index": 12,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.004,
+       "latency_from_visible_s": 1.53
+      },
+      {
+       "index": 13,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0213,
+       "latency_from_visible_s": 3.11
+      },
+      {
+       "index": 14,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 15,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0611,
+       "latency_from_visible_s": 1.77
+      },
+      {
+       "index": 16,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 17,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 18,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 19,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 20,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 21,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 22,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 23,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 24,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 25,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 26,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 27,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 28,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 29,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 30,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 31,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 32,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 33,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      }
+     ]
+    },
+    {
+     "threats": 16,
+     "harmless": 18,
+     "decisions": 26,
+     "hits": 11,
+     "misses": 5,
+     "false_alarms": 15,
+     "false_alarms_per_min": 7.4737,
+     "false_alarms_with_nothing_showing": 0,
+     "precision": 0.4230769230769231,
+     "recall": 0.6875,
+     "f1": 0.52381,
+     "median_lead_s": 0.044,
+     "min_lead_s": 0.0013,
+     "median_latency_from_visible_s": 1.08,
+     "per_stimulus": [
+      {
+       "index": 0,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.044,
+       "latency_from_visible_s": 1.08
+      },
+      {
+       "index": 1,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 2,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 3,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 4,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.3357,
+       "latency_from_visible_s": 3.36
+      },
+      {
+       "index": 5,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.065,
+       "latency_from_visible_s": 1.01
+      },
+      {
+       "index": 6,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 7,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.007,
+       "latency_from_visible_s": 0.15
+      },
+      {
+       "index": 8,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.4932,
+       "latency_from_visible_s": 5.61
+      },
+      {
+       "index": 9,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.2095,
+       "latency_from_visible_s": 0.18
+      },
+      {
+       "index": 10,
+       "kind": "approach",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0962,
+       "latency_from_visible_s": 0.22
+      },
+      {
+       "index": 11,
+       "kind": "approach",
+       "threat": true,
+       "escaped": false
+      },
+      {
+       "index": 12,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.024,
+       "latency_from_visible_s": 1.51
+      },
+      {
+       "index": 13,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0013,
+       "latency_from_visible_s": 3.13
+      },
+      {
+       "index": 14,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0293,
+       "latency_from_visible_s": 0.3
+      },
+      {
+       "index": 15,
+       "kind": "accelerating",
+       "threat": true,
+       "escaped": true,
+       "lead_s": 0.0311,
+       "latency_from_visible_s": 1.8
+      },
+      {
+       "index": 16,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 17,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 18,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 19,
+       "kind": "approach_stop",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 20,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 21,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 22,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 23,
+       "kind": "zigzag",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 24,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 25,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 26,
+       "kind": "recede",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 27,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 28,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 29,
+       "kind": "stationary",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      },
+      {
+       "index": 30,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 31,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 32,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": true,
+       "false_alarms": 1
+      },
+      {
+       "index": 33,
+       "kind": "near_miss",
+       "threat": false,
+       "escaped": false,
+       "false_alarms": 0
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "heuristics": {
+  "size": {
+   "threshold": 10,
+   "metrics": {
+    "threats": 16,
+    "harmless": 18,
+    "decisions": 29,
+    "hits": 15,
+    "misses": 1,
+    "false_alarms": 14,
+    "false_alarms_per_min": 6.9754,
+    "false_alarms_with_nothing_showing": 0,
+    "precision": 0.5172413793103449,
+    "recall": 0.9375,
+    "f1": 0.666667,
+    "median_lead_s": 0.2278,
+    "min_lead_s": 0.0157,
+    "median_latency_from_visible_s": 0.29,
+    "per_stimulus": [
+     {
+      "index": 0,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.454,
+      "latency_from_visible_s": 0.67
+     },
+     {
+      "index": 1,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0573,
+      "latency_from_visible_s": 0.14
+     },
+     {
+      "index": 2,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0157,
+      "latency_from_visible_s": 0.07
+     },
+     {
+      "index": 3,
+      "kind": "approach",
+      "threat": true,
+      "escaped": false
+     },
+     {
+      "index": 4,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 2.3657,
+      "latency_from_visible_s": 1.33
+     },
+     {
+      "index": 5,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.445,
+      "latency_from_visible_s": 0.63
+     },
+     {
+      "index": 6,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.195,
+      "latency_from_visible_s": 0.01
+     },
+     {
+      "index": 7,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.087,
+      "latency_from_visible_s": 0.07
+     },
+     {
+      "index": 8,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 5.1532,
+      "latency_from_visible_s": 0.95
+     },
+     {
+      "index": 9,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.3795,
+      "latency_from_visible_s": 0.01
+     },
+     {
+      "index": 10,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.3062,
+      "latency_from_visible_s": 0.01
+     },
+     {
+      "index": 11,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.2278,
+      "latency_from_visible_s": 0.04
+     },
+     {
+      "index": 12,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.134,
+      "latency_from_visible_s": 1.4
+     },
+     {
+      "index": 13,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.1813,
+      "latency_from_visible_s": 2.95
+     },
+     {
+      "index": 14,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0393,
+      "latency_from_visible_s": 0.29
+     },
+     {
+      "index": 15,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 1.3811,
+      "latency_from_visible_s": 0.45
+     },
+     {
+      "index": 16,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 17,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 18,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 19,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 20,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 21,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 22,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 23,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 24,
+      "kind": "recede",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 25,
+      "kind": "recede",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 26,
+      "kind": "recede",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 27,
+      "kind": "stationary",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 28,
+      "kind": "stationary",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 29,
+      "kind": "stationary",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 30,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 31,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 32,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 33,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     }
+    ]
+   }
+  },
+  "ttc": {
+   "threshold": 0.15,
+   "metrics": {
+    "threats": 16,
+    "harmless": 18,
+    "decisions": 22,
+    "hits": 14,
+    "misses": 2,
+    "false_alarms": 8,
+    "false_alarms_per_min": 3.986,
+    "false_alarms_with_nothing_showing": 0,
+    "precision": 0.6363636363636364,
+    "recall": 0.875,
+    "f1": 0.736842,
+    "median_lead_s": 0.07214999999999999,
+    "min_lead_s": 0.01,
+    "median_latency_from_visible_s": 0.26,
+    "per_stimulus": [
+     {
+      "index": 0,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.014,
+      "latency_from_visible_s": 1.11
+     },
+     {
+      "index": 1,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0873,
+      "latency_from_visible_s": 0.11
+     },
+     {
+      "index": 2,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0757,
+      "latency_from_visible_s": 0.01
+     },
+     {
+      "index": 3,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.01,
+      "latency_from_visible_s": 0.01
+     },
+     {
+      "index": 4,
+      "kind": "approach",
+      "threat": true,
+      "escaped": false
+     },
+     {
+      "index": 5,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.055,
+      "latency_from_visible_s": 1.02
+     },
+     {
+      "index": 6,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.075,
+      "latency_from_visible_s": 0.13
+     },
+     {
+      "index": 7,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.097,
+      "latency_from_visible_s": 0.06
+     },
+     {
+      "index": 8,
+      "kind": "approach",
+      "threat": true,
+      "escaped": false
+     },
+     {
+      "index": 9,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0195,
+      "latency_from_visible_s": 0.37
+     },
+     {
+      "index": 10,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0562,
+      "latency_from_visible_s": 0.26
+     },
+     {
+      "index": 11,
+      "kind": "approach",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0778,
+      "latency_from_visible_s": 0.19
+     },
+     {
+      "index": 12,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.084,
+      "latency_from_visible_s": 1.45
+     },
+     {
+      "index": 13,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0913,
+      "latency_from_visible_s": 3.04
+     },
+     {
+      "index": 14,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0693,
+      "latency_from_visible_s": 0.26
+     },
+     {
+      "index": 15,
+      "kind": "accelerating",
+      "threat": true,
+      "escaped": true,
+      "lead_s": 0.0611,
+      "latency_from_visible_s": 1.77
+     },
+     {
+      "index": 16,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 17,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 18,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 19,
+      "kind": "approach_stop",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 20,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 21,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 22,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 23,
+      "kind": "zigzag",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 24,
+      "kind": "recede",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 25,
+      "kind": "recede",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 26,
+      "kind": "recede",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 27,
+      "kind": "stationary",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 28,
+      "kind": "stationary",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 29,
+      "kind": "stationary",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 30,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 31,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     },
+     {
+      "index": 32,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": true,
+      "false_alarms": 1
+     },
+     {
+      "index": 33,
+      "kind": "near_miss",
+      "threat": false,
+      "escaped": false,
+      "false_alarms": 0
+     }
+    ]
+   }
+  }
+ },
+ "echo": {
+  "threats": 16,
+  "harmless": 18,
+  "decisions": 24,
+  "hits": 12,
+  "misses": 4,
+  "false_alarms": 12,
+  "false_alarms_per_min": 5.9789,
+  "false_alarms_with_nothing_showing": 0,
+  "precision": 0.5,
+  "recall": 0.75,
+  "f1": 0.6,
+  "median_lead_s": 0.0495,
+  "min_lead_s": 0.007,
+  "median_latency_from_visible_s": 1.05,
+  "per_stimulus": [
+   {
+    "index": 0,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.034,
+    "latency_from_visible_s": 1.09
+   },
+   {
+    "index": 1,
+    "kind": "approach",
+    "threat": true,
+    "escaped": false
+   },
+   {
+    "index": 2,
+    "kind": "approach",
+    "threat": true,
+    "escaped": false
+   },
+   {
+    "index": 3,
+    "kind": "approach",
+    "threat": true,
+    "escaped": false
+   },
+   {
+    "index": 4,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.2757,
+    "latency_from_visible_s": 3.42
+   },
+   {
+    "index": 5,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.065,
+    "latency_from_visible_s": 1.01
+   },
+   {
+    "index": 6,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.025,
+    "latency_from_visible_s": 0.18
+   },
+   {
+    "index": 7,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.007,
+    "latency_from_visible_s": 0.15
+   },
+   {
+    "index": 8,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.6032,
+    "latency_from_visible_s": 5.5
+   },
+   {
+    "index": 9,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.1395,
+    "latency_from_visible_s": 0.25
+   },
+   {
+    "index": 10,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.0762,
+    "latency_from_visible_s": 0.24
+   },
+   {
+    "index": 11,
+    "kind": "approach",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.0278,
+    "latency_from_visible_s": 0.24
+   },
+   {
+    "index": 12,
+    "kind": "accelerating",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.014,
+    "latency_from_visible_s": 1.52
+   },
+   {
+    "index": 13,
+    "kind": "accelerating",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.0113,
+    "latency_from_visible_s": 3.12
+   },
+   {
+    "index": 14,
+    "kind": "accelerating",
+    "threat": true,
+    "escaped": false
+   },
+   {
+    "index": 15,
+    "kind": "accelerating",
+    "threat": true,
+    "escaped": true,
+    "lead_s": 0.0711,
+    "latency_from_visible_s": 1.76
+   },
+   {
+    "index": 16,
+    "kind": "approach_stop",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 17,
+    "kind": "approach_stop",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 18,
+    "kind": "approach_stop",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 19,
+    "kind": "approach_stop",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 20,
+    "kind": "zigzag",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 21,
+    "kind": "zigzag",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 22,
+    "kind": "zigzag",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 23,
+    "kind": "zigzag",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 24,
+    "kind": "recede",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 25,
+    "kind": "recede",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 26,
+    "kind": "recede",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 27,
+    "kind": "stationary",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 28,
+    "kind": "stationary",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 29,
+    "kind": "stationary",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 30,
+    "kind": "near_miss",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   },
+   {
+    "index": 31,
+    "kind": "near_miss",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 32,
+    "kind": "near_miss",
+    "threat": false,
+    "escaped": true,
+    "false_alarms": 1
+   },
+   {
+    "index": 33,
+    "kind": "near_miss",
+    "threat": false,
+    "escaped": false,
+    "false_alarms": 0
+   }
+  ]
+ },
+ "selected": {
+  "name": "v2@35/int-k3-tau10",
+  "from": "threat-v783-dev.json",
+  "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111"
+ },
+ "criteria": [
+  {
+   "id": "T0",
+   "claim": "The merged readout (v1 mapping, any spike) still over-fires on the held-out battery: its false alarms per simulated minute are at least 5",
+   "test": "baseline_fa",
+   "value": 8.9684,
+   "passed": true
+  },
+  {
+   "id": "T1",
+   "claim": "The selected readout cuts false alarms per minute by at least 80% from the merged readout",
+   "test": "fa_reduction",
+   "selected": 7.971933333333333,
+   "merged": 8.9684,
+   "ratio": 0.888891366724648,
+   "passed": false
+  },
+  {
+   "id": "T2",
+   "claim": "without an unacceptable rise in misses: recall at least 0.75 and no more than 0.10 below the merged readout's",
+   "test": "recall_kept",
+   "selected": 0.625,
+   "merged": 1.0,
+   "passed": false
+  },
+  {
+   "id": "T3",
+   "claim": "and without escaping too late: median lead time over its hits at least 50 ms before collision",
+   "test": "lead_time",
+   "value": 0.07221666666666667,
+   "passed": true
+  },
+  {
+   "id": "T4",
+   "claim": "The selected readout's F1 is at least that of each threshold heuristic tuned on the development battery",
+   "test": "f1_at_least",
+   "selected": 0.47619033333333327,
+   "others": {
+    "size": 0.666667,
+    "ttc": 0.736842
+   },
+   "passed": false
+  },
+  {
+   "id": "T5",
+   "claim": "The selected readout's F1 is at least ECHO's giant-fiber proxy's",
+   "test": "f1_at_least",
+   "selected": 0.47619033333333327,
+   "others": {
+    "echo": 0.6
+   },
+   "passed": false
+  },
+  {
+   "id": "X1",
+   "claim": "Exploratory: per stimulus kind, how often each readout escapes",
+   "test": "report_only",
+   "passed": true,
+   "note": "exploratory: see per_stimulus in each candidate's per_seed"
+  }
+ ],
+ "failed": [
+  "T1",
+  "T2",
+  "T4",
+  "T5"
+ ],
+ "resources": {
+  "wall_s": 0.018,
+  "cpu_s": 0.02,
+  "rss_start_mb": 324.082,
+  "rss_end_mb": 325.789,
+  "peak_rss_mb_process": 353.355,
+  "gpu": null,
+  "machine": {
+   "processor": null,
+   "arch": "x86_64",
+   "os": "Linux-6.12.111-136.204.amzn2023.x86_64-x86_64-with-glibc2.41",
+   "logical_cpus": 64,
+   "total_ram_mb": 505144,
+   "available_ram_mb": 488338,
+   "gpu": null,
+   "physical_cpus": 32,
+   "cpu_busy_percent_over_1s": 17.3
+  }
+ },
+ "environment": {
+  "python": "3.11.18",
+  "implementation": "cpython",
+  "platform": "linux x86_64",
+  "processor": null,
+  "numpy": "2.4.6",
+  "scipy": null,
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "287f9894019499d57dabb8a4a7e0b1c5760739dd",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "f4ada579ffe69581411b2e517b90b15b7d8f8d3e0069f2cdc8c588b4fa1d8b36",
+   "files": 26
+  },
+  "changed_during_run": []
+ },
+ "sha256": "41cd49048928e7c63a5a765155abf6eb5a5f1d920cbae8c6476a13b4b29aca5b"
+}

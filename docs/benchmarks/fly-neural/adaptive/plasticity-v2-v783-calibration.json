@@ -1,0 +1,77 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "plasticity-v2-calibration",
+ "experiment": "plasticity-v2-v783",
+ "config_file": "plasticity-v2-v783.json",
+ "config_sha256": "97ba35d888e6306b16dc02c4dcd69df545435b9edcddc89f43e5a9c829ec73e5",
+ "representation": {
+  "file": "mb-representation-al-v783.json",
+  "sha256": "1cece2fa9b4ee4ef7fccefd6a94c950c9d8caeb5ba3ae20eb2be0ed2e9a25706",
+  "label": "apl1-thr2-kckc1-alln0.5"
+ },
+ "rule": "theta_hz = the midpoint of (a) the 0.999 quantile of the compartment dopamine rate over all 10 ms bins of unrewarded test-length trials and (b) the median of the same over rewarded ones; development odours A and B, development seeds, the selected representation; before any learning run",
+ "unrewarded_rate_hz_quantiles": {
+  "0.5": 0.0,
+  "0.9": 0.0,
+  "0.99": 0.8695652173913043,
+  "0.999": 1.276595744680851,
+  "1.0": 1.3043478260869563
+ },
+ "rewarded_rate_hz_quantiles": {
+  "0.5": 98.94736842105263,
+  "0.9": 116.17819148936172,
+  "0.99": 160.0,
+  "0.999": 200.0,
+  "1.0": 300.0
+ },
+ "unrewarded_quantile_value": 1.276595744680851,
+ "rewarded_quantile_value": 98.94736842105263,
+ "theta_hz": 50.11198208286674,
+ "bins": {
+  "unrewarded": 13600,
+  "rewarded": 13600
+ },
+ "connectome": {
+  "path_name": "fafb-v783-shiu",
+  "manifest_sha256": "c5dd83b8bd01cc8ce11cdb235c0d7d76e380c4925bc60708d7904609bdff98dd"
+ },
+ "resources": {
+  "wall_s": 183.312,
+  "cpu_s": 176.406,
+  "rss_start_mb": 483.281,
+  "rss_end_mb": 482.312,
+  "peak_rss_mb_process": 655.125,
+  "gpu": null,
+  "machine": {
+   "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+   "arch": "ARM64",
+   "os": "Windows-10-10.0.26200-SP0",
+   "logical_cpus": 8,
+   "total_ram_mb": 15979,
+   "available_ram_mb": 1813,
+   "gpu": null,
+   "physical_cpus": 8,
+   "cpu_busy_percent_over_1s": 55.9
+  }
+ },
+ "environment": {
+  "python": "3.11.9",
+  "implementation": "cpython",
+  "platform": "win32 ARM64",
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "5403964dca32091d98b5b27a77ea1c7ad0c58ca3",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "18f450b153f133a7c7d0a4da280071109062eec0fb903cf0fed4a5276609a70d",
+   "files": 26
+  },
+  "changed_during_run": []
+ },
+ "sha256": "4f6162b3452c221c939d1e3799f49b0bae119b407d65be5e1bb5517f36bd72ab"
+}

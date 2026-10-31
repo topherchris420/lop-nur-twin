@@ -1,0 +1,23 @@
+{
+  "name": "pilot",
+  "what": "Speed and numerics on this machine: the plasticity-v2 calibration alone, then eight copies at once; theta compared with the laptop's 50.112 Hz. Writes outside the repository.",
+  "connectome": "fafb-v783-shiu",
+  "phases": [
+    {
+      "commands": [["selective", "calibrate", "--out", "/work/pilot/single"]]
+    },
+    {
+      "commands": [
+        ["selective", "calibrate", "--out", "/work/pilot/c0"],
+        ["selective", "calibrate", "--out", "/work/pilot/c1"],
+        ["selective", "calibrate", "--out", "/work/pilot/c2"],
+        ["selective", "calibrate", "--out", "/work/pilot/c3"],
+        ["selective", "calibrate", "--out", "/work/pilot/c4"],
+        ["selective", "calibrate", "--out", "/work/pilot/c5"],
+        ["selective", "calibrate", "--out", "/work/pilot/c6"],
+        ["selective", "calibrate", "--out", "/work/pilot/c7"]
+      ]
+    }
+  ],
+  "upload_extra": ["/work/pilot"]
+}

@@ -1,0 +1,2797 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "mb-representation",
+ "experiment": "mb-representation-v783",
+ "config_file": "mb-representation-v783.json",
+ "config_sha256": "108afd05f4529b421385a583909db2e77bbe89e36abaf047179b210fee7b4542",
+ "connectome": {
+  "path_name": "fafb-v783-shiu",
+  "manifest_sha256": "c5dd83b8bd01cc8ce11cdb235c0d7d76e380c4925bc60708d7904609bdff98dd"
+ },
+ "groups": {
+  "kenyon_cells": 5177,
+  "apl": 2,
+  "dpm": 2,
+  "projection_neurons_alpn": 685,
+  "mbons": 96,
+  "pam_dans": 307,
+  "ppl1_dans": 16,
+  "pam_innervated_mbons": 34
+ },
+ "odour_neurons": {
+  "A": 222,
+  "B": 218
+ },
+ "census": {
+  "synapses_onto_kcs": 943190,
+  "by_presynaptic_group": {
+   "APL": {
+    "synapses": 98654,
+    "share": 0.1046,
+    "excitatory_synapses": 0,
+    "inhibitory_synapses": 98654,
+    "presynaptic_neurons": 2
+   },
+   "DANs": {
+    "synapses": 60657,
+    "share": 0.0643,
+    "excitatory_synapses": 60657,
+    "inhibitory_synapses": 0,
+    "presynaptic_neurons": 328
+   },
+   "DPM": {
+    "synapses": 9280,
+    "share": 0.0098,
+    "excitatory_synapses": 9280,
+    "inhibitory_synapses": 0,
+    "presynaptic_neurons": 2
+   },
+   "Kenyon cells": {
+    "synapses": 379338,
+    "share": 0.4022,
+    "excitatory_synapses": 379338,
+    "inhibitory_synapses": 0,
+    "presynaptic_neurons": 5177
+   },
+   "MBONs": {
+    "synapses": 13206,
+    "share": 0.014,
+    "excitatory_synapses": 3902,
+    "inhibitory_synapses": 9304,
+    "presynaptic_neurons": 94
+   },
+   "other": {
+    "synapses": 52661,
+    "share": 0.0558,
+    "excitatory_synapses": 29236,
+    "inhibitory_synapses": 23425,
+    "presynaptic_neurons": 1022
+   },
+   "projection neurons (ALPN)": {
+    "synapses": 329394,
+    "share": 0.3492,
+    "excitatory_synapses": 328622,
+    "inhibitory_synapses": 772,
+    "presynaptic_neurons": 319
+   }
+  },
+  "synapses_per_kc": {
+   "median": 182.0,
+   "mean": 182.18852617345954
+  }
+ },
+ "points": [
+  {
+   "representation": {
+    "apl_gain": 1.0,
+    "kc_threshold": 1.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl1-thr1-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.6525014487154723,
+      0.6515356384006181
+     ],
+     "kc_active": [
+      3378,
+      3373
+     ],
+     "readout_spikes": [
+      1859,
+      1849
+     ],
+     "pam_spikes": [
+      3070,
+      3048
+     ],
+     "apl_spikes": [
+      334,
+      332
+     ],
+     "total_spikes": [
+      241641,
+      241224
+     ],
+     "wall_s": [
+      11.12,
+      11.73
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.6484450453930848,
+      0.6530809349043848
+     ],
+     "kc_active": [
+      3357,
+      3381
+     ],
+     "readout_spikes": [
+      1822,
+      1842
+     ],
+     "pam_spikes": [
+      2965,
+      3020
+     ],
+     "apl_spikes": [
+      334,
+      333
+     ],
+     "total_spikes": [
+      238070,
+      239166
+     ],
+     "wall_s": [
+      11.55,
+      11.16
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.6520185435580452,
+    "B": 0.6507629901487348
+   },
+   "jaccard_A_B": 0.9873118914133963,
+   "mean_readout_spikes": {
+    "A": 1854.0,
+    "B": 1832.0
+   },
+   "mean_pam_spikes": {
+    "A": 3059.0,
+    "B": 2992.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 2.0,
+    "kc_threshold": 1.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl2-thr1-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.3140815143905737,
+      0.31099092138304035
+     ],
+     "kc_active": [
+      1626,
+      1610
+     ],
+     "readout_spikes": [
+      716,
+      696
+     ],
+     "pam_spikes": [
+      455,
+      420
+     ],
+     "apl_spikes": [
+      289,
+      290
+     ],
+     "total_spikes": [
+      179201,
+      179449
+     ],
+     "wall_s": [
+      10.42,
+      11.17
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.2992080355418196,
+      0.3017191423604404
+     ],
+     "kc_active": [
+      1549,
+      1562
+     ],
+     "readout_spikes": [
+      623,
+      648
+     ],
+     "pam_spikes": [
+      371,
+      353
+     ],
+     "apl_spikes": [
+      289,
+      289
+     ],
+     "total_spikes": [
+      175526,
+      176283
+     ],
+     "wall_s": [
+      10.8,
+      11.05
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.312536217886807,
+    "B": 0.30046358895113
+   },
+   "jaccard_A_B": 0.9207501512401693,
+   "mean_readout_spikes": {
+    "A": 706.0,
+    "B": 635.5
+   },
+   "mean_pam_spikes": {
+    "A": 437.5,
+    "B": 362.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 4.0,
+    "kc_threshold": 1.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl4-thr1-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.06722039791384972,
+      0.06664091172493722
+     ],
+     "kc_active": [
+      348,
+      345
+     ],
+     "readout_spikes": [
+      98,
+      105
+     ],
+     "pam_spikes": [
+      25,
+      28
+     ],
+     "apl_spikes": [
+      235,
+      235
+     ],
+     "total_spikes": [
+      152529,
+      152436
+     ],
+     "wall_s": [
+      10.78,
+      10.92
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.06277767046552057,
+      0.05949391539501642
+     ],
+     "kc_active": [
+      325,
+      308
+     ],
+     "readout_spikes": [
+      98,
+      91
+     ],
+     "pam_spikes": [
+      23,
+      24
+     ],
+     "apl_spikes": [
+      234,
+      238
+     ],
+     "total_spikes": [
+      150401,
+      151040
+     ],
+     "wall_s": [
+      10.05,
+      10.52
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.06693065481939348,
+    "B": 0.061135792930268495
+   },
+   "jaccard_A_B": 0.8539944903581267,
+   "mean_readout_spikes": {
+    "A": 101.5,
+    "B": 94.5
+   },
+   "mean_pam_spikes": {
+    "A": 26.5,
+    "B": 23.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 8.0,
+    "kc_threshold": 1.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl8-thr1-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.006567510141008306,
+      0.004829051574270813
+     ],
+     "kc_active": [
+      34,
+      25
+     ],
+     "readout_spikes": [
+      43,
+      47
+     ],
+     "pam_spikes": [
+      21,
+      22
+     ],
+     "apl_spikes": [
+      204,
+      204
+     ],
+     "total_spikes": [
+      148683,
+      148532
+     ],
+     "wall_s": [
+      10.09,
+      10.06
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0034769171334749853,
+      0.005022213637241646
+     ],
+     "kc_active": [
+      18,
+      26
+     ],
+     "readout_spikes": [
+      39,
+      44
+     ],
+     "pam_spikes": [
+      23,
+      17
+     ],
+     "apl_spikes": [
+      205,
+      205
+     ],
+     "total_spikes": [
+      147116,
+      147073
+     ],
+     "wall_s": [
+      10.08,
+      9.66
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.00569828085763956,
+    "B": 0.004249565385358316
+   },
+   "jaccard_A_B": 0.5294117647058824,
+   "mean_readout_spikes": {
+    "A": 45.0,
+    "B": 41.5
+   },
+   "mean_pam_spikes": {
+    "A": 21.5,
+    "B": 20.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 16.0,
+    "kc_threshold": 1.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl16-thr1-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0005794861889124976,
+      0.00038632412594166504
+     ],
+     "kc_active": [
+      3,
+      2
+     ],
+     "readout_spikes": [
+      53,
+      44
+     ],
+     "pam_spikes": [
+      22,
+      21
+     ],
+     "apl_spikes": [
+      202,
+      198
+     ],
+     "total_spikes": [
+      148188,
+      148579
+     ],
+     "wall_s": [
+      9.61,
+      10.0
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.00019316206297083252
+     ],
+     "kc_active": [
+      0,
+      1
+     ],
+     "readout_spikes": [
+      56,
+      47
+     ],
+     "pam_spikes": [
+      20,
+      19
+     ],
+     "apl_spikes": [
+      203,
+      201
+     ],
+     "total_spikes": [
+      147290,
+      146777
+     ],
+     "wall_s": [
+      9.94,
+      10.03
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0004829051574270813,
+    "B": 9.658103148541626e-05
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 48.5,
+    "B": 51.5
+   },
+   "mean_pam_spikes": {
+    "A": 21.5,
+    "B": 19.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 32.0,
+    "kc_threshold": 1.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl32-thr1-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.00038632412594166504,
+      0.00038632412594166504
+     ],
+     "kc_active": [
+      2,
+      2
+     ],
+     "readout_spikes": [
+      49,
+      45
+     ],
+     "pam_spikes": [
+      24,
+      22
+     ],
+     "apl_spikes": [
+      199,
+      200
+     ],
+     "total_spikes": [
+      148869,
+      148369
+     ],
+     "wall_s": [
+      10.19,
+      11.0
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      40,
+      39
+     ],
+     "pam_spikes": [
+      20,
+      18
+     ],
+     "apl_spikes": [
+      201,
+      200
+     ],
+     "total_spikes": [
+      147258,
+      146849
+     ],
+     "wall_s": [
+      9.47,
+      9.11
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.00038632412594166504,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 47.0,
+    "B": 39.5
+   },
+   "mean_pam_spikes": {
+    "A": 23.0,
+    "B": 19.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 1.0,
+    "kc_threshold": 1.5,
+    "kc_kc": 1.0
+   },
+   "label": "apl1-thr1.5-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.48232567123816883,
+      0.483291481553023
+     ],
+     "kc_active": [
+      2497,
+      2502
+     ],
+     "readout_spikes": [
+      1224,
+      1227
+     ],
+     "pam_spikes": [
+      1219,
+      1214
+     ],
+     "apl_spikes": [
+      306,
+      308
+     ],
+     "total_spikes": [
+      195229,
+      195475
+     ],
+     "wall_s": [
+      10.02,
+      9.73
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.47633764728607303,
+      0.47595132316013133
+     ],
+     "kc_active": [
+      2466,
+      2464
+     ],
+     "readout_spikes": [
+      1175,
+      1164
+     ],
+     "pam_spikes": [
+      1129,
+      1108
+     ],
+     "apl_spikes": [
+      308,
+      307
+     ],
+     "total_spikes": [
+      192913,
+      192075
+     ],
+     "wall_s": [
+      10.22,
+      9.81
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.48280857639559593,
+    "B": 0.47614448522310215
+   },
+   "jaccard_A_B": 0.9671026555687673,
+   "mean_readout_spikes": {
+    "A": 1225.5,
+    "B": 1169.5
+   },
+   "mean_pam_spikes": {
+    "A": 1216.5,
+    "B": 1118.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 2.0,
+    "kc_threshold": 1.5,
+    "kc_kc": 1.0
+   },
+   "label": "apl2-thr1.5-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.200695383426695,
+      0.19953641104887
+     ],
+     "kc_active": [
+      1039,
+      1033
+     ],
+     "readout_spikes": [
+      277,
+      265
+     ],
+     "pam_spikes": [
+      55,
+      64
+     ],
+     "apl_spikes": [
+      255,
+      256
+     ],
+     "total_spikes": [
+      161985,
+      162528
+     ],
+     "wall_s": [
+      12.22,
+      10.45
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.18968514583735754,
+      0.20185435580452
+     ],
+     "kc_active": [
+      982,
+      1045
+     ],
+     "readout_spikes": [
+      244,
+      244
+     ],
+     "pam_spikes": [
+      51,
+      52
+     ],
+     "apl_spikes": [
+      258,
+      259
+     ],
+     "total_spikes": [
+      159350,
+      160452
+     ],
+     "wall_s": [
+      8.81,
+      9.52
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.2001158972377825,
+    "B": 0.19576975082093878
+   },
+   "jaccard_A_B": 0.9048067860508954,
+   "mean_readout_spikes": {
+    "A": 271.0,
+    "B": 244.0
+   },
+   "mean_pam_spikes": {
+    "A": 59.5,
+    "B": 51.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 4.0,
+    "kc_threshold": 1.5,
+    "kc_kc": 1.0
+   },
+   "label": "apl4-thr1.5-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.03940506084604983,
+      0.03940506084604983
+     ],
+     "kc_active": [
+      204,
+      204
+     ],
+     "readout_spikes": [
+      61,
+      63
+     ],
+     "pam_spikes": [
+      19,
+      18
+     ],
+     "apl_spikes": [
+      221,
+      220
+     ],
+     "total_spikes": [
+      150191,
+      149522
+     ],
+     "wall_s": [
+      10.64,
+      9.72
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.04075719528684566,
+      0.03901873672010817
+     ],
+     "kc_active": [
+      211,
+      202
+     ],
+     "readout_spikes": [
+      70,
+      73
+     ],
+     "pam_spikes": [
+      20,
+      23
+     ],
+     "apl_spikes": [
+      218,
+      222
+     ],
+     "total_spikes": [
+      149368,
+      149121
+     ],
+     "wall_s": [
+      9.44,
+      9.64
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.03940506084604983,
+    "B": 0.03988796600347692
+   },
+   "jaccard_A_B": 0.9036697247706422,
+   "mean_readout_spikes": {
+    "A": 62.0,
+    "B": 71.5
+   },
+   "mean_pam_spikes": {
+    "A": 18.5,
+    "B": 21.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 8.0,
+    "kc_threshold": 1.5,
+    "kc_kc": 1.0
+   },
+   "label": "apl8-thr1.5-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0023179447556499902,
+      0.0023179447556499902
+     ],
+     "kc_active": [
+      12,
+      12
+     ],
+     "readout_spikes": [
+      54,
+      49
+     ],
+     "pam_spikes": [
+      25,
+      22
+     ],
+     "apl_spikes": [
+      203,
+      202
+     ],
+     "total_spikes": [
+      148323,
+      148731
+     ],
+     "wall_s": [
+      9.72,
+      9.52
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.002511106818620823,
+      0.002897430944562488
+     ],
+     "kc_active": [
+      13,
+      15
+     ],
+     "readout_spikes": [
+      52,
+      41
+     ],
+     "pam_spikes": [
+      19,
+      21
+     ],
+     "apl_spikes": [
+      203,
+      202
+     ],
+     "total_spikes": [
+      146799,
+      146904
+     ],
+     "wall_s": [
+      9.56,
+      9.66
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0023179447556499902,
+    "B": 0.0027042688815916557
+   },
+   "jaccard_A_B": 0.7857142857142857,
+   "mean_readout_spikes": {
+    "A": 51.5,
+    "B": 46.5
+   },
+   "mean_pam_spikes": {
+    "A": 23.5,
+    "B": 20.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 16.0,
+    "kc_threshold": 1.5,
+    "kc_kc": 1.0
+   },
+   "label": "apl16-thr1.5-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      46,
+      44
+     ],
+     "pam_spikes": [
+      20,
+      20
+     ],
+     "apl_spikes": [
+      206,
+      200
+     ],
+     "total_spikes": [
+      147769,
+      148572
+     ],
+     "wall_s": [
+      9.49,
+      8.59
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      35,
+      46
+     ],
+     "pam_spikes": [
+      18,
+      16
+     ],
+     "apl_spikes": [
+      199,
+      201
+     ],
+     "total_spikes": [
+      146359,
+      146719
+     ],
+     "wall_s": [
+      9.3,
+      9.5
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 45.0,
+    "B": 40.5
+   },
+   "mean_pam_spikes": {
+    "A": 20.0,
+    "B": 17.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 32.0,
+    "kc_threshold": 1.5,
+    "kc_kc": 1.0
+   },
+   "label": "apl32-thr1.5-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      53,
+      48
+     ],
+     "pam_spikes": [
+      23,
+      26
+     ],
+     "apl_spikes": [
+      199,
+      198
+     ],
+     "total_spikes": [
+      148823,
+      148377
+     ],
+     "wall_s": [
+      9.17,
+      9.3
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      44,
+      46
+     ],
+     "pam_spikes": [
+      15,
+      18
+     ],
+     "apl_spikes": [
+      200,
+      204
+     ],
+     "total_spikes": [
+      146452,
+      146626
+     ],
+     "wall_s": [
+      8.89,
+      8.84
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 50.5,
+    "B": 45.0
+   },
+   "mean_pam_spikes": {
+    "A": 24.5,
+    "B": 16.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 1.0,
+    "kc_threshold": 2.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl1-thr2-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.30558238361985707,
+      0.30847981456441953
+     ],
+     "kc_active": [
+      1582,
+      1597
+     ],
+     "readout_spikes": [
+      475,
+      448
+     ],
+     "pam_spikes": [
+      224,
+      217
+     ],
+     "apl_spikes": [
+      268,
+      268
+     ],
+     "total_spikes": [
+      170229,
+      169862
+     ],
+     "wall_s": [
+      9.23,
+      9.42
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.30113965617152794,
+      0.30790032837550707
+     ],
+     "kc_active": [
+      1559,
+      1594
+     ],
+     "readout_spikes": [
+      433,
+      446
+     ],
+     "pam_spikes": [
+      193,
+      194
+     ],
+     "apl_spikes": [
+      266,
+      266
+     ],
+     "total_spikes": [
+      168097,
+      168568
+     ],
+     "wall_s": [
+      9.38,
+      9.3
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.3070310990921383,
+    "B": 0.3045199922735175
+   },
+   "jaccard_A_B": 0.9460966542750929,
+   "mean_readout_spikes": {
+    "A": 461.5,
+    "B": 439.5
+   },
+   "mean_pam_spikes": {
+    "A": 220.5,
+    "B": 193.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 2.0,
+    "kc_threshold": 2.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl2-thr2-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.10990921383040371,
+      0.11068186208228704
+     ],
+     "kc_active": [
+      569,
+      573
+     ],
+     "readout_spikes": [
+      121,
+      129
+     ],
+     "pam_spikes": [
+      32,
+      36
+     ],
+     "apl_spikes": [
+      241,
+      238
+     ],
+     "total_spikes": [
+      154678,
+      155251
+     ],
+     "wall_s": [
+      9.19,
+      9.14
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.11010237589337454,
+      0.11068186208228704
+     ],
+     "kc_active": [
+      570,
+      573
+     ],
+     "readout_spikes": [
+      126,
+      123
+     ],
+     "pam_spikes": [
+      33,
+      27
+     ],
+     "apl_spikes": [
+      238,
+      240
+     ],
+     "total_spikes": [
+      152894,
+      151792
+     ],
+     "wall_s": [
+      9.09,
+      9.77
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.11029553795634538,
+    "B": 0.1103921189878308
+   },
+   "jaccard_A_B": 0.8857615894039735,
+   "mean_readout_spikes": {
+    "A": 125.0,
+    "B": 124.5
+   },
+   "mean_pam_spikes": {
+    "A": 34.0,
+    "B": 30.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 4.0,
+    "kc_threshold": 2.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl4-thr2-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.023565771682441568,
+      0.02066834073787908
+     ],
+     "kc_active": [
+      122,
+      107
+     ],
+     "readout_spikes": [
+      57,
+      55
+     ],
+     "pam_spikes": [
+      22,
+      19
+     ],
+     "apl_spikes": [
+      209,
+      211
+     ],
+     "total_spikes": [
+      149547,
+      149118
+     ],
+     "wall_s": [
+      10.12,
+      10.05
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.02124782692679158,
+      0.0243384199343249
+     ],
+     "kc_active": [
+      110,
+      126
+     ],
+     "readout_spikes": [
+      57,
+      57
+     ],
+     "pam_spikes": [
+      19,
+      24
+     ],
+     "apl_spikes": [
+      211,
+      213
+     ],
+     "total_spikes": [
+      147196,
+      148323
+     ],
+     "wall_s": [
+      10.0,
+      10.69
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.022117056210160323,
+    "B": 0.02279312343055824
+   },
+   "jaccard_A_B": 0.8267716535433071,
+   "mean_readout_spikes": {
+    "A": 56.0,
+    "B": 57.0
+   },
+   "mean_pam_spikes": {
+    "A": 20.5,
+    "B": 21.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 8.0,
+    "kc_threshold": 2.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl8-thr2-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0009658103148541626,
+      0.0009658103148541626
+     ],
+     "kc_active": [
+      5,
+      5
+     ],
+     "readout_spikes": [
+      49,
+      43
+     ],
+     "pam_spikes": [
+      23,
+      22
+     ],
+     "apl_spikes": [
+      201,
+      201
+     ],
+     "total_spikes": [
+      148126,
+      148225
+     ],
+     "wall_s": [
+      10.3,
+      9.89
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0007726482518833301,
+      0.0007726482518833301
+     ],
+     "kc_active": [
+      4,
+      4
+     ],
+     "readout_spikes": [
+      45,
+      51
+     ],
+     "pam_spikes": [
+      20,
+      23
+     ],
+     "apl_spikes": [
+      202,
+      202
+     ],
+     "total_spikes": [
+      146472,
+      146950
+     ],
+     "wall_s": [
+      10.12,
+      9.58
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0009658103148541626,
+    "B": 0.0007726482518833301
+   },
+   "jaccard_A_B": 0.8,
+   "mean_readout_spikes": {
+    "A": 46.0,
+    "B": 48.0
+   },
+   "mean_pam_spikes": {
+    "A": 22.5,
+    "B": 21.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 16.0,
+    "kc_threshold": 2.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl16-thr2-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      43,
+      48
+     ],
+     "pam_spikes": [
+      19,
+      20
+     ],
+     "apl_spikes": [
+      201,
+      203
+     ],
+     "total_spikes": [
+      147970,
+      148744
+     ],
+     "wall_s": [
+      10.58,
+      10.98
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      45,
+      45
+     ],
+     "pam_spikes": [
+      18,
+      22
+     ],
+     "apl_spikes": [
+      200,
+      203
+     ],
+     "total_spikes": [
+      146514,
+      146905
+     ],
+     "wall_s": [
+      10.23,
+      9.94
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 45.5,
+    "B": 45.0
+   },
+   "mean_pam_spikes": {
+    "A": 19.5,
+    "B": 20.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 32.0,
+    "kc_threshold": 2.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl32-thr2-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      47,
+      48
+     ],
+     "pam_spikes": [
+      23,
+      25
+     ],
+     "apl_spikes": [
+      199,
+      201
+     ],
+     "total_spikes": [
+      149206,
+      149544
+     ],
+     "wall_s": [
+      10.27,
+      10.27
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      45,
+      49
+     ],
+     "pam_spikes": [
+      20,
+      24
+     ],
+     "apl_spikes": [
+      204,
+      203
+     ],
+     "total_spikes": [
+      146719,
+      146865
+     ],
+     "wall_s": [
+      10.39,
+      9.95
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 47.5,
+    "B": 47.0
+   },
+   "mean_pam_spikes": {
+    "A": 24.0,
+    "B": 22.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 1.0,
+    "kc_threshold": 3.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl1-thr3-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0938767626038246,
+      0.09368360054085377
+     ],
+     "kc_active": [
+      486,
+      485
+     ],
+     "readout_spikes": [
+      111,
+      109
+     ],
+     "pam_spikes": [
+      30,
+      28
+     ],
+     "apl_spikes": [
+      229,
+      230
+     ],
+     "total_spikes": [
+      152674,
+      152356
+     ],
+     "wall_s": [
+      11.06,
+      10.36
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.09484257291867877,
+      0.09464941085570794
+     ],
+     "kc_active": [
+      491,
+      490
+     ],
+     "readout_spikes": [
+      116,
+      115
+     ],
+     "pam_spikes": [
+      23,
+      26
+     ],
+     "apl_spikes": [
+      229,
+      227
+     ],
+     "total_spikes": [
+      151388,
+      151273
+     ],
+     "wall_s": [
+      10.31,
+      10.84
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0937801815723392,
+    "B": 0.09474599188719335
+   },
+   "jaccard_A_B": 0.8538899430740038,
+   "mean_readout_spikes": {
+    "A": 110.0,
+    "B": 115.5
+   },
+   "mean_pam_spikes": {
+    "A": 29.0,
+    "B": 24.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 2.0,
+    "kc_threshold": 3.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl2-thr3-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.035348657523662355,
+      0.032451226579099865
+     ],
+     "kc_active": [
+      183,
+      168
+     ],
+     "readout_spikes": [
+      56,
+      54
+     ],
+     "pam_spikes": [
+      19,
+      21
+     ],
+     "apl_spikes": [
+      211,
+      209
+     ],
+     "total_spikes": [
+      149575,
+      149323
+     ],
+     "wall_s": [
+      9.73,
+      10.97
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.03167857832721654,
+      0.03225806451612903
+     ],
+     "kc_active": [
+      164,
+      167
+     ],
+     "readout_spikes": [
+      49,
+      57
+     ],
+     "pam_spikes": [
+      15,
+      21
+     ],
+     "apl_spikes": [
+      211,
+      212
+     ],
+     "total_spikes": [
+      147543,
+      147756
+     ],
+     "wall_s": [
+      10.48,
+      11.42
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.03389994205138111,
+    "B": 0.03196832142167279
+   },
+   "jaccard_A_B": 0.8263157894736842,
+   "mean_readout_spikes": {
+    "A": 55.0,
+    "B": 53.0
+   },
+   "mean_pam_spikes": {
+    "A": 20.0,
+    "B": 18.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 4.0,
+    "kc_threshold": 3.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl4-thr3-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.004249565385358316,
+      0.005022213637241646
+     ],
+     "kc_active": [
+      22,
+      26
+     ],
+     "readout_spikes": [
+      44,
+      46
+     ],
+     "pam_spikes": [
+      19,
+      25
+     ],
+     "apl_spikes": [
+      205,
+      203
+     ],
+     "total_spikes": [
+      148503,
+      148087
+     ],
+     "wall_s": [
+      10.77,
+      10.86
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.004249565385358316,
+      0.004249565385358316
+     ],
+     "kc_active": [
+      22,
+      22
+     ],
+     "readout_spikes": [
+      45,
+      45
+     ],
+     "pam_spikes": [
+      20,
+      21
+     ],
+     "apl_spikes": [
+      203,
+      203
+     ],
+     "total_spikes": [
+      147133,
+      146860
+     ],
+     "wall_s": [
+      9.64,
+      11.05
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0046358895112999805,
+    "B": 0.004249565385358316
+   },
+   "jaccard_A_B": 0.6923076923076923,
+   "mean_readout_spikes": {
+    "A": 45.0,
+    "B": 45.0
+   },
+   "mean_pam_spikes": {
+    "A": 22.0,
+    "B": 20.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 8.0,
+    "kc_threshold": 3.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl8-thr3-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      44,
+      52
+     ],
+     "pam_spikes": [
+      22,
+      22
+     ],
+     "apl_spikes": [
+      195,
+      201
+     ],
+     "total_spikes": [
+      147920,
+      148160
+     ],
+     "wall_s": [
+      10.16,
+      10.64
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      39,
+      50
+     ],
+     "pam_spikes": [
+      18,
+      18
+     ],
+     "apl_spikes": [
+      201,
+      198
+     ],
+     "total_spikes": [
+      146839,
+      146962
+     ],
+     "wall_s": [
+      10.77,
+      10.62
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 48.0,
+    "B": 44.5
+   },
+   "mean_pam_spikes": {
+    "A": 22.0,
+    "B": 18.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 16.0,
+    "kc_threshold": 3.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl16-thr3-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      47,
+      56
+     ],
+     "pam_spikes": [
+      19,
+      21
+     ],
+     "apl_spikes": [
+      202,
+      201
+     ],
+     "total_spikes": [
+      148662,
+      148657
+     ],
+     "wall_s": [
+      11.94,
+      10.02
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      41,
+      41
+     ],
+     "pam_spikes": [
+      20,
+      15
+     ],
+     "apl_spikes": [
+      201,
+      200
+     ],
+     "total_spikes": [
+      146918,
+      146405
+     ],
+     "wall_s": [
+      10.98,
+      10.64
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 51.5,
+    "B": 41.0
+   },
+   "mean_pam_spikes": {
+    "A": 20.0,
+    "B": 17.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 32.0,
+    "kc_threshold": 3.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl32-thr3-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      48,
+      51
+     ],
+     "pam_spikes": [
+      22,
+      21
+     ],
+     "apl_spikes": [
+      201,
+      198
+     ],
+     "total_spikes": [
+      148533,
+      148090
+     ],
+     "wall_s": [
+      11.19,
+      10.27
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      48,
+      39
+     ],
+     "pam_spikes": [
+      22,
+      21
+     ],
+     "apl_spikes": [
+      201,
+      202
+     ],
+     "total_spikes": [
+      147517,
+      146591
+     ],
+     "wall_s": [
+      10.83,
+      9.92
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 49.5,
+    "B": 43.5
+   },
+   "mean_pam_spikes": {
+    "A": 21.5,
+    "B": 21.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 1.0,
+    "kc_threshold": 4.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl1-thr4-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.02221363724164574,
+      0.023179447556499904
+     ],
+     "kc_active": [
+      115,
+      120
+     ],
+     "readout_spikes": [
+      53,
+      55
+     ],
+     "pam_spikes": [
+      23,
+      26
+     ],
+     "apl_spikes": [
+      207,
+      208
+     ],
+     "total_spikes": [
+      148965,
+      149096
+     ],
+     "wall_s": [
+      10.14,
+      10.47
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.023179447556499904,
+      0.022406799304616573
+     ],
+     "kc_active": [
+      120,
+      116
+     ],
+     "readout_spikes": [
+      61,
+      50
+     ],
+     "pam_spikes": [
+      24,
+      20
+     ],
+     "apl_spikes": [
+      208,
+      207
+     ],
+     "total_spikes": [
+      147544,
+      147477
+     ],
+     "wall_s": [
+      10.24,
+      11.05
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.022696542399072824,
+    "B": 0.02279312343055824
+   },
+   "jaccard_A_B": 0.8503937007874016,
+   "mean_readout_spikes": {
+    "A": 54.0,
+    "B": 55.5
+   },
+   "mean_pam_spikes": {
+    "A": 24.5,
+    "B": 22.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 2.0,
+    "kc_threshold": 4.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl2-thr4-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.006760672203979139,
+      0.007919644581804134
+     ],
+     "kc_active": [
+      35,
+      41
+     ],
+     "readout_spikes": [
+      49,
+      47
+     ],
+     "pam_spikes": [
+      21,
+      21
+     ],
+     "apl_spikes": [
+      203,
+      197
+     ],
+     "total_spikes": [
+      148978,
+      149031
+     ],
+     "wall_s": [
+      10.39,
+      12.7
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.006760672203979139,
+      0.007726482518833301
+     ],
+     "kc_active": [
+      35,
+      40
+     ],
+     "readout_spikes": [
+      48,
+      41
+     ],
+     "pam_spikes": [
+      17,
+      18
+     ],
+     "apl_spikes": [
+      203,
+      204
+     ],
+     "total_spikes": [
+      147158,
+      146973
+     ],
+     "wall_s": [
+      13.3,
+      12.98
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.007340158392891637,
+    "B": 0.00724357736140622
+   },
+   "jaccard_A_B": 0.75,
+   "mean_readout_spikes": {
+    "A": 48.0,
+    "B": 44.5
+   },
+   "mean_pam_spikes": {
+    "A": 21.0,
+    "B": 17.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 4.0,
+    "kc_threshold": 4.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl4-thr4-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      51,
+      51
+     ],
+     "pam_spikes": [
+      19,
+      23
+     ],
+     "apl_spikes": [
+      200,
+      201
+     ],
+     "total_spikes": [
+      148435,
+      148919
+     ],
+     "wall_s": [
+      15.61,
+      13.69
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      40,
+      40
+     ],
+     "pam_spikes": [
+      19,
+      19
+     ],
+     "apl_spikes": [
+      201,
+      202
+     ],
+     "total_spikes": [
+      147420,
+      146950
+     ],
+     "wall_s": [
+      13.58,
+      12.5
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 51.0,
+    "B": 40.0
+   },
+   "mean_pam_spikes": {
+    "A": 21.0,
+    "B": 19.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 8.0,
+    "kc_threshold": 4.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl8-thr4-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      46,
+      46
+     ],
+     "pam_spikes": [
+      19,
+      22
+     ],
+     "apl_spikes": [
+      199,
+      201
+     ],
+     "total_spikes": [
+      147882,
+      148323
+     ],
+     "wall_s": [
+      13.78,
+      13.05
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      35,
+      39
+     ],
+     "pam_spikes": [
+      18,
+      17
+     ],
+     "apl_spikes": [
+      200,
+      199
+     ],
+     "total_spikes": [
+      146573,
+      146912
+     ],
+     "wall_s": [
+      12.31,
+      12.44
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 46.0,
+    "B": 37.0
+   },
+   "mean_pam_spikes": {
+    "A": 20.5,
+    "B": 17.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 16.0,
+    "kc_threshold": 4.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl16-thr4-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      44,
+      52
+     ],
+     "pam_spikes": [
+      24,
+      19
+     ],
+     "apl_spikes": [
+      199,
+      201
+     ],
+     "total_spikes": [
+      148466,
+      148467
+     ],
+     "wall_s": [
+      12.09,
+      12.98
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      44,
+      48
+     ],
+     "pam_spikes": [
+      18,
+      19
+     ],
+     "apl_spikes": [
+      201,
+      203
+     ],
+     "total_spikes": [
+      146606,
+      146957
+     ],
+     "wall_s": [
+      12.06,
+      12.42
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 48.0,
+    "B": 46.0
+   },
+   "mean_pam_spikes": {
+    "A": 21.5,
+    "B": 18.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 32.0,
+    "kc_threshold": 4.0,
+    "kc_kc": 1.0
+   },
+   "label": "apl32-thr4-kckc1",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      46,
+      47
+     ],
+     "pam_spikes": [
+      20,
+      23
+     ],
+     "apl_spikes": [
+      200,
+      199
+     ],
+     "total_spikes": [
+      148260,
+      148468
+     ],
+     "wall_s": [
+      11.88,
+      11.98
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.0,
+      0.0
+     ],
+     "kc_active": [
+      0,
+      0
+     ],
+     "readout_spikes": [
+      42,
+      42
+     ],
+     "pam_spikes": [
+      22,
+      20
+     ],
+     "apl_spikes": [
+      201,
+      206
+     ],
+     "total_spikes": [
+      146884,
+      146612
+     ],
+     "wall_s": [
+      12.12,
+      12.75
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "jaccard_A_B": 0.0,
+   "mean_readout_spikes": {
+    "A": 46.5,
+    "B": 42.0
+   },
+   "mean_pam_spikes": {
+    "A": 21.5,
+    "B": 21.0
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 1.0,
+    "kc_threshold": 1.0,
+    "kc_kc": 0.0
+   },
+   "label": "apl1-thr1-kckc0",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.5480007726482519,
+      0.5491597450260769
+     ],
+     "kc_active": [
+      2837,
+      2843
+     ],
+     "readout_spikes": [
+      1476,
+      1492
+     ],
+     "pam_spikes": [
+      1909,
+      1937
+     ],
+     "apl_spikes": [
+      320,
+      322
+     ],
+     "total_spikes": [
+      212889,
+      214341
+     ],
+     "wall_s": [
+      12.97,
+      12.73
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.5480007726482519,
+      0.5458759899555727
+     ],
+     "kc_active": [
+      2837,
+      2826
+     ],
+     "readout_spikes": [
+      1462,
+      1466
+     ],
+     "pam_spikes": [
+      1880,
+      1855
+     ],
+     "apl_spikes": [
+      319,
+      321
+     ],
+     "total_spikes": [
+      211067,
+      211216
+     ],
+     "wall_s": [
+      12.83,
+      12.75
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.5485802588371644,
+    "B": 0.5469383813019123
+   },
+   "jaccard_A_B": 0.9770034843205575,
+   "mean_readout_spikes": {
+    "A": 1484.0,
+    "B": 1464.0
+   },
+   "mean_pam_spikes": {
+    "A": 1923.0,
+    "B": 1867.5
+   }
+  },
+  {
+   "representation": {
+    "apl_gain": 1.0,
+    "kc_threshold": 3.0,
+    "kc_kc": 0.0
+   },
+   "label": "apl1-thr3-kckc0",
+   "odours": {
+    "A": {
+     "coding_level": [
+      0.0884682248406413,
+      0.08692292833687464
+     ],
+     "kc_active": [
+      458,
+      450
+     ],
+     "readout_spikes": [
+      101,
+      110
+     ],
+     "pam_spikes": [
+      24,
+      27
+     ],
+     "apl_spikes": [
+      228,
+      228
+     ],
+     "total_spikes": [
+      151988,
+      152170
+     ],
+     "wall_s": [
+      12.59,
+      12.06
+     ]
+    },
+    "B": {
+     "coding_level": [
+      0.08518446977013715,
+      0.0873092524628163
+     ],
+     "kc_active": [
+      441,
+      452
+     ],
+     "readout_spikes": [
+      107,
+      107
+     ],
+     "pam_spikes": [
+      28,
+      26
+     ],
+     "apl_spikes": [
+      230,
+      230
+     ],
+     "total_spikes": [
+      150202,
+      150707
+     ],
+     "wall_s": [
+      12.38,
+      12.33
+     ]
+    }
+   },
+   "mean_coding_level": {
+    "A": 0.08769557658875797,
+    "B": 0.08624686111647673
+   },
+   "jaccard_A_B": 0.8497942386831275,
+   "mean_readout_spikes": {
+    "A": 105.5,
+    "B": 107.0
+   },
+   "mean_pam_spikes": {
+    "A": 25.5,
+    "B": 27.0
+   }
+  }
+ ],
+ "qualifying": [
+  "apl4-thr1-kckc1",
+  "apl4-thr1.5-kckc1",
+  "apl2-thr2-kckc1",
+  "apl4-thr2-kckc1",
+  "apl1-thr3-kckc1",
+  "apl2-thr3-kckc1",
+  "apl1-thr4-kckc1"
+ ],
+ "selected": {
+  "label": "apl1-thr3-kckc1",
+  "representation": {
+   "apl_gain": 1.0,
+   "kc_threshold": 3.0,
+   "kc_kc": 1.0
+  }
+ },
+ "resources": {
+  "wall_s": 1378.844,
+  "cpu_s": 1336.25,
+  "rss_start_mb": 274.988,
+  "rss_end_mb": 351.676,
+  "peak_rss_mb_process": 626.145,
+  "gpu": null,
+  "machine": {
+   "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+   "arch": "ARM64",
+   "os": "Windows-10-10.0.26200-SP0",
+   "logical_cpus": 8,
+   "total_ram_mb": 15979,
+   "available_ram_mb": 2215,
+   "gpu": null,
+   "physical_cpus": 8,
+   "cpu_busy_percent_over_1s": 38.1
+  }
+ },
+ "environment": {
+  "python": "3.11.9",
+  "implementation": "cpython",
+  "platform": "win32 ARM64",
+  "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "3b4cdfad278d832ef4fff14a314746dff07c1f9c",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "2336ed70aff448168a1251462905f94f88f84d4148729f2ba4aeb817eb351347",
+   "files": 22
+  },
+  "changed_during_run": []
+ },
+ "sha256": "ae0a0b05069ab0d01a84e439daeebab0edd78a5ea7de2ab2270c7c9960f0cd32"
+}

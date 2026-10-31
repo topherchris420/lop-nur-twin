@@ -1,0 +1,129 @@
+{
+ "schema": "fly-neural-threat/v1",
+ "id": "threat-v783",
+ "title": "Telling a looming threat from harmless visual motion: the connectome's giant fiber under the original and a looming-selective mapping, against ECHO's giant-fiber proxy and simple thresholds",
+ "preregistration": "Written before any run of this file. The batteries, the scoring, the candidate mappings and readouts, the selection rule and the criteria are fixed here. Development battery and seeds may run while code changes; the selected mapping and readout are then frozen (the selection result is sealed), and the held-out battery runs once, from a clean commit, and is reported whatever it shows. ECHO is not tuned at all; the two threshold heuristics are tuned on the development battery by the same objective as the readouts.",
+ "connectome": "fafb-v783-shiu",
+ "fly": {"position": [0, 0.01, 0], "yaw": 0, "note": "A research subject held in place (a tethered preparation): ECHO's escape decisions are recorded and the body is kept perched, so every readout sees the same stimulus stream. ECHO's habituation acts on executed escapes, so it does not act here."},
+ "timeline": {"first_s": 1.0, "gap_s": 2.0, "tail_s": 1.0, "sample_s": 0.01},
+ "ground_truth": {
+  "collision_margin_m": 0.01,
+  "harmless_min_surface_m": 0.05,
+  "rule": "From the battery's own kinematics, never from what any readout sees: a stimulus is a threat when its surface comes within collision_margin_m of the fly, at the collision time; it is harmless when its surface stays at least harmless_min_surface_m away. The battery has no stimulus in between."
+ },
+ "scoring": {
+  "merge_s": 0.5,
+  "rule": "Every readout gives escape decisions as a stream of positive 10 ms samples; a decision is the first positive sample after at least merge_s without one. A threat is hit by the first decision from its first visible sample up to its collision time; its lead time is collision time minus decision time. A threat with no decision in that window is missed. Every decision that hits no threat is a false alarm, whether during a harmless stimulus or with nothing showing. Precision = hits / (hits + false alarms); recall = hits / threats; F1 their harmonic mean; false alarms per simulated minute over the whole battery."
+ },
+ "batteries": {
+  "dev": {
+   "stimuli": [
+    {"kind": "approach", "radius": 0.02, "speed": 0.5, "distance": 0.6, "azimuth_deg": 30, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.02, "speed": 1.0, "distance": 1.0, "azimuth_deg": -60, "elevation_deg": 20, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.02, "speed": 2.0, "distance": 1.5, "azimuth_deg": 90, "elevation_deg": 10, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.02, "speed": 4.0, "distance": 1.0, "azimuth_deg": 0, "elevation_deg": 25, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.05, "speed": 0.5, "distance": 1.0, "azimuth_deg": -30, "elevation_deg": 15, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.05, "speed": 1.0, "distance": 1.5, "azimuth_deg": 60, "elevation_deg": 20, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.05, "speed": 2.0, "distance": 0.6, "azimuth_deg": -90, "elevation_deg": 10, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.05, "speed": 4.0, "distance": 1.5, "azimuth_deg": 120, "elevation_deg": 30, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.1, "speed": 0.5, "distance": 1.5, "azimuth_deg": 0, "elevation_deg": 20, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.1, "speed": 1.0, "distance": 0.6, "azimuth_deg": 45, "elevation_deg": 15, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.1, "speed": 2.0, "distance": 1.0, "azimuth_deg": -120, "elevation_deg": 25, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.1, "speed": 4.0, "distance": 1.0, "azimuth_deg": 90, "elevation_deg": 10, "contrast": 0.5},
+    {"kind": "recede", "radius": 0.05, "speed": 1.0, "distance": 1.2, "azimuth_deg": 30, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "recede", "radius": 0.1, "speed": 2.0, "distance": 1.5, "azimuth_deg": -45, "elevation_deg": 20, "contrast": 0.5},
+    {"kind": "recede", "radius": 0.02, "speed": 0.5, "distance": 0.8, "azimuth_deg": 90, "elevation_deg": 10, "contrast": 1.0},
+    {"kind": "recede", "radius": 0.1, "speed": 4.0, "distance": 1.5, "azimuth_deg": 0, "elevation_deg": 25, "contrast": 1.0},
+    {"kind": "stationary", "radius": 0.05, "distance": 0.2, "duration_s": 2.0, "azimuth_deg": 0, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "stationary", "radius": 0.1, "distance": 0.25, "duration_s": 2.0, "azimuth_deg": -60, "elevation_deg": 20, "contrast": 0.5},
+    {"kind": "stationary", "radius": 0.02, "distance": 0.1, "duration_s": 2.0, "azimuth_deg": 90, "elevation_deg": 10, "contrast": 1.0},
+    {"kind": "stationary", "radius": 0.1, "distance": 0.5, "duration_s": 2.0, "azimuth_deg": 45, "elevation_deg": 25, "contrast": 1.0},
+    {"kind": "lateral", "radius": 0.05, "speed": 1.0, "miss": 0.2, "half_length": 1.0, "azimuth_deg": 0, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "lateral", "radius": 0.1, "speed": 2.0, "miss": 0.3, "half_length": 1.0, "azimuth_deg": 60, "elevation_deg": 20, "contrast": 0.5},
+    {"kind": "lateral", "radius": 0.02, "speed": 0.5, "miss": 0.1, "half_length": 0.6, "azimuth_deg": -90, "elevation_deg": 10, "contrast": 1.0},
+    {"kind": "lateral", "radius": 0.1, "speed": 3.0, "miss": 0.2, "half_length": 1.0, "azimuth_deg": -30, "elevation_deg": 25, "contrast": 1.0},
+    {"kind": "lateral", "radius": 0.05, "speed": 2.0, "miss": 0.12, "half_length": 0.8, "azimuth_deg": 120, "elevation_deg": 15, "contrast": 0.5},
+    {"kind": "lateral", "radius": 0.02, "speed": 1.0, "miss": 0.08, "half_length": 0.6, "azimuth_deg": 30, "elevation_deg": 20, "contrast": 1.0},
+    {"kind": "near_miss", "radius": 0.02, "speed": 1.0, "distance": 1.0, "miss": 0.08, "azimuth_deg": 0, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "near_miss", "radius": 0.05, "speed": 2.0, "distance": 1.2, "miss": 0.15, "azimuth_deg": -45, "elevation_deg": 20, "contrast": 1.0},
+    {"kind": "near_miss", "radius": 0.03, "speed": 0.5, "distance": 0.6, "miss": 0.1, "azimuth_deg": 90, "elevation_deg": 10, "contrast": 0.5},
+    {"kind": "near_miss", "radius": 0.1, "speed": 4.0, "distance": 1.5, "miss": 0.25, "azimuth_deg": 30, "elevation_deg": 25, "contrast": 1.0}
+   ]
+  },
+  "heldout": {
+   "note": "Novel sizes, speeds, distances, directions and contrast (0.25 never appears in development), and three trajectory kinds development never shows: accelerating approaches, approaches that stop short, and lateral passes that reverse.",
+   "stimuli": [
+    {"kind": "approach", "radius": 0.015, "speed": 0.3, "distance": 0.8, "azimuth_deg": 15, "elevation_deg": 12, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.015, "speed": 1.5, "distance": 1.2, "azimuth_deg": -75, "elevation_deg": 22, "contrast": 0.25},
+    {"kind": "approach", "radius": 0.015, "speed": 3.0, "distance": 2.0, "azimuth_deg": 105, "elevation_deg": 8, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.015, "speed": 6.0, "distance": 2.0, "azimuth_deg": -15, "elevation_deg": 28, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.07, "speed": 0.3, "distance": 1.2, "azimuth_deg": -105, "elevation_deg": 18, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.07, "speed": 1.5, "distance": 2.0, "azimuth_deg": 75, "elevation_deg": 12, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.07, "speed": 3.0, "distance": 0.8, "azimuth_deg": 15, "elevation_deg": 22, "contrast": 0.25},
+    {"kind": "approach", "radius": 0.07, "speed": 6.0, "distance": 1.2, "azimuth_deg": -45, "elevation_deg": 8, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.15, "speed": 0.3, "distance": 2.0, "azimuth_deg": 45, "elevation_deg": 28, "contrast": 0.5},
+    {"kind": "approach", "radius": 0.15, "speed": 1.5, "distance": 0.8, "azimuth_deg": -15, "elevation_deg": 12, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.15, "speed": 3.0, "distance": 1.2, "azimuth_deg": 135, "elevation_deg": 18, "contrast": 1.0},
+    {"kind": "approach", "radius": 0.15, "speed": 6.0, "distance": 2.0, "azimuth_deg": -135, "elevation_deg": 22, "contrast": 0.25},
+    {"kind": "accelerating", "radius": 0.05, "speed": 0.4, "speed2": 3.0, "distance": 1.4, "azimuth_deg": 20, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "accelerating", "radius": 0.08, "speed": 0.3, "speed2": 5.0, "distance": 1.8, "azimuth_deg": -50, "elevation_deg": 20, "contrast": 0.5},
+    {"kind": "accelerating", "radius": 0.03, "speed": 1.0, "speed2": 4.0, "distance": 1.0, "azimuth_deg": 80, "elevation_deg": 10, "contrast": 1.0},
+    {"kind": "accelerating", "radius": 0.12, "speed": 0.5, "speed2": 2.5, "distance": 1.6, "azimuth_deg": -100, "elevation_deg": 25, "contrast": 0.25},
+    {"kind": "approach_stop", "radius": 0.05, "speed": 2.0, "distance": 1.2, "stop_surface": 0.12, "hold_s": 1.0, "azimuth_deg": 10, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "approach_stop", "radius": 0.1, "speed": 1.0, "distance": 1.5, "stop_surface": 0.15, "hold_s": 1.0, "azimuth_deg": -70, "elevation_deg": 20, "contrast": 1.0},
+    {"kind": "approach_stop", "radius": 0.03, "speed": 4.0, "distance": 1.0, "stop_surface": 0.08, "hold_s": 1.0, "azimuth_deg": 100, "elevation_deg": 10, "contrast": 0.5},
+    {"kind": "approach_stop", "radius": 0.15, "speed": 3.0, "distance": 2.0, "stop_surface": 0.2, "hold_s": 1.0, "azimuth_deg": -20, "elevation_deg": 25, "contrast": 1.0},
+    {"kind": "zigzag", "radius": 0.05, "speed": 1.5, "miss": 0.15, "half_length": 0.8, "azimuth_deg": 20, "elevation_deg": 15, "contrast": 1.0},
+    {"kind": "zigzag", "radius": 0.1, "speed": 2.5, "miss": 0.25, "half_length": 1.0, "azimuth_deg": -80, "elevation_deg": 20, "contrast": 0.5},
+    {"kind": "zigzag", "radius": 0.03, "speed": 0.8, "miss": 0.09, "half_length": 0.5, "azimuth_deg": 110, "elevation_deg": 10, "contrast": 1.0},
+    {"kind": "zigzag", "radius": 0.08, "speed": 4.0, "miss": 0.2, "half_length": 1.0, "azimuth_deg": -10, "elevation_deg": 25, "contrast": 0.25},
+    {"kind": "recede", "radius": 0.07, "speed": 1.5, "distance": 2.0, "azimuth_deg": -15, "elevation_deg": 18, "contrast": 1.0},
+    {"kind": "recede", "radius": 0.15, "speed": 6.0, "distance": 2.0, "azimuth_deg": 75, "elevation_deg": 12, "contrast": 0.25},
+    {"kind": "recede", "radius": 0.015, "speed": 0.3, "distance": 0.6, "azimuth_deg": -105, "elevation_deg": 22, "contrast": 1.0},
+    {"kind": "stationary", "radius": 0.07, "distance": 0.15, "duration_s": 2.5, "azimuth_deg": 15, "elevation_deg": 12, "contrast": 1.0},
+    {"kind": "stationary", "radius": 0.15, "distance": 0.3, "duration_s": 2.5, "azimuth_deg": -75, "elevation_deg": 22, "contrast": 0.25},
+    {"kind": "stationary", "radius": 0.015, "distance": 0.08, "duration_s": 2.5, "azimuth_deg": 105, "elevation_deg": 8, "contrast": 1.0},
+    {"kind": "near_miss", "radius": 0.015, "speed": 3.0, "distance": 2.0, "miss": 0.07, "azimuth_deg": -15, "elevation_deg": 12, "contrast": 1.0},
+    {"kind": "near_miss", "radius": 0.07, "speed": 1.5, "distance": 1.2, "miss": 0.18, "azimuth_deg": 75, "elevation_deg": 22, "contrast": 0.5},
+    {"kind": "near_miss", "radius": 0.15, "speed": 6.0, "distance": 2.0, "miss": 0.3, "azimuth_deg": -105, "elevation_deg": 18, "contrast": 1.0},
+    {"kind": "near_miss", "radius": 0.04, "speed": 0.3, "distance": 0.8, "miss": 0.12, "azimuth_deg": 45, "elevation_deg": 28, "contrast": 0.25}
+   ]
+  }
+ },
+ "mappings": {
+  "v1": {"what": "sensory.py as merged: LPLC2 200 Hz x min(1, size / 40 deg); LC4 200 Hz x min(1, expansion / 400 deg/s), on the object's side; contrast ignored"},
+  "v2": {
+   "what": "looming-selective: LPLC2 = 200 Hz x c x logistic((size - size50) / width) x min(1, expansion / expansion_ref) and LC4 = 200 Hz x c x min(1, expansion / 400 deg/s), both 0 unless the object is expanding, on its side; c is the stimulus's contrast",
+   "basis": "LPLC2 neurons respond to looming (radially expanding) stimuli and not to translating or static ones (Klapoetke et al. 2017, Nature 551:237-241, doi:10.1038/nature24626); LPLC2 carries angular size and LC4 angular velocity to the giant fiber (von Reyn et al. 2017, Neuron 94:1190-1204, doi:10.1016/j.neuron.2017.05.036; Ache et al. 2019, Curr Biol 29:1073-1081, doi:10.1016/j.cub.2019.01.079). The logistic form, its constants and the linear contrast gain are ours (status model).",
+   "constants": {"width_deg": 5.0, "expansion_ref_deg_s": 200.0},
+   "candidates": {"size50_deg": [20.0, 35.0]}
+  }
+ },
+ "readouts": {
+  "any": {"what": "the merged readout: any giant-fiber (DNp01) spike in the sample"},
+  "integrated": {
+   "what": "a leaky count of giant-fiber spikes, I(t) = I(t - dt) exp(-dt / tau) + spikes(t); an escape decision when I >= k, then no decision for refractory_s",
+   "basis": "a single GF spike triggers a short-mode takeoff in the fly (von Reyn et al. 2014, Nat Neurosci 17:962-970, doi:10.1038/nn.3741); in this model the GF also fires to small, far objects, so the integrated readout asks for sustained GF activity. It is a readout rule, ours, not a property of the fly.",
+   "grid": {"k": [1, 2, 3, 5, 8, 12], "tau_ms": [10, 30, 100]},
+   "refractory_s": 1.0
+  }
+ },
+ "candidates": "every mapping (v1; v2 at each size50) with every readout (any; integrated at every grid point)",
+ "heuristics": {
+  "size": {"what": "escape when angular size >= threshold and the object is expanding", "grid_deg": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90]},
+  "ttc": {"what": "escape when size / expansion (time to collision for a constant approach) <= threshold, size >= 5 deg and expanding", "grid_s": [0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.75, 1.0]},
+  "echo": {"what": "ECHO's own giant-fiber proxy decisions, recorded from the held research subject; not tuned"}
+ },
+ "selection": "On the development battery, averaged over its seeds: among candidates with recall >= 0.8, the highest F1; ties go to the larger median lead time, then to the candidate listed first. The same objective tunes each heuristic's threshold. If no candidate reaches recall 0.8, the highest F1 is chosen and the result says so. The choice is sealed before the held-out battery runs.",
+ "seeds": {"dev": [7100001, 7100002], "heldout": [7700001, 7700002, 7700003]},
+ "echo_seed": {"dev": 7100101, "heldout": 7700101},
+ "criteria": [
+  {"id": "T0", "claim": "The merged readout (v1 mapping, any spike) still over-fires on the held-out battery: its false alarms per simulated minute are at least 5", "test": "baseline_fa", "readout": "v1/any", "min_fa_per_min": 5.0, "threshold_note": "ours: a check that the problem is present in the battery, not a result about the new readout"},
+  {"id": "T1", "claim": "The selected readout cuts false alarms per minute by at least 80% from the merged readout", "test": "fa_reduction", "a": "selected", "b": "v1/any", "max_ratio": 0.2},
+  {"id": "T2", "claim": "without an unacceptable rise in misses: recall at least 0.75 and no more than 0.10 below the merged readout's", "test": "recall_kept", "a": "selected", "b": "v1/any", "min_recall": 0.75, "max_drop": 0.10},
+  {"id": "T3", "claim": "and without escaping too late: median lead time over its hits at least 50 ms before collision", "test": "lead_time", "a": "selected", "min_median_lead_s": 0.05},
+  {"id": "T4", "claim": "The selected readout's F1 is at least that of each threshold heuristic tuned on the development battery", "test": "f1_at_least", "a": "selected", "b": ["size", "ttc"]},
+  {"id": "T5", "claim": "The selected readout's F1 is at least ECHO's giant-fiber proxy's", "test": "f1_at_least", "a": "selected", "b": ["echo"]},
+  {"id": "X1", "claim": "Exploratory: per stimulus kind, how often each readout escapes", "test": "report_only"}
+ ]
+}

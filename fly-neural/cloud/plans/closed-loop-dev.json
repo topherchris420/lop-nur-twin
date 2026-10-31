@@ -1,0 +1,101 @@
+{
+  "name": "closed-loop-dev",
+  "what": "closed-loop-v783, dev split: one process per run (scenario x subject x arm), each a node subject driving its own readout server, then one process that judges them all and seals closed-loop-v783-dev.json. Needs a machine with a core per neural run: the subjects' 20 s answer timeout is part of the pre-registration",
+  "connectome": "fafb-v783-shiu",
+  "node": {
+    "version": "v24.22.1",
+    "sha256": "6c172a9ab6718f7b801fb5a7bd486af2ee5e32758086a04b84fcce2aa77095e6"
+  },
+  "state": [".fly-neural/closed-loop"],
+  "phases": [
+    {
+      "commands": [
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "looms:9100101:baseline",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "looms:9100101:neural-merged",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "looms:9100101:neural-selected",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "passes:9100101:baseline",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "passes:9100101:neural-merged",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "passes:9100101:neural-selected",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "food:9100101:baseline",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "food:9100101:neural-merged",
+          "--resume"
+        ],
+        [
+          "closedloop",
+          "run",
+          "--split",
+          "dev",
+          "--unit",
+          "food:9100101:neural-selected",
+          "--resume"
+        ]
+      ]
+    },
+    {
+      "commands": [["closedloop", "run", "--split", "dev", "--resume"]],
+      "ok_exit": [0, 3]
+    }
+  ]
+}
