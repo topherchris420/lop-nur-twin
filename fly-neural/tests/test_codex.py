@@ -88,6 +88,45 @@ def test_read_table_by_alias_and_refusal(tmp_path):
         codex.read_table(bad, codex.NEURON_COLUMNS, ("root_id",))
 
 
+
+def test_native_banc_v888_download_headers_and_quoted_fields(tmp_path):
+    """The actual Codex BANC export uses human-readable headings and quoted CSV."""
+    neurons = tmp_path / "neurons.csv.gz"
+    neurons.write_bytes(
+        gzip.compress(
+            (
+                "Root ID,Community labels,Predicted NT type,Super Class,Class,"
+                "Soma side,Primary Cell Type\\n"
+                '720575940381905254,"first, second",ACH,sensory,'
+                'olfactory_receptor_neuron,left,OR67d\\n'
+                '720575940382537062,"third",GABA,descending,DN,right,DNp09\\n'
+            ).replace("\\n", "\n").encode("utf-8")
+        )
+    )
+    cols = codex.read_table(neurons, codex.NEURON_COLUMNS, ("root_id",))
+    assert cols["root_id"].tolist() == [720575940381905254, 720575940382537062]
+    assert cols["super_class"].tolist() == ["sensory", "descending"]
+    assert cols["cell_class"].tolist() == ["olfactory_receptor_neuron", "DN"]
+    assert cols["cell_type"].tolist() == ["OR67d", "DNp09"]
+    assert cols["side"].tolist() == ["left", "right"]
+    assert cols["nt"].tolist() == ["ACH", "GABA"]
+
+    connections = tmp_path / "connections_princeton.csv.gz"
+    connections.write_bytes(
+        gzip.compress(
+            (
+                "pre_root_id,post_root_id,neuropil,syn_count,nt_type\\n"
+                "720575940381905254,720575940382537062,AL_L,3,ACH\\n"
+            ).replace("\\n", "\n").encode("utf-8")
+        )
+    )
+    edges = codex.read_table(connections, codex.EDGE_COLUMNS, ("pre", "post"))
+    assert edges["pre"].tolist() == [720575940381905254]
+    assert edges["post"].tolist() == [720575940382537062]
+    assert edges["neuropil"].tolist() == ["AL_L"]
+    assert edges["syn"].tolist() == [3]
+
+
 def test_pins_record_and_verify_every_byte(tmp_path):
     d = codex.dataset_dir("banc-v888", tmp_path)
     d.mkdir(parents=True)

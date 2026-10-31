@@ -33,9 +33,9 @@ difference rather than adjusting either.
 
 from __future__ import annotations
 
+import csv
 import gzip
 import hashlib
-import io
 import json
 from collections import Counter, deque
 from dataclasses import dataclass, field
@@ -121,9 +121,9 @@ ALIASES = {
     "root_id": ("root_id", "root_id_783", "root_id_888", "pt_root_id", "id"),
     "super_class": ("super_class", "superclass"),
     "cell_class": ("cell_class", "class"),
-    "cell_type": ("cell_type", "primary_type", "type"),
+    "cell_type": ("cell_type", "primary_type", "primary_cell_type", "type"),
     "side": ("side", "hemisphere", "soma_side"),
-    "nt": ("nt_type", "top_nt", "nt", "predicted_nt"),
+    "nt": ("nt_type", "top_nt", "nt", "predicted_nt", "predicted_nt_type"),
     "pre": ("pre_root_id", "pre_pt_root_id", "pre", "pre_id"),
     "post": ("post_root_id", "post_pt_root_id", "post", "post_id"),
     "neuropil": ("neuropil", "region", "neuropil_name"),
@@ -162,7 +162,10 @@ class Tables:
 
 
 def _column(header: list[str], want: str) -> int | None:
-    lower = [h.strip().lower() for h in header]
+    # Codex's BANC v888 export uses display headings such as "Root ID",
+    # "Primary Cell Type", "Predicted NT type", and "Super Class". Normalize
+    # whitespace, but retain the existing snake_case aliases for v783.
+    lower = ["_".join(h.strip().lower().split()) for h in header]
     for alias in ALIASES[want]:
         if alias in lower:
             return lower.index(alias)
@@ -170,26 +173,25 @@ def _column(header: list[str], want: str) -> int | None:
 
 
 def read_table(path: Path, wanted: tuple[str, ...], required: tuple[str, ...]) -> dict[str, np.ndarray]:
-    """Reads a CSV or TSV (optionally gzipped) into numpy columns, by alias. Refuses a missing required column."""
-    raw = path.read_bytes()
-    if path.suffix == ".gz":
-        raw = gzip.decompress(raw)
-    text = io.StringIO(raw.decode("utf-8"))
-    first = text.readline()
-    sep = "\t" if first.count("\t") > first.count(",") else ","
-    header = [h.strip().strip('"') for h in first.rstrip("\r\n").split(sep)]
-    idx = {w: _column(header, w) for w in wanted}
-    missing = [w for w in required if idx[w] is None]
-    if missing:
-        raise CodexError(f"{path.name}: no column for {missing}; it has {header}")
-    cols: dict[str, list] = {w: [] for w in wanted if idx[w] is not None}
-    for line in text:
-        if not line.strip():
-            continue
-        cells = [c.strip().strip('"') for c in line.rstrip("\r\n").split(sep)]
-        for w, j in idx.items():
-            if j is not None:
-                cols[w].append(cells[j] if j < len(cells) else "")
+    """Stream a Codex CSV/TSV (including .gz), respecting quoted commas and header aliases."""
+    opener = gzip.open if path.suffix == ".gz" else Path.open
+    with opener(path, "rt", encoding="utf-8-sig", newline="") as stream:
+        first = stream.readline()
+        sep = "\t" if first.count("\t") > first.count(",") else ","
+        stream.seek(0)
+        rows = csv.reader(stream, delimiter=sep)
+        header = next(rows, [])
+        idx = {w: _column(header, w) for w in wanted}
+        missing = [w for w in required if idx[w] is None]
+        if missing:
+            raise CodexError(f"{path.name}: no column for {missing}; it has {header}")
+        cols: dict[str, list] = {w: [] for w in wanted if idx[w] is not None}
+        for cells in rows:
+            if not cells or (len(cells) == 1 and not cells[0].strip()):
+                continue
+            for w, j in idx.items():
+                if j is not None:
+                    cols[w].append(cells[j].strip() if j < len(cells) else "")
     out: dict[str, np.ndarray] = {}
     for w, values in cols.items():
         if w in ("root_id", "pre", "post"):
