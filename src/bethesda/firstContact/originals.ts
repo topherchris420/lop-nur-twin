@@ -94,7 +94,7 @@ export const ORIGINALS: readonly OriginalIndividual[] = Object.freeze([EVA, ECHO
 
 /**
  * Directories that exist only on the two production hosts. The Bethesda
- * life's come from `deploy/bethesda-life/` (and `scripts/echo-neural-shadow.ts`
+ * life's come from `deploy/bethesda-life/` (the connectome shadow recorder
  * refuses the same three); the garden's from docs/LIVE_GARDEN.md (its
  * database and backups live under `/var/lib/bethesda-fly`).
  */
