@@ -284,7 +284,58 @@ A baseline subject behind the tap is byte-identical to an untapped one.
 If a behaviour is commanded but not reliably produced by the body, it is
 reported as _predicted_, not _controlled_.
 
-<!-- CLOSED-LOOP-RESULTS -->
+**Results.** Three scenarios: looms (objects on collision courses),
+passes (objects passing 0.6–0.9 m away or receding: every escape is a
+false alarm) and food (a hungry subject in the yard with fruit). Three
+arms: ECHO alone (baseline), the merged readouts (`neural-merged`) and the
+threat readout selected on development stimuli (`neural-selected`).
+Development used one seed
+([sealed](benchmarks/fly-neural/adaptive/closed-loop-v783-dev.json),
+commit 287f989). The held-out split used three seeds, run once
+([sealed](benchmarks/fly-neural/adaptive/closed-loop-v783-heldout.json),
+commit 169c3da):
+
+| Held-out, 3 seeds                       | ECHO alone  | neural-merged   | neural-selected |
+| --------------------------------------- | ----------- | --------------- | --------------- |
+| Looms: escapable episodes escaped       | 3 of 18     | 7 of 7          | 6 of 10         |
+| Passes: escapes (all false alarms)      | 0           | 9               | **0**           |
+| Food: time feeding (of 30 s, per seed)  | 29.9–30.0 s | 7.7–8.9 s       | 7.7–8.9 s       |
+| Food: feeding bouts (meals)             | 1–3         | 116–131         | 116–131         |
+| Fallbacks to ECHO                       | —           | 1 of 3,000 each | 1 of 3,000 each |
+| Wall time per 30 s run (one cloud vCPU) | 1 s         | 13–21 min       | 4–22 min        |
+
+Criteria: **CL1 passed** (every neural run completed its 30 s); **CL2
+passed** (one fallback in 3,000 samples per run, at t = 0 before the
+first observation); **CL3 passed** (7 of 7 escape commands became
+escapes); **CL4 passed** (368 of 368 feeding commands became feeding
+bouts); **CL5 passed** (the selected readout escaped no harmless object;
+the merged one escaped all nine); **CL6 failed** (the selected readout
+escaped 6 of 10 escapable looms, under 75%).
+
+- **Control, not only prediction.** Escape and feeding commands from the
+  connectome model became behaviour, behind the safety layer, with no
+  run stopped. This is the first time `neural-experimental` mode has run
+  on the real connectome; before, a missing readout meant the fly never
+  escaped.
+- **Discrimination carried into closed loop, at a cost.** The selected
+  readout ignored every harmless pass (merged: 9 escapes) but missed 4 of
+  10 escapable looms. ECHO alone escaped fewer still: one loom per run,
+  3 of the 18 that began while it was perched.
+- **Neural feeding is fragmented.** MN9 crosses its threshold in short
+  bursts, so a hungry subject on fruit fed in 116–131 bouts totalling
+  about 8 s where ECHO alone fed for the whole 30 s; about 430 times per
+  run ECHO wanted to feed and MN9 was below threshold, so the subject
+  rested. Feeding is _controlled_, but worse.
+- **Cost.** A neural run is 25–45 times slower than real time on one
+  cloud vCPU (the selected readout's passes, with no escape, about 8
+  times). This model cannot drive a live fly in real time.
+- **Deviation.** The config's `limits_note` says one run at a time and no
+  cloud. It was written before the owner authorized cloud CPU, and the
+  runs went to Hugging Face Jobs as parallel units. Each run is a
+  separate subject with its own seed; a test
+  (`test_parallel_units_then_a_resumed_run_equal_one_process`) shows
+  parallel units then a resumed judge equal one process. The config was
+  not edited.
 
 ## Pre-registered experiments
 
@@ -303,7 +354,95 @@ was seen, and no result file was edited.
 | [`adaptive-life-v783.json`](../fly-neural/experiments/adaptive-life-v783.json)               | Does a forager driven by it adapt when food moves, rewards reverse and memories must last                        | held-out odour sets, 30 subjects          |
 | [`closed-loop-v783.json`](../fly-neural/experiments/closed-loop-v783.json)                   | Can the GF and MN9 control a research subject safely in closed loop                                              | 3 held-out seeds                          |
 
-<!-- RESULTS -->
+## Results
+
+### Odour-specific learning (plasticity-v2)
+
+<!-- PLASTICITY-RESULTS -->
+
+### Adaptive life (Experiments A, C, D, E)
+
+The forager of section 4 in four tasks. **A**: four sites, food at one for
+40 visits, then at another for 60; the measure is the visits it takes to
+reach criterion at the new site. **D**: two sites, the food alternating
+between them every 30 visits, three reversals. **E**: food at one of four
+sites for 40 visits, then 100 visits in another context, then back to the
+first four sites with no food; the measure is the share of the first 5
+probe visits that go to the trained site. The long-life run is 12 blocks
+of 50 visits, the food moving each block, with a checkpoint and restore
+after every block. Odour codes come from the full model once per odour (`adaptive
+codes`); choice and learning then use the connectome's KC→readout synapses
+directly, so a subject's life takes seconds. Development: 10 subjects per
+arm ([sealed](benchmarks/fly-neural/adaptive/adaptive-life-v783-dev.json),
+commit 53f4ff1). Held-out: 30 subjects per arm on new odour sets, run once
+([sealed](benchmarks/fly-neural/adaptive/adaptive-life-v783-heldout.json),
+commit 169c3da). The odour codes rebuilt for it hash the same as
+development's.
+
+| Held-out, 30 subjects per arm      | A: visits to relocate | A: meals per visit | D: visits per reversal (reversals reached of 3) | E: probe visits to the trained site |
+| ---------------------------------- | --------------------- | ------------------ | ----------------------------------------------- | ----------------------------------- |
+| **full** (rule v2, sparse code)    | **4.5**               | **0.91**           | **2.5 (3)**                                     | **0.71**                            |
+| fixed weights (no learning)        | never                 | 0.25               | 22.3 (1.0)                                      | 0.22                                |
+| v2, dopamine silenced              | never                 | 0.25               | 22.3 (1.0)                                      | 0.22                                |
+| v2, dopamine uncoupled from meals  | 45.7                  | 0.39               | 16.3 (1.6)                                      | 0.67                                |
+| v1 on the dense code (merged)      | 40 ¹                  | 0.28               | 13.7 (1.6)                                      | 0.22                                |
+| v1 on the sparse code              | never                 | 0.38               | 20.0 (1.0)                                      | 1.00 ²                              |
+| v2 on the dense code               | 5.2                   | 0.90               | 2.5 (3)                                         | 0.61                                |
+| v2 on the threshold-only code      | 4.1                   | 0.92               | 2.0 (3)                                         | 0.61                                |
+| v2 on a random code                | 4.7                   | 0.91               | 3.0 (3)                                         | 0.85                                |
+| v2 without the dopamine threshold  | 8.4                   | 0.88               | 4.7 (3)                                         | 0.77                                |
+| ECHO's mushroom body (rate model)  | 2.2                   | 0.93               | 1.2 (3)                                         | 0.60                                |
+| bookkeeping heuristic (no neurons) | 1.2                   | 0.94               | 0 (3)                                           | 0.25                                |
+| random forager                     | 58.6                  | 0.27               | 22.9 (1.0)                                      | 0.19                                |
+
+¹ 10 of 30 subjects met the criterion at once and 20 never did. ² v1 can
+only depress, so it never leaves the first site it learned (20
+perseverative visits of 20); its "retention" is perseveration. A subject
+that never learned makes 0.19 of its probe visits to the trained site.
+
+Criteria (held-out): **A1 passed** (full relocates sooner than fixed
+weights, p < 10⁻¹²); **A2 failed** (sooner than v1 on the dense code:
+p = 0.012, over the registered 0.01, because of v1's ten instant
+relocations); **A3 passed** (more meals per visit than v1); **D1 passed**
+(reverses faster than v1 on the same code); **D2 passed** (every full
+subject reached criterion after all three reversals); **E1 passed** and
+**E2 passed** (0.71 of probe visits after 100 visits elsewhere, against
+0.19 for a subject that never learned); **M1 passed** (silencing dopamine
+removes the gain); **M2 passed** (dopamine uncoupled from meals removes
+most of it); **M3 failed** (v2 on the dense code relearns no measurably
+more slowly: 5.2 against 4.5, p = 0.075); **M4 failed** (v2 on the
+threshold-only code: 4.1 against 4.5); **P1 passed** and **P2 passed**
+(every full and every ECHO-mushroom-body subject restored from its
+checkpoint after each of 12 blocks made exactly its uninterrupted
+choices, the checkpoints chained by hash, and the state held 63,624 and
+4,001 numbers throughout); **P3 passed** (no degradation: 3.5 visits per
+relocation in the first four blocks, 3.9 in the last four).
+
+What this shows:
+
+- **Learning from experience makes the forager adaptive, and the gain is
+  traced to the rule's dopamine.** Silencing the PAM dopamine abolishes
+  it; uncoupling dopamine from meals removes most of it. Extinction is
+  what makes reversal possible: rule v1, which can only depress, reaches
+  one reversal of three.
+- **The representation is not what matters here.** The sparse code and
+  the antennal-lobe change, the work of section 1, make no measurable
+  difference: v2 does as well on the dense, threshold-only or random code.
+  How v2 tells sites apart on the dense code (where the two development
+  odours share 98.7% of their KCs) was not investigated.
+- **It is not better than what ECHO already has.** ECHO's own mushroom
+  body, a rate model (Bennett, Philippides & Nowotny 2021), relocates and
+  reverses about twice as fast; a bookkeeping heuristic with no neurons
+  is faster still. The connectome forager keeps a trained site better
+  after interference than either (0.71 against 0.60 and 0.25).
+- **Experiment B (habituation) was not run.** The model has no
+  habituation mechanism in the GF pathway (see below).
+- **Experiment C** is ECHO's own committed self-model evaluation
+  (`scripts/echo-evaluate.ts --check`), rerun unchanged on this branch:
+  its [report](benchmarks/fly-echo/README.md) and `report.json`
+  reproduce byte for byte (24 seeds per condition, 287 s). Nothing in it
+  uses the connectome; it is the comparison point for what ECHO's
+  self-model already does.
 
 ## Biology and what is assumed
 
