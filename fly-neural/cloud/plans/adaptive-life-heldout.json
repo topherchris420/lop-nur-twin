@@ -1,0 +1,9 @@
+{
+  "name": "adaptive-life-heldout",
+  "what": "adaptive-life-v783, held-out split, run once: rebuild the odour codes (the result records their content hash, to compare with the dev build in adaptive-life-v783-dev.json), then run the held-out split on research subjects and seal adaptive-life-v783-heldout.json",
+  "connectome": "fafb-v783-shiu",
+  "phases": [
+    { "commands": [["adaptive", "codes"]] },
+    { "commands": [["adaptive", "run", "--split", "heldout"]], "ok_exit": [0, 3] }
+  ]
+}

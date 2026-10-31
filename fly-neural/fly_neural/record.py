@@ -145,6 +145,32 @@ def resume_progress(path: Path | None, header: dict, resume: bool, what: str, lo
     return done
 
 
+def merge_progress(paths: list[Path], header: dict, what: str, log=print) -> dict[str, dict]:
+    """The units finished by parallel workers of this exact run, each restricted to some arms (``only``) or a shard.
+
+    Every file's identity must equal this run's but for ``only`` and
+    ``shard``; a unit two workers both finished must agree. Anything else is
+    refused."""
+    free = ("only", "shard")
+    same = {k: v for k, v in header.items() if k not in free}
+    done: dict[str, dict] = {}
+    for path in paths:
+        lines = Path(path).read_text(encoding="utf-8").splitlines()
+        old = json.loads(lines[0])
+        theirs = {k: v for k, v in old.items() if k not in free}
+        if theirs != same:
+            diff = sorted(k for k in set(theirs) | set(same) if theirs.get(k) != same.get(k))
+            raise ProgressMismatch(f"{path} is from a different run ({', '.join(diff)} differ)")
+        for ln in lines[1:]:
+            if ln.strip():
+                r = json.loads(ln)
+                if r["name"] in done and done[r["name"]]["result"] != r["result"]:
+                    raise ProgressMismatch(f"{r['name']} differs between workers")
+                done[r["name"]] = r
+    log(f"merging: {len(done)} {what} finished by parallel workers")
+    return done
+
+
 def append_progress(path: Path | None, row: dict) -> None:
     """One finished unit, on disk before the next starts."""
     if path is None:

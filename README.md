@@ -300,6 +300,11 @@ integrate-and-fire model of the whole adult central brain on FlyWire's
 public connectome, release v783. It never reads, writes or controls the
 shared individual, and nothing in `src/` or `deploy/` uses it.
 
+ECHO is investigating connectome-informed mechanisms for selective learning
+and adaptive behavior. That work runs only on independently created
+research subjects; the deployed individual is unchanged:
+[ECHO Adaptive Intelligence](docs/ECHO_ADAPTIVE_INTELLIGENCE.md).
+
 | Done and measured                                                                                                                                                                                    | Not done                                                                                                                                                                                   |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Import and checks of all of v783: **139,255 neurons, 15,091,983 pairs, 54,492,922 synapses**, downloaded only on acceptance of FlyWire's terms, never committed                                      | No neural controller for the shared fly, and none is planned without separate authorization                                                                                                |

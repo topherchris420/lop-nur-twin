@@ -1,0 +1,2499 @@
+{
+ "schema": "fly-neural-result/v1",
+ "kind": "closed-loop",
+ "experiment": "closed-loop-v783",
+ "config_file": "closed-loop-v783.json",
+ "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+ "split": "heldout",
+ "escape_readouts": {
+  "neural-merged": {
+   "name": "v1/any",
+   "mapping": "v1",
+   "readout": "any"
+  },
+  "neural-selected": {
+   "name": "v2@35/int-k3-tau10",
+   "mapping": "v2@35",
+   "readout": "integrated",
+   "from": "threat-v783-dev.json",
+   "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+   "k": 3,
+   "tau_ms": 10,
+   "refractory_s": 1.0,
+   "width_deg": 5.0,
+   "expansion_ref_deg_s": 200.0
+  }
+ },
+ "runs": [
+  {
+   "scenario": "looms",
+   "seed": 9700101,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 1.06,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700101",
+    "scenario": "looms",
+    "seed": 9700101,
+    "arm": "baseline",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 1,
+     "escapes": 1,
+     "landings": 1,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.10093662539444626,
+     "flownM": 1.2820126317107146,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0015411099999998157,
+     "escapesDuringLoom": 1,
+     "escapesSpurious": 0,
+     "loomEpisodes": 7,
+     "escapableEpisodes": 6,
+     "episodesEscaped": 1
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.558
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700101,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 847.13,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700101",
+    "scenario": "looms",
+    "seed": 9700101,
+    "arm": "neural-merged",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 3,
+     "escapes": 3,
+     "landings": 3,
+     "saccades": 9,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 8.34512952650006,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.005065620000000046,
+     "escapesDuringLoom": 3,
+     "escapesSpurious": 0,
+     "loomEpisodes": 6,
+     "escapableEpisodes": 3,
+     "episodesEscaped": 3
+    },
+    "neural": {
+     "issued_escape": 3,
+     "executed_escape": 3,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 845.301
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700101,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 810.03,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700101",
+    "scenario": "looms",
+    "seed": 9700101,
+    "arm": "neural-selected",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 2,
+     "escapes": 2,
+     "landings": 2,
+     "saccades": 8,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 3.570522310062676,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0027509900000003192,
+     "escapesDuringLoom": 2,
+     "escapesSpurious": 0,
+     "loomEpisodes": 5,
+     "escapableEpisodes": 4,
+     "episodesEscaped": 2
+    },
+    "neural": {
+     "issued_escape": 2,
+     "executed_escape": 2,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 808.125
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700102,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 1.0,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700102",
+    "scenario": "looms",
+    "seed": 9700102,
+    "arm": "baseline",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 1,
+     "escapes": 1,
+     "landings": 1,
+     "saccades": 1,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 1.4250443789502512,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0014808949999996497,
+     "escapesDuringLoom": 1,
+     "escapesSpurious": 0,
+     "loomEpisodes": 9,
+     "escapableEpisodes": 8,
+     "episodesEscaped": 1
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.672
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700102,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 872.92,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700102",
+    "scenario": "looms",
+    "seed": 9700102,
+    "arm": "neural-merged",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 3,
+     "escapes": 3,
+     "landings": 2,
+     "saccades": 15,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 8.098681640266575,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.00481339499999999,
+     "escapesDuringLoom": 3,
+     "escapesSpurious": 0,
+     "loomEpisodes": 5,
+     "escapableEpisodes": 2,
+     "episodesEscaped": 2
+    },
+    "neural": {
+     "issued_escape": 3,
+     "executed_escape": 3,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 871.053
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700102,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 838.49,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700102",
+    "scenario": "looms",
+    "seed": 9700102,
+    "arm": "neural-selected",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 3,
+     "escapes": 3,
+     "landings": 2,
+     "saccades": 14,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 7.030745276916856,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.004377344999999971,
+     "escapesDuringLoom": 3,
+     "escapesSpurious": 0,
+     "loomEpisodes": 5,
+     "escapableEpisodes": 2,
+     "episodesEscaped": 2
+    },
+    "neural": {
+     "issued_escape": 3,
+     "executed_escape": 3,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 836.783
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700103,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 1.06,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700103",
+    "scenario": "looms",
+    "seed": 9700103,
+    "arm": "baseline",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 1,
+     "escapes": 1,
+     "landings": 1,
+     "saccades": 4,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.03641299368723143,
+     "flownM": 3.5672477077301927,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.002677050000000308,
+     "escapesDuringLoom": 1,
+     "escapesSpurious": 0,
+     "loomEpisodes": 5,
+     "escapableEpisodes": 4,
+     "episodesEscaped": 1
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.687
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700103,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 848.4,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700103",
+    "scenario": "looms",
+    "seed": 9700103,
+    "arm": "neural-merged",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 2,
+     "escapes": 2,
+     "landings": 2,
+     "saccades": 13,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 7.746660957934216,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.004762805000000005,
+     "escapesDuringLoom": 2,
+     "escapesSpurious": 0,
+     "loomEpisodes": 6,
+     "escapableEpisodes": 2,
+     "episodesEscaped": 2
+    },
+    "neural": {
+     "issued_escape": 2,
+     "executed_escape": 2,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 846.607
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "looms",
+   "seed": 9700103,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 795.62,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-looms-9700103",
+    "scenario": "looms",
+    "seed": 9700103,
+    "arm": "neural-selected",
+    "world": "research-looms",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 2,
+     "escapes": 2,
+     "landings": 1,
+     "saccades": 11,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.004435753889817431,
+     "flownM": 6.406458792963041,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.004017274999999889,
+     "escapesDuringLoom": 2,
+     "escapesSpurious": 0,
+     "loomEpisodes": 6,
+     "escapableEpisodes": 4,
+     "episodesEscaped": 2
+    },
+    "neural": {
+     "issued_escape": 2,
+     "executed_escape": 2,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 793.865
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700101,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 0.69,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700101",
+    "scenario": "passes",
+    "seed": 9700101,
+    "arm": "baseline",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.10261779617035939,
+     "flownM": 0,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.000867500000000053,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 10,
+     "escapableEpisodes": 10,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.293
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700101,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 815.84,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700101",
+    "scenario": "passes",
+    "seed": 9700101,
+    "arm": "neural-merged",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 3,
+     "escapes": 3,
+     "landings": 2,
+     "saccades": 10,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 8.581267152225692,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.005075880000000011,
+     "escapesDuringLoom": 3,
+     "escapesSpurious": 0,
+     "loomEpisodes": 7,
+     "escapableEpisodes": 3,
+     "episodesEscaped": 3
+    },
+    "neural": {
+     "issued_escape": 3,
+     "executed_escape": 3,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 813.993
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700101,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 244.3,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700101",
+    "scenario": "passes",
+    "seed": 9700101,
+    "arm": "neural-selected",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.10261779617035939,
+     "flownM": 0,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.000867500000000053,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 10,
+     "escapableEpisodes": 10,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 242.478
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700102,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 0.97,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700102",
+    "scenario": "passes",
+    "seed": 9700102,
+    "arm": "baseline",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.27328545071803795,
+     "flownM": 0,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0009962500000000785,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 10,
+     "escapableEpisodes": 10,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.672
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700102,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 766.25,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700102",
+    "scenario": "passes",
+    "seed": 9700102,
+    "arm": "neural-merged",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 3,
+     "escapes": 3,
+     "landings": 2,
+     "saccades": 16,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 7.765255584980287,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0049903800000000035,
+     "escapesDuringLoom": 3,
+     "escapesSpurious": 0,
+     "loomEpisodes": 8,
+     "escapableEpisodes": 3,
+     "episodesEscaped": 3
+    },
+    "neural": {
+     "issued_escape": 3,
+     "executed_escape": 3,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 764.365
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700102,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 246.78,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700102",
+    "scenario": "passes",
+    "seed": 9700102,
+    "arm": "neural-selected",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.27328545071803795,
+     "flownM": 0,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0009962500000000785,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 10,
+     "escapableEpisodes": 10,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 244.968
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700103,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 0.91,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700103",
+    "scenario": "passes",
+    "seed": 9700103,
+    "arm": "baseline",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.07144544841782632,
+     "flownM": 0,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0008950000000000328,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 10,
+     "escapableEpisodes": 10,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.559
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700103,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 797.1,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700103",
+    "scenario": "passes",
+    "seed": 9700103,
+    "arm": "neural-merged",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 3,
+     "escapes": 3,
+     "landings": 2,
+     "saccades": 11,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 8.377629098429026,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.005044245000000021,
+     "escapesDuringLoom": 2,
+     "escapesSpurious": 1,
+     "loomEpisodes": 5,
+     "escapableEpisodes": 3,
+     "episodesEscaped": 3
+    },
+    "neural": {
+     "issued_escape": 3,
+     "executed_escape": 3,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 795.319
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "passes",
+   "seed": 9700103,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 226.19,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-passes-9700103",
+    "scenario": "passes",
+    "seed": 9700103,
+    "arm": "neural-selected",
+    "world": "research-passes",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0.07144544841782632,
+     "flownM": 0,
+     "meals": 0,
+     "feedS": 0,
+     "fedJ": 0,
+     "spentJ": 0.0008950000000000328,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 10,
+     "escapableEpisodes": 10,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 224.267
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700101,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 0.87,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700101",
+    "scenario": "food",
+    "seed": 9700101,
+    "arm": "baseline",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 1,
+     "feedS": 29.999999999998316,
+     "fedJ": 0.06749999999999635,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.375
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700101,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 1206.51,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700101",
+    "scenario": "food",
+    "seed": 9700101,
+    "arm": "neural-merged",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 131,
+     "feedS": 8.849999999999984,
+     "fedJ": 0.019912500000000888,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 130,
+     "executed_feed": 130,
+     "suppressed_escape": 0,
+     "suppressed_feed": 423
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 1204.822
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700101,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 1303.35,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700101",
+    "scenario": "food",
+    "seed": 9700101,
+    "arm": "neural-selected",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 131,
+     "feedS": 8.849999999999984,
+     "fedJ": 0.019912500000000888,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 130,
+     "executed_feed": 130,
+     "suppressed_escape": 0,
+     "suppressed_feed": 423
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 1301.58
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700102,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 0.78,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700102",
+    "scenario": "food",
+    "seed": 9700102,
+    "arm": "baseline",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 3,
+     "feedS": 29.899999999998336,
+     "fedJ": 0.06727499999999627,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.348
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700102,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 1278.77,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700102",
+    "scenario": "food",
+    "seed": 9700102,
+    "arm": "neural-merged",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 116,
+     "feedS": 7.649999999999859,
+     "fedJ": 0.017212500000000686,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 115,
+     "executed_feed": 115,
+     "suppressed_escape": 0,
+     "suppressed_feed": 447
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 1277.049
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700102,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 1318.96,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700102",
+    "scenario": "food",
+    "seed": 9700102,
+    "arm": "neural-selected",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 116,
+     "feedS": 7.649999999999859,
+     "fedJ": 0.017212500000000686,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 115,
+     "executed_feed": 115,
+     "suppressed_escape": 0,
+     "suppressed_feed": 447
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 1317.206
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700103,
+   "arm": "baseline",
+   "exit": 0,
+   "wall_s": 0.81,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700103",
+    "scenario": "food",
+    "seed": 9700103,
+    "arm": "baseline",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 1,
+     "feedS": 29.999999999998316,
+     "fedJ": 0.06749999999999635,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 0,
+     "executed_feed": 0,
+     "suppressed_escape": 0,
+     "suppressed_feed": 0
+    },
+    "fallbacks": {
+     "count": 0,
+     "samples": 0,
+     "fraction": 0,
+     "byReason": {},
+     "log": []
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": null,
+    "server": null,
+    "wall_s": 0.42
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700103,
+   "arm": "neural-merged",
+   "exit": 0,
+   "wall_s": 1257.87,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700103",
+    "scenario": "food",
+    "seed": 9700103,
+    "arm": "neural-merged",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-merged, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 124,
+     "feedS": 8.349999999999905,
+     "fedJ": 0.018787500000000804,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 123,
+     "executed_feed": 123,
+     "suppressed_escape": 0,
+     "suppressed_feed": 433
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v1/any",
+     "mapping": "v1",
+     "readout": "any"
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 1256.314
+   },
+   "resumed": true
+  },
+  {
+   "scenario": "food",
+   "seed": 9700103,
+   "arm": "neural-selected",
+   "exit": 0,
+   "wall_s": 1338.15,
+   "summary": {
+    "schema": "fly-neural-closed-loop-run/v1",
+    "subject": "research-food-9700103",
+    "scenario": "food",
+    "seed": 9700103,
+    "arm": "neural-selected",
+    "world": "research-food",
+    "flyVersion": "digital-fly/8",
+    "echoVersion": "echo-self-model/v3",
+    "controller": "echo-self-model/v3/full over reduced-order-fsm/v1 with fly-neural escape and feeding (neural-selected, closed loop)",
+    "seconds": 30,
+    "stepS": 0.01,
+    "limits": {
+     "maxFallbackFraction": 0.05,
+     "minSamples": 200,
+     "timeoutMs": 20000,
+     "startTimeoutMs": 600000,
+     "maxLog": 200,
+     "serverMaxWallS": 5400,
+     "serverMaxRssMb": 2000
+    },
+    "outcome": {
+     "aborted": false,
+     "reason": null,
+     "simulatedS": 30
+    },
+    "counts": {
+     "takeoffs": 0,
+     "escapes": 0,
+     "landings": 0,
+     "saccades": 0,
+     "collisions": 0,
+     "contactS": 0,
+     "groomBouts": 0,
+     "rejected": 0,
+     "walkedM": 0,
+     "flownM": 0,
+     "meals": 124,
+     "feedS": 8.349999999999905,
+     "fedJ": 0.018787500000000804,
+     "spentJ": 0.000750000000000059,
+     "escapesDuringLoom": 0,
+     "escapesSpurious": 0,
+     "loomEpisodes": 0,
+     "escapableEpisodes": 0,
+     "episodesEscaped": 0
+    },
+    "neural": {
+     "issued_escape": 0,
+     "executed_escape": 0,
+     "issued_feed": 123,
+     "executed_feed": 123,
+     "suppressed_escape": 0,
+     "suppressed_feed": 433
+    },
+    "fallbacks": {
+     "count": 1,
+     "samples": 3000,
+     "fraction": 0.0003333333333333333,
+     "byReason": {
+      "no observation yet": 1
+     },
+     "log": [
+      {
+       "t": 0,
+       "reason": "no observation yet"
+      }
+     ]
+    },
+    "note": "A research subject created for this run. Not the deployed fly, not a copy or continuation of it.",
+    "config_sha256": "11e5f641f198236eedbca199409599f9fd0187e8a7df394f2d011e15a12b289a",
+    "escape_readout": {
+     "name": "v2@35/int-k3-tau10",
+     "mapping": "v2@35",
+     "readout": "integrated",
+     "from": "threat-v783-dev.json",
+     "from_sha256": "35e136c58e54485b2d454c1fc23956a66d4ee8d265bd3b8fbf69c4f8a2f21111",
+     "k": 3,
+     "tau_ms": 10,
+     "refractory_s": 1,
+     "width_deg": 5,
+     "expansion_ref_deg_s": 200
+    },
+    "server": {
+     "unmatched_answers": 0
+    },
+    "wall_s": 1336.535
+   },
+   "resumed": true
+  }
+ ],
+ "criteria": [
+  {
+   "id": "CL1",
+   "claim": "Safety: every neural run completes its 30 s without being stopped",
+   "test": "completed",
+   "incomplete": [],
+   "passed": true
+  },
+  {
+   "id": "CL2",
+   "claim": "and ECHO decides at most 1% of its samples (fallbacks)",
+   "test": "fallback_bound",
+   "fractions": {
+    "looms/9700101/neural-merged": 0.0003333333333333333,
+    "looms/9700101/neural-selected": 0.0003333333333333333,
+    "looms/9700102/neural-merged": 0.0003333333333333333,
+    "looms/9700102/neural-selected": 0.0003333333333333333,
+    "looms/9700103/neural-merged": 0.0003333333333333333,
+    "looms/9700103/neural-selected": 0.0003333333333333333,
+    "passes/9700101/neural-merged": 0.0003333333333333333,
+    "passes/9700101/neural-selected": 0.0003333333333333333,
+    "passes/9700102/neural-merged": 0.0003333333333333333,
+    "passes/9700102/neural-selected": 0.0003333333333333333,
+    "passes/9700103/neural-merged": 0.0003333333333333333,
+    "passes/9700103/neural-selected": 0.0003333333333333333,
+    "food/9700101/neural-merged": 0.0003333333333333333,
+    "food/9700101/neural-selected": 0.0003333333333333333,
+    "food/9700102/neural-merged": 0.0003333333333333333,
+    "food/9700102/neural-selected": 0.0003333333333333333,
+    "food/9700103/neural-merged": 0.0003333333333333333,
+    "food/9700103/neural-selected": 0.0003333333333333333
+   },
+   "passed": true
+  },
+  {
+   "id": "CL3",
+   "claim": "Escape is produced, not only predicted: at least 90% of neural-selected escape commands in the looms become escapes",
+   "test": "produced",
+   "issued": 7,
+   "executed": 7,
+   "ratio": 1.0,
+   "passed": true,
+   "wording": "control"
+  },
+  {
+   "id": "CL4",
+   "claim": "Feeding is produced: at least 90% of neural-selected feeding commands on the fruit become feeding bouts",
+   "test": "produced",
+   "issued": 368,
+   "executed": 368,
+   "ratio": 1.0,
+   "passed": true,
+   "wording": "control"
+  },
+  {
+   "id": "CL5",
+   "claim": "Discrimination in closed loop: the selected readout escapes harmless objects no more often than the merged one",
+   "test": "at_most",
+   "a": 0,
+   "b": 9,
+   "passed": true
+  },
+  {
+   "id": "CL6",
+   "claim": "and still escapes at least 75% of the threats that begin while it is perched",
+   "test": "rate_at_least",
+   "numerator": 6,
+   "denominator": 10,
+   "rate": 0.6,
+   "passed": false
+  },
+  {
+   "id": "X1",
+   "claim": "Exploratory: every arm against ECHO alone on escapes, false alarms, feeding time and meals",
+   "test": "report_only",
+   "passed": true,
+   "note": "reported, not judged"
+  }
+ ],
+ "failed": [
+  "CL6"
+ ],
+ "resources": {
+  "wall_s": 0.002,
+  "cpu_s": 0.0,
+  "rss_start_mb": 36.453,
+  "rss_end_mb": 36.461,
+  "peak_rss_mb_process": 96.516,
+  "gpu": null,
+  "machine": {
+   "processor": null,
+   "arch": "x86_64",
+   "os": "Linux-6.12.113-138.209.amzn2023.x86_64-x86_64-with-glibc2.41",
+   "logical_cpus": 32,
+   "total_ram_mb": 252480,
+   "available_ram_mb": 248827,
+   "gpu": null,
+   "physical_cpus": 16,
+   "cpu_busy_percent_over_1s": 0.4
+  }
+ },
+ "environment": {
+  "python": "3.11.18",
+  "implementation": "cpython",
+  "platform": "linux x86_64",
+  "processor": null,
+  "numpy": "2.4.6",
+  "scipy": null,
+  "polars": "2.1.0",
+  "brian2": null
+ },
+ "code": {
+  "commit": "169c3daeea92a131975537690c28672260f3bfbe",
+  "dirty": false,
+  "fly_neural": {
+   "sha256": "57c93b357e44b33d883b2b881417567e492c8418195919be25ee5951deb98b6d",
+   "files": 26
+  },
+  "changed_during_run": []
+ },
+ "sha256": "08b8fdc95002cfe9e80b3157bb9c3d6f198368cb481138c21777b797e075897c"
+}
