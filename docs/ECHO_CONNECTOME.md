@@ -343,6 +343,53 @@ Two readouts come back: **feed**, when MN9 (proboscis motor neurons,
 CB0701) averages at least 10 Hz over the window, and **escape**, when the
 giant fiber (DNp01) fires at all.
 
+That mapping is `v1`, and it stays exactly as the shadow results above
+used it. Under it the model is mostly silent. With every sense driven at
+once in a one-second scenario (seed 101), at most 7,690 of the 139,255
+neurons fire. Of the optic lobe's 77,537, only 87 do, and 351 of the 1,303
+descending neurons fire. Two readouts are a small part of what the
+simulated brain sends to the body.
+
+### Mapping `whole-brain/v2`: more of the brain's output, and the other fly
+
+`whole-brain/v2` is a second, separately named mapping. It runs only for a
+`neural-experimental` research subject, and every header, ready line and
+controller id names it. It keeps v1's five channels, its feed rule and its
+escape rule, and adds one sense and five readouts. Each population is
+selected by its FlyWire cell type and cites the paper that identified it.
+The constants are ours.
+
+| Added                           | Neurons (FlyWire cell type)                                                | Rule                                                                                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Small moving object** (sense) | LC11 and LC10a, the object's side (Keles & Frye 2017; Ribeiro et al. 2018) | 150 Hz × min(1, angular speed / 100° s⁻¹) × a size weight (1 up to 15°, falling to 0 at 30°). LC10a's role was shown in males; FAFB is a female |
+| **walk**                        | DNp09 (Bidaye et al. 2020)                                                 | mean ≥ 10 Hz over a trailing 100 ms                                                                                                             |
+| **backward** (used as stop)     | MDN (Bidaye et al. 2014)                                                   | mean ≥ 10 Hz over a trailing 100 ms. The body has no backward gait, so it stops a walk                                                          |
+| **turn**                        | DNa02, left minus right (Rayshubskiy et al. 2020)                          | difference ≥ 10 Hz; yaw rate 0.03 rad s⁻¹ per Hz of difference, at most 3 rad s⁻¹                                                               |
+| **groom**                       | aDN1/aDN2 (DNg62, DNge078; Hampel et al. 2015)                             | mean ≥ 10 Hz over a trailing 100 ms: antennal grooming, from rest                                                                               |
+| **land**                        | DNp07 and DNp10 (Ache et al. 2019)                                         | mean ≥ 10 Hz over a trailing 100 ms: from flight, land on the surface below                                                                     |
+| descending count                | every neuron annotated `descending` (1,303)                                | how many fired in the window; reported, never acted on                                                                                          |
+
+Three rules keep the change honest:
+
+- **Feed** now reads MN9 over the trailing 100 ms instead of one 10 ms step:
+  this is the readout window the food replay showed was missing. **Escape**
+  still reads the newest step only, so the giant fiber stays a reflex.
+- **The other fly is seen, never named.** The small-object eye
+  (`SmallObjectEye`, `scripts/echo-neural-shadow.ts`) takes the angular
+  size and bearing of whatever is on the eye and derives angular speed
+  from the bearing's change between samples. A jump of 0.5 rad or more, or
+  a gap of 0.1 s or more, is treated as a new object at speed 0. It never
+  reads the object's id, kind or distance.
+- **The model acts through the fly's own gate, and ECHO keeps the rest.**
+  Escape, takeoff and feeding pass through as in v1. A readout replaces
+  ECHO's command only where its rule applies (`descendingCommand`, with
+  the constants in `WHOLE_BRAIN_RULES`). There is no mapped descending
+  neuron for a voluntary takeoff, so the model cannot start one.
+
+The model runs at 12 to 16 s of wall time per simulated second on this
+laptop (one thread), so a whole-brain subject cannot keep up with a live
+world. It is for research subjects in seeded arenas only.
+
 ## ECHO Neural Shadow
 
 Three modes, each named in every recording and result:
@@ -351,7 +398,7 @@ Three modes, each named in every recording and result:
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `baseline`            | ECHO controls a research fly; nothing neural runs                                                                                                                                                                                                     | ECHO                                                                                  |
 | `neural-shadow`       | ECHO controls a research fly; every decision's sensable input, ECHO's command and the body's mode are recorded. The recording is replayed afterwards into the model (`python -m fly_neural shadow`), and its readouts are compared with what ECHO did | ECHO only. The recording is finished before the model reads it, so nothing flows back |
-| `neural-experimental` | A research subject made for the run: the model runs live beside it (`python -m fly_neural serve`, JSON lines), and its readouts decide feeding and escape                                                                                             | the model's two readouts, through the fly's own command gate; ECHO keeps the rest     |
+| `neural-experimental` | A research subject made for the run: the model runs live beside it (`python -m fly_neural serve`, JSON lines), and its readouts decide feeding and escape (v1), or also walking, steering, stopping, grooming and landing (`whole-brain/v2`)          | the model's readouts, through the fly's own command gate; ECHO keeps the rest         |
 
 The recorder taps ECHO's `FlyNeuralAdapter` (`decide`, `interrupt`) and
 changes nothing it passes: a test checks that a tapped fly's state is
@@ -685,11 +732,35 @@ download and covers:
 - production paths and hosts are refused;
 - the recorder imports only an allowlist of modules.
 
-At the final commit, all 48 Python tests pass (`python -m pytest -q`
-in `fly-neural/`, about 23 s), and so do the 5 tests in
-`scripts/echo-neural-shadow.test.ts` (vitest). `tsc --noEmit`, eslint and
-prettier pass on the changed files, and the pull request's CI runs the
-repository's whole suite.
+`whole-brain/v2` has its own tests. `fly-neural/tests/test_whole_brain.py`
+(8 tests) checks that:
+
+- v1's description is unchanged;
+- the small-object field is sensable only with exact keys, and v1 refuses it;
+- the rate has its stated shape;
+- the object's side is driven;
+- the trailing window and the turn's direction behave as stated;
+- an unknown mapping is refused before anything loads.
+
+`scripts/whole-brain.test.ts` (10 tests, stand-in readouts) checks that:
+
+- the small-object eye reads speed from the bearing alone;
+- the brain sees only size, speed and bearing, once per sample;
+- grooming, walking with a turn each way, the MDN stop, and landing each
+  happen when their readout fires;
+- a whole-brain subject in a first-contact session sees the other fly only
+  after contact begins;
+- a session without an injected adapter is unchanged;
+- `SyncBrain` answers synchronously and fails loudly when its process
+  dies.
+
+With `whole-brain/v2`, all 63 Python tests pass (`python -m pytest -q`
+in `fly-neural/`, about 23 s). The vitest suites under `src/bethesda` and
+`scripts` pass too: 814 tests in 47 files, including the 5 in
+`scripts/echo-neural-shadow.test.ts` and the 10 in
+`scripts/whole-brain.test.ts`. `tsc --noEmit`, eslint and prettier pass on
+the changed files, and the pull request's CI runs the repository's whole
+suite.
 
 ## Reproduce
 
@@ -710,6 +781,7 @@ python -m fly_neural reference    # after the Brian 2 trials of reference/shiu_b
 # repository root
 node scripts/run-ts.mjs scripts/echo-neural-plasticity.ts --subjects 8 --seed 3700001 --out .fly-neural/echo-mb-heldout.json
 node scripts/run-ts.mjs scripts/echo-neural-shadow.ts --scenario looms --seed 101 --mode neural-shadow
+FLY_NEURAL_PYTHON=<python> node scripts/run-ts.mjs scripts/first-contact-whole-brain.ts --seed 2 --pre 3 --contact 30
 
 # fly-neural/
 python -m fly_neural plasticity --split heldout --echo-mb ../.fly-neural/echo-mb-heldout.json --resume
@@ -733,4 +805,11 @@ python -m pytest -q
 - Burke CJ, et al. Layered reward signalling through octopamine and dopamine in _Drosophila_. _Nature_ 492, 433–437 (2012). doi:10.1038/nature11614
 - Lin AC, et al. Sparse, decorrelated odor coding in the mushroom body enhances learned odor discrimination. _Nature Neuroscience_ 17, 559–568 (2014). doi:10.1038/nn.3660
 - Bennett JEM, Philippides A, Nowotny T. Learning with reinforcement prediction errors in a model of the _Drosophila_ mushroom body. _Nature Communications_ 12, 2569 (2021). doi:10.1038/s41467-021-22592-4
+- Bidaye SS, et al. Neuronal control of _Drosophila_ walking direction. _Science_ 344, 97–101 (2014). doi:10.1126/science.1249964 (MDN)
+- Bidaye SS, et al. Two brain pathways initiate distinct forward walking programs in _Drosophila_. _Neuron_ 108, 469–485 (2020). doi:10.1016/j.neuron.2020.07.032 (DNp09)
+- Rayshubskiy A, et al. Neural circuit mechanisms for steering control in walking _Drosophila_. _eLife_ 102230; bioRxiv doi:10.1101/2020.04.04.024703 (DNa02)
+- Hampel S, et al. A neural command circuit for grooming movement control. _eLife_ 4, e08758 (2015). doi:10.7554/eLife.08758 (aDN)
+- Ache JM, et al. State-dependent decoupling of sensory and motor circuits underlies behavioral flexibility in _Drosophila_. _Nature Neuroscience_ 22, 1132–1139 (2019). doi:10.1038/s41593-019-0413-4 (DNp07, DNp10)
+- Keleş MF, Frye MA. Object-detecting neurons in _Drosophila_. _Current Biology_ 27, 680–687 (2017). doi:10.1016/j.cub.2017.01.012 (LC11)
+- Ribeiro IMA, et al. Visual projection neurons mediating directed courtship in _Drosophila_. _Cell_ 174, 607–621 (2018). doi:10.1016/j.cell.2018.06.020 (LC10)
 - Further citations for each population and parameter are in `fly-neural/fly_neural/populations.py` and `params.py`, each checked against Crossref.

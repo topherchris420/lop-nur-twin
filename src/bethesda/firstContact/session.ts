@@ -36,7 +36,7 @@ import {
 import { EncounterClock, type SubjectClock } from "./clock.js";
 import { applyMap, identityMap, type FrameMap } from "./frames.js";
 import { percept } from "./percept.js";
-import { researchSubject, type SubjectSpec } from "./subjects.js";
+import { researchSubject, type AdapterFactory, type SubjectSpec } from "./subjects.js";
 
 export const SESSION_CONDITIONS = ["live", "yoked", "solitary"] as const;
 export type SessionCondition = (typeof SESSION_CONDITIONS)[number];
@@ -153,11 +153,17 @@ function outcome(
 
 /**
  * Runs one session. A yoked session needs `playback`: subject 1's trace from
- * the live session with the same seeds.
+ * the live session with the same seeds. `adapters` may replace either
+ * subject's controller with a research module (`researchSubject`); the
+ * frozen studies never pass it.
  */
 export function runSession(
   spec: SessionSpec,
   playback: readonly V3[] | null = null,
+  adapters: readonly [AdapterFactory | undefined, AdapterFactory | undefined] = [
+    undefined,
+    undefined,
+  ],
 ): SessionResult {
   const config: BridgeConfig = { ...DEFAULT_BRIDGE, ...spec.bridge };
   const steps = Math.round(spec.contactS / config.exchangeS);
@@ -221,7 +227,9 @@ export function runSession(
         (t) => t - pre[i]!,
       ),
   );
-  spec.subjects.forEach((s, i) => flies.push(researchSubject(s, worlds[i]!).fly));
+  spec.subjects.forEach((s, i) =>
+    flies.push(researchSubject(s, worlds[i]!, adapters[i]).fly),
+  );
   flies.forEach((f, i) => f.advance(pre[i]!));
   const clocks = flies.map((f, i): SubjectClock => ({
     id: spec.subjects[i]!.id,

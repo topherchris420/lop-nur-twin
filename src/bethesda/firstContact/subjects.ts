@@ -40,10 +40,16 @@ export const CONTROLLER_APPROXIMATIONS: Readonly<Record<SubjectController, strin
   ],
 };
 
+/** Builds a fly's decision maker from its seeded streams (DigitalFly's `adapter` option). */
+export type AdapterFactory = (
+  rng: () => number,
+  streams: AdapterStreams,
+) => FlyNeuralAdapter;
+
 export function adapterFor(
   controller: SubjectController,
   seed: number,
-): ((rng: () => number, streams: AdapterStreams) => FlyNeuralAdapter) | undefined {
+): AdapterFactory | undefined {
   switch (controller) {
     case "reduced-order":
       return undefined;
@@ -68,11 +74,20 @@ export interface ResearchSubject {
   descriptor: string;
 }
 
-export function researchSubject(spec: SubjectSpec, world: FlyWorld): ResearchSubject {
+/**
+ * A new research subject. `adapter`, when given, replaces the controller the
+ * spec names (a research module built outside this folder, such as a
+ * connectome-driven one); the subject's descriptor, and every outcome,
+ * then name that adapter, not the spec's controller.
+ */
+export function researchSubject(
+  spec: SubjectSpec,
+  world: FlyWorld,
+  adapter: AdapterFactory | undefined = adapterFor(spec.controller, spec.seed),
+): ResearchSubject {
   refuseOriginal(spec.id, "research subject");
   if (!spec.id.startsWith("research-"))
     throw new Error(`research subject ids start with "research-", not ${spec.id}`);
-  const adapter = adapterFor(spec.controller, spec.seed);
   const fly = new DigitalFly({
     seed: spec.seed,
     world,

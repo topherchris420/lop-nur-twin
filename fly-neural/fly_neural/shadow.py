@@ -30,7 +30,7 @@ from . import RESULT_SCHEMA, SHADOW_SCHEMA, lif
 from . import connectome as cx
 from .record import code_watch, environment, sealed
 from .resources import Meter
-from .sensory import Mapper, describe_mapping, observation
+from .sensory import RATE_WINDOW_MS, Mapper, TrailingReadout, check_mapping, describe_mapping, observation
 
 MODES = ("baseline", "neural-shadow", "neural-experimental")
 # What the deployed organism and its host are called (deploy/bethesda-life/,
@@ -199,17 +199,26 @@ def serve(compiled: Path, inp=sys.stdin, out=sys.stdout) -> int:
     First line: the recording header (checked like a recording's, and it must
     say ``neural-experimental``). Then one request per line, ``{"t": s, "obs":
     {...}}``, answered with the readouts over the window since the previous
-    request. The brain's state carries over between requests."""
+    request. The brain's state carries over between requests.
+
+    The header's ``mapping`` picks the sensory mapping (``sensory.MAPPINGS``;
+    ``v1`` when absent). ``whole-brain/v2`` adds the small-object channel and
+    the descending readouts, read over ``rate_window_ms`` (default 100)."""
     head = json.loads(inp.readline())
     check_header(head)
     if head["mode"] != "neural-experimental":
         raise RefusedSubject("serve runs only for a neural-experimental research subject")
+    mapping = check_mapping(str(head.get("mapping", "v1")))
     c = cx.load(compiled)
     net = lif.Network(c)
-    mapper = Mapper(c)
+    mapper = Mapper(c, mapping)
+    trailing = TrailingReadout(mapper.idx, float(head.get("rate_window_ms", RATE_WINDOW_MS))) if mapping != "v1" else None
     state = lif.State(net, np.random.default_rng(np.random.SeedSequence([int(head.get("seed", 0)), 7])))
     t0 = None
-    out.write(json.dumps({"ready": True, "neurons": c.n, "populations": {k: v["neurons"] for k, v in mapper.report.items()}}) + "\n")
+    ready = {"ready": True, "neurons": c.n, "populations": {k: v["neurons"] for k, v in mapper.report.items()}}
+    if trailing:
+        ready.update({"mapping": mapping, "rate_window_ms": trailing.window_ms})
+    out.write(json.dumps(ready) + "\n")
     out.flush()
     for line in inp:
         if not line.strip():
@@ -223,7 +232,10 @@ def serve(compiled: Path, inp=sys.stdin, out=sys.stdout) -> int:
         w0 = time.monotonic()
         trial, state = lif.run(net, lif.Stimulus(poisson=mapper.poisson(obs)), (req["t"] - t0) * 1000.0 + float(req.get("window_ms", 10.0)), state=state)
         window_ms = (state.step - start) * net.params.dt_ms
-        ro = mapper.decode(trial.counts, window_ms) if window_ms > 0 else {}
+        if trailing:
+            ro = trailing.update(trial.counts, window_ms) if window_ms > 0 else {}
+        else:
+            ro = mapper.decode(trial.counts, window_ms) if window_ms > 0 else {}
         out.write(json.dumps({"t": req["t"], "window_ms": window_ms, "readouts": ro, "compute_ms": round((time.monotonic() - w0) * 1000, 2)}) + "\n")
         out.flush()
     return 0

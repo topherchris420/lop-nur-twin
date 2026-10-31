@@ -277,6 +277,63 @@ this repository. Inspection (classes, transmitters, regions,
 sensory-to-motor paths, motifs, comparison, Codex links, reports) is tested on
 synthetic tables; no Codex table was loaded in this work.
 
+## Whole-brain research subjects (a demonstration)
+
+`scripts/first-contact-whole-brain.ts`, with `scripts/fly-neural-sync.ts`;
+the mapping is described in
+[ECHO_CONNECTOME.md](ECHO_CONNECTOME.md#mapping-whole-brainv2-more-of-the-brains-output-and-the-other-fly).
+
+A research subject's decisions can now come from the whole FlyWire v783
+connectome model. All 139,255 neurons are simulated, and the mapping
+`whole-brain/v2` reads escape, feeding, walking, steering, stopping,
+antennal grooming and landing from identified descending neurons. The
+other fly reaches that brain only as the bridge delivers it: through the
+receiver's own eyes, as a looming thing (LPLC2, LC4) and as a small moving
+thing (LC11, LC10a). Nothing tells the brain that it is a fly, which fly,
+or how far away. ECHO keeps every decision the readouts do not make.
+
+How it plugs in, without touching the frozen studies:
+
+- `runSession` and `researchSubject` take an optional adapter factory. The
+  frozen studies never pass one, and a test checks that a session without
+  one is unchanged.
+- First-contact sessions step synchronously, so the brain is called
+  synchronously: a worker thread owns `python -m fly_neural serve`, and the
+  fly's step waits on a shared buffer until the reply arrives.
+- Nothing under `src/` names the connectome backend. The whole-brain
+  adapter is built in `scripts/`.
+
+This is a demonstration, not a registered study: it tests no hypothesis,
+and one run is reported as one run. Both subjects are new research flies
+built from seeds. Neither is Eva or ECHO, a copy of either, or a
+continuation of either, and nothing in this section touches the originals.
+
+**One run** (`--seed 2 --pre 3 --contact 30`, the encounter protocol's
+arena, starts and bridge; 2026-10-31, a working tree, so not a result).
+Both brains simulated all 139,255 neurons for 33 s of each fly's life,
+which took 684 s of wall time on this laptop; the brains' compute was 681
+s of it. What happened:
+
+| Subject | Closest approach | Other fly on its eye (samples driving LC11/LC10a) | Commands the model made                | Descending neurons active in 100 ms (of 1,303) |
+| ------- | ---------------- | ------------------------------------------------- | -------------------------------------- | ---------------------------------------------- |
+| A       | 0.13 mm          | 126 (114)                                         | 2 escapes, both with B near; 2 walks   | mean 4.1, at most 134                          |
+| B       | 0.13 mm          | 160 (148)                                         | none: ECHO's commands stood throughout | mean 4.8, at most 132                          |
+
+Two things worth stating plainly:
+
+- **A's escapes from B were the model's.** ECHO did not command them. The
+  giant fiber fired as B loomed close, and the escape went through the
+  fly's own gate.
+- **The feed readout fired with no food in the arena:** in 20 of A's and 42
+  of B's 3,300 samples. MN9 fired with no taste input at all, so something
+  else in the brain drives it. No feeding followed, because there was
+  nothing to feed on.
+  The turn readout fired in 151 and 174 samples, but steering applies only
+  while the fly walks.
+
+The demo writes its summary to `.first-contact/whole-brain/session-<seed>.json`,
+which is not committed.
+
 ## Stage 4: a proposal for the originals (not implemented)
 
 Interaction capabilities for Eva and ECHO themselves, if they are ever wanted,
@@ -312,7 +369,7 @@ None of these steps was taken.
 ## Reproducing everything
 
 ```sh
-bunx vitest run src/bethesda/firstContact src/bethesda/augmentation
+bunx vitest run src/bethesda/firstContact src/bethesda/augmentation scripts/whole-brain.test.ts
 node scripts/run-ts.mjs scripts/first-contact-evaluate.ts --study encounter --check
 node scripts/run-ts.mjs scripts/first-contact-evaluate.ts --study recognition --phase development --check
 node scripts/run-ts.mjs scripts/first-contact-evaluate.ts --study recognition --phase held-out --check

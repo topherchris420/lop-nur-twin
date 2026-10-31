@@ -781,9 +781,20 @@ entries in `NOTICE`, the `.fly-neural/` and `fly-neural/*.egg-info/` lines of
   terms (its `LICENSE.md`). Shiu et al.'s code is run from the cache, never
   copied. Only `acquire.py` touches the network.
 - **Sensable inputs only.** `sensory.observation` refuses any field but
-  looming size, expansion and bearing, airflow, food odour and food contact
-  (a boolean). Never pass the looming object's id, kind or distance, ECHO's
-  giant-fiber proxy, the fly's position or heading, sites or landmarks.
+  looming size, expansion and bearing, airflow, food odour, food contact
+  (a boolean) and, for `whole-brain/v2` only, the object on the eye as a
+  small moving thing (size, angular speed, bearing). Never pass the looming
+  object's id, kind or distance, ECHO's giant-fiber proxy, the fly's
+  position or heading, sites or landmarks. The small-object eye
+  (`SmallObjectEye` in `scripts/echo-neural-shadow.ts`) follows an object by
+  its bearing alone, never by its id.
+- **Mappings are versioned.** `v1` stays byte for byte what the sealed shadow
+  results used; `whole-brain/v2` (more descending readouts over a trailing
+  window, the small-object channel) runs only for `neural-experimental`
+  research subjects and is named in every header and ready line. A change to
+  a channel or a readout is a new mapping, never an edit to an old one. Each
+  population cites the paper that identified its cell type, and each rule's
+  constants are marked as ours (`WHOLE_BRAIN_RULES`).
 - **Pre-registered, and reported as run.** `fly-neural/experiments/*.json`
   fix conditions, seeds and criteria before a run; their bytes are hashed into
   each result. Dev seeds may run while code changes; held-out seeds run once,
@@ -854,6 +865,14 @@ originals are observed, never touched; experiments run on research subjects.**
   responses are their unchanged controllers'. Never add a rule that makes a
   subject recognize, befriend or avoid another, and never word a result as
   social learning unless a frozen protocol's controls support it.
+- **Research modules come in from outside.** `researchSubject` and
+  `runSession` take an optional adapter factory that replaces the spec's
+  controller (the frozen studies never pass one, and a test checks a session
+  without one is unchanged). The whole-brain subject
+  (`scripts/first-contact-whole-brain.ts`, the connectome model through
+  `scripts/fly-neural-sync.ts`) is built in `scripts/`, so nothing under
+  `src/` names the connectome backend. Its runs are demonstrations unless a
+  frozen protocol says otherwise.
 - **Protocols are frozen; held-out seeds run once.** The JSON files in
   `firstContact/protocols/` and `augmentation/protocols/` are hashed into
   every result. Change a criterion only in a new protocol file. Run the

@@ -55,6 +55,7 @@ python -m fly_neural experiment shiu2024-v783.json --split dev       # the repro
 python -m fly_neural experiment shiu2024-v783.json --split heldout   # once, from a clean commit
 python -m fly_neural plasticity --split dev --echo-mb ../.fly-neural/echo-mb-dev.json
 python -m fly_neural shadow ../.fly-neural/shadow/looms-101-neural-shadow.jsonl
+python -m fly_neural serve       # JSON lines on stdin/stdout, for a neural-experimental research subject
 python -m fly_neural bench
 python -m fly_neural report                             # docs/benchmarks/fly-neural/README.md and its figure
 python -m pytest -q                                     # no download needed
@@ -71,6 +72,17 @@ compute. `experiment` and `plasticity` also take `--resume`. Each finished
 condition or subject is saved in `.fly-neural/progress/` under the run's
 commit, source digest, config and connectome, so a stopped run continues
 where it was. A progress file from any other run is refused.
+
+`serve` reads a header first (`schema`, `mode: "neural-experimental"`, a
+`research-` subject, `seed`, and optionally `mapping`). The default
+mapping `v1` drives the five v1 channels and returns feed and escape.
+`"mapping": "whole-brain/v2"` adds LC11/LC10a for a small moving object and
+returns walk, backward, turn, groom and land from descending neurons over a
+trailing window (`rate_window_ms`, default 100), with a count of active
+descending neurons. An unknown mapping is refused before the connectome
+loads. `scripts/fly-neural-sync.ts` calls `serve` synchronously, so a
+whole-brain research subject can step inside a first-contact session
+(`scripts/first-contact-whole-brain.ts`).
 
 What has been run, and what came of it, is in
 [docs/ECHO_CONNECTOME.md](../docs/ECHO_CONNECTOME.md).
