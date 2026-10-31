@@ -198,7 +198,7 @@ def cmd_threat(args) -> int:
     if args.action == "battery":
         print(f"wrote {threat.write_battery(cfg, args.split, WORK)}")
         return 0
-    data = threat.run(cfg, args.split, compiled_dir(args.connectome), WORK, Path(args.out or ADAPTIVE), resume=args.resume)
+    data = threat.run(cfg, args.split, compiled_dir(args.connectome), WORK, Path(args.out or ADAPTIVE), resume=args.resume, replays=args.replay)
     return 0 if not data.get("failed") else 3
 
 
@@ -317,6 +317,7 @@ def main(argv: list[str] | None = None) -> int:
     th.add_argument("--connectome", default="fafb-v783-shiu")
     th.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
     th.add_argument("--resume", action="store_true", help="reuse replays an interrupted run of this same commit, config and recording finished (.fly-neural/threat/traces/)")
+    th.add_argument("--replay", action="append", help="only replay MAPPING:SEED (e.g. v2@20:7100001) into the trace cache and stop; repeatable. A later --resume run scores them all")
     th.set_defaults(fn=cmd_threat)
     se = sub.add_parser("selective", help="selective associative learning (experiments/plasticity-v2-v783.json): calibrate the dopamine threshold (dev), or run a split")
     se.add_argument("action", choices=["calibrate", "run"])

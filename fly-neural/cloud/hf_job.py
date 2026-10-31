@@ -9,14 +9,18 @@ Inside the job it:
    under the terms named in ``FLY_NEURAL_ACCEPT`` (the person launching it
    accepts them), compiles the connectome and prints every array's SHA-256
    so the import can be compared with a local one;
-3. restores the plan's progress files from the private results repository
-   (``RESULTS_REPO``), so a re-launched job resumes rather than repeats;
+3. fetches the plan's ``inputs`` (files the recorder wrote on another
+   machine, e.g. a threat recording) from the private results repository
+   (``RESULTS_REPO``) and checks each one's SHA-256, then restores the
+   plan's progress and ``state`` directories, so a re-launched job resumes
+   rather than repeats;
 4. runs each phase's commands side by side, one process each, uploading
    progress, logs and new results every few minutes and at the end.
 
 FlyWire-derived data never leaves the job: only progress (per-subject
-aggregates), logs and sealed results are uploaded, and only to a private
-dataset repository. Standard library plus ``huggingface_hub``.
+aggregates), replay traces (readout spike counts), logs and sealed results
+are uploaded, and only to a private dataset repository. Standard library
+plus ``huggingface_hub``.
 
     python fly-neural/cloud/hf_job.py --commit <sha> --plan fly-neural/cloud/plans/<plan>.json
 """
@@ -25,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
 import json
 import os
 import shutil
@@ -62,13 +67,32 @@ def expand(args: list[str]) -> list[str]:
 
 
 class Uploader:
-    def __init__(self, repo_id: str | None, prefix: str, extra: list[str]):
+    def __init__(self, repo_id: str | None, prefix: str, extra: list[str], state: list[str]):
         self.repo_id, self.prefix, self.extra = repo_id, prefix, extra
+        self.state = [".fly-neural/progress", *state]
         self.lock = threading.Lock()
         if repo_id:
             from huggingface_hub import HfApi
 
             self.api = HfApi()
+
+    def fetch_inputs(self, inputs: list[dict]) -> None:
+        """Each ``{"path": <in RESULTS_REPO>, "to": <repo-relative>, "sha256": ...}``, refused if the bytes differ."""
+        if not inputs:
+            return
+        if not self.repo_id:
+            raise SystemExit("the plan has inputs but RESULTS_REPO is not set")
+        from huggingface_hub import hf_hub_download
+
+        for i in inputs:
+            got = Path(hf_hub_download(self.repo_id, i["path"], repo_type="dataset"))
+            digest = hashlib.sha256(got.read_bytes()).hexdigest()
+            if digest != i["sha256"]:
+                raise SystemExit(f"input {i['path']} is {digest}, not {i['sha256']}")
+            dest = REPO / i["to"]
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(got, dest)
+            say(f"input {i['to']} ({digest[:12]})")
 
     def restore(self) -> None:
         if not self.repo_id:
@@ -77,15 +101,15 @@ class Uploader:
 
         tmp = Path("/work/restore")
         try:
-            snapshot_download(self.repo_id, repo_type="dataset", allow_patterns=[f"{self.prefix}/progress/*"], local_dir=tmp)
+            snapshot_download(self.repo_id, repo_type="dataset", allow_patterns=[f"{self.prefix}/state/**"], local_dir=tmp)
         except Exception as e:  # noqa: BLE001 - nothing to restore is normal
-            say(f"no progress restored ({type(e).__name__})")
+            say(f"nothing restored ({type(e).__name__})")
             return
-        dest = REPO / ".fly-neural" / "progress"
-        dest.mkdir(parents=True, exist_ok=True)
-        for p in (tmp / self.prefix / "progress").glob("*.jsonl"):
-            shutil.copy2(p, dest / p.name)
-            say(f"restored {p.name}: {len(p.read_text(encoding='utf-8').splitlines()) - 1} units")
+        for d in self.state:
+            src = tmp / self.prefix / "state" / d
+            if src.is_dir():
+                shutil.copytree(src, REPO / d, dirs_exist_ok=True)
+                say(f"restored {d}: {sorted(p.name for p in src.iterdir())}")
 
     def push(self, note: str) -> None:
         if not self.repo_id:
@@ -93,9 +117,10 @@ class Uploader:
         with self.lock:
             if STAGE.exists():
                 shutil.rmtree(STAGE)
-            (STAGE / "progress").mkdir(parents=True)
-            for p in (REPO / ".fly-neural" / "progress").glob("*.jsonl"):
-                shutil.copy2(p, STAGE / "progress" / p.name)
+            STAGE.mkdir(parents=True)
+            for d in self.state:
+                if (REPO / d).is_dir():
+                    shutil.copytree(REPO / d, STAGE / "state" / d)
             changed = sh("git", "status", "--porcelain", "--untracked-files=all", "--", "docs/benchmarks/fly-neural/adaptive").splitlines()
             for ln in changed:
                 rel = ln[3:].strip()
@@ -171,7 +196,8 @@ def main() -> int:
     setup(plan.get("connectome", "fafb-v783-shiu"), accept)
     if sh("git", "status", "--porcelain", "--untracked-files=all").strip():
         raise SystemExit(f"setup left the tree dirty:\n{sh('git', 'status', '--porcelain')}")
-    up = Uploader(os.environ.get("RESULTS_REPO"), f"{head[:12]}/{plan['name']}", plan.get("upload_extra", []))
+    up = Uploader(os.environ.get("RESULTS_REPO"), f"{head[:12]}/{plan['name']}", plan.get("upload_extra", []), plan.get("state", []))
+    up.fetch_inputs(plan.get("inputs", []))
     up.restore()
     failed = []
     for i, phase in enumerate(plan["phases"]):

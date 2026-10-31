@@ -58,3 +58,15 @@ def test_progress_tokens_expand_to_merge_options(tmp_path, monkeypatch):
     assert out[:2] == ["selective", "run"]
     assert out[2::2] == ["--merge-from", "--merge-from"]
     assert sorted(Path(x).name for x in out[3::2]) == ["x-dev-only-fixed.jsonl", "x-dev-only-v2.jsonl"]
+
+
+def test_threat_replays_name_real_mappings_and_seeds():
+    cfg = json.loads((ROOT / "experiments" / "threat-v783.json").read_text(encoding="utf-8"))
+    maps = ["v1"] + [f"v2@{s:g}" for s in cfg["mappings"]["v2"]["candidates"]["size50_deg"]]
+    p = json.loads((ROOT / "cloud" / "plans" / "threat-dev.json").read_text(encoding="utf-8"))
+    workers, final = p["phases"]
+    replays = [c[c.index("--replay") + 1] for c in workers["commands"]]
+    assert sorted(replays) == sorted(f"{m}:{s}" for m in maps for s in cfg["seeds"]["dev"])
+    assert final["commands"] == [["threat", "run", "--split", "dev", "--resume"]]
+    assert {i["to"] for i in p["inputs"]} == {".fly-neural/threat/battery-dev.json", ".fly-neural/threat/recording-dev.jsonl"}
+    assert all(len(i["sha256"]) == 64 for i in p["inputs"])

@@ -343,7 +343,11 @@ def write_battery(cfg_path: Path, split: str, work: Path) -> Path:
     return out
 
 
-def run(cfg_path: Path, split: str, compiled: Path, work: Path, out_dir: Path, resume: bool = False, log=print) -> dict:
+def run(cfg_path: Path, split: str, compiled: Path, work: Path, out_dir: Path, resume: bool = False, log=print, replays: list[str] | None = None) -> dict:
+    """Replays the recording through each mapping and seed, scores every readout and heuristic, and seals the result.
+
+    With ``replays`` (``"<mapping>:<seed>"``, e.g. ``"v2@20:7100001"``) it only replays those into the
+    trace cache and returns: parallel processes can each take some, and a final ``resume`` run scores them all."""
     code = code_watch(out_dir)
     cfg, config_sha256 = _cfg(cfg_path)
     bat = battery(cfg, split)
@@ -366,6 +370,10 @@ def run(cfg_path: Path, split: str, compiled: Path, work: Path, out_dir: Path, r
         if frozen["config_sha256"] != config_sha256:
             raise RuntimeError("the development selection was made with another version of the config")
         maps = sorted({"v1", frozen["selected"]["mapping"]})
+    if replays is not None:
+        unknown = sorted(set(replays) - {f"{m}:{s}" for m in maps for s in seeds})
+        if unknown:
+            raise ValueError(f"no such replay in the {split} split: {unknown}")
     c = cx.load(compiled)
     net = lif.Network(c)
     mapper = Mapper(c)
@@ -374,6 +382,8 @@ def run(cfg_path: Path, split: str, compiled: Path, work: Path, out_dir: Path, r
     with Meter() as meter:
         for m in maps:
             for seed in seeds:
+                if replays is not None and f"{m}:{seed}" not in replays:
+                    continue
                 key = f"{split}-{m.replace('@', '-')}-{seed}"
                 path = work_dir(work) / "traces" / f"{key}.json"
                 ident = {"config_sha256": config_sha256, "battery_sha256": bat["sha256"], "recording_sha256": hashlib.sha256(rec_path.read_bytes()).hexdigest(), "commit": code.start.get("commit"), "dirty": code.start.get("dirty"), "fly_neural": code.start.get("fly_neural")}
@@ -387,6 +397,8 @@ def run(cfg_path: Path, split: str, compiled: Path, work: Path, out_dir: Path, r
                 tr = replay(rows, bat, m, cfg, c, net, mapper, dn_idx, seed, log)
                 write_json(path, {"ident": ident, "trace": tr})
                 traces[(m, seed)] = tr
+    if replays is not None:
+        return {"replayed": sorted(f"{m}:{s}" for m, s in traces), "failed": []}
     # Heuristics and ECHO: deterministic given the recording.
     heur = {}
     for kind, spec in cfg["heuristics"].items():

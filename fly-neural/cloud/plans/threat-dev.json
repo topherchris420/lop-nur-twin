@@ -1,0 +1,34 @@
+{
+  "name": "threat-dev",
+  "what": "threat-v783, dev split: one process per replay (mapping x seed) into the trace cache, then one process that scores them all, picks the mapping by the pre-registered rule and seals threat-v783-dev.json",
+  "connectome": "fafb-v783-shiu",
+  "inputs": [
+    {
+      "path": "inputs/threat-dev/battery-dev.json",
+      "to": ".fly-neural/threat/battery-dev.json",
+      "sha256": "4dea270213527b7f9e0c8a9d8fb693e37444df7c49259145f0c5057f13f9e4c7"
+    },
+    {
+      "path": "inputs/threat-dev/recording-dev.jsonl",
+      "to": ".fly-neural/threat/recording-dev.jsonl",
+      "sha256": "0656b727ceb5d264ae06fa11cd5a3b5230b4840e10a6ef7394860a00bef1b017"
+    }
+  ],
+  "state": [".fly-neural/threat/traces"],
+  "phases": [
+    {
+      "commands": [
+        ["threat", "run", "--split", "dev", "--replay", "v1:7100001", "--resume"],
+        ["threat", "run", "--split", "dev", "--replay", "v1:7100002", "--resume"],
+        ["threat", "run", "--split", "dev", "--replay", "v2@20:7100001", "--resume"],
+        ["threat", "run", "--split", "dev", "--replay", "v2@20:7100002", "--resume"],
+        ["threat", "run", "--split", "dev", "--replay", "v2@35:7100001", "--resume"],
+        ["threat", "run", "--split", "dev", "--replay", "v2@35:7100002", "--resume"]
+      ]
+    },
+    {
+      "commands": [["threat", "run", "--split", "dev", "--resume"]],
+      "ok_exit": [0, 3]
+    }
+  ]
+}
