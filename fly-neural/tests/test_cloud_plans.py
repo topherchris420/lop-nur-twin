@@ -70,3 +70,70 @@ def test_threat_replays_name_real_mappings_and_seeds():
     assert final["commands"] == [["threat", "run", "--split", "dev", "--resume"]]
     assert {i["to"] for i in p["inputs"]} == {".fly-neural/threat/battery-dev.json", ".fly-neural/threat/recording-dev.jsonl"}
     assert all(len(i["sha256"]) == 64 for i in p["inputs"])
+
+
+class FakeHub:
+    """Stands in for huggingface_hub: a dict of repository paths to bytes."""
+
+    def __init__(self, files: dict[str, bytes]):
+        self.files, self.uploads = files, []
+
+    def hf_hub_download(self, repo_id, filename, repo_type, **_):
+        p = Path(self.tmp) / "dl" / filename
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(self.files[filename])
+        return str(p)
+
+    def snapshot_download(self, repo_id, repo_type, allow_patterns, local_dir):
+        import fnmatch
+
+        for name, data in self.files.items():
+            if any(fnmatch.fnmatch(name, pat) for pat in allow_patterns):
+                p = Path(local_dir) / name
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_bytes(data)
+
+    def HfApi(self):  # noqa: N802 - the real name
+        hub = self
+
+        class Api:
+            def upload_folder(self, folder_path, path_in_repo, **_):
+                hub.uploads.append({str(p.relative_to(folder_path).as_posix()): p.read_bytes() for p in Path(folder_path).rglob("*") if p.is_file()})
+
+        return Api()
+
+
+def test_the_runner_fetches_restores_runs_and_uploads(tmp_path, monkeypatch):
+    import hashlib
+    import sys
+    import types
+
+    rec = b'{"held": true}\n'
+    hub = FakeHub({"inputs/x/recording.jsonl": rec, "c0ffee/p/state/.fly-neural/threat/traces/old.json": b"{}"})
+    hub.tmp = tmp_path
+    fake = types.ModuleType("huggingface_hub")
+    for n in ("hf_hub_download", "snapshot_download", "HfApi"):
+        setattr(fake, n, getattr(hub, n))
+    monkeypatch.setitem(sys.modules, "huggingface_hub", fake)
+    repo = tmp_path / "repo"
+    for name, val in (("REPO", repo), ("LOGS", tmp_path / "logs"), ("STAGE", tmp_path / "stage"), ("RESTORE", tmp_path / "restore")):
+        monkeypatch.setattr(hf_job, name, val)
+    monkeypatch.setattr(hf_job, "sh", lambda *a, **k: "")
+
+    up = hf_job.Uploader("me/runs", "c0ffee/p", [], [".fly-neural/threat/traces"])
+    with pytest.raises(SystemExit, match="not"):
+        up.fetch_inputs([{"path": "inputs/x/recording.jsonl", "to": ".fly-neural/threat/recording-dev.jsonl", "sha256": "0" * 64}])
+    up.fetch_inputs([{"path": "inputs/x/recording.jsonl", "to": ".fly-neural/threat/recording-dev.jsonl", "sha256": hashlib.sha256(rec).hexdigest()}])
+    assert (repo / ".fly-neural/threat/recording-dev.jsonl").read_bytes() == rec
+    up.restore()
+    assert (repo / ".fly-neural/threat/traces/old.json").exists()
+
+    (repo / ".fly-neural/progress").mkdir(parents=True)
+    (repo / ".fly-neural/progress/run.jsonl").write_text("{}\n", encoding="utf-8")
+    monkeypatch.setattr(hf_job, "FLY", ROOT)
+    codes = hf_job.run_phase(0, {"commands": [["status"]]}, up)
+    assert codes == [0]
+    assert (tmp_path / "logs" / "phase0-0.log").read_text(encoding="utf-8").strip()
+    last = hub.uploads[-1]
+    assert {"state/.fly-neural/progress/run.jsonl", "state/.fly-neural/threat/traces/old.json", "logs/phase0-0.log"} <= set(last)
+    assert not any(k.startswith("state/.fly-neural/threat/recording") for k in last)

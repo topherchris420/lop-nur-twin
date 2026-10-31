@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import glob
 import hashlib
+import importlib
 import json
 import os
 import shutil
@@ -43,6 +44,7 @@ REPO = Path(__file__).resolve().parents[2]
 FLY = REPO / "fly-neural"
 LOGS = Path("/work/logs")
 STAGE = Path("/work/stage")
+RESTORE = Path("/work/restore")
 UPLOAD_EVERY_S = 600
 
 
@@ -99,7 +101,7 @@ class Uploader:
             return
         from huggingface_hub import snapshot_download
 
-        tmp = Path("/work/restore")
+        tmp = RESTORE
         try:
             snapshot_download(self.repo_id, repo_type="dataset", allow_patterns=[f"{self.prefix}/state/**"], local_dir=tmp)
         except Exception as e:  # noqa: BLE001 - nothing to restore is normal
@@ -140,6 +142,7 @@ class Uploader:
 
 def setup(connectome: str, accept: list[str]) -> None:
     sh(sys.executable, "-m", "pip", "install", "-q", "-e", str(FLY), "huggingface_hub>=0.30")
+    importlib.invalidate_caches()  # huggingface_hub is imported below, by this already-running interpreter
     py = [sys.executable, "-m", "fly_neural"]
     t0 = time.monotonic()
     subprocess.run([*py, "acquire", *sum((["--accept", a] for a in accept), [])], cwd=FLY, check=True)
@@ -147,9 +150,8 @@ def setup(connectome: str, accept: list[str]) -> None:
     sign = connectome.removeprefix("fafb-v783-")
     t0 = time.monotonic()
     subprocess.run([*py, "import", "--sign", sign, "--name", connectome], cwd=FLY, check=True, stdout=subprocess.DEVNULL)
-    from fly_neural.acquire import data_dir
-
-    man = json.loads((data_dir() / "compiled" / connectome / "manifest.json").read_text(encoding="utf-8"))
+    # fly_neural was installed after this interpreter started, so it is read through the data directory, not imported.
+    man = json.loads((Path(os.environ["FLY_NEURAL_DATA"]) / "compiled" / connectome / "manifest.json").read_text(encoding="utf-8"))
     say(f"compiled {connectome} in {time.monotonic() - t0:.0f} s; arrays: {json.dumps({k: v['sha256'] for k, v in man['files'].items()})}")
 
 
