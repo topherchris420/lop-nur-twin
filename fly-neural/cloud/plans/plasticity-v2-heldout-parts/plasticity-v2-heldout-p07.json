@@ -1,0 +1,66 @@
+{
+  "name": "plasticity-v2-heldout-p07",
+  "what": "plasticity-v2-v783 held-out, continued: subjects [103, 113, 123, 133, 143] of 152 (--shard k/152, one subject each), at b6ac7e1885e3 like the first job",
+  "connectome": "fafb-v783-shiu",
+  "phases": [
+    {
+      "commands": [
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "103/152",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "113/152",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "123/152",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "133/152",
+          "--resume"
+        ],
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "--shard",
+          "143/152",
+          "--resume"
+        ]
+      ]
+    }
+  ]
+}

@@ -9,7 +9,7 @@ import pytest
 import fly_neural.__main__ as cli
 
 ROOT = Path(__file__).resolve().parents[1]
-PLANS = sorted((ROOT / "cloud" / "plans").glob("*.json"))
+PLANS = sorted((ROOT / "cloud" / "plans").rglob("*.json"))
 spec = importlib.util.spec_from_file_location("hf_job", ROOT / "cloud" / "hf_job.py")
 hf_job = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hf_job)
@@ -53,6 +53,33 @@ def test_split_plans_cover_every_subject_once_then_merge():
     assert all("--resume" in c and c[c.index("--split") + 1] == "heldout" and "--only" not in c for c in workers["commands"])
     assert final["commands"][0][-1] == f"@progress:plasticity-v2-v783-heldout-shard-*-of-{n}.jsonl"
     assert all(c[c.index("--echo-mb") + 1].endswith("echo-mb-v2-heldout.json") for c in workers["commands"] + final["commands"])
+
+
+def test_heldout_parts_and_job_one_cover_every_subject_then_judge():
+    """The held-out split as it ran: job 1 (plasticity-v2-heldout.json, 32 shards) saved rounds 1-2,
+    subjects 0..63 in run order, and was cancelled; the parts ran 64..151, one subject per
+    ``--shard k/N``, and ran 31 again as a check that the machines agree."""
+    from fly_neural.selective import unit_keys
+
+    cfg = json.loads((ROOT / "experiments" / "plasticity-v2-v783.json").read_text(encoding="utf-8"))
+    n = len(unit_keys(cfg, "heldout", cfg["subjects"]["heldout"]))
+    job1 = json.loads((ROOT / "cloud" / "plans" / "plasticity-v2-heldout.json").read_text(encoding="utf-8"))
+    width = len(job1["phases"][0]["commands"])
+    parts_dir = ROOT / "cloud" / "plans" / "plasticity-v2-heldout-parts"
+    ks = []
+    for path in sorted(parts_dir.glob("plasticity-v2-heldout-p*.json")):
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        assert plan["name"] == path.stem
+        for c in plan["phases"][0]["commands"]:
+            assert "--resume" in c and c[c.index("--split") + 1] == "heldout" and "--only" not in c
+            k, m = (int(x) for x in c[c.index("--shard") + 1].split("/"))
+            assert m == n
+            ks.append(k)
+    assert sorted(ks) == sorted([31, *range(2 * width, n)])
+    assert set(range(2 * width)) | set(ks) == set(range(n))
+    judge = json.loads((parts_dir / "plasticity-v2-heldout-judge.json").read_text(encoding="utf-8"))
+    assert judge["phases"][0]["commands"][0][-1] == "@progress:plasticity-v2-v783-heldout-shard-*.jsonl"
+    assert judge["phases"][0]["ok_exit"] == job1["phases"][1]["ok_exit"]
 
 
 def test_progress_tokens_expand_to_merge_options(tmp_path, monkeypatch):

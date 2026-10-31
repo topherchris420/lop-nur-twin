@@ -1,0 +1,21 @@
+{
+  "name": "plasticity-v2-heldout-judge",
+  "what": "plasticity-v2-v783 held-out: the judge. Its state folder holds a copy of every shard file (job 1's 32, the parts' 57); it merges them all and judges.",
+  "connectome": "fafb-v783-shiu",
+  "phases": [
+    {
+      "commands": [
+        [
+          "selective",
+          "run",
+          "--split",
+          "heldout",
+          "--echo-mb",
+          "../docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+          "@progress:plasticity-v2-v783-heldout-shard-*.jsonl"
+        ]
+      ],
+      "ok_exit": [0, 3]
+    }
+  ]
+}

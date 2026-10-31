@@ -32,7 +32,7 @@ def test_a_stimulus_between_threat_and_harmless_is_refused():
 
 
 def test_v2_mapping_answers_only_expansion_and_scales_with_contrast():
-    base = types.SimpleNamespace(rates=lambda obs: sensory.Mapper.rates(None, obs))
+    base = types.SimpleNamespace(rates=lambda obs: sensory.Mapper.rates(types.SimpleNamespace(mapping="v1"), obs))
     obs = lambda size, exp: sensory.observation({"looming": {"sizeDeg": size, "expansionDegS": exp, "bearing": 0.5}, "airflow": 0, "airflowFrom": None, "odour": 0, "onFood": False})
     recede = threat.v2_rates(base, obs(60, -300), 1.0, 20, 5, 200)
     assert recede["lplc2_left"] == recede["lc4_left"] == 0.0
