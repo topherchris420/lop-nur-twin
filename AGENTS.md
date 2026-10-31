@@ -800,6 +800,79 @@ entries in `NOTICE`, the `.fly-neural/` and `fly-neural/*.egg-info/` lines of
   ventral nerve cord. Never call it the fly's nervous system or brain
   emulation, and never describe experience or awareness.
 
+- **Codex is a reference layer** (`fly_neural/codex.py`). FAFB v783 and BANC
+  v888 are different animals: never pool their neurons or edges into one
+  graph (`Tables` refuses `+`; `compare` sets two summaries side by side).
+  Codex asks a person to sign in and accept its terms, so nothing here
+  downloads from it: a person downloads the tables and `codex pin` records
+  their sizes, hashes, the terms quoted and the citation; every load
+  re-hashes. Never type a hash, a licence or a citation for BANC that no pin
+  recorded, never commit Codex tables or reports derived from them unless
+  their terms allow it (reports default to `.fly-neural/codex/`), and never
+  adjust a stated count to match a loaded one: `check_counts` reports the
+  difference. Codex structure is not dynamics; evaluate it before any
+  simulation uses it.
+
+### First contact (`src/bethesda/firstContact/`) and neural augmentation (`src/bethesda/augmentation/`)
+
+Research-only frameworks for an eventual encounter between Eva and ECHO, and
+for research modules beside a fly's controller. Read `docs/FIRST_CONTACT.md`
+and `docs/EVA_ECHO_AUDIT.md` first. Outside these folders they add
+`scripts/first-contact-evaluate.ts`, `scripts/first-contact-observe.ts`,
+`scripts/augmentation-evaluate.ts`, `docs/benchmarks/first-contact/`,
+`docs/benchmarks/fly-augmentation/`, the two documents above and the
+`.first-contact/` line of `.gitignore`. The rule they exist to keep: **the
+originals are observed, never touched; experiments run on research subjects.**
+
+- **Never an original.** Every subject, bridge endpoint, authorization and
+  augmented adapter passes `refuseOriginal` (`originals.ts`), which refuses
+  Eva's and ECHO's ids, their printed prefixes and anything containing them;
+  scripts call `refuseProductionHost` before writing. The ids in
+  `originals.ts` are copied from files that already record them and a test
+  reads those files. Research subject ids start with `research-`.
+- **Nothing in production imports this code.** `isolation.test.ts` scans the
+  life, the fly, the garden, routes, components, `src/lib`, `server/`, `api/`,
+  `deploy/` and the deployment scripts, and checks that the fly's experiment
+  digest does not reach it. Never wire either folder into a runner, a page or
+  a deployment without the separate authorization `docs/FIRST_CONTACT.md`
+  (Stage 4) describes.
+- **Observation stays observation.** `joint.ts` and the observe script make
+  GET requests to the two public endpoints only, at the rates the originals'
+  own pages use. Identity is pinned; observed, interpolated, held and
+  unavailable stay apart; nothing is extrapolated; and a representation of
+  one fly for the other is computed beside both lives and delivered to
+  neither.
+- **The other fly is only seen.** A bridged world (`bridge.ts`) adds the other
+  fly as a moving thing its own eyes must find, and answers every other
+  question as the wrapped world does; with nothing delivered it steps byte
+  for byte as the bare world (a test). Only `ForeignPercept` (centre and
+  radius) crosses: never an id, kind, velocity, mode, controller, memory or
+  state. Deliveries happen only while `EncounterClock` verifies both subjects
+  in step; the channel interpolates between delivered samples and never
+  extrapolates or crosses a refused jump.
+- **Do not script.** Partners' motion is their own recorded flight; subjects'
+  responses are their unchanged controllers'. Never add a rule that makes a
+  subject recognize, befriend or avoid another, and never word a result as
+  social learning unless a frozen protocol's controls support it.
+- **Protocols are frozen; held-out seeds run once.** The JSON files in
+  `firstContact/protocols/` and `augmentation/protocols/` are hashed into
+  every result. Change a criterion only in a new protocol file. Run the
+  evaluation scripts from a clean checkout (each study in a worktree of its
+  own, since a run writes its result into the tree) and commit what they
+  write; `--check` reproduces each file byte for byte on the platform it ran
+  on. A change made after seeing a held-out result is disclosed in
+  `docs/FIRST_CONTACT.md` and the phase is run again. Never edit
+  `docs/benchmarks/first-contact/` or `docs/benchmarks/fly-augmentation/` by
+  hand.
+- **The controller stays authoritative.** `AugmentedAdapter` in observe and
+  advise presents the wrapped controller's descriptor and state and returns
+  its commands unchanged (a test compares state hashes for every controller
+  kind). Advise needs a held-out validation that clears `ADVICE_CRITERIA`;
+  experimental hybrid also needs a `HybridAuthorization` naming a disposable
+  research subject and the modes it may initiate, and is never a default.
+  Advisors read only `AdvisorView`; a new field there must be something the
+  fly can sense.
+
 ### Individual continuity (`src/bethesda/life/`)
 
 The headless life, its durable checkpoints, and the individuality studies.

@@ -89,3 +89,68 @@ Manipulation check: passed (share of tests in which the partner was seen: naive 
 | H1         | P(escape   | familiar) − P(escape      |         naive) | -0.250 [-0.481, 0.029] | 0.1468         | not supported | no  |
 | H2         | P(escape   | stranger) − P(escape      |      familiar) | 0.042 [-0.223, 0.299]  | 1.0000         | not supported | no  |
 | H3         | P(escape   | familiar-late) − P(escape |         naive) | -0.167 [-0.408, 0.106] | 0.3801         | not supported | no  |
+
+## Stage 3: repeated encounters, held-out seeds (`first-contact-recognition-v1`)
+
+Protocol SHA-256 `b3044fa9ab424f805903245faa6f753e49a6f73424eb36b973c52e5a04285b9f`; ran from `bef5996` on Node 22.23.4, linux x64. Result digest `6c33e67775754945ef27f310ee79df1d8ab9758db20522316f4e517120e063e5`.
+
+Partners (stretches of steady flight cut by the protocol's criteria; a partner with fewer than the series needs is not used): `research-fc-partner-held-out-0` 21 (mean pass speed 0.24 m/s), `research-fc-partner-held-out-1` 34 (mean pass speed 0.24 m/s), `research-fc-partner-held-out-2` 32 (mean pass speed 0.24 m/s), `research-fc-partner-held-out-3` 5 (mean pass speed 0.21 m/s), `research-fc-partner-held-out-4` 19 (mean pass speed 0.24 m/s), `research-fc-partner-held-out-5` 35 (mean pass speed 0.24 m/s), `research-fc-partner-held-out-6` 18 (mean pass speed 0.22 m/s), `research-fc-partner-held-out-7` 9 (mean pass speed 0.24 m/s).
+
+### Arm: reduced-order
+
+| Group         | Assigned | Tested | Skipped | Escaped | P(escape), 95% CI    | Saw the partner | Responsiveness at test (mean) | Test pass speed (m/s) | Self-model episodes added (mean) |
+| ------------- | -------: | -----: | ------: | ------: | -------------------- | --------------: | ----------------------------: | --------------------: | -------------------------------: |
+| naive         |       80 |     80 |       0 |      48 | 0.600 [0.490, 0.700] |            0.99 |                         1.000 |                 0.235 |                                — |
+| familiar      |       80 |     80 |       0 |      36 | 0.450 [0.346, 0.559] |            0.97 |                         0.749 |                 0.240 |                                — |
+| stranger      |       80 |     79 |       1 |      45 | 0.570 [0.460, 0.673] |            0.97 |                         0.754 |                 0.241 |                                — |
+| familiar-late |       80 |     80 |       0 |      52 | 0.650 [0.541, 0.746] |            0.99 |                         1.000 |                 0.238 |                                — |
+
+Habituation series (all groups but naive): 1: 152/240, 2: 134/239, 3: 137/239, 4: 133/237, 5: 115/239, 6: 112/240.
+
+Manipulation check: passed (share of tests in which the partner was seen: naive 0.9875, familiar 0.975, stranger 0.9747, familiar-late 0.9875). Stretch balance, familiar − stranger pass speed: -0.0002 [-0.0113, 0.0110] m/s, within the criterion.
+
+| Hypothesis | Difference | Estimate, 95% Newcombe CI | Fisher exact p | Verdict                | Within ±margin |
+| ---------- | ---------- | ------------------------- | -------------: | ---------------------- | -------------- |
+| H1         | P(escape   | familiar) − P(escape      |         naive) | -0.150 [-0.295, 0.004] | 0.0813         | not supported | no  |
+| H2         | P(escape   | stranger) − P(escape      |      familiar) | 0.120 [-0.035, 0.267]  | 0.1544         | not supported | no  |
+| H3         | P(escape   | familiar-late) − P(escape |         naive) | 0.050 [-0.098, 0.195]  | 0.6244         | not supported | no  |
+
+### Arm: echo
+
+| Group         | Assigned | Tested | Skipped | Escaped | P(escape), 95% CI    | Saw the partner | Responsiveness at test (mean) | Test pass speed (m/s) | Self-model episodes added (mean) |
+| ------------- | -------: | -----: | ------: | ------: | -------------------- | --------------: | ----------------------------: | --------------------: | -------------------------------: |
+| naive         |       80 |     80 |       0 |      46 | 0.575 [0.466, 0.677] |            0.97 |                         1.000 |                 0.241 |                             0.00 |
+| familiar      |       80 |     79 |       1 |      42 | 0.532 [0.423, 0.638] |            0.99 |                         0.751 |                 0.242 |                             0.05 |
+| stranger      |       80 |     80 |       0 |      36 | 0.450 [0.346, 0.559] |            0.97 |                         0.746 |                 0.245 |                             0.09 |
+| familiar-late |       80 |     80 |       0 |      51 | 0.637 [0.528, 0.734] |            0.96 |                         1.000 |                 0.235 |                             0.57 |
+
+Habituation series (all groups but naive): 1: 151/240, 2: 150/239, 3: 136/239, 4: 134/239, 5: 107/238, 6: 127/238.
+
+Manipulation check: passed (share of tests in which the partner was seen: naive 0.975, familiar 0.9873, stranger 0.975, familiar-late 0.9625). Stretch balance, familiar − stranger pass speed: -0.0036 [-0.0154, 0.0081] m/s, within the criterion.
+
+| Hypothesis | Difference | Estimate, 95% Newcombe CI | Fisher exact p | Verdict                | Within ±margin |
+| ---------- | ---------- | ------------------------- | -------------: | ---------------------- | -------------- |
+| H1         | P(escape   | familiar) − P(escape      |         naive) | -0.043 [-0.193, 0.109] | 0.6337         | not supported | no  |
+| H2         | P(escape   | stranger) − P(escape      |      familiar) | -0.082 [-0.230, 0.072] | 0.3428         | not supported | no  |
+| H3         | P(escape   | familiar-late) − P(escape |         naive) | 0.063 [-0.087, 0.208]  | 0.5176         | not supported | no  |
+
+### Arm: organism
+
+Approximations: physiology held at its initial state: OrganismLife advances it each tick, an arena does not; olfaction samples zero odour: the arena has no food.
+
+| Group         | Assigned | Tested | Skipped | Escaped | P(escape), 95% CI    | Saw the partner | Responsiveness at test (mean) | Test pass speed (m/s) | Self-model episodes added (mean) |
+| ------------- | -------: | -----: | ------: | ------: | -------------------- | --------------: | ----------------------------: | --------------------: | -------------------------------: |
+| naive         |       80 |     80 |       0 |      49 | 0.613 [0.503, 0.712] |            0.96 |                         1.000 |                 0.232 |                             0.00 |
+| familiar      |       80 |     79 |       1 |      38 | 0.481 [0.374, 0.590] |            1.00 |                         0.758 |                 0.238 |                             0.03 |
+| stranger      |       80 |     80 |       0 |      42 | 0.525 [0.417, 0.631] |            0.97 |                         0.752 |                 0.240 |                             0.06 |
+| familiar-late |       80 |     80 |       0 |      44 | 0.550 [0.441, 0.654] |            0.95 |                         1.000 |                 0.235 |                             0.38 |
+
+Habituation series (all groups but naive): 1: 137/240, 2: 169/240, 3: 143/240, 4: 123/240, 5: 118/238, 6: 117/239.
+
+Manipulation check: passed (share of tests in which the partner was seen: naive 0.9625, familiar 1, stranger 0.975, familiar-late 0.95). Stretch balance, familiar − stranger pass speed: -0.0021 [-0.0132, 0.0091] m/s, within the criterion.
+
+| Hypothesis | Difference | Estimate, 95% Newcombe CI | Fisher exact p | Verdict                | Within ±margin |
+| ---------- | ---------- | ------------------------- | -------------: | ---------------------- | -------------- |
+| H1         | P(escape   | familiar) − P(escape      |         naive) | -0.132 [-0.277, 0.023] | 0.1122         | not supported | no  |
+| H2         | P(escape   | stranger) − P(escape      |      familiar) | 0.044 [-0.109, 0.194]  | 0.6354         | not supported | no  |
+| H3         | P(escape   | familiar-late) − P(escape |         naive) | -0.063 [-0.210, 0.089] | 0.5217         | not supported | no  |

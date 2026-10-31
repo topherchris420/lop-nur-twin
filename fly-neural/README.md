@@ -75,6 +75,40 @@ where it was. A progress file from any other run is refused.
 What has been run, and what came of it, is in
 [docs/ECHO_CONNECTOME.md](../docs/ECHO_CONNECTOME.md).
 
+## FlyWire Codex: a reference layer
+
+[Codex](https://codex.flywire.ai/) is a research explorer, and
+`fly_neural/codex.py` reads the static tables it publishes. It runs no
+dynamics. It keeps two datasets apart and never combines them:
+
+| Dataset     | What                                                           | Codex states (read 2026-10-31)         | In this repository                                                                                                    |
+| ----------- | -------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `fafb-v783` | Female adult fly brain                                         | 139,255 neurons, 3,732,460 connections | the validated baseline: the pinned Zenodo tables and annotations above (139,255 neurons, 54,492,922 synapses)         |
+| `banc-v888` | Female adult fly brain and ventral nerve cord (another animal) | 158,262 neurons, 3,037,361 connections | **not pinned**: no file, hash, licence or citation recorded; Codex's "connections" definition is not on its home page |
+
+Codex asks a person to sign in and accept its terms before data can be
+downloaded, so nothing here downloads from it. Download the tables yourself
+into `$FLY_NEURAL_DATA/codex/<dataset>/`, then pin them:
+
+```sh
+python -m fly_neural codex datasets
+python -m fly_neural codex pin banc-v888 --neurons <file> --connections <file> \
+  --terms "<the terms you accepted, quoted>" --cite "<the citation Codex asks for>" --retrieved "<UTC date>"
+python -m fly_neural codex report banc-v888                 # .fly-neural/codex/report-banc-v888.json
+python -m fly_neural codex report fafb-v783-annotations     # from the pinned v783 annotation release
+```
+
+`pin` records each file's size and SHA-256 beside the files (`pins.json`,
+outside Git); every load re-hashes and refuses any difference. A report gives
+neuron counts against Codex's stated ones (`check_counts` reports a mismatch,
+never adjusts it), super-classes, classes, predicted transmitters, synapses
+per region, shortest sensory-to-motor or descending paths (hop counts and the
+class sequence along one path per source), reciprocity and triangle motifs on
+a seeded sample, and its provenance and terms. `compare` sets two datasets'
+summaries side by side. Column names are read by alias (`root_id`, `class`,
+`nt_type`, `pre_root_id`, `syn_count` and their FlyWire variants), and a
+table missing a required column is refused with the columns it has.
+
 ## Layout
 
 | Path                        | What                                                                                                                            |
@@ -92,6 +126,7 @@ What has been run, and what came of it, is in
 | `fly_neural/sensory.py`     | Sensable observations to Poisson rates; MN9 and giant-fiber readouts.                                                           |
 | `fly_neural/shadow.py`      | Offline replay of a research fly's recording; the `serve` loop for a neural-experimental research subject.                      |
 | `fly_neural/bench.py`       | Measured cost: full-brain trials, synthetic scaling.                                                                            |
+| `fly_neural/codex.py`       | The Codex reference layer: FAFB v783 and BANC v888 kept apart, pinned by hash, inspected; no dynamics.                          |
 | `experiments/`              | Pre-registered experiment files. Their bytes are hashed into every result; do not reformat them.                                |
 | `reference/shiu_brian2.py`  | Shiu et al.'s own `model.py` under Brian 2: the conformance fixture and full-brain reference trials.                            |
 | `tests/`                    | Unit and small integration tests on synthetic data; `tests/data/brian2_conformance.json` is Brian 2's output on synthetic nets. |
