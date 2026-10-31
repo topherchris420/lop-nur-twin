@@ -277,6 +277,22 @@ describe("experimental hybrid", () => {
   });
 });
 
+describe("an advisor's late prediction is still recorded", () => {
+  it("escapes the advisor predicts after the controller's onset are matched", () => {
+    const held: { layer?: AugmentedAdapter } = {};
+    fly(
+      "reduced-order",
+      21,
+      (a) => (held.layer = new AugmentedAdapter(a, new GiantFiberAdvisor(5), opts())),
+    ).advance(30);
+    const on = held.layer!.record.onsets;
+    expect(on.controller.length).toBeGreaterThan(0);
+    // The giant-fiber advisor fires after the controller's proxy (10–70 ms on
+    // the study's development seeds); before the fix none of these were kept.
+    expect(onsetAgreement(on, 0.1).hits).toBeGreaterThan(0);
+  });
+});
+
 describe("event-level agreement", () => {
   it("matches onsets within the window, each prediction once", () => {
     expect(

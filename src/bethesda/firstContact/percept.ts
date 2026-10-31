@@ -8,8 +8,8 @@
  * latency, exactly as they treat any moving thing. Nothing about the sender
  * crosses: not its identity, mode, velocity, heading, controller, memories,
  * self-model or state, and not the receiver's own position. `percept` refuses
- * any field but the two below, as `fly_neural/sensory.py` refuses anything
- * the fly could not sense.
+ * any field but the two below, as the connectome backend's sensory mapping
+ * refuses anything the fly could not sense.
  *
  * The body is approximated as a sphere whose diameter is FlyBody's measured
  * body length (`SKELETON.measures.bodyLengthCm`): an engineering

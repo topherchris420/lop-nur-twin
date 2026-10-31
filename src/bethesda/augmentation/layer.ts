@@ -415,21 +415,27 @@ export class AugmentedAdapter implements FlyNeuralAdapter {
     decision: boolean,
   ) {
     if (decision && p && actual && p.mode === actual.mode) this.rec.agreed++;
+    const predicted = p?.mode === "escape";
+    const cap = this.keep * 32;
+    // An advisor's escape is recorded whenever it is made, also once the fly is
+    // already escaping: a prediction later than the controller's onset must
+    // still be matchable by `onsetAgreement`. (Before this was fixed, such
+    // predictions were dropped; docs/FIRST_CONTACT.md discloses the run that
+    // measured with it.)
+    if (predicted && this.rec.onsets.advisor.length < cap)
+      this.rec.onsets.advisor.push(input.body.t);
     const m = input.body.mode;
-    // An escape or takeoff already under way is not an onset for either.
+    // An escape or takeoff already under way is no controller onset, and no
+    // sample for the per-sample tally.
     if (m === "escape" || m === "takeoff") return;
     const escaped = actual?.mode === "escape";
-    const predicted = p?.mode === "escape";
     const e = this.rec.escape;
     if (predicted && escaped) e.hits++;
     else if (!predicted && escaped) e.misses++;
     else if (predicted && !escaped) e.falseAlarms++;
     else e.correctRejections++;
-    const cap = this.keep * 32;
     if (escaped && this.rec.onsets.controller.length < cap)
       this.rec.onsets.controller.push(input.body.t);
-    if (predicted && this.rec.onsets.advisor.length < cap)
-      this.rec.onsets.advisor.push(input.body.t);
   }
 
   /** The command the advisor would give, if it passes the gate now. */
