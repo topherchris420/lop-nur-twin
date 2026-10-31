@@ -110,6 +110,33 @@ python -m fly_neural codex report banc-v888                 # .fly-neural/codex/
 python -m fly_neural codex report fafb-v783-annotations     # from the pinned v783 annotation release
 ```
 
+BANC v888's downloadable Codex tables can be used **without renaming columns**
+or modifying the original compressed bytes. The neuron export commonly uses
+human-readable headings (`Root ID`, `Super Class`, `Primary Cell Type`,
+`Predicted NT type`) and `connections_princeton.csv.gz` uses the usual
+snake_case headings. The importer now reads both, including quoted CSV fields.
+
+Keep the originals **outside Git** in
+`$FLY_NEURAL_DATA/codex/banc-v888/`, pin *both* files and the actual accepted
+terms, then run the report:
+
+```sh
+python -m fly_neural codex pin banc-v888 \
+  --neurons "$FLY_NEURAL_DATA/codex/banc-v888/neurons.csv.gz" \
+  --connections "$FLY_NEURAL_DATA/codex/banc-v888/connections_princeton.csv.gz" \
+  --terms "<terms you accepted at the source>" \
+  --cite "<citation required by the source>" --retrieved "<actual UTC date>"
+python -m fly_neural codex report banc-v888
+```
+
+One BANC v888 file set checked on 2026-10-31 contained **158,262 unique neurons,
+3,990,039 region-specific connection rows and 3,037,361 distinct directed
+neuron pairs**. The source's connection total counts unique pairs, not rows
+segmented by neuropil. These are observations for that file set, not a claim
+that every Codex export has identical bytes. Check actual SHA-256 hashes before
+using data in any experiment. All data loading and reports remain research-only:
+no Eva or ECHO controller, memory, or live service is changed.
+
 `pin` records each file's size and SHA-256 beside the files (`pins.json`,
 outside Git); every load re-hashes and refuses any difference. A report gives
 neuron counts against Codex's stated ones (`check_counts` reports a mismatch,
