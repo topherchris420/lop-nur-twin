@@ -148,3 +148,14 @@ def test_closed_loop_units_cover_every_run_once_then_judge():
         assert sorted(units) == sorted(f"{sc}:{s}:{a}" for sc in cfg["scenarios"] for s in cfg["seeds"][split] for a in cfg["arms"])
         assert final["commands"] == [["closedloop", "run", "--split", split, "--resume"]]
         assert p["node"]["version"].startswith("v") and len(p["node"]["sha256"]) == 64
+
+
+def test_threat_heldout_replays_only_the_merged_and_the_frozen_mapping():
+    cfg = json.loads((ROOT / "experiments" / "threat-v783.json").read_text(encoding="utf-8"))
+    dev = json.loads((ROOT.parent / "docs" / "benchmarks" / "fly-neural" / "adaptive" / "threat-v783-dev.json").read_text(encoding="utf-8"))
+    p = json.loads((ROOT / "cloud" / "plans" / "threat-heldout.json").read_text(encoding="utf-8"))
+    workers, final = p["phases"]
+    replays = [c[c.index("--replay") + 1] for c in workers["commands"]]
+    maps = sorted({"v1", dev["selected"]["mapping"]})
+    assert sorted(replays) == sorted(f"{m}:{s}" for m in maps for s in cfg["seeds"]["heldout"])
+    assert final["commands"] == [["threat", "run", "--split", "heldout", "--resume"]]

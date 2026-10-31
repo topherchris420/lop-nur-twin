@@ -1,0 +1,34 @@
+{
+  "name": "threat-heldout",
+  "what": "threat-v783, held-out split, run once: one process per replay of the merged mapping and the mapping frozen by threat-v783-dev.json, on each held-out seed, then one process that scores them with the frozen readout and heuristic thresholds, judges T0-T5 and seals threat-v783-heldout.json",
+  "connectome": "fafb-v783-shiu",
+  "inputs": [
+    {
+      "path": "inputs/threat-heldout/battery-heldout.json",
+      "to": ".fly-neural/threat/battery-heldout.json",
+      "sha256": "a433749fa763008d4a324abef0f97743c4ee824f3ae7039662320a3b78e9522e"
+    },
+    {
+      "path": "inputs/threat-heldout/recording-heldout.jsonl",
+      "to": ".fly-neural/threat/recording-heldout.jsonl",
+      "sha256": "98a9729d9662f48e5438c5c9f0251ae94b89426a0ee0d4727a11350954b6b107"
+    }
+  ],
+  "state": [".fly-neural/threat/traces"],
+  "phases": [
+    {
+      "commands": [
+        ["threat", "run", "--split", "heldout", "--replay", "v1:7700001", "--resume"],
+        ["threat", "run", "--split", "heldout", "--replay", "v1:7700002", "--resume"],
+        ["threat", "run", "--split", "heldout", "--replay", "v1:7700003", "--resume"],
+        ["threat", "run", "--split", "heldout", "--replay", "v2@35:7700001", "--resume"],
+        ["threat", "run", "--split", "heldout", "--replay", "v2@35:7700002", "--resume"],
+        ["threat", "run", "--split", "heldout", "--replay", "v2@35:7700003", "--resume"]
+      ]
+    },
+    {
+      "commands": [["threat", "run", "--split", "heldout", "--resume"]],
+      "ok_exit": [0, 3]
+    }
+  ]
+}
