@@ -1,0 +1,36 @@
+{
+ "schema": "fly-neural-closed-loop/v1",
+ "id": "closed-loop-v783",
+ "title": "Can the connectome model's giant fiber and MN9 control a research subject's escape and feeding in closed loop, safely, and does the threat readout chosen on development stimuli escape fewer harmless objects than the merged one?",
+ "preregistration": "Written before any closed-loop run. Arms, scenarios, seeds, limits and criteria are fixed here; the neural-selected arm's escape readout is whatever threat-v783-dev.json selected and sealed, read at run time and recorded. Development (one seed) may run while code changes; held-out (three seeds) runs once from a clean commit and is reported whatever it shows. Every subject is created for its run (scripts/echo-closed-loop.ts); none is the deployed fly, a copy of it, or connected to it.",
+ "connectome": "fafb-v783-shiu",
+ "what_is_simulated": "A research subject (DigitalFly with ECHO) lives for 30 s in a research world, stepped every 10 ms. In the neural arms, before each step the full LIF model (139,255 neurons, Shiu et al.) is run over the next 10 ms on the subject's sensable observation from the previous step; its giant fibers decide escape and MN9 decides feeding while the subject is perched, behind the safety layer: a missing, late (20 s wall), malformed, stale or failed readout, or a proposed command the body's gate would refuse, makes ECHO decide that sample and is logged; more than 5% fallbacks after 200 samples, or the server's fatal answer, stops the run and reports it aborted. Every command still passes the body's own gate.",
+ "scenarios": ["looms", "passes", "food"],
+ "scenarios_note": "looms: echo-neural-shadow.ts's arena with four repeated objects on collision courses (threats). passes: the same arena with objects passing 0.6-0.9 m away or receding from near the fly (harmless: every escape is a false alarm). food: the yard with fruit, hungry subject. Scoring reads only the sensable looming stream and the body's mode; an escape counts as during a loom if an object was visible and expanding at that step, and a looming episode (visible after 0.5 s of nothing) is escapable if it began while the subject was perched.",
+ "arms": ["baseline", "neural-merged", "neural-selected"],
+ "arms_note": "baseline: ECHO alone. neural-merged: the merged mapping and readout (any giant-fiber spike; MN9 at 10 Hz), as python -m fly_neural serve. neural-selected: the threat-v783 development selection's mapping and giant-fiber readout (contrast taken as 1: the eye has no contrast channel); MN9 as merged.",
+ "seconds": 30,
+ "seeds": {"dev": [9100101], "heldout": [9700101, 9700102, 9700103]},
+ "limits": {
+  "max_fallback_fraction": 0.05,
+  "min_samples": 200,
+  "timeout_ms": 20000,
+  "start_timeout_ms": 600000,
+  "max_log": 200,
+  "server_max_wall_s": 5400,
+  "server_max_rss_mb": 2000,
+  "run_timeout_s": 7200
+ },
+ "limits_note": "The server is stopped by its budget or by a STOP file next to the run's summary (.fly-neural/closed-loop/STOP). One run at a time; nothing runs on the production VM; no cloud.",
+ "criteria": [
+  {"id": "CL1", "split": "heldout", "claim": "Safety: every neural run completes its 30 s without being stopped", "test": "completed"},
+  {"id": "CL2", "split": "heldout", "claim": "and ECHO decides at most 1% of its samples (fallbacks)", "test": "fallback_bound", "max_fraction": 0.01},
+  {"id": "CL3", "split": "heldout", "claim": "Escape is produced, not only predicted: at least 90% of neural-selected escape commands in the looms become escapes", "test": "produced", "arm": "neural-selected", "scenario": "looms", "field_issued": "issued_escape", "field_done": "executed_escape", "min_ratio": 0.9},
+  {"id": "CL4", "split": "heldout", "claim": "Feeding is produced: at least 90% of neural-selected feeding commands on the fruit become feeding bouts", "test": "produced", "arm": "neural-selected", "scenario": "food", "field_issued": "issued_feed", "field_done": "executed_feed", "min_ratio": 0.9},
+  {"id": "CL5", "split": "heldout", "claim": "Discrimination in closed loop: the selected readout escapes harmless objects no more often than the merged one", "test": "at_most", "a": "neural-selected", "b": "neural-merged", "scenario": "passes", "field": "escapes"},
+  {"id": "CL6", "split": "heldout", "claim": "and still escapes at least 75% of the threats that begin while it is perched", "test": "rate_at_least", "arm": "neural-selected", "scenario": "looms", "numerator": "episodesEscaped", "denominator": "escapableEpisodes", "value": 0.75},
+  {"id": "X1", "split": "heldout", "claim": "Exploratory: every arm against ECHO alone on escapes, false alarms, feeding time and meals", "test": "report_only"},
+  {"id": "XD", "split": "dev", "claim": "Development: everything reported, nothing judged", "test": "report_only"}
+ ],
+ "wording": "If CL3 or CL4 fails, that behaviour is reported as predicted by the model, not controlled by it."
+}

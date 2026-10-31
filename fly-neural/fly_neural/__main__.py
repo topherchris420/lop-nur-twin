@@ -227,6 +227,15 @@ def cmd_adaptive(args) -> int:
     return 0 if not data["failed"] else 3
 
 
+def cmd_closedloop(args) -> int:
+    from . import closedloop
+
+    if args.action == "serve":
+        return closedloop.serve(compiled_dir(args.connectome), ADAPTIVE)
+    data = closedloop.run(_config(args.config), args.split, REPO, ADAPTIVE, Path(args.out or ADAPTIVE), sys.executable)
+    return 0 if not data["failed"] else 3
+
+
 def cmd_serve(args) -> int:
     from .shadow import serve
 
@@ -327,6 +336,13 @@ def main(argv: list[str] | None = None) -> int:
     al.add_argument("--connectome", default="fafb-v783-shiu")
     al.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
     al.set_defaults(fn=cmd_adaptive)
+    cl = sub.add_parser("closedloop", help="closed-loop control of research subjects (experiments/closed-loop-v783.json): the readout server, or a pre-registered run")
+    cl.add_argument("action", choices=["serve", "run"])
+    cl.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    cl.add_argument("--config", default="closed-loop-v783.json")
+    cl.add_argument("--connectome", default="fafb-v783-shiu")
+    cl.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    cl.set_defaults(fn=cmd_closedloop)
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)
