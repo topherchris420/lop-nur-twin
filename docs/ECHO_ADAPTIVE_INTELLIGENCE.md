@@ -15,7 +15,40 @@ The question this work asks:
 > traced to specific neural mechanisms rather than additional rules or
 > computational scale?
 
-<!-- SHORT-VERSION -->
+**The short answer: not yet established.** On research subjects built
+from the FlyWire connectome, every result held out and pre-registered:
+
+- **A forager became measurably more adaptive through experience, and the
+  gain is traced to dopamine-gated plasticity.** Its choices come from the
+  connectome's Kenyon-cell→MBON synapses under a three-factor dopamine
+  rule. After food moved it found the new site in 4.5 visits (with fixed
+  weights, never), it reversed three times out of three, and it kept a
+  trained site after interference (0.71 of probe visits against 0.19).
+  Silencing its dopamine removed the gain; the same forager without
+  plasticity did not adapt ([Adaptive life](#adaptive-life-experiments-a-c-d-e), 11 of 14 criteria).
+- **In the full spiking model the same rule does not learn which odour was
+  rewarded.** On one held-out odour pair it learns nothing; on the other,
+  the asymmetry it produces survives shuffling which odour was rewarded.
+  It does extinguish and reverse. Limitation A, odour-specific learning,
+  remains ([plasticity-v2](#odour-specific-learning-plasticity-v2), 10 of
+  22 criteria).
+- **The mechanisms built to make learning specific made no measurable
+  difference** where they were tested: the sparse Kenyon-cell code, the
+  antennal-lobe correction, the dopamine threshold and the eligibility
+  trace.
+- **The giant fiber did not learn to tell threats apart.** A
+  looming-selective readout did not generalise to held-out stimuli (2 of
+  6 criteria). In closed loop the giant fiber and MN9 controlled a
+  research subject safely, but it escaped only 6 of 10 threats and fed
+  less than under ECHO (5 of 6 criteria).
+- **ECHO already does better at adapting.** Its own mushroom-body module
+  relocates and reverses about twice as fast as the connectome forager,
+  and a bookkeeping heuristic faster still.
+
+So adaptation through a biological plasticity mechanism is shown in a
+reduced forager. The connectome-level specificity that would make it the
+fly's mechanism, rather than one more rule, is not. Nothing here ran on,
+or changed, the deployed fly.
 
 ## Where it started
 
@@ -358,7 +391,78 @@ was seen, and no result file was edited.
 
 ### Odour-specific learning (plasticity-v2)
 
-<!-- PLASTICITY-RESULTS -->
+[`plasticity-v2-v783.json`](../fly-neural/experiments/plasticity-v2-v783.json),
+held-out result [sealed](benchmarks/fly-neural/adaptive/plasticity-v2-v783-heldout.json)
+(commit b6ac7e1, 152 subjects; how it ran is under [Cloud runs](#cloud-runs)).
+Each subject is the full model with one arm's code and rule, on this
+schedule: a pretest of odours A, B and Asim (two of A's three glomeruli);
+acquisition, 8 × (A rewarded, B not); a test; a distractor odour C,
+unrewarded, 4 times; a test; extinction, A unrewarded 6 times; a test;
+reversal, 8 × (B rewarded, A not); a final test. Reward is PAM drive at
+100 Hz; a response is the readout MBONs' spikes. The two held-out pairs
+(H1, H2) use glomeruli no development odour used; 8 subjects per arm and
+pair. The acquisition index `li_acq` is A's relative change minus B's:
+negative when the paired odour's response fell more, which is learning.
+
+| Arm                 | What differs from v2                               | H1 `li_acq` (subjects negative) | H2 `li_acq` (subjects negative) |
+| ------------------- | -------------------------------------------------- | ------------------------------- | ------------------------------- |
+| v2                  | —                                                  | +0.042 (3 of 8)                 | **−0.173 (8 of 8)**             |
+| v2-reward-shuffled  | rewards given to random trials                     | +0.129 (0 of 8)                 | −0.143 (8 of 8)                 |
+| v1-sparse           | the merged rule v1                                 | +0.068 (0 of 8)                 | −0.121 (8 of 8)                 |
+| v2-dan-silenced     | no dopamine                                        | −0.033 (5 of 8)                 | −0.005 (5 of 8)                 |
+| fixed               | no plasticity                                      | −0.014 (5 of 8)                 | −0.028 (5 of 8)                 |
+| v1-dense            | rule v1 on the dense code (the existing mechanism) | +0.002 (2 of 8)                 | −0.001 (5 of 8)                 |
+| v2-dense            | the dense code                                     | +0.001 (2 of 8)                 | +0.002 (4 of 8)                 |
+| v2-thr-only         | sparse by the KC threshold alone                   | −0.017 (4 of 8)                 | not run                         |
+| v2-no-threshold     | every PAM spike counts as reward                   | +0.070 (1 of 8)                 | not run                         |
+| v2-pnkc-shuffled    | PN→KC targets permuted                             | +0.037 (4 of 8)                 | not run                         |
+| v2-trace / no trace | 200 ms between odour and reward                    | +0.101 / +0.025 (2, 3 of 8)     | not run                         |
+
+Under v2, A's response fell by 0.44 (H1) and 0.58 (H2) and B's by 0.48 and
+0.41; under v1 on the dense code both fell by 0.78 on both pairs. On H1,
+after the distractor the index was −0.142 (7 of 8 negative); 6 unrewarded
+A trials restored A by +0.43 (8 of 8; v1 on the sparse code −0.02); after
+reversal B's response was below A's in every subject (+0.16).
+
+Criteria (held-out; 22 judged, **10 pass**): **L0 passed** on both pairs
+(every odour reaches the readout before training). **L1 failed** on H1
+(3 of 8 subjects negative) and **passed** on H2 (8 of 8, mean −0.173).
+**L2 failed** on both (against fixed weights: H1 p = 0.87; H2 p = 0.016,
+over the registered 0.01). **L3 failed** on H1 and **passed** on H2
+(silencing the DANs removes it, p = 0.009). **L4 failed** on both
+(shuffled rewards: H1 +0.129 against +0.042; H2 −0.143 against −0.173,
+p = 0.52). **L5 failed** on H1 and **passed** on H2 (more specific than v1
+on the dense code, p < 0.001). **L6 passed** on both (B falls less than
+under v1 on the dense code). **L7 failed** (7 of 8 negative after the
+distractor). **L8 passed** and **L9 passed** (extinction restores A in
+every subject, and more than under v1, which can only depress). **L10
+passed** (reversal in every subject). **L11–L14 failed** (the eligibility
+trace, the dopamine threshold, the sparse code and the antennal-lobe
+change: none makes v2 measurably more specific; p = 0.36–0.92).
+
+What this shows:
+
+- **Rule v2 does not learn which odour was rewarded.** On H1 there is
+  nothing beyond noise. On H2 the paired odour's response falls more in
+  every subject and needs dopamine, but giving the rewards to random
+  trials of the same phase leaves nearly all of it (L4), and the merged
+  rule v1 on the same code gives most of it too. Whichever odour is
+  rewarded, one odour of each pair is depressed more: B on the
+  development pair and on H1, A on H2. Why was not investigated.
+  Limitation A remains.
+- **What v2 adds is extinction and less depression.** Unrewarded
+  re-exposure restores a depressed response (L8, L9), which v1 cannot
+  do. L6 passes because v2 depresses both odours less than v1 does, not
+  because it spares B selectively. L10 had no shuffled control; on H1 the
+  shuffled-reward arm and v1 on the sparse code also end reversal with B
+  below A (+0.08, +0.09), so part of it is the same odour asymmetry.
+- **No mechanism is shown to matter for specificity.** With no
+  specificity to change, the trace, the threshold, the sparse code and the
+  antennal-lobe change all fail (L11–L14).
+- **Development pointed the same way.** On the development pair (3
+  subjects per arm) every plastic arm on the sparse code depressed B more
+  than A (v2 +0.097, 3 of 3 positive). The held-out split was run as
+  registered, and no criterion was changed.
 
 ### Adaptive life (Experiments A, C, D, E)
 
@@ -463,7 +567,61 @@ The model still has no neuromodulation beyond the rule, no gap junctions,
 no morphology and no ventral nerve cord. The sparse code is a property of
 this model with two corrections, not a measurement of the fly.
 
-<!-- NEGATIVES -->
+## Negative and inconclusive findings
+
+Every one of these is kept in its sealed result file.
+
+- **Sparse is not distinct.** The KC code became sparse (4.3–4.7%), but
+  two unrelated odours still share most of their KCs (Jaccard 0.637), and
+  their PN populations overlap at 0.94. In this model odour identity is
+  mostly lost in the antennal lobe, upstream of the mushroom body.
+- **The KC–KC hypothesis is refuted.** Muting KC→KC synapses barely
+  changes the overlap (0.987 to 0.977).
+- **Odour-specific learning is not established.** Rule v2 on the sparse
+  code fails 12 of 22 held-out criteria: it does not learn on pair H1,
+  and on pair H2 its effect survives shuffling which odour was rewarded
+  (L4 fails on both pairs). Limitation A remains.
+- **None of the mechanisms built for specificity is shown to matter.**
+  The eligibility trace, the dopamine threshold, the sparse code and the
+  antennal-lobe change all fail their held-out tests (L11–L14), and
+  neither the code nor the antennal-lobe change makes a difference to the
+  forager (M3, M4).
+- **Threat discrimination does not generalise.** The selected readout
+  fails four of six held-out criteria (T1, T2, T4, T5): it misses
+  low-contrast and very fast approaches and still escapes from objects
+  that expand without arriving. A time-to-collision threshold and ECHO's
+  own proxy both do better.
+- **The representation does not matter for foraging.** M3 and M4 fail:
+  rule v2 adapts as well on the dense, threshold-only or random code as on
+  the sparse one. A2 fails narrowly (p = 0.012) against v1 on the dense
+  code.
+- **ECHO already adapts faster.** ECHO's own mushroom body relocates and
+  reverses about twice as fast as the connectome forager, and a
+  bookkeeping heuristic faster still. The connectome forager is better
+  only at keeping a trained site after interference.
+- **Closed-loop escape misses threats and feeding is worse.** CL6 fails
+  (6 of 10 escapable looms). Under MN9 control a hungry subject feeds for
+  about 8 s of 30 instead of 30.
+- **Experiment B (habituation) was not run**: the model has no habituation
+  mechanism.
+- **Two held-out runs were launched twice.** The first launches of the
+  adaptive-life and closed-loop held-out splits were cancelled by the
+  cloud provider when the prepaid credit ran out, before either produced
+  any result: one was still building odour codes, the other had not
+  started. Nothing from them was seen. Each was then run once, from a
+  clean commit, and that run is the one reported. The plasticity-v2
+  development split was cancelled at the same moment and resumed from its
+  saved progress, which the resume check accepts only into the identical
+  run.
+- **The plasticity-v2 held-out split did not run as planned.** Its job
+  could not finish inside its 5-hour limit, so it was cancelled after
+  saving the first 64 subjects and the other 88 ran as separate jobs from
+  the same commit (see Cloud runs). Each subject's indices were visible
+  in the progress logs while it ran; nothing in the config, the criteria
+  or the code was changed.
+- **A config note did not hold.** `closed-loop-v783.json` says one run at
+  a time and no cloud; its runs went to the cloud in parallel (see the
+  closed-loop results).
 
 ## Resources and safety
 
@@ -474,7 +632,9 @@ this model with two corrections, not a measurement of the fly.
   killed, so the long splits were moved to cloud CPU machines (below),
   with the owner's explicit authorization; nothing in the repository
   launches a cloud job or spends anything. One plasticity subject on the
-  standard schedule takes about <!-- SUBJECT-MINUTES --> min. Long splits
+  standard schedule took 21–92 min on cloud vCPUs, depending mostly on
+  how many shared a machine (median 35 min with four on 8 vCPUs, 76 min
+  with five or six on 8 vCPUs, 78 min with 32 on 32). Long splits
   run as parallel workers (`selective --only`, `threat --replay`,
   `closedloop --unit`) and are merged or judged by a final process only
   when every worker's identity (config, calibration, commit, cleanliness,
@@ -497,8 +657,9 @@ this model with two corrections, not a measurement of the fly.
 ## Cloud runs
 
 The long splits ran on Hugging Face Jobs CPU machines (`cpu-upgrade`,
-8 vCPU; `cpu-xl`, 16 vCPU), x86_64 Linux, Python 3.11, the same NumPy
-integrator. Before any result was taken from one, a pilot checked it: the
+8 vCPU; `cpu-xl`, 16 vCPU; `cpu-performance`, 32 vCPU), x86_64 Linux,
+Python 3.11, the same NumPy integrator, for about 30 machine-hours and
+about $10 in all at the listed hourly prices. Before any result was taken from one, a pilot checked it: the
 cloud import of v783 produced the same eleven arrays as the laptop's
 (arrays digest `012d8a5c…` on both), and the plasticity-v2 calibration
 run there matched the committed laptop calibration in every value
@@ -525,6 +686,25 @@ hf jobs run --detach --flavor cpu-xl --timeout 4h --secrets HF_TOKEN \
     && python fly-neural/cloud/hf_job.py --commit $c --plan fly-neural/cloud/plans/plasticity-v2-dev.json"
 ```
 
+**How the plasticity-v2 held-out split ran.** All of it ran from commit
+b6ac7e1. The planned job (`plasticity-v2-heldout.json`, 32 shards on one
+32-vCPU machine) took about 78 min a subject and could not finish 152
+subjects inside its 5-hour limit, so it was cancelled once the first two
+rounds, the first 64 subjects in run order, were saved. Eighteen 8-vCPU
+jobs ran the other 88, one subject per shard (`--shard k/152`). Their
+plans, as launched, are in
+[`plans/plasticity-v2-heldout-parts/`](../fly-neural/cloud/plans/plasticity-v2-heldout-parts/),
+and `test_cloud_plans.py` checks that they and the first job cover every
+subject. A subject's seeds depend only on its pair, arm and number, so
+where it ran does not change it. As a check, subject H1/v2/7 ran on both
+machine types: every value in its result matched except the wall-clock
+statistics. The merge compares whole results, timing included, so it
+would have refused the second copy, and that file was left out of the
+judge's inputs by hand. A judge job (`plasticity-v2-heldout-judge.json`;
+its description, written before the second batch of parts, says 57 part
+files where there were 88) merged the 152 subjects in 15 s, computing
+none of them again, and judged them.
+
 ## Reproducing
 
 ```sh
@@ -543,7 +723,31 @@ node scripts/run-ts.mjs scripts/echo-evaluate.ts --check         # Experiment C:
 
 Held-out runs: the same with `--split heldout`, once, from a clean commit.
 
-<!-- LIMITS -->
+## Limits
+
+- **A model, not the fly.** Shiu et al.'s two-sign leaky
+  integrate-and-fire model with two corrections and a rule whose form and
+  constants are ours. No neuromodulation beyond the rule, no gap
+  junctions, no morphology, no ventral nerve cord, no descending or motor
+  circuitry past the GF and MN9.
+- **Small samples.** 8 subjects per arm per held-out odour pair; a
+  34-stimulus held-out battery; 3 closed-loop seeds of 30 s each.
+- **A reduced forager.** In the adaptive-life tasks the odour codes come
+  from the full model, but choice and learning use a linear readout of the
+  connectome's KC→readout synapses, in abstract sites with no flight.
+- **Not real time.** The full model runs 25–45 times slower than real
+  time on one cloud vCPU. It cannot drive a live organism as it is; only a
+  reduced module extracted from mechanisms that pass held-out tests
+  could.
+- **Little to learn from in the live world.** The deployed fly's backup
+  archive of 2026-10-30 (checkpoints 421–1018, about 50 hours, read only)
+  holds 2 associative-update events, both meals at one street tree. A
+  better rule would change little there without more learning events.
+- **Comparators.** ECHO's own modules, simple heuristics and lesioned
+  versions of the same model. No comparison with recorded fly behaviour.
+- **Research subjects only.** Nothing here ran on, or was tested on, the
+  deployed fly. Moving any of it there needs separate explicit
+  authorization.
 
 ## References
 
