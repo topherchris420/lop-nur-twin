@@ -211,7 +211,7 @@ def cmd_selective(args) -> int:
         selective.calibrate(cfg, compiled_dir(args.connectome), ADAPTIVE, out)
         return 0
     progress = WORK / "progress" / f"{cfg.stem}-{args.split}{f'-{args.subjects}-subjects' if args.subjects else ''}{'-only-' + '-'.join(args.only) if args.only else ''}.jsonl"
-    data = selective.run(cfg, args.split, compiled_dir(args.connectome), ADAPTIVE, out, Path(args.echo_mb) if args.echo_mb else None, subjects=args.subjects, progress=progress, resume=args.resume, only=args.only)
+    data = selective.run(cfg, args.split, compiled_dir(args.connectome), ADAPTIVE, out, Path(args.echo_mb) if args.echo_mb else None, subjects=args.subjects, progress=progress, resume=args.resume, only=args.only, merge=[Path(m) for m in args.merge_from or []])
     return 0 if not data["failed"] else 3
 
 
@@ -328,6 +328,7 @@ def main(argv: list[str] | None = None) -> int:
     se.add_argument("--only", action="append", help="arm name; repeatable (the result is marked partial)")
     se.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
     se.add_argument("--resume", action="store_true")
+    se.add_argument("--merge-from", action="append", help="progress file of a parallel worker of this exact run (--only some arms); repeatable")
     se.set_defaults(fn=cmd_selective)
     al = sub.add_parser("adaptive", help="adaptive-life experiments on research subjects (experiments/adaptive-life-v783.json): build the odour codes from the full model, or run a split")
     al.add_argument("action", choices=["codes", "run"])

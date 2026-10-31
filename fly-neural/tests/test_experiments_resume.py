@@ -75,3 +75,25 @@ def test_without_resume_the_progress_file_starts_again(tmp_path, monkeypatch):
     experiments.run(cfg, "dev", compiled, tmp_path / "a", log=lambda *_: None, progress=prog)
     again = experiments.run(cfg, "dev", compiled, tmp_path / "a", log=lambda *_: None, progress=prog)
     assert again["resumed_conditions"] == [] and len(prog.read_text(encoding="utf-8").splitlines()) == 4
+
+
+def test_parallel_workers_merge_only_into_the_same_run(tmp_path):
+    import json
+
+    from fly_neural.record import append_progress, merge_progress, resume_progress
+
+    head = {"experiment": "x", "split": "dev", "config_sha256": "c", "commit": "abc", "dirty": False, "only": None}
+    a, b, other = tmp_path / "a.jsonl", tmp_path / "b.jsonl", tmp_path / "o.jsonl"
+    resume_progress(a, {**head, "only": ["v2"]}, False, "subjects")
+    resume_progress(b, {**head, "only": ["fixed"]}, False, "subjects")
+    append_progress(a, {"name": "dev/v2/0", "result": {"li": -0.3}, "wall_s": 1})
+    append_progress(b, {"name": "dev/fixed/0", "result": {"li": 0.0}, "wall_s": 1})
+    done = merge_progress([a, b], head, "subjects", log=lambda *_: None)
+    assert set(done) == {"dev/v2/0", "dev/fixed/0"}
+    resume_progress(other, {**head, "commit": "def", "only": ["v2"]}, False, "subjects")
+    with pytest.raises(ProgressMismatch, match="commit"):
+        merge_progress([a, other], head, "subjects", log=lambda *_: None)
+    append_progress(b, {"name": "dev/v2/0", "result": {"li": -0.2}, "wall_s": 1})
+    with pytest.raises(ProgressMismatch, match="differs between workers"):
+        merge_progress([a, b], head, "subjects", log=lambda *_: None)
+    assert json.loads(a.read_text(encoding="utf-8").splitlines()[0])["only"] == ["v2"]

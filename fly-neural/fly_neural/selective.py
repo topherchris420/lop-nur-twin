@@ -58,7 +58,7 @@ import numpy as np
 from . import RESULT_SCHEMA, lif, stats
 from . import connectome as cx
 from .mbcode import Groups, Representation, apply
-from .record import append_progress, code_watch, environment, load_sealed, resume_progress, sealed, write_json
+from .record import append_progress, code_watch, environment, load_sealed, merge_progress, resume_progress, sealed, write_json
 from .resources import Meter, machine
 
 SCHEMA = "fly-neural-plasticity/v2"
@@ -441,7 +441,7 @@ def calibrate(cfg_path: Path, compiled: Path, results: Path, out_dir: Path, log=
     return data
 
 
-def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path, echo_mb_path: Path | None = None, subjects: int | None = None, log=print, progress: Path | None = None, resume: bool = False, only: list[str] | None = None) -> dict:
+def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path, echo_mb_path: Path | None = None, subjects: int | None = None, log=print, progress: Path | None = None, resume: bool = False, only: list[str] | None = None, merge: list[Path] | None = None) -> dict:
     code = code_watch(out_dir)
     cfg, config_sha256 = _cfg(cfg_path)
     c = cx.load(compiled)
@@ -470,6 +470,8 @@ def run(cfg_path: Path, split: str, compiled: Path, results: Path, out_dir: Path
         "connectome_manifest_sha256": c.manifest.get("sha256"),
     }
     earlier = resume_progress(progress, header, resume, "subjects", log)
+    if merge:
+        earlier |= merge_progress(merge, header, "subjects", log)
     resumed = []
     runs = {}
     arm_by = {a["name"]: a for a in cfg["arms"]}
