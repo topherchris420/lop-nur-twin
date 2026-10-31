@@ -1,0 +1,117 @@
+{
+  "ranFrom": "`bef5996`",
+  "platform": "Node 22.23.4, linux x64",
+  "schema": "augmentation-advisor-study/v1",
+  "protocol": {
+    "id": "giant-fiber-advisor-v1",
+    "sha256": "6a6c65459681be41af74348d4afe169d753e1cd00783985eb2e7b77452bbd6a0"
+  },
+  "advisor": "giant-fiber-advisor/v1",
+  "criteria": { "minHitRate": 0.8, "maxFalseAlarmRate": 0.05, "minEvents": 20 },
+  "development": {
+    "subjects": 12,
+    "byController": [
+      {
+        "controller": "reduced-order",
+        "hits": 13,
+        "misses": 2,
+        "falseAlarms": 2,
+        "correctRejections": 71413,
+        "hitRate": 0.8667,
+        "falseAlarmRate": 0.000028
+      },
+      {
+        "controller": "echo",
+        "hits": 12,
+        "misses": 2,
+        "falseAlarms": 2,
+        "correctRejections": 71458,
+        "hitRate": 0.8571,
+        "falseAlarmRate": 0.000028
+      },
+      {
+        "controller": "organism",
+        "hits": 12,
+        "misses": 4,
+        "falseAlarms": 3,
+        "correctRejections": 71572,
+        "hitRate": 0.75,
+        "falseAlarmRate": 0.000042
+      }
+    ]
+  },
+  "heldOut": {
+    "subjects": 40,
+    "byController": [
+      {
+        "controller": "reduced-order",
+        "hits": 29,
+        "misses": 11,
+        "falseAlarms": 6,
+        "correctRejections": 238190,
+        "hitRate": 0.725,
+        "falseAlarmRate": 0.000025
+      },
+      {
+        "controller": "echo",
+        "hits": 37,
+        "misses": 10,
+        "falseAlarms": 12,
+        "correctRejections": 238161,
+        "hitRate": 0.7872,
+        "falseAlarmRate": 0.00005
+      },
+      {
+        "controller": "organism",
+        "hits": 36,
+        "misses": 5,
+        "falseAlarms": 11,
+        "correctRejections": 238298,
+        "hitRate": 0.878,
+        "falseAlarmRate": 0.000046
+      }
+    ]
+  },
+  "gate": [
+    {
+      "controller": "reduced-order",
+      "validation": {
+        "source": "docs/benchmarks/fly-augmentation/giant-fiber.json, held-out phase, ran from `bef5996`",
+        "heldOut": true,
+        "hits": 29,
+        "misses": 11,
+        "falseAlarms": 6,
+        "correctRejections": 238190
+      },
+      "mayAdvise": false,
+      "why": "hit rate 0.725 below 0.8"
+    },
+    {
+      "controller": "echo",
+      "validation": {
+        "source": "docs/benchmarks/fly-augmentation/giant-fiber.json, held-out phase, ran from `bef5996`",
+        "heldOut": true,
+        "hits": 37,
+        "misses": 10,
+        "falseAlarms": 12,
+        "correctRejections": 238161
+      },
+      "mayAdvise": false,
+      "why": "hit rate 0.787 below 0.8"
+    },
+    {
+      "controller": "organism",
+      "validation": {
+        "source": "docs/benchmarks/fly-augmentation/giant-fiber.json, held-out phase, ran from `bef5996`",
+        "heldOut": true,
+        "hits": 36,
+        "misses": 5,
+        "falseAlarms": 11,
+        "correctRejections": 238298
+      },
+      "mayAdvise": true,
+      "why": "validation clears the advice criteria"
+    }
+  ],
+  "digest": "383292cf629ed7696b64d71b32ae8a6818cb24cb116381d5bcc39cfcc14d80b9"
+}

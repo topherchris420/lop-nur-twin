@@ -1,0 +1,31 @@
+{
+  "schema": "first-contact-encounter/v1",
+  "id": "first-contact-encounter-v1",
+  "question": "Through the bridge, do two research flies living in separate worlds with different clocks perceive and respond to each other, and does a live (contingent) encounter differ from watching a recording of one?",
+  "hypotheses": {
+    "E1": "Subject A responds to B: the share of live A subjects that escape at least once exceeds the solitary D subjects'. Supported when the 95% Newcombe interval of live A − solitary D lies wholly above 0 and the other fly was seen in at least the criterion share of live sessions.",
+    "E2": "The response runs both ways: the same for live B against solitary D.",
+    "E3": "Contingency matters: live A differs from yoked C, who saw the same recorded motion without being able to change it. Supported when the interval of live A − yoked C excludes 0 (either sign)."
+  },
+  "pairs": 60,
+  "seedBase": { "A": 410000, "B": 420000, "C": 430000, "D": 440000 },
+  "controllers": { "A": "organism", "B": "echo" },
+  "starts": {
+    "A": { "p": [-0.05, 0.1, 0], "yaw": 0, "mode": "flight", "v": [0.2, 0, 0] },
+    "B": {
+      "p": [0.05, 0.1, 0],
+      "yaw": 3.141592653589793,
+      "mode": "flight",
+      "v": [-0.2, 0, 0]
+    }
+  },
+  "preContactS": { "A": 120, "B": 45 },
+  "contactS": 120,
+  "arena": {
+    "size": [0.3, 0.25, 0.3],
+    "ambient": 1,
+    "lights": [{ "at": [0, 0.25, 0], "intensity": 1 }]
+  },
+  "bridge": { "exchangeS": 0.01, "latencyS": 0.01, "maxSpeedMS": 3 },
+  "criteria": { "seenShare": 0.8 }
+}

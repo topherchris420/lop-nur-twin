@@ -1,5 +1,5 @@
 """``python -m fly_neural <command>``: status, acquire, import, crosscheck, experiment, reference,
-plasticity, shadow, serve, bench, report.
+plasticity, shadow, serve, bench, report, codex.
 
 Data live in ``$FLY_NEURAL_DATA`` (default ``~/.cache/fly-neural``), outside
 the repository. Results are written to ``docs/benchmarks/fly-neural/`` as
@@ -243,6 +243,38 @@ def cmd_serve(args) -> int:
     return serve(compiled_dir(args.connectome))
 
 
+def cmd_codex(args) -> int:
+    from . import codex
+
+    if args.action == "datasets":
+        for d in codex.DATASETS.values():
+            print(f"{d.key}: {d.name}, {d.tissue}; {d.codex}")
+            for s in d.stated:
+                print(f"    {s.value:>12,}  {s.what}  [{s.source}]")
+            print(f"    terms: {d.terms or 'not recorded'}; {d.note}")
+        return 0
+    if args.action == "pin":
+        files = {k: Path(v) for k, v in (("neurons", args.neurons), ("connections", args.connections)) if v}
+        rec = codex.pin(args.dataset, files, args.terms or "", args.cite or "", args.retrieved or "")
+        print(json.dumps(rec, indent=1))
+        return 0
+    # report
+    t = codex.load_v783_annotations() if args.dataset == "fafb-v783-annotations" else codex.load(args.dataset)
+    rep = codex.report(
+        t,
+        {"super_class": [args.sensory]},
+        {"super_class": args.motor},
+        max_hops=args.max_hops,
+        min_syn=args.min_syn,
+    )
+    out = Path(args.out) if args.out else WORK / "codex"
+    out.mkdir(parents=True, exist_ok=True)
+    path = out / f"report-{t.dataset}.json"
+    path.write_text(json.dumps(rep, indent=1, default=str) + "\n", encoding="utf-8")
+    print(f"wrote {path} (FlyWire-derived and Codex data stay outside Git unless their terms allow otherwise)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m fly_neural", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -352,7 +384,23 @@ def main(argv: list[str] | None = None) -> int:
     v = sub.add_parser("serve", help="readouts for a neural-experimental research subject, JSON lines on stdin/stdout")
     v.add_argument("--connectome", default="fafb-v783-shiu")
     v.set_defaults(fn=cmd_serve)
+    c = sub.add_parser("codex", help="FlyWire Codex reference layer: datasets kept apart, files pinned, nothing simulated")
+    c.add_argument("action", choices=["datasets", "pin", "report"])
+    c.add_argument("dataset", nargs="?", default="fafb-v783", help="fafb-v783, banc-v888, or fafb-v783-annotations (report from the pinned v783 annotations)")
+    c.add_argument("--neurons", help="pin: the neurons/classification table you downloaded from Codex")
+    c.add_argument("--connections", help="pin: the connections table you downloaded from Codex")
+    c.add_argument("--terms", help="pin: the terms you accepted, quoted as Codex states them")
+    c.add_argument("--cite", help="pin: the citation Codex asks for, verbatim")
+    c.add_argument("--retrieved", help="pin: when you downloaded the files (UTC), as you recorded it")
+    c.add_argument("--sensory", default="sensory", help="report: super_class of the pathway sources")
+    c.add_argument("--motor", action="append", default=None, help="report: super_class of the pathway targets; repeatable (default motor, descending)")
+    c.add_argument("--max-hops", type=int, default=3)
+    c.add_argument("--min-syn", type=int, default=5)
+    c.add_argument("--out", help="report directory (default .fly-neural/codex/, outside Git)")
+    c.set_defaults(fn=cmd_codex)
     args = p.parse_args(argv)
+    if args.cmd == "codex" and args.motor is None:
+        args.motor = ["motor", "descending"]
     if args.cmd == "bench" and not args.connectome:
         args.connectome = ["fafb-v783-shiu", "fafb-v783-synapse-weighted"]
     return args.fn(args)

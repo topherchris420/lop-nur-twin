@@ -24,6 +24,18 @@
  *   ECHO keeps the rest of its behaviour. Its commands still pass the fly's
  *   own gate.
  *
+ * Two sensory mappings (fly_neural/sensory.py), named in every header:
+ * - `v1`: the five channels and two readouts above. Recordings made with it
+ *   are byte for byte what they were.
+ * - `whole-brain/v2` (`--mapping whole-brain/v2`, neural-experimental only):
+ *   also the object on the eye as a small moving object (size, angular
+ *   speed, bearing) for LC11 and LC10a, and more of the brain's descending
+ *   commands, which may start walking (DNp09), steer it (DNa02), stop it
+ *   (MDN: the body has no backward gait), start antennal grooming (aDN1 and
+ *   aDN2) and commit a flight to landing below (DNp07, DNp10). ECHO keeps
+ *   everything the readouts leave alone, and every command still passes the
+ *   fly's gate. `WHOLE_BRAIN_RULES` lists each rule and its constants.
+ *
  * Each record keeps the sensable part of the decision input (looming size,
  * expansion and bearing; airflow; food odour; whether the tarsi touch food),
  * what ECHO commanded, and the body's mode for scoring. The looming object's
@@ -46,7 +58,8 @@ import {
   type FlyNeuralAdapter,
   type MotorCommand,
 } from "../src/bethesda/fly/neural.js";
-import { wrapAngle, type V3 } from "../src/bethesda/fly/units.js";
+import type { SenseFrame } from "../src/bethesda/fly/senses.js";
+import { radToDeg, wrapAngle, type V3 } from "../src/bethesda/fly/units.js";
 import {
   PrimitiveWorld,
   type Mover,
@@ -56,6 +69,9 @@ import {
 export const SHADOW_SCHEMA = "fly-neural-shadow/v1" as const;
 export const MODES = ["baseline", "neural-shadow", "neural-experimental"] as const;
 export type ShadowMode = (typeof MODES)[number];
+/** fly_neural/sensory.py MAPPINGS. */
+export const MAPPINGS = ["v1", "whole-brain/v2"] as const;
+export type Mapping = (typeof MAPPINGS)[number];
 export const SCENARIOS = ["looms", "food", "wind"] as const;
 export type Scenario = (typeof SCENARIOS)[number];
 
@@ -79,6 +95,14 @@ export function guard(out: string, exists: (p: string) => boolean = existsSync):
       throw new Error(`refusing to write under ${p}`);
 }
 
+/** The object on the eye as a small moving thing (whole-brain/v2): what LC11 and LC10a are given. */
+export interface SmallObject {
+  sizeDeg: number;
+  /** The bearing's change between samples (deg/s, + leftward): includes the fly's own turning. */
+  speedDegS: number;
+  bearing: number;
+}
+
 /** The sensable part of a decision input: what fly_neural/sensory.py accepts, nothing else. */
 export interface SensableObservation {
   looming: { sizeDeg: number; expansionDegS: number; bearing: number } | null;
@@ -86,6 +110,36 @@ export interface SensableObservation {
   airflowFrom: number | null;
   odour: number;
   onFood: boolean;
+  /** whole-brain/v2 only; absent under v1, so v1 recordings keep their bytes. */
+  smallObject?: SmallObject | null;
+}
+
+/** A bearing jump larger than this between samples (rad) is read as a different object, not motion. */
+export const SAME_OBJECT_RAD = 0.5;
+
+/**
+ * Tracks the object on the eye from sample to sample, from what the eye
+ * reports only (its size and bearing), never from the object's id: an eye
+ * sees where a thing is, not which thing it is.
+ */
+export class SmallObjectEye {
+  private last: { t: number; bearing: number; speed: number } | null = null;
+  see(frame: SenseFrame): SmallObject | null {
+    const l = frame.looming;
+    if (!l) {
+      this.last = null;
+      return null;
+    }
+    let speed = 0;
+    const prev = this.last;
+    if (prev && frame.t === prev.t) speed = prev.speed;
+    else if (prev && frame.t > prev.t && frame.t - prev.t < 0.1) {
+      const turn = wrapAngle(l.bearing - prev.bearing);
+      if (Math.abs(turn) < SAME_OBJECT_RAD) speed = radToDeg(turn) / (frame.t - prev.t);
+    }
+    this.last = { t: frame.t, bearing: l.bearing, speed };
+    return { sizeDeg: l.sizeDeg, speedDegS: speed, bearing: l.bearing };
+  }
 }
 
 export function sensable(input: DecisionInput): SensableObservation {
@@ -118,36 +172,106 @@ export interface ShadowRecord {
   neural?: Readouts | null;
 }
 
-export interface Readouts {
-  feed: { predicted: boolean; mean_rate_hz: number; spikes: number };
-  escape: { predicted: boolean; mean_rate_hz: number; spikes: number };
+interface RateReadout {
+  predicted: boolean;
+  mean_rate_hz: number;
+  spikes: number;
 }
+
+export interface Readouts {
+  feed: RateReadout;
+  escape: RateReadout;
+  /** whole-brain/v2 only (fly_neural/sensory.py READOUTS_V2). */
+  walk?: RateReadout;
+  backward?: RateReadout;
+  groom?: RateReadout;
+  land?: RateReadout;
+  turn?: {
+    left_hz: number;
+    right_hz: number;
+    predicted: boolean;
+    direction: "left" | "right" | null;
+  };
+  descending?: { active: number; of: number };
+  window_ms?: number;
+}
+
+/**
+ * How whole-brain/v2 readouts become commands. The populations and their
+ * papers are fly_neural/sensory.py's; the constants here are model choices.
+ */
+export const WHOLE_BRAIN_RULES = Object.freeze({
+  /** DNp09 at this rate or more starts the walk at full speed; slower rates walk slower (linear from walkSpeedMinCmS). */
+  walkFullHz: 100,
+  /** Steering gain from the DNa02 left-minus-right difference (rad/s per Hz), and its bound. */
+  turnGainRadSPerHz: 0.03,
+  turnMaxRadS: 3,
+  rules: [
+    "escape and feeding: as in v1 (the giant fiber; MN9, now over the trailing window)",
+    "landing: in flight, DNp07/DNp10 above threshold commit the fly to the surface directly below (the one site the body itself offers); while landing they hold it there",
+    "grooming: at rest, aDN1/aDN2 above threshold start antennal grooming",
+    "walking: at rest, DNp09 above threshold starts a walk; while walking, MDN above threshold stops it (the body has no backward gait)",
+    "steering: while walking, a DNa02 left-right difference above threshold sets the yaw rate toward the more active side",
+    "takeoff: only the giant fiber's short-mode escape; no descending neuron for a voluntary takeoff is mapped, so that stays ECHO's",
+    "everything else stays ECHO's",
+  ],
+});
 
 /**
  * Passes ECHO's commands through and records each input it was given. In
  * `neural-experimental` it instead lets the latest readouts decide feeding
- * and escape.
+ * and escape, and under whole-brain/v2 also walking, steering, grooming and
+ * landing (`WHOLE_BRAIN_RULES`).
+ *
+ * Readouts arrive one sample behind: set from outside (`latest`, as
+ * `runShadow` does), or from a synchronous `brain`, which the tap asks after
+ * each new sample, for the decisions that follow.
  */
 export class ShadowTap implements FlyNeuralAdapter {
   readonly descriptor: AdapterDescriptor;
   readonly records: ShadowRecord[] = [];
   readonly inner: EchoAdapter;
   readonly mode: ShadowMode;
+  readonly mapping: Mapping;
   readonly maxRecords: number;
+  readonly brain: ((t: number, obs: SensableObservation) => Readouts) | null;
+  private readonly eye = new SmallObjectEye();
+  private askedT = -Infinity;
+  /** Commands the readouts made in place of ECHO's, by mode (neural-experimental). */
+  readonly overrides: Record<string, number> = {};
   latest: Readouts | null = null;
   last: SensableObservation | null = null;
   dropped = 0;
-  constructor(inner: EchoAdapter, mode: ShadowMode, maxRecords: number) {
+  constructor(
+    inner: EchoAdapter,
+    mode: ShadowMode,
+    maxRecords: number,
+    options: {
+      mapping?: Mapping;
+      brain?: (t: number, obs: SensableObservation) => Readouts;
+    } = {},
+  ) {
     this.inner = inner;
     this.mode = mode;
     this.maxRecords = maxRecords;
+    this.mapping = options.mapping ?? "v1";
+    this.brain = options.brain ?? null;
+    if (this.mapping !== "v1" && mode !== "neural-experimental")
+      throw new Error(`${this.mapping} runs only in neural-experimental mode`);
+    if (this.brain && mode !== "neural-experimental")
+      throw new Error("only a neural-experimental subject has a brain to ask");
+    const v2 = this.mapping === "whole-brain/v2";
     this.descriptor =
       mode === "neural-experimental"
         ? {
             ...echoDescriptor(inner.variant),
-            id: `${inner.descriptor.id} gated by fly-neural readouts`,
-            label: "ECHO with connectome-model feeding and escape (research subject)",
-            fidelity: `${inner.descriptor.fidelity} In this research mode, feeding and escape follow the readouts of a leaky integrate-and-fire model on the FlyWire connectome (fly-neural/), not ECHO's own rules.`,
+            id: `${inner.descriptor.id} gated by fly-neural readouts${v2 ? " (whole-brain/v2)" : ""}`,
+            label: v2
+              ? "ECHO with connectome-model feeding, escape, walking, steering, grooming and landing (research subject)"
+              : "ECHO with connectome-model feeding and escape (research subject)",
+            fidelity: v2
+              ? `${inner.descriptor.fidelity} In this research mode, a leaky integrate-and-fire model on the whole FlyWire connectome (fly-neural/, mapping whole-brain/v2) decides feeding, escape, walking, steering, antennal grooming and landing through its descending neurons, and sees the object on the eye as a small moving thing; ECHO keeps the rest.`
+              : `${inner.descriptor.fidelity} In this research mode, feeding and escape follow the readouts of a leaky integrate-and-fire model on the FlyWire connectome (fly-neural/), not ECHO's own rules.`,
             simulatesNeurons: true,
           }
         : inner.descriptor;
@@ -157,12 +281,20 @@ export class ShadowTap implements FlyNeuralAdapter {
     this.inner.start?.(body);
   }
 
+  /** Asks the brain once per new sample, with that sample's input, for the decisions after it. */
+  private ask(input: DecisionInput) {
+    if (!this.brain || !this.last || !(input.body.t > this.askedT)) return;
+    this.askedT = input.body.t;
+    this.latest = this.brain(input.body.t, this.last);
+  }
+
   private record(
     input: DecisionInput,
     from: "decide" | "interrupt",
     c: MotorCommand | null,
   ) {
     const obs = sensable(input);
+    if (this.mapping === "whole-brain/v2") obs.smallObject = this.eye.see(input.frame);
     this.last = obs;
     if (this.records.length >= this.maxRecords) {
       this.dropped++;
@@ -213,36 +345,161 @@ export class ShadowTap implements FlyNeuralAdapter {
       c.mode !== "takeoff"
     )
       return { mode: "feed", reason: `fly-neural: MN9 at ${r.feed.mean_rate_hz} Hz` };
+    if (this.mapping === "whole-brain/v2" && r && c)
+      return descendingCommand(input, c, r);
     return c;
+  }
+
+  private count(c: MotorCommand | null, out: MotorCommand | null) {
+    if (out && out !== c && out.reason.includes("fly-neural:"))
+      this.overrides[out.mode] = (this.overrides[out.mode] ?? 0) + 1;
   }
 
   decide(input: DecisionInput): MotorCommand {
     const c = this.inner.decide(input);
     this.record(input, "decide", c);
-    return this.gate(input, c) ?? c;
+    const out = this.gate(input, c) ?? c;
+    this.count(c, out);
+    this.ask(input);
+    return out;
   }
 
   interrupt(input: DecisionInput): MotorCommand | null {
     const c = this.inner.interrupt ? this.inner.interrupt(input) : null;
     // Every sample is recorded (interrupts with no command too): they are the model's input stream.
     this.record(input, "interrupt", c);
+    const out = this.interruptCommand(input, c);
+    this.count(c, out);
+    this.ask(input);
+    return out;
+  }
+
+  private interruptCommand(input: DecisionInput, c: MotorCommand | null) {
     if (this.mode !== "neural-experimental") return c;
     if (this.latest?.escape.predicted && PERCHED.has(input.body.mode))
       return this.gate(input, null);
     return c && c.mode === "escape" ? null : c;
   }
 
-  static factory(mode: ShadowMode, seed: number, maxRecords: number, out: ShadowTap[]) {
+  static factory(
+    mode: ShadowMode,
+    seed: number,
+    maxRecords: number,
+    out: ShadowTap[],
+    options: ConstructorParameters<typeof ShadowTap>[3] = {},
+  ) {
     return (rng: () => number, streams: AdapterStreams) => {
       const tap = new ShadowTap(
         new EchoAdapter(rng, streams, { variant: "full", seed }),
         mode,
         maxRecords,
+        options,
       );
       out.push(tap);
       return tap;
     };
   }
+}
+
+const hz = (x: number) => `${Math.round(x)} Hz`;
+
+/**
+ * A landing approach toward `target`, as the reduced-order controller steers
+ * one (src/bethesda/fly/controller.ts, its `land` case): the thorax aims at
+ * its standing height above the point, at the cruise speed or
+ * distance/approachTauS, whichever is slower. Repeated here because the
+ * fly's own modules stay untouched (their source digest is the experiment's).
+ */
+function approach(
+  body: DecisionInput["body"],
+  target: { id: string; point: V3 },
+  P: DecisionInput["params"],
+  reason: string,
+): MotorCommand {
+  const d: V3 = [
+    target.point[0] - body.p[0],
+    target.point[1] + body.standingHeight - body.p[1],
+    target.point[2] - body.p[2],
+  ];
+  const dist = Math.hypot(...d);
+  const scale = dist > 0 ? Math.min(P.cruiseCmS / 100, dist / P.approachTauS) / dist : 0;
+  return {
+    mode: "land",
+    ...(body.mode === "flight" ? { land: target } : {}),
+    velocity: [d[0] * scale, d[1] * scale, d[2] * scale],
+    reason,
+  };
+}
+
+/** The yaw rate (rad/s, + left) DNa02's left-right difference asks for. */
+export function steering(turn: NonNullable<Readouts["turn"]>): number {
+  const r = WHOLE_BRAIN_RULES;
+  const diff = turn.left_hz - turn.right_hz;
+  return Math.max(-r.turnMaxRadS, Math.min(r.turnMaxRadS, r.turnGainRadSPerHz * diff));
+}
+
+/**
+ * whole-brain/v2: what the descending readouts change about ECHO's command
+ * `c` (`WHOLE_BRAIN_RULES`). Escape and feeding were settled before this.
+ */
+export function descendingCommand(
+  input: DecisionInput,
+  c: MotorCommand,
+  r: Readouts,
+): MotorCommand {
+  const body = input.body;
+  const P = input.params;
+  if (c.mode === "escape" || c.mode === "takeoff" || c.mode === "feed") return c;
+  if (r.land?.predicted) {
+    if (body.mode === "flight") {
+      const below = input.sites.find((s) => s.below);
+      if (below)
+        return approach(
+          body,
+          { id: below.id, point: [...below.center] as V3 },
+          P,
+          `fly-neural: DNp07/DNp10 at ${hz(r.land.mean_rate_hz)} → land below`,
+        );
+    }
+    // ECHO did not choose this landing, so its own approach timer is not set
+    // and it would break the landing off: while the landing neurons fire, the
+    // approach is steered here.
+    if (body.mode === "land" && body.target)
+      return approach(
+        body,
+        body.target,
+        P,
+        `fly-neural: DNp07/DNp10 at ${hz(r.land.mean_rate_hz)} → keep landing`,
+      );
+  }
+  if (r.groom?.predicted && (body.mode === "rest" || body.mode === "groom"))
+    return {
+      mode: "groom",
+      groom: "antennae",
+      reason: `fly-neural: aDN1/aDN2 at ${hz(r.groom.mean_rate_hz)} → antennal grooming`,
+    };
+  if (body.mode === "walk" && r.backward?.predicted)
+    return {
+      mode: "rest",
+      reason: `fly-neural: MDN at ${hz(r.backward.mean_rate_hz)} → stop (the body has no backward gait)`,
+    };
+  const turn = r.turn?.predicted ? steering(r.turn) : null;
+  if (body.mode === "rest" && c.mode === "rest" && r.walk?.predicted) {
+    const share = Math.min(1, r.walk.mean_rate_hz / WHOLE_BRAIN_RULES.walkFullHz);
+    return {
+      mode: "walk",
+      walkSpeed: P.walkSpeedMinCmS + share * (P.walkSpeedMaxCmS - P.walkSpeedMinCmS),
+      ...(turn !== null ? { yawRate: turn } : {}),
+      reason: `fly-neural: DNp09 at ${hz(r.walk.mean_rate_hz)} → walk`,
+    };
+  }
+  if (body.mode === "walk" && c.mode === "walk" && turn !== null)
+    return {
+      ...c,
+      yawRate: turn,
+      reason: `${c.reason}; fly-neural: DNa02 ${hz(r.turn!.left_hz)} left, ${hz(r.turn!.right_hz)} right → steer`,
+    };
+  return c;
 }
 
 /** The research worlds: none is the city, the garden or the deployed fly's world. */
@@ -362,9 +619,11 @@ export async function runShadow(o: {
   seconds: number;
   stepS?: number;
   maxRecords?: number;
+  mapping?: Mapping;
   neural?: (t: number, obs: SensableObservation) => Promise<Readouts>;
 }): Promise<ShadowRun> {
   const stepS = o.stepS ?? 0.01;
+  const mapping = o.mapping ?? "v1";
   const taps: ShadowTap[] = [];
   const { world, start, config } = researchWorld(o.scenario);
   const fly = new DigitalFly({
@@ -372,7 +631,9 @@ export async function runShadow(o: {
     world,
     start,
     config,
-    adapter: ShadowTap.factory(o.mode, o.seed, o.maxRecords ?? 200_000, taps),
+    adapter: ShadowTap.factory(o.mode, o.seed, o.maxRecords ?? 200_000, taps, {
+      mapping,
+    }),
   });
   const tap = taps[0]!;
   if (o.mode === "neural-experimental" && !o.neural)
@@ -387,6 +648,7 @@ export async function runShadow(o: {
     subject: `research-${o.scenario}-${o.seed}`,
     scenario: o.scenario,
     seed: o.seed,
+    ...(mapping !== "v1" ? { mapping } : {}),
     world: world.id,
     flyVersion: FLY_VERSION,
     echoVersion: ECHO_VERSION,
@@ -456,7 +718,11 @@ async function main() {
       throw new Error(`--${forbidden}: the shadow never reads an existing organism`);
   const seed = Number(arg("seed"));
   const seconds = Number(arg("seconds", "60"));
-  const out = arg("out", `.fly-neural/shadow/${scenario}-${seed}-${mode}.jsonl`);
+  const mapping = arg("mapping", "v1") as Mapping;
+  if (!MAPPINGS.includes(mapping))
+    throw new Error(`--mapping must be one of ${MAPPINGS.join(", ")}`);
+  const tag = mapping === "v1" ? "" : "-whole-brain-v2";
+  const out = arg("out", `.fly-neural/shadow/${scenario}-${seed}-${mode}${tag}.jsonl`);
   guard(out);
   let server: Awaited<ReturnType<typeof neuralServer>> | null = null;
   const pre = {
@@ -464,6 +730,7 @@ async function main() {
     mode,
     subject: `research-${scenario}-${seed}`,
     seed,
+    ...(mapping !== "v1" ? { mapping } : {}),
   };
   if (mode === "neural-experimental")
     server = await neuralServer(
@@ -476,6 +743,7 @@ async function main() {
       seed,
       mode,
       seconds,
+      mapping,
       ...(server ? { neural: server.ask } : {}),
     });
     mkdirSync(dirname(resolve(out)), { recursive: true });

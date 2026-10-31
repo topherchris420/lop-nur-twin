@@ -130,6 +130,8 @@ describe("ECHO Neural Shadow recorder", () => {
         "../src/bethesda/fly/echo/params.js",
         "../src/bethesda/fly/fly.js",
         "../src/bethesda/fly/neural.js",
+        // A type only: what a sensory frame holds, for the small-object eye (whole-brain/v2).
+        "../src/bethesda/fly/senses.js",
         "../src/bethesda/fly/units.js",
         "../src/bethesda/fly/world.js",
         "node:child_process",

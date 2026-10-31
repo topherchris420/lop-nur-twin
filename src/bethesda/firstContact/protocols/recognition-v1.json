@@ -1,0 +1,66 @@
+{
+  "schema": "first-contact-recognition/v1",
+  "id": "first-contact-recognition-v1",
+  "question": "After repeated encounters with one partner's flight, does a research fly's escape response to that partner change, and is any change specific to that partner?",
+  "hypotheses": {
+    "H1": "Repeated encounters reduce escape: P(escape | familiar test) is lower than P(escape | first encounter). Supported when the 95% Newcombe interval of familiar − naive lies wholly below 0.",
+    "H2": "The change is specific to the partner: after the same series, P(escape | stranger test) is higher than P(escape | familiar test). Supported when the interval of stranger − familiar lies wholly above 0, the manipulation check passes and the stretches are balanced.",
+    "H3": "The change outlasts a long delay: P(escape | familiar test after the long delay) is lower than P(escape | first encounter). Supported when the interval of familiar-late − naive lies wholly below 0."
+  },
+  "arms": ["reduced-order", "echo", "organism"],
+  "phases": {
+    "development": {
+      "subjectsPerGroup": 24,
+      "subjectSeedBase": 100000,
+      "partnerSeedBase": 900000
+    },
+    "held-out": {
+      "subjectsPerGroup": 80,
+      "subjectSeedBase": 300000,
+      "partnerSeedBase": 800000
+    }
+  },
+  "partners": {
+    "count": 8,
+    "controller": "reduced-order",
+    "arena": {
+      "size": [2, 1, 2],
+      "ambient": 1,
+      "lights": [{ "at": [0, 1, 0], "intensity": 1 }]
+    },
+    "start": { "p": [0, 0.4, 0], "yaw": 0, "mode": "flight", "v": [0.25, 0, 0] },
+    "settleS": 5,
+    "recordS": 300
+  },
+  "segments": {
+    "durationS": 1,
+    "minPassSpeedMS": 0.2,
+    "maxPassSpeedMS": 0.6,
+    "minMeanSpeedMS": 0.15
+  },
+  "subject": {
+    "arena": {
+      "size": [1, 0.6, 1],
+      "ambient": 1,
+      "lights": [{ "at": [0, 0.6, 0], "intensity": 1 }]
+    },
+    "start": { "p": [0, 0.1, 0], "yaw": 0 },
+    "settleS": 20
+  },
+  "presentations": {
+    "habituation": 6,
+    "intervalS": 8,
+    "lateDelayS": 300,
+    "missM": 0.005,
+    "maxElevationDeg": 60,
+    "maxWaitS": 20,
+    "responseWindowS": 0.3
+  },
+  "exchangeS": 0.01,
+  "latencyS": 0.01,
+  "criteria": {
+    "seenShare": 0.8,
+    "equivalenceMargin": 0.15,
+    "balanceSpeedMS": 0.05
+  }
+}
