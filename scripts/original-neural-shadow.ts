@@ -16,18 +16,18 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { parseObservation as parseEva } from "../src/garden/core/observation.js";
 import { parseWitness } from "../src/bethesda/life/observation.js";
-import { ECHO, EVA, refuseProductionHost } from "../src/bethesda/firstContact/originals.js";
+import {
+  ECHO,
+  EVA,
+  refuseProductionHost,
+} from "../src/bethesda/firstContact/originals.js";
 import {
   echoNeuralProxy,
   evaNeuralProxy,
   type NeuralProxy,
 } from "../src/bethesda/firstContact/liveNeural.js";
 import { sha256 } from "../src/rain/sha256.js";
-import {
-  SHADOW_SCHEMA,
-  serveArgs,
-  type Readouts,
-} from "./echo-neural-shadow.js";
+import { SHADOW_SCHEMA, serveArgs, type Readouts } from "./echo-neural-shadow.js";
 import { SyncBrain } from "./fly-neural-sync.js";
 
 type Name = "eva" | "echo";
@@ -66,12 +66,16 @@ function option(name: string, fallback: string): string {
 function selectSamples(samples: readonly Sample[], max: number): Sample[] {
   if (samples.length <= max) return [...samples];
   if (max === 1) return [samples.at(-1)!];
-  return Array.from({ length: max }, (_, i) => samples[Math.round((i * (samples.length - 1)) / (max - 1))]!);
+  return Array.from(
+    { length: max },
+    (_, i) => samples[Math.round((i * (samples.length - 1)) / (max - 1))]!,
+  );
 }
 
 function readCapture(input: string): { samples: Sample[]; rejected: number } {
   const text = readFileSync(input, "utf8");
-  if (text.length > 25_000_000) throw new Error("capture exceeds 25 MB; use a shorter observation run");
+  if (text.length > 25_000_000)
+    throw new Error("capture exceeds 25 MB; use a shorter observation run");
   const raw = text.split("\n").filter((line) => line.trim());
   if (raw.length > 5000) throw new Error("capture has too many lines");
   const out: Sample[] = [];
@@ -80,7 +84,12 @@ function readCapture(input: string): { samples: Sample[]; rejected: number } {
   for (const line of raw) {
     try {
       const r = JSON.parse(line) as CaptureRow;
-      if (!["eva", "echo"].includes(r.stream) || r.status !== 200 || typeof r.body !== "string" || typeof r.receivedUtc !== "string")
+      if (
+        !["eva", "echo"].includes(r.stream) ||
+        r.status !== 200 ||
+        typeof r.body !== "string" ||
+        typeof r.receivedUtc !== "string"
+      )
         throw new Error("missing response");
       if (r.sha256 !== sha256(r.body)) throw new Error("response hash mismatch");
       if (!Number.isFinite(Date.parse(r.receivedUtc))) throw new Error("invalid UTC");
@@ -100,7 +109,8 @@ function readCapture(input: string): { samples: Sample[]; rejected: number } {
         };
       } else {
         const witness = parseWitness(data);
-        if (witness.status !== "live" || !witness.observation) throw new Error("stale witness");
+        if (witness.status !== "live" || !witness.observation)
+          throw new Error("stale witness");
         const o = witness.observation;
         if (o.individual !== ECHO.id) throw new Error("ECHO identity mismatch");
         sample = {
@@ -123,12 +133,7 @@ function readCapture(input: string): { samples: Sample[]; rejected: number } {
   return { samples: out, rejected };
 }
 
-function probe(
-  sample: Sample,
-  sequence: number,
-  python: string,
-  repo: string,
-): Probe {
+function probe(sample: Sample, sequence: number, python: string, repo: string): Probe {
   // Never pass an original's ID into the neural backend: it deliberately
   // refuses originals and only simulates a disposable research model.
   const brain = new SyncBrain({
@@ -163,26 +168,37 @@ function probe(
 }
 
 function main(): void {
-  const input = resolve(option("--input", join(".first-contact", "observe", "responses.jsonl")));
+  const input = resolve(
+    option("--input", join(".first-contact", "observe", "responses.jsonl")),
+  );
   const out = resolve(option("--out", join(".first-contact", "original-neural-shadow")));
   const count = Number(option("--max-samples", "3"));
   if (!Number.isInteger(count) || count < 1 || count > 8)
     throw new Error("--max-samples must be an integer from 1 to 8");
   refuseProductionHost(input, existsSync);
   refuseProductionHost(out, existsSync);
-  if (!existsSync(input)) throw new Error(`capture missing: ${input}; run first-contact-observe.ts first`);
+  if (!existsSync(input))
+    throw new Error(`capture missing: ${input}; run first-contact-observe.ts first`);
   const simulated = process.argv.includes("--simulate");
   const python = option("--python", process.env.FLY_NEURAL_PYTHON ?? "python");
   const { samples, rejected } = readCapture(input);
-  const eva = selectSamples(samples.filter((s) => s.stream === "eva"), count);
-  const echo = selectSamples(samples.filter((s) => s.stream === "echo"), count);
+  const eva = selectSamples(
+    samples.filter((s) => s.stream === "eva"),
+    count,
+  );
+  const echo = selectSamples(
+    samples.filter((s) => s.stream === "echo"),
+    count,
+  );
   if (!eva.length || !echo.length)
     throw new Error("need validated public observations of both original individuals");
   const repo = resolve(".");
   const selected = [...eva, ...echo];
   const results: Probe[] = [];
   for (const [i, sample] of selected.entries()) {
-    results.push(simulated ? probe(sample, i, python, repo) : { ...sample, neural: null });
+    results.push(
+      simulated ? probe(sample, i, python, repo) : { ...sample, neural: null },
+    );
   }
   mkdirSync(out, { recursive: true });
   const report = {
@@ -194,16 +210,24 @@ function main(): void {
     networkRequestsFromThisScript: 0,
     commandsToOriginals: 0,
     productionStateWrites: 0,
-    simulation: simulated ? "fresh BANC v888 model per observation" : "not run; sensory coverage only",
-    interpretation: "EXPLORATORY. Wind is only an environmental proxy, not a measured antennal input. Every other sensory input is unknown and counterfactually zero-filled. Neural readouts cannot be compared with original decisions as predictions of real perception, learning, or cognition.",
+    simulation: simulated
+      ? "fresh BANC v888 model per observation"
+      : "not run; sensory coverage only",
+    interpretation:
+      "EXPLORATORY. Wind is only an environmental proxy, not a measured antennal input. Every other sensory input is unknown and counterfactually zero-filled. Neural readouts cannot be compared with original decisions as predictions of real perception, learning, or cognition.",
     sampleCount: { eva: eva.length, echo: echo.length },
     rejectedResponses: rejected,
     results,
   };
   const dest = join(out, "report.json");
   writeFileSync(dest, JSON.stringify(report, null, 2) + "\n");
-  console.log(`wrote ${dest}; Eva ${eva.length} samples, ECHO ${echo.length}, BANC model ${simulated ? "run" : "not run"}`);
-  if (!simulated) console.log("To run the optional BANC model, provide its licensed compiled dataset and repeat with --simulate.");
+  console.log(
+    `wrote ${dest}; Eva ${eva.length} samples, ECHO ${echo.length}, BANC model ${simulated ? "run" : "not run"}`,
+  );
+  if (!simulated)
+    console.log(
+      "To run the optional BANC model, provide its licensed compiled dataset and repeat with --simulate.",
+    );
 }
 
 main();
