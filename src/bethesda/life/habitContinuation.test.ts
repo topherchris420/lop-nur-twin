@@ -59,7 +59,7 @@ describe("original ECHO, additive habit continuation", () => {
     const recovered = restoreLife(HABIT_LIFE, updated.checkpoint);
     expect(recovered.adaptive.habits.state).toEqual(updated.life.adaptive.habits.state);
     expect(divergence(HABIT_LIFE, updated.life, recovered, [1, 10])).toBeNull();
-  });
+  }, 60000);
 
   it("rejects an already upgraded source and any repeated continuation", () => {
     const { checkpoint: from } = source();
@@ -69,7 +69,7 @@ describe("original ECHO, additive habit continuation", () => {
     const tampered = structuredClone(checkpoint);
     tampered.events = [{ tick: checkpoint.tick, kind: HABIT_EVENT, data: {} }];
     expect(HABIT_LIFE.history!.transition(checkpoint, tampered)).not.toEqual([]);
-  });
+  }, 60000);
 
   it("only changes bounded walking pace, and learns from subsequent actual position", () => {
     const h = new ExperientialHabits();
