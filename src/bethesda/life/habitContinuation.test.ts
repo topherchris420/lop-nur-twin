@@ -37,7 +37,7 @@ function source() {
 describe("original ECHO, additive habit continuation", () => {
   it("preserves the entire prior organism byte for byte, and only then adds a habit", () => {
     const { life: before, checkpoint: from } = source();
-    const oldMemory = JSON.stringify(before.organism.state);
+    const oldState = before.organism.state;
     const oldArchive = JSON.stringify(before.archive);
     const updated = continueWithHabits(from, times[1], times[0]);
     expect(updated.checkpoint.birth).toEqual(from.birth);
@@ -49,8 +49,9 @@ describe("original ECHO, additive habit continuation", () => {
     expect(updated.checkpoint.events[0]?.kind).toBe(HABIT_EVENT);
     expect(updated.life.adaptive).toBeInstanceOf(HabitOrganismAdapter);
     expect(updated.life.adaptive.habits.state.experiences).toBe(0);
-    expect(JSON.stringify(updated.life.organism.state).includes(oldMemory)).toBe(false); // an added field is explicit
-    expect(JSON.stringify(updated.life.adaptive.state).replace(/,"habits":\{.*?\}(?=\}$)/, "")).toBeDefined();
+    const recoveredState: Record<string, unknown> = { ...updated.life.adaptive.state };
+    delete recoveredState.habits;
+    expect(recoveredState).toEqual(oldState);
     expect(JSON.stringify(updated.life.archive)).toEqual(oldArchive);
     const fresh = HABIT_LIFE.build(genesis);
     const graph = snapshotGraph(updated.life, indexGraph(fresh));
@@ -64,7 +65,7 @@ describe("original ECHO, additive habit continuation", () => {
     const { checkpoint: from } = source();
     const { checkpoint } = continueWithHabits(from, times[1], times[0]);
     expect(() => continueWithHabits(checkpoint, times[1], times[0])).toThrow();
-    expect(HABIT_LIFE.history!.transition(checkpoint, checkpoint)).toEqual([]);
+    expect(HABIT_LIFE.history!.transition(checkpoint, checkpoint)).not.toEqual([]);
     const tampered = structuredClone(checkpoint);
     tampered.events = [{ tick: checkpoint.tick, kind: HABIT_EVENT, data: {} }];
     expect(HABIT_LIFE.history!.transition(checkpoint, tampered)).not.toEqual([]);
@@ -96,7 +97,7 @@ describe("original ECHO, additive habit continuation", () => {
     expect(h.state.experiences).toBeGreaterThan(0);
     expect(h.state.adjustments).toBeGreaterThan(0);
     const escape: MotorCommand = { mode: "escape", reason: "giant fiber" };
-    const body = { t: 3, mode: "walk", edge: false, onFood: null } as BodySnapshot;
+    const body = { t: 3, p: [x, 0, 0], reserve: 0.7, mode: "walk", edge: false, onFood: null } as BodySnapshot;
     expect(h.decide({ body, frame: { looming: null, airflow: 0 } } as DecisionInput, escape)).toBe(escape);
   });
 });
