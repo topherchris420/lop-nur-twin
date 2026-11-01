@@ -59,8 +59,10 @@ export function continueWithHabits(
   // A fresh NEW-KIND template supplies only the new habits property. Existing
   // object references and streams are reused from the authentic source graph.
   const fresh = () => HABIT_LIFE.build(structuredClone(source.genesis));
-  const templateLife = fresh();
-  const template = new Graph(snapshotGraph(templateLife, indexGraph(templateLife)), false);
+  // The reference graph must come from a DIFFERENT fresh instance: passing
+  // the same instance as its shared index would incorrectly share away all
+  // of the new adapter\x27s own fields.
+  const template = new Graph(snapshotGraph(fresh(), indexGraph(fresh())), false);
   const graph = new Graph(source.graph);
   graph.object([]).c = "HabitOrganismLife";
   graph.object(ADAPTER).c = "HabitOrganismAdapter";
