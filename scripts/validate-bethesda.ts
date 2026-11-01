@@ -28,6 +28,7 @@ import { decodePart, parseMeshFile } from "../src/bethesda/fly/meshCodec.ts";
 import { parseVfbReference } from "../src/bethesda/fly/reference.ts";
 import { REDUCED_ORDER_DESCRIPTOR } from "../src/bethesda/fly/controller.ts";
 import { CIRCUIT_DESCRIPTOR } from "../src/bethesda/fly/circuits/controller.ts";
+import { V2_DESCRIPTOR } from "../src/bethesda/fly/circuits/v2/controller.ts";
 import { MUSHROOM_BODY_DESCRIPTOR } from "../src/bethesda/fly/mushroomBody/controller.ts";
 import { parseGroomingReference } from "../src/bethesda/fly/calibration/groomingReference.ts";
 import {
@@ -302,6 +303,7 @@ const vfbIds = new Set(vfb.terms.map((t) => t.id));
 for (const descriptor of [
   REDUCED_ORDER_DESCRIPTOR,
   CIRCUIT_DESCRIPTOR,
+  V2_DESCRIPTOR,
   MUSHROOM_BODY_DESCRIPTOR,
 ]) {
   for (const region of descriptor.regions)

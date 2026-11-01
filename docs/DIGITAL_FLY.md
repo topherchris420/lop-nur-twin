@@ -685,6 +685,49 @@ inside it is handed each sample 30 ms late, as before. Its three fitted values
 come from the calibration's fit; everything else in `circuits/params.ts` is
 published, imported or a stated model choice.
 
+## The circuit-informed controller, v2
+
+`src/bethesda/fly/circuits/v2/` is a second controller beside v1, not a
+change to it (`V2_DESCRIPTOR`, `circuit-informed/v2`). It wraps v1 and takes
+over five behaviours the reduced-order controller handled with placeholder
+rules that the calibration showed to be wrong. Everything else, v1's escape and
+grooming circuits included, is v1's. Every command passes the same gate, and it
+simulates no neuron. No fly in the city, the yard studies, R.A.I.N.
+experiments or the live VM runs it: it exists for the calibration.
+
+- **Wall following** (`wall`). A walking fly that meets a wall turns along it,
+  away from the side its last sight of the wall was on, rather than stopping
+  and turning at random, and a fitted centrophobia suppresses turns toward
+  the open side while it is at the wall.
+- **Exploration** (`explore`). A fly placed in a new arena starts walking more
+  often and stops less often, by g(t) = 1 + A·exp(−t/τ) on the start rate and
+  1/g on the stop rate, with A and τ fitted. Bout speeds are drawn from a gamma
+  distribution whose mean is fitted, in place of the uniform draw.
+- **Walking saccades** (`saccades`). Between saccades the fly walks nearly
+  straight, with a small heading drift. Saccades have Geurten et al. 2014's mean
+  amplitude (15°) and duration (90 ms); their gamma shape, rate and the drift
+  are model values. While hungry and smelling food, the rate falls when the
+  odour rises and rises when it falls.
+- **Freezing or fleeing under a lid** (`defence`). Zacarias et al. 2018 found
+  that walking flies under a lid they cannot fly through mostly freeze when
+  something looms, while flies free to fly jump. So a fly that sees a loom
+  reach 20° under a lid freezes with a probability that falls with its speed
+  0.5 s earlier (the paper's lookback); otherwise it jumps with a fitted
+  probability, or else runs away from the loom. Freezes last an exponential
+  time. In the open, v1's escape is unchanged. A paradigm says a fly is under
+  a lid through `Setting.enclosed`: Liu et al.'s and Soibam et al.'s open
+  fields, Zacarias et al.'s arena and Zhang et al.'s chamber are lidded.
+- **Flight saccades** (`flight`). Spontaneous flight saccades take van Breugel
+  & Dickinson 2012's log-normal amplitudes (40°, ×2.3), at a fitted rate.
+
+Each mechanism can be switched off (`without`). When one is off, v2 uses the
+reduced-order controller's rule for that behaviour, so an ablation shows what
+the mechanism adds to the fitted controller. All values are in
+`circuits/v2/params.ts`, each marked `published`, `fitted` or `model`; the
+seven fitted values come from `calibration/fitV2.ts`, and a test holds them to
+`fit.json`. The design was written before the new held-out set was read
+(below).
+
 ## The mushroom-body controller
 
 `src/bethesda/fly/mushroomBody/` replaces one more of the reduced-order
@@ -774,13 +817,43 @@ short-mode share any threshold would give is computed exactly from those
 peaks; the fitted pair is then run in full and every trial's mode must be the
 one predicted. The grooming threshold is bisected to the dusted flies' mean
 fraction of time grooming. The fitted values are in `circuits/params.ts`, and
-a test holds them to `fit.json`.
+a test holds them to `fit.json`. `fitV2.ts` sets circuit-informed/v2's seven,
+each by a search on the report's own flies against named development
+observations: the spontaneous flight saccade rate, the exploration gain and
+time constant, the walking-speed mean, the centrophobia, and the freezing and
+jumping probabilities under a lid.
+
+Roles depend on the controller (`roles.ts`). For the reduced-order and v1
+controllers an observation keeps its own role. circuit-informed/v2 was built
+after every earlier observation had been seen, so those are `development` for
+it (or `fit`, or `design`), and agreement there is not evidence for it.
+
+The 2026-11 held-out set (`holdout.ts`) is the test of v2. It has 16
+observations from nine papers the calibration had not used, chosen by what the
+simulator can rebuild:
+
+- freezing under a lid to repeated looms (Ferreira & Moita 2020, Barrios et
+  al. 2021);
+- runs and stops of starved flies (Jung et al. 2015), walking in an arena with
+  heated walls (Cruz et al. 2021) and the first 15 min in a small dish
+  (Iyengar et al. 2012);
+- free-flight saccade rate (Stupski & van Breugel 2024), flight speed (Straw
+  et al. 2011, Maya et al. 2026) and saccade kinematics (Mongeau & Frye 2017).
+
+The set was sealed (`docs/benchmarks/fly-calibration/holdout-2026-11.json`,
+written once by `--seal`) before v2 was committed or run on its paradigms. The
+seal records every observation's digest, the candidates left out and why, v2's
+source digests, and the order of work. Its paradigms
+(`holdoutParadigms.ts`, measured by `holdoutMeasure.ts`) were debugged on the
+reduced-order and v1 controllers only. Every held-out observation is held out
+for every controller.
 
 `node scripts/run-ts.mjs scripts/fly-calibration.ts` runs every paradigm on
-both controllers and writes `docs/benchmarks/fly-calibration/` (the report,
-its README with every row, quote and approximation, and the fit); `--check`
-reproduces it byte for byte, and `--fit` refits. It is seeded, and both
-controllers meet the same trials and flies.
+the three controllers and on v2's five ablations, and writes
+`docs/benchmarks/fly-calibration/` (the report, and its README with every row,
+quote and approximation, the ablations and the fit); `--check` reproduces it
+byte for byte, and `--fit` refits. It is seeded, and every controller meets the
+same trials and flies.
 
 ## Physics backend
 

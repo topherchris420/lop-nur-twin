@@ -592,7 +592,8 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
 - **Every number has a class.** `params.ts` marks each parameter `flybody`,
   `published` or `model`, with its source; `circuits/params.ts` marks the
   circuit models' `published`, `imported` (read from an importer's data),
-  `fitted` or `model`, and `mushroomBody/params.ts` the mushroom body's
+  `fitted` or `model`, `circuits/v2/params.ts` circuit-informed/v2's
+  `published`, `fitted` or `model`, and `mushroomBody/params.ts` the mushroom body's
   `published` (the paper's model values, quoted) or `model`. Experiments override `model` values only. A `fitted`
   value is the one `docs/benchmarks/fly-calibration/fit.json` records, written
   by `node scripts/run-ts.mjs scripts/fly-calibration.ts --fit`, and a test
@@ -604,6 +605,18 @@ and the `import:flybody`/`import:vfb`/`rain:fly*` scripts.
     value was set to it). Never read a value off a figure, and never set or
     change a parameter from a held-out observation without making it a fit
     target, named in the parameter's `fit`, and refitting.
+  - Roles are per controller (`calibration/roles.ts`). For
+    circuit-informed/v2 every observation registered before its held-out set
+    is `development` (seen while it was built) or `fit`; agreement there is
+    not evidence for it.
+  - A held-out set is sealed. `calibration/holdout.ts` holds the 2026-11 set,
+    sealed once by `node scripts/run-ts.mjs scripts/fly-calibration.ts --seal`
+    in `docs/benchmarks/fly-calibration/holdout-2026-11.json`, which is
+    never rewritten; a test holds `holdout.ts` to it. Never change a
+    registered value, quote or paradigm description, never tune a controller
+    on a held-out paradigm, and never run a controller under test on one
+    before its report. A controller changed after its seal (the README says
+    whether v2's sources still match) needs a new set to be tested again.
   - Every paradigm names how it differs from the experiment
     (`approximations`); a new approximation is written there before it runs.
   - After a change to the fly, its controllers or the paradigms, run

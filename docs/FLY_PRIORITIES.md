@@ -128,6 +128,11 @@ Begin dataset selection and protocol design **alongside priority 1**. This is
 fourth in feature delivery, not work to postpone until development ends.
 The existing [calibration](benchmarks/fly-calibration/README.md) already
 distinguishes design, fitted and held-out observations; retain that distinction.
+The 2026-11 held-out set ([calibration](DIGITAL_FLY.md#calibration-against-real-flies))
+is a first step: published summaries from nine papers, sealed with predeclared
+metrics before circuit-informed/v2 was scored, with each of v2's mechanisms
+ablated. It compares summaries, not trajectories, and its roles are per
+controller.
 
 Select independently recorded, appropriately licensed datasets covering
 walking and turning, takeoff, flight and landing, looming responses,

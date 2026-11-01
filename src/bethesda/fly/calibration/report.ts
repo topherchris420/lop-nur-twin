@@ -55,7 +55,16 @@ import {
   type LoomingTrial,
   type Subject,
 } from "./paradigms.js";
-import { CIRCUIT, REDUCED_ORDER } from "./subjects.js";
+import { CIRCUIT, REDUCED_ORDER, V2, v2Subject } from "./subjects.js";
+import { V2_MECHANISMS } from "../circuits/v2/controller.js";
+import { roleFor } from "./roles.js";
+import {
+  HOLDOUT_SIZES,
+  measureHoldoutFlight,
+  measureLiddedLooms,
+  measureLiddedWalking,
+  type HoldoutSizes,
+} from "./holdoutMeasure.js";
 
 /** How many trials, flies or releases each paradigm runs per controller. */
 export type Sizes = Record<
@@ -69,8 +78,10 @@ export type Sizes = Record<
   | "liuFlies"
   | "soibamFlies",
   number
->;
+> &
+  HoldoutSizes;
 export const SIZES: Sizes = {
+  ...HOLDOUT_SIZES,
   loomsPerRv: GF_FIT_TRIALS,
   fotowatPerLv: 200,
   cardPerDirection: 100,
@@ -84,7 +95,7 @@ export const SIZES: Sizes = {
 const REPORT_SEED = 0x7ca1;
 
 /** What one controller did, per observation id: an estimate, or null when it does not produce the quantity. */
-type Measured = Map<string, Estimate | null>;
+export type Measured = Map<string, Estimate | null>;
 
 const DEG = 180 / Math.PI;
 const round = (x: number, d = 5) => Math.round(x * 10 ** d) / 10 ** d;
@@ -117,7 +128,7 @@ const value = (v: number | null): Estimate =>
 
 // --- Escape --------------------------------------------------------------------
 
-function measureEscape(subject: Subject, out: Measured, Z: Sizes): void {
+export function measureEscape(subject: Subject, out: Measured, Z: Sizes): void {
   const byRv = new Map<number, LoomingTrial[]>();
   for (const rv of VR14_RV)
     byRv.set(
@@ -194,7 +205,12 @@ function measureEscape(subject: Subject, out: Measured, Z: Sizes): void {
     value(front === null || back === null ? null : front > 90 && back > 90 ? 1 : -1),
   );
 
-  const flies = Array.from({ length: Z.zacariasFlies }, (_, i) =>
+  measureZacarias(subject, out, Z.zacariasFlies);
+}
+
+/** Zacarias et al. 2018's looms over walking flies, on the report's flies (the v2 fit reads it too). */
+export function measureZacarias(subject: Subject, out: Measured, n: number): void {
+  const flies = Array.from({ length: n }, (_, i) =>
     repeatedLooms(subject, trialSeed(REPORT_SEED, 4, i)),
   );
   const looms = flies.flatMap((f) => f.jumped);
@@ -202,8 +218,10 @@ function measureEscape(subject: Subject, out: Measured, Z: Sizes): void {
     "escape.walking.jump",
     proportionEstimate(looms.filter(Boolean).length, looms.length),
   );
-  // Neither controller freezes.
-  out.set("escape.walking.freeze", null);
+  out.set(
+    "escape.walking.freeze",
+    proportionEstimate(flies.filter((f) => f.freezingAtEnd).length, flies.length),
+  );
   const perLoom = flies[0]!.jumped.map(
     (_, k) => flies.filter((f) => f.jumped[k]).length / flies.length,
   );
@@ -220,7 +238,7 @@ function measureEscape(subject: Subject, out: Measured, Z: Sizes): void {
 
 // --- Grooming --------------------------------------------------------------------
 
-function measureGrooming(subject: Subject, out: Measured): void {
+export function measureGrooming(subject: Subject, out: Measured): void {
   const D = GROOMING_REFERENCE.conditions;
   const dusted = Array.from({ length: D.dusted.flies }, (_, i) =>
     chamberSession(subject, ZHANG_2020_CHAMBER, { dusted: true }, dustedSeed(i)),
@@ -308,7 +326,11 @@ interface Saccades {
  * positions, valid while airborne and faster than `minSpeed`; a saccade is a
  * maximal run of valid samples turning faster than 300°/s.
  */
-function saccades(flights: readonly Frame[][], hz: number, minSpeed: number): Saccades {
+function saccades(
+  flights: readonly (readonly Frame[])[],
+  hz: number,
+  minSpeed: number,
+): Saccades {
   const s: Saccades = { seconds: 0, count: 0, inSaccade: 0, amplitudesDeg: [] };
   for (const f of flights) {
     let prevHeading: number | null = null,
@@ -353,20 +375,25 @@ function saccades(flights: readonly Frame[][], hz: number, minSpeed: number): Sa
   return s;
 }
 
-function measureFlight(subject: Subject, out: Measured, Z: Sizes): void {
+/** Saccades per second of flight faster than 5 cm/s in Censi et al.'s arena, on the report's flights (the v2 fit reads it too). */
+export function censiRate(subject: Subject, flights: number): number | null {
+  const censi = saccades(
+    Array.from({ length: flights }, (_, i) =>
+      session(subject, CENSI_2013, trialSeed(REPORT_SEED, 6, i)),
+    ),
+    CENSI_2013.frameHz,
+    0.05,
+  );
+  return censi.seconds > 0 ? censi.count / censi.seconds : null;
+}
+
+export function measureFlight(subject: Subject, out: Measured, Z: Sizes): void {
   const flights = (spec: typeof CENSI_2013, n: number, tag: number) =>
     Array.from({ length: n }, (_, i) =>
       session(subject, spec, trialSeed(REPORT_SEED, tag, i)),
     );
-  const censi = saccades(
-    flights(CENSI_2013, Z.censiFlights, 6),
-    CENSI_2013.frameHz,
-    0.05,
-  );
-  out.set(
-    "flight.saccade-rate.censi",
-    censi.seconds > 0 ? value(censi.count / censi.seconds) : null,
-  );
+  const censi = censiRate(subject, Z.censiFlights);
+  out.set("flight.saccade-rate.censi", censi === null ? null : value(censi));
   const tammeroFlights = flights(TAMMERO_2002, Z.tammeroFlights, 7);
   const tammero = saccades(tammeroFlights, TAMMERO_2002.frameHz, 0);
   out.set(
@@ -471,24 +498,41 @@ function measureFlight(subject: Subject, out: Measured, Z: Sizes): void {
 
 // --- Walking -------------------------------------------------------------------------
 
-function measureWalking(subject: Subject, out: Measured, Z: Sizes): void {
-  const liu = Array.from({ length: Z.liuFlies }, (_, i) =>
-    session(subject, LIU_2007, trialSeed(REPORT_SEED, 9, i)),
+const radial = (f: Frame) => Math.hypot(f.p[0], f.p[2]);
+
+/**
+ * Liu, Davis & Roman 2007's open field on the report's flies, measured as the
+ * report measures it (the v2 fit reads it too): `minutes` limits the sessions
+ * to the first few minutes when the wall share is not needed.
+ */
+export function measureLiu(
+  subject: Subject,
+  out: Measured,
+  flies: number,
+  minutes = 10,
+): void {
+  const spec =
+    minutes >= LIU_2007.durationS / 60
+      ? LIU_2007
+      : { ...LIU_2007, durationS: minutes * 60 };
+  const liu = Array.from({ length: flies }, (_, i) =>
+    session(subject, spec, trialSeed(REPORT_SEED, 9, i)),
   );
   const R = LIU_2007_RADIUS;
-  const radial = (f: Frame) => Math.hypot(f.p[0], f.p[2]);
-  out.set(
-    "walking.wall.liu",
-    meanEstimate(
-      liu.map(
-        (f) => f.filter((x) => radial(x) >= R * Math.sqrt(2 / 3)).length / f.length,
+  if (spec === LIU_2007) {
+    out.set(
+      "walking.wall.liu",
+      meanEstimate(
+        liu.map(
+          (f) => f.filter((x) => radial(x) >= R * Math.sqrt(2 / 3)).length / f.length,
+        ),
       ),
-    ),
-  );
-  out.set(
-    "walking.centre-distance.liu",
-    meanEstimate(liu.map((f) => f.reduce((a, x) => a + radial(x), 0) / f.length)),
-  );
+    );
+    out.set(
+      "walking.centre-distance.liu",
+      meanEstimate(liu.map((f) => f.reduce((a, x) => a + radial(x), 0) / f.length)),
+    );
+  }
   const perMinute = LIU_2007.frameHz * 60;
   for (const minute of [1, 2, 3]) {
     const moving: number[] = [],
@@ -508,7 +552,10 @@ function measureWalking(subject: Subject, out: Measured, Z: Sizes): void {
     out.set(`walking.moving.minute${minute}`, meanEstimate(moving));
     out.set(`walking.speed.minute${minute}`, speed.length ? meanEstimate(speed) : null);
   }
+}
 
+export function measureWalking(subject: Subject, out: Measured, Z: Sizes): void {
+  measureLiu(subject, out, Z.liuFlies);
   const soibam = Array.from({ length: Z.soibamFlies }, (_, i) =>
     session(subject, SOIBAM_2012, trialSeed(REPORT_SEED, 10, i)),
   );
@@ -593,9 +640,11 @@ export interface Comparison {
 }
 
 export interface CalibrationReport {
-  schema: "fly-calibration-report/v1";
+  schema: "fly-calibration-report/v2";
   flyVersion: string;
   subjects: { id: string; label: string }[];
+  /** circuit-informed/v2 with one mechanism switched off each, its fitted values kept. */
+  ablations: { id: string; label: string; without: string }[];
   sizes: Sizes;
   paradigms: typeof PARADIGMS;
   comparisons: Comparison[];
@@ -614,13 +663,8 @@ const roundEstimate = (e: Estimate | null): Estimate | null =>
           : null,
       };
 
-function compare(
-  o: Observation,
-  subject: string,
-  e: Estimate | null,
-  isCircuit: boolean,
-): Comparison {
-  const role: Role = o.role === "fit" && !isCircuit ? "held-out" : o.role;
+function compare(o: Observation, subject: string, e: Estimate | null): Comparison {
+  const role = roleFor(o, subject);
   const sim = e?.value ?? null;
   return {
     observation: o.id,
@@ -641,16 +685,34 @@ function compare(
   };
 }
 
+/** The calibration's saccade detector on one stretch of flight. */
+export const saccadeCount = (frames: readonly Frame[], hz: number, minSpeed: number) =>
+  saccades([frames], hz, minSpeed).count;
+
+/** The 2026-11 held-out set (`holdout.ts`), measured as its papers measure it. */
+export function measureHoldout(subject: Subject, out: Measured, Z: Sizes): void {
+  measureLiddedLooms(subject, out, Z);
+  measureLiddedWalking(subject, out, Z);
+  measureHoldoutFlight(subject, out, Z, saccadeCount);
+}
+
+/** The ablations: v2 with each mechanism switched off in turn. */
+export const ABLATIONS = V2_MECHANISMS.map((m) => ({
+  without: m,
+  subject: v2Subject({ without: [m] }),
+}));
+
 export function calibrationReport(
   log: (line: string) => void = () => {},
   sizes: Sizes = SIZES,
 ): CalibrationReport {
-  const subjects = [REDUCED_ORDER, CIRCUIT];
+  const subjects = [REDUCED_ORDER, CIRCUIT, V2];
+  const everyone = [...subjects, ...ABLATIONS.map((a) => a.subject)];
   const comparisons: Comparison[] = [];
   const body: Measured = new Map();
   measureGait(body);
   const perSubject = new Map<string, Measured>();
-  for (const s of subjects) {
+  for (const s of everyone) {
     const m: Measured = new Map();
     log(`${s.label}: escape`);
     measureEscape(s, m, sizes);
@@ -660,28 +722,39 @@ export function calibrationReport(
     measureFlight(s, m, sizes);
     log(`${s.label}: walking`);
     measureWalking(s, m, sizes);
+    measureHoldout(s, m, sizes);
     perSubject.set(s.id, m);
   }
   for (const o of OBSERVATIONS) {
     if (body.has(o.id)) {
-      comparisons.push(compare(o, "body", body.get(o.id)!, false));
+      comparisons.push(compare(o, "body", body.get(o.id)!));
       continue;
     }
-    for (const s of subjects) {
+    for (const s of everyone) {
       const m = perSubject.get(s.id)!;
       if (!m.has(o.id)) throw new Error(`${s.id} measured nothing for ${o.id}`);
-      comparisons.push(compare(o, s.id, m.get(o.id)!, s === CIRCUIT));
+      comparisons.push(compare(o, s.id, m.get(o.id)!));
     }
   }
   const tally: CalibrationReport["tally"] = {};
   for (const c of comparisons) {
-    const t = (tally[c.subject] ??= { "held-out": {}, design: {}, fit: {} });
+    const t = (tally[c.subject] ??= {
+      "held-out": {},
+      design: {},
+      fit: {},
+      development: {},
+    });
     t[c.role][c.agreement] = (t[c.role][c.agreement] ?? 0) + 1;
   }
   return {
-    schema: "fly-calibration-report/v1",
+    schema: "fly-calibration-report/v2",
     flyVersion: FLY_VERSION,
     subjects: subjects.map((s) => ({ id: s.id, label: s.label })),
+    ablations: ABLATIONS.map((a) => ({
+      id: a.subject.id,
+      label: a.subject.label,
+      without: a.without,
+    })),
     sizes,
     paradigms: PARADIGMS,
     comparisons,
@@ -751,57 +824,81 @@ const BEHAVIOURS = [
   ["walking", "Walking"],
 ] as const;
 
+const ROLES = ["held-out", "fit", "design", "development"] as const;
+const SHORT: Record<string, string> = {
+  "reduced-order-fsm/v1": "reduced-order",
+  "circuit-informed/v1": "v1",
+  "circuit-informed/v2": "v2",
+};
+
+function tallyRows(r: CalibrationReport, subjects: readonly string[]): string[] {
+  const rows: string[] = [
+    "| controller | role | inside | within spread | outside | no interval | agrees | disagrees | not produced |",
+    "|---|---|---|---|---|---|---|---|---|",
+  ];
+  for (const subject of subjects) {
+    const roles = r.tally[subject];
+    if (!roles) continue;
+    for (const role of ROLES) {
+      const t = roles[role];
+      if (!Object.keys(t).length) continue;
+      const k = (a: Agreement) => t[a] ?? 0;
+      rows.push(
+        `| ${subject} | ${role} | ${k("inside")} | ${k("within-spread")} | ${k("outside")} | ${k("no-interval")} | ${k("agrees")} | ${k("disagrees")} | ${k("not-produced")} |`,
+      );
+    }
+  }
+  return rows;
+}
+
 /** The report as a README: generated, never edited by hand. */
-export function renderReadme(r: CalibrationReport, fit: unknown, commit: string): string {
-  const [ro, ci] = r.subjects;
+export function renderReadme(
+  r: CalibrationReport,
+  fit: unknown,
+  commit: string,
+  sealLine = "",
+): string {
+  const [ro, ci, v2] = r.subjects;
+  const ids = r.subjects.map((s) => s.id);
   const by = (id: string, subject: string) =>
     r.comparisons.find((c) => c.observation === id && c.subject === subject);
+  const roleText = (cs: Comparison[]) => {
+    const roles = cs.map((c) => c.role);
+    return roles.every((x) => x === roles[0])
+      ? roles[0]!
+      : cs.map((c) => `${c.role} (${SHORT[c.subject] ?? c.subject})`).join(", ");
+  };
   const lines: string[] = [];
   lines.push(
     "# Digital fly calibration",
     "",
-    `Generated by \`node scripts/run-ts.mjs scripts/fly-calibration.ts\` from ${commit} (${r.flyVersion}); do not edit. It sets the digital fly beside published recordings of real *Drosophila*: every observation in \`src/bethesda/fly/calibration/observations.ts\`, each paradigm rebuilt by \`paradigms.ts\` and run by \`report.ts\` on both controllers, the reduced-order one (${ro!.label}) and the circuit-informed one (${ci!.label}). It describes a simulator, never flies: each comparison inherits its paradigm's approximations, listed below.`,
+    `Generated by \`node scripts/run-ts.mjs scripts/fly-calibration.ts\` from ${commit} (${r.flyVersion}); do not edit. It sets the digital fly beside published recordings of real *Drosophila*: every observation in \`src/bethesda/fly/calibration/observations.ts\` and the 2026-11 held-out set in \`holdout.ts\`, each paradigm rebuilt by \`paradigms.ts\` or \`holdoutParadigms.ts\` and run by \`report.ts\` on three controllers: the reduced-order one (${ro!.label}), the circuit-informed one (${ci!.label}) and its successor (${v2!.label}), which adds five behavioural mechanisms, each also switched off in turn (ablations). It describes a simulator, never flies: each comparison inherits its paradigm's approximations, listed below.`,
     "",
-    "How to read a row. *Role*: **held-out** (nothing in either controller was set from it), **design** (a parameter both use came from it, so agreement is by construction) or **fit** (the circuit-informed controller's fitted values were set to match it; for the reduced-order controller it is held out). *Verdict*: **inside** the 95% interval of the published central value, **within spread** of the published flies (± 1 SD, the IQR or the range), **outside** both, **no interval** when the paper gives no spread to judge by (compare the numbers), **agrees**/**disagrees** for a reported direction, **not produced** when the simulated fly does not show the behaviour at all. Simulated intervals are 95% intervals of the estimate (normal for means, Wilson for proportions).",
+    "How to read a row. *Role*, per controller (`roles.ts`): **held-out** (nothing in that controller was set from it; for the 2026-11 set, it was registered and sealed before circuit-informed/v2 was committed or run on its paradigms, and v2 was never run on it before this report), **design** (a parameter came from it, so agreement is by construction), **fit** (a fitted value of that controller was set to match it) or **development** (circuit-informed/v2 only: seen while v2 was built, so agreement is not evidence for v2). *Verdict*: **inside** the 95% interval of the published central value, **within spread** of the published flies (± 1 SD, the IQR or the range), **outside** both, **no interval** when the paper gives no spread to judge by (compare the numbers), **agrees**/**disagrees** for a reported direction, **not produced** when the simulated fly does not show the behaviour at all. Simulated intervals are 95% intervals of the estimate (normal for means, Wilson for proportions).",
     "",
     "## Tally",
     "",
-    "| controller | role | inside | within spread | outside | no interval | agrees | disagrees | not produced |",
-    "|---|---|---|---|---|---|---|---|---|",
+    ...tallyRows(r, [...ids, "body"]),
   );
-  for (const [subject, roles] of Object.entries(r.tally))
-    for (const role of ["held-out", "design", "fit"] as const) {
-      const t = roles[role];
-      if (!Object.keys(t).length) continue;
-      const k = (a: Agreement) => t[a] ?? 0;
-      lines.push(
-        `| ${subject} | ${role} | ${k("inside")} | ${k("within-spread")} | ${k("outside")} | ${k("no-interval")} | ${k("agrees")} | ${k("disagrees")} | ${k("not-produced")} |`,
-      );
-    }
-  for (const [behaviour, title] of BEHAVIOURS) {
-    const obs = OBSERVATIONS.filter((o) => o.behaviour === behaviour);
-    if (!obs.length) continue;
+
+  const table = (obs: readonly Observation[]) => {
     lines.push(
-      "",
-      `## ${title}`,
-      "",
-      `| observation | unit | published | ${ro!.id} | verdict | ${ci!.id} | verdict | role |`,
-      "|---|---|---|---|---|---|---|---|",
+      `| observation | unit | published | ${ro!.id} | verdict | ${ci!.id} | verdict | ${v2!.id} | verdict | role |`,
+      "|---|---|---|---|---|---|---|---|---|---|",
     );
     for (const o of obs) {
       const body = by(o.id, "body");
       if (body) {
         lines.push(
-          `| ${o.measure} | ${o.unit} | ${publishedText(body)} | ${simulatedText(body)} (the body, shared) | ${VERDICT[body.agreement]} | | | ${body.role} |`,
+          `| ${o.measure} | ${o.unit} | ${publishedText(body)} | ${simulatedText(body)} (the body, shared) | ${VERDICT[body.agreement]} | | | | | ${body.role} |`,
         );
         continue;
       }
-      const a = by(o.id, ro!.id)!,
-        b = by(o.id, ci!.id)!;
-      const role =
-        a.role === b.role ? a.role : `${b.role} (circuit), ${a.role} (reduced-order)`;
+      const cs = ids.map((s) => by(o.id, s)!);
       lines.push(
-        `| ${o.measure} | ${o.unit} | ${publishedText(a)} | ${simulatedText(a)} | ${VERDICT[a.agreement]} | ${simulatedText(b)} | ${VERDICT[b.agreement]} | ${role} |`,
+        `| ${o.measure} | ${o.unit} | ${publishedText(cs[0]!)} | ${cs
+          .map((c) => `${simulatedText(c)} | ${VERDICT[c.agreement]}`)
+          .join(" | ")} | ${roleText(cs)} |`,
       );
     }
     lines.push("", "Sources:", "");
@@ -811,7 +908,97 @@ export function renderReadme(r: CalibrationReport, fit: unknown, commit: string)
         .join(" ");
       lines.push(`- \`${o.id}\`: ${quoteText(o)}${extra ? ` ${extra}` : ""}`);
     }
+  };
+
+  const held = OBSERVATIONS.filter((o) => o.registered);
+  if (held.length) {
+    lines.push(
+      "",
+      "## The 2026-11 held-out set",
+      "",
+      "Registered from papers the calibration had not used, and sealed (`holdout-2026-11.json` beside this file, with its disclosure of the order of work) before circuit-informed/v2 was committed or run on any of their paradigms. Nothing in any controller was set from these, and v2 was run on their paradigms for the first time for this report. They are the test of whether v2's mechanisms generalize beyond the observations they were developed on." +
+        (sealLine ? ` ${sealLine}` : ""),
+    );
+    lines.push(
+      "",
+      "The metrics and acceptance rules declared in the seal: the primary count is the observations with a published interval on which the estimate is inside it or within the flies' spread; the secondary metric is the median absolute relative error over observations without one (an observation not produced counting as 1).",
+      "",
+      "| controller | inside or within spread | outside | not produced (with an interval) | median relative error (no interval) |",
+      "|---|---|---|---|---|",
+    );
+    for (const s of [...ids, ...r.ablations.map((a) => a.id)]) {
+      const cs = held.map((o) => by(o.id, s)).filter((c): c is Comparison => !!c);
+      // Every reported spread gives an interval (compare.ts), so "with an interval" is "with a spread".
+      const withInterval = cs.filter((c) => c.published.spread !== null);
+      const good = withInterval.filter(
+        (c) => c.agreement === "inside" || c.agreement === "within-spread",
+      ).length;
+      const outside = withInterval.filter((c) => c.agreement === "outside").length;
+      const missing = withInterval.filter((c) => c.agreement === "not-produced").length;
+      const errors = cs
+        .filter((c) => c.published.spread === null && c.published.value !== null)
+        .map((c) =>
+          c.simulated?.value === null || c.simulated?.value === undefined
+            ? 1
+            : Math.abs(c.simulated.value - c.published.value!) /
+              Math.abs(c.published.value!),
+        )
+        .sort((a, b) => a - b);
+      const med = errors.length
+        ? errors.length % 2
+          ? errors[(errors.length - 1) / 2]!
+          : (errors[errors.length / 2 - 1]! + errors[errors.length / 2]!) / 2
+        : null;
+      lines.push(
+        `| ${s} | ${good} of ${withInterval.length} | ${outside} | ${missing} | ${med === null ? "" : med.toFixed(2)} |`,
+      );
+    }
+    for (const [behaviour, title] of BEHAVIOURS) {
+      const obs = held.filter((o) => o.behaviour === behaviour);
+      if (!obs.length) continue;
+      lines.push("", `### ${title}`, "");
+      table(obs);
+    }
   }
+
+  lines.push(
+    "",
+    "## Earlier observations",
+    "",
+    "Registered before 2026-11. For the reduced-order and v1 controllers they keep their roles; for circuit-informed/v2 they are development or fit observations.",
+  );
+  for (const [behaviour, title] of BEHAVIOURS) {
+    const obs = OBSERVATIONS.filter((o) => o.behaviour === behaviour && !o.registered);
+    if (!obs.length) continue;
+    lines.push("", `### ${title}`, "");
+    table(obs);
+  }
+
+  if (r.ablations.length) {
+    lines.push(
+      "",
+      "## Ablations",
+      "",
+      "Circuit-informed/v2 with one mechanism switched off at a time, its other values (fitted ones included) kept, on the same seeds. An ablation shows what that mechanism contributes to the fitted controller, not what a controller built without it could reach. Where a mechanism is off, v2 falls back to the reduced-order controller's rule for it.",
+      "",
+      ...tallyRows(r, [v2!.id, ...r.ablations.map((a) => a.id)]),
+      "",
+      `| observation | role for v2 | published | v2 | ${r.ablations.map((a) => `without ${a.without}`).join(" | ")} |`,
+      `|---|---|---|---|${r.ablations.map(() => "---").join("|")}|`,
+    );
+    for (const o of OBSERVATIONS) {
+      const base = by(o.id, v2!.id);
+      if (!base) continue;
+      const cell = (c: Comparison | undefined) =>
+        c ? `${simulatedText(c)} (${VERDICT[c.agreement]})` : "";
+      lines.push(
+        `| ${o.measure} | ${base.role} | ${publishedText(base)} | ${cell(base)} | ${r.ablations
+          .map((a) => cell(by(o.id, a.id)))
+          .join(" | ")} |`,
+      );
+    }
+  }
+
   lines.push("", "## Paradigms", "");
   for (const [id, p] of Object.entries(r.paradigms)) {
     lines.push(
@@ -830,7 +1017,7 @@ export function renderReadme(r: CalibrationReport, fit: unknown, commit: string)
   lines.push(
     "## Fit",
     "",
-    "The circuit-informed controller's three fitted values come from `fit.json` beside this file (`calibration/fit.ts`, `--fit`), which records the method, the grid or bisection steps and the result:",
+    "The fitted values of the circuit-informed controllers come from `fit.json` beside this file (`calibration/fit.ts` for v1's three, `calibration/fitV2.ts` for v2's seven; `--fit`), which records the method, the grid or bisection steps and the result:",
     "",
     "```json",
     JSON.stringify(fit, null, 2),

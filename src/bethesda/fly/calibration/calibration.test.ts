@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fit from "../../../../docs/benchmarks/fly-calibration/fit.json" with { type: "json" };
-import report from "../../../../docs/benchmarks/fly-calibration/report.json" with { type: "json" };
+import reportJson from "../../../../docs/benchmarks/fly-calibration/report.json" with { type: "json" };
 import { mulberry32 } from "../../../lib/noise";
 import { CircuitController } from "../circuits/controller";
 import { EscapeCircuit } from "../circuits/giantFiber";
@@ -19,7 +19,14 @@ import {
   vonReyn2014Loom,
   ZHANG_2020_CHAMBER,
 } from "./paradigms";
-import { circuitSubject, CIRCUIT, REDUCED_ORDER } from "./subjects";
+import { circuitSubject, CIRCUIT, REDUCED_ORDER, V2 } from "./subjects";
+import { V2_FIT_TARGETS, V2_PARAMS } from "../circuits/v2/params";
+import { V2_MECHANISMS } from "../circuits/v2/controller";
+import { roleFor, V2_DESIGN } from "./roles";
+import type { CalibrationReport } from "./report";
+
+/** The committed report, read as the type that writes it (its JSON type follows whatever was last generated). */
+const report = reportJson as unknown as CalibrationReport;
 
 describe("published observations", () => {
   it("names each once, in a paradigm the calibration rebuilds, with its words or data", () => {
@@ -54,6 +61,36 @@ describe("published observations", () => {
   });
 });
 
+describe("roles per controller", () => {
+  it("makes v2's fit targets development observations it was fitted to, never held out", () => {
+    for (const id of Object.values(V2_FIT_TARGETS).flat()) {
+      const o = OBSERVATIONS.find((x) => x.id === id);
+      expect(o, id).toBeDefined();
+      expect(o!.registered).toBeUndefined();
+      expect(roleFor(o!, V2.id)).toBe("fit");
+      expect(roleFor(o!, `${V2.id}-wall`)).toBe("fit");
+    }
+    for (const id of V2_DESIGN)
+      expect(
+        roleFor(
+          OBSERVATIONS.find((x) => x.id === id)!,
+          V2.id,
+        ),
+      ).toBe("design");
+  });
+
+  it("holds every observation registered before v2 out of nothing v2 could claim", () => {
+    for (const o of OBSERVATIONS.filter((x) => !x.registered))
+      expect(roleFor(o, V2.id)).not.toBe("held-out");
+  });
+
+  it("holds the 2026-11 set out for every controller", () => {
+    for (const o of OBSERVATIONS.filter((x) => x.registered))
+      for (const s of [REDUCED_ORDER.id, CIRCUIT.id, V2.id, `${V2.id}-flight`])
+        expect(roleFor(o, s)).toBe("held-out");
+  });
+});
+
 describe("the fit", () => {
   it("is the one fit.json records, and the circuit runs with it", () => {
     expect(CIRCUIT_PARAMS.gfThresholdMv.value).toBe(fit.giantFiber.medianMv);
@@ -61,6 +98,14 @@ describe("the fit", () => {
     expect(CIRCUIT_PARAMS.groomDriveDust.value).toBe(fit.grooming.groomDriveDust);
     expect(fit.flyVersion).toBe(FLY_VERSION);
     expect(fit.giantFiber.modesPredicted).toBe(fit.giantFiber.trials);
+  });
+
+  it("gives circuit-informed/v2 the values its fit reached", () => {
+    const values = (fit as unknown as { v2: { values: Record<string, number> } }).v2
+      .values;
+    const fitted = Object.entries(V2_PARAMS).filter(([, p]) => p.kind === "fitted");
+    expect(fitted.map(([k]) => k).sort()).toEqual(Object.keys(values).sort());
+    for (const [k, p] of fitted) expect(p.value, k).toBe(values[k]);
   });
 
   it("predicts each trial's mode from its peak potential and its own threshold draw", () => {
@@ -93,15 +138,18 @@ describe("the fit", () => {
 });
 
 describe("the report", () => {
-  it("was made by this fly and sets every observation beside both controllers", () => {
+  it("was made by this fly and sets every observation beside every controller and ablation", () => {
     expect(report.flyVersion).toBe(FLY_VERSION);
     const subjects = report.subjects.map((s) => s.id);
-    expect(subjects).toEqual([REDUCED_ORDER.id, CIRCUIT.id]);
+    expect(subjects).toEqual([REDUCED_ORDER.id, CIRCUIT.id, V2.id]);
+    expect(report.ablations.map((a) => a.without)).toEqual([...V2_MECHANISMS]);
+    const everyone = [...subjects, ...report.ablations.map((a) => a.id)];
     for (const o of OBSERVATIONS) {
       const rows = report.comparisons.filter((c) => c.observation === o.id);
       expect(rows.length === 1 ? rows[0]!.subject : rows.map((r) => r.subject)).toEqual(
-        rows.length === 1 ? "body" : subjects,
+        rows.length === 1 ? "body" : everyone,
       );
+      for (const r of rows) expect(r.role).toBe(roleFor(o, r.subject));
     }
   });
 });

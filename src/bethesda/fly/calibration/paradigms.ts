@@ -29,6 +29,13 @@ import { chamber, roundArena, tunnel } from "./worlds.js";
 export interface Setting {
   /** Dusted all over, as in the grooming experiments. */
   dusted: boolean;
+  /**
+   * A lid covers the fly: a closed arena or chamber a few millimetres high.
+   * Only circuit-informed/v2 reads it (its defensive choice); the simulator
+   * renders no view of the lid, so this stands in for what the fly would see
+   * overhead.
+   */
+  enclosed?: boolean;
 }
 
 /** A controller under calibration: how to build it for a fly with this seed, in this setting. */
@@ -44,6 +51,7 @@ export interface Subject {
 }
 
 const CLEAN: Setting = { dusted: false };
+export const LIDDED: Setting = { dusted: false, enclosed: true };
 
 /** A 32-bit seed for one trial of one paradigm, from labels (FNV-1a, then mixed). */
 export function trialSeed(...parts: number[]): number {
@@ -291,7 +299,7 @@ export function chamberSession(
       yaw: (geometry() * 2 - 1) * Math.PI,
     },
     config: { ...subject.config, takeoffHz: 0 },
-    adapter: subject.adapter(trialSeed(seed, 13), setting),
+    adapter: subject.adapter(trialSeed(seed, 13), { ...setting, enclosed: true }),
     logSize: 8,
   });
   const frames = Math.round(spec.durationS * spec.frameHz);
@@ -324,6 +332,8 @@ export interface Frame {
   target: string | null;
   /** Speed (m/s) and horizontal heading of travel (rad) from the body's own velocity. */
   speed: number;
+  /** The body's yaw (rad). */
+  yaw: number;
 }
 
 /**
@@ -350,6 +360,7 @@ export function record(
       legs: s.legs,
       target: s.target ? s.target.id : null,
       speed: Math.hypot(s.v[0], s.v[1], s.v[2]),
+      yaw: s.yaw,
     });
     if (untilPerched && s.perch) break;
   }
@@ -366,6 +377,8 @@ export interface SessionSpec {
   config: ControllerConfig;
   /** Stop when the fly first stands on something: one flight per session. */
   untilPerched?: boolean;
+  /** A lid a few millimetres over the fly (`Setting.enclosed`). */
+  enclosed?: boolean;
 }
 
 export function session(subject: Subject, spec: SessionSpec, seed: number): Frame[] {
@@ -375,14 +388,14 @@ export function session(subject: Subject, spec: SessionSpec, seed: number): Fram
     world: spec.world(),
     start: spec.start(geometry),
     config: { ...spec.config, ...subject.config },
-    adapter: subject.adapter(trialSeed(seed, 23), CLEAN),
+    adapter: subject.adapter(trialSeed(seed, 23), spec.enclosed ? LIDDED : CLEAN),
     logSize: 8,
   });
   return record(fly, spec.durationS, spec.frameHz, spec.untilPerched === true);
 }
 
 /** A uniform point of a disc of `radius` (m) and a uniform heading. */
-function placeInDisc(
+export function placeInDisc(
   rng: () => number,
   radius: number,
 ): { x: number; z: number; yaw: number } {
@@ -441,6 +454,7 @@ export const LIU_2007: SessionSpec = {
   durationS: 600,
   frameHz: 10,
   config: { takeoffHz: 0 },
+  enclosed: true,
 };
 
 /** Soibam et al. 2012 (`PARADIGMS.soibam2012`). */
@@ -454,6 +468,7 @@ export const SOIBAM_2012: SessionSpec = {
   durationS: 600,
   frameHz: 6,
   config: { takeoffHz: 0 },
+  enclosed: true,
 };
 
 /** Zacarias et al. 2018's looms over a walking fly (`PARADIGMS.zacarias2018`). */
@@ -473,11 +488,19 @@ export const ZACARIAS_2018 = {
   elevationDeg: 45,
   /** A takeoff within this long of a loom's onset is its jump. */
   windowS: 1,
+  /** "speed and motion tracking data were averaged into 500 ms bins": freezing at the end is judged over the last bin. */
+  freezeBinS: 0.5,
 } as const;
 
 export interface RepeatedLooms {
   /** Per loom: did the fly take off within the window after its onset? */
   jumped: boolean[];
+  /**
+   * Was the fly immobile, neither walking nor grooming, through the last
+   * `freezeBinS` of the stimulation period? The paper's classifier counts any
+   * such immobility as freezing, whatever caused it.
+   */
+  freezingAtEnd: boolean;
 }
 
 export function repeatedLooms(subject: Subject, seed: number): RepeatedLooms {
@@ -492,7 +515,7 @@ export function repeatedLooms(subject: Subject, seed: number): RepeatedLooms {
     world,
     start: { p: [q.x, Z.heightM / 2, q.z], yaw: q.yaw },
     config: { takeoffHz: 0, ...subject.config },
-    adapter: subject.adapter(trialSeed(seed, 33), CLEAN),
+    adapter: subject.adapter(trialSeed(seed, 33), LIDDED),
     logSize: 8,
   });
   const lv = Z.lOverVMs / 1000;
@@ -530,5 +553,13 @@ export function repeatedLooms(subject: Subject, seed: number): RepeatedLooms {
     }
     jumped.push(jump);
   }
-  return { jumped };
+  // On to the end of the stimulation period: 20 looms over 5 min.
+  const end = Z.exploreS + Z.looms * Z.everyS;
+  let still = true;
+  while (fly.state.t < end - 1e-9) {
+    fly.advance(Math.min(0.005, end - fly.state.t));
+    if (fly.state.t > end - Z.freezeBinS - 1e-9 && fly.state.mode !== "rest")
+      still = false;
+  }
+  return { jumped, freezingAtEnd: still };
 }

@@ -22,6 +22,7 @@
  *   it (`fit.ts`); for that controller it is a fit target, for the
  *   reduced-order one it is held out.
  */
+import { HOLDOUT_OBSERVATIONS, HOLDOUT_PARADIGMS } from "./holdout.js";
 import type { Citation } from "../params.js";
 import { CITATIONS } from "../params.js";
 import { CIRCUIT_CITATIONS } from "../circuits/params.js";
@@ -65,7 +66,11 @@ export const CALIBRATION_CITATIONS = {
 const C = CALIBRATION_CITATIONS;
 
 export type Behaviour = "escape" | "grooming" | "flight" | "landing" | "walking";
-export type Role = "held-out" | "design" | "fit";
+/**
+ * `development` is a role for circuit-informed/v2 only (`roles.ts`): an
+ * observation seen while v2 was built, so agreement is not evidence for it.
+ */
+export type Role = "held-out" | "design" | "fit" | "development";
 
 /**
  * A published experiment and how the calibration rebuilds it. The rebuilt
@@ -232,6 +237,7 @@ export const PARADIGMS = {
       "The comparison is with the paper's fit (R² = 0.59), not with its data.",
     ],
   },
+  ...HOLDOUT_PARADIGMS,
 } as const satisfies Record<string, Paradigm>;
 export type ParadigmId = keyof typeof PARADIGMS;
 
@@ -262,6 +268,12 @@ export interface Observation {
   /** For a direction only: the sign the source reports for the trend. */
   sign?: 1 | -1;
   role: Role;
+  /**
+   * The held-out set it was registered in, sealed before the controller it
+   * tests was committed or run on its paradigms (`holdout.ts`); held-out for
+   * every controller.
+   */
+  registered?: "holdout-2026-11";
   /** When the value is arithmetic on quoted numbers: what arithmetic. */
   derived?: string;
   note?: string;
@@ -717,7 +729,7 @@ const ESCAPE: Observation[] = [
     spread: { kind: "proportion", k: 210, n: 300 },
     n: 300,
     role: "held-out",
-    note: "Neither controller has freezing: the fly stops only to rest or groom.",
+    note: "Freezing is judged as the paper's classifier judges it: immobile, neither walking nor grooming, through the last 500 ms bin of the stimulation period. The reduced-order and v1 controllers have no freezing, so what they show there is rest; circuit-informed/v2 freezes.",
     source: {
       citation: C.zacarias2018,
       where: "Results",
@@ -1139,6 +1151,7 @@ export const OBSERVATIONS: readonly Observation[] = Object.freeze([
   ...FLIGHT,
   ...LANDING,
   ...WALKING,
+  ...HOLDOUT_OBSERVATIONS,
 ]);
 
 export function observation(id: string): Observation {
