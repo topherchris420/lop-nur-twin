@@ -836,6 +836,7 @@ describe("the runner with an organism", () => {
     "commits one habit continuation onto the full legacy → ECHO → organism chain and resumes that individual",
     () => {
       const dir = scratch("echo-habit-history");
+      historyStore(dir);
       const organism = continued(dir);
       const s = LifeStore.open(dir, HABIT_LIFE);
       const { checkpoint: source, committedUtc } = s.headRecord();
