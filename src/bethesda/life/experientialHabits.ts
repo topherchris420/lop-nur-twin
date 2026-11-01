@@ -104,22 +104,25 @@ export class ExperientialHabits {
       command.walkSpeed === undefined ||
       !finite(command.walkSpeed) ||
       command.walkSpeed <= 0
-    ) return command;
-    const context: HabitContext =
-      input.frame.airflow >= 0.2 ? "breezy" : "sheltered";
+    )
+      return command;
+    const context: HabitContext = input.frame.airflow >= 0.2 ? "breezy" : "sheltered";
     const [a, b] = this.state.evidence[context];
     // Forced exploration on only the first few *qualifying* observations.
     // Thereafter prefer the measured outcome, with a periodic bounded probe
     // so a changed environment can still revise the preference.
-    const arm: 0 | 1 = a.trials < 3
-      ? 0
-      : b.trials < 3
-        ? 1
-        : this.state.decisions % 32 === 0
-          ? (a.trials <= b.trials ? 0 : 1)
-          : a.meanUtility > b.meanUtility
-            ? 0
-            : 1;
+    const arm: 0 | 1 =
+      a.trials < 3
+        ? 0
+        : b.trials < 3
+          ? 1
+          : this.state.decisions % 32 === 0
+            ? a.trials <= b.trials
+              ? 0
+              : 1
+            : a.meanUtility > b.meanUtility
+              ? 0
+              : 1;
     this.state.decisions++;
     this.state.pending = {
       context,
