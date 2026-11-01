@@ -293,7 +293,11 @@ export class OrganismLife extends HeadlessBethesdaLife {
     config: Config,
     /** An additive descendant may choose its adapter at birth/restore; the
      * historical OrganismLife remains byte-identical by default. */
-    createAdapter?: (rng: () => number, streams: AdapterStreams, seed: number) => OrganismAdapter,
+    createAdapter?: (
+      rng: () => number,
+      streams: AdapterStreams,
+      seed: number,
+    ) => OrganismAdapter,
   ) {
     const seed = flySeed(config);
     super(config, {
