@@ -24,6 +24,21 @@ Two mappings, named in every run that uses them:
   stopping, antennal grooming, landing), each rate readout over a trailing
   window rather than one 10 ms step (the window that limited v1's feed
   readout). v1 stays byte for byte what it was.
+- ``brain-and-cord/v3``, for ``neural-experimental`` research subjects on
+  the BANC v888 connectome only (brain and ventral nerve cord, another
+  animal; ``banc.py``): v2's channels and readouts on BANC's own neurons,
+  except that food contact drives the sugar neurons of the legs, which enter
+  the nerve cord (v1 and v2 stand labellar neurons in for them), and the
+  cord's motor neurons are read out beside the descending commands: the jump
+  motor neuron (TTMn) after a giant-fiber spike, the leg motor neurons of
+  each leg, and the wing power motor neurons. Those motor readouts are
+  reported and decide nothing yet; whether the giant fiber reaches the jump
+  without the electrical synapse the model lacks is tested in
+  ``experiments/banc-cord-v888.json``.
+
+Each mapping names its dataset (``MAPPING_DATASET``): v1 and v2 select
+FAFB v783 neurons and v3 BANC v888 neurons, and ``Mapper`` refuses a
+connectome of the other dataset.
 """
 
 from __future__ import annotations
@@ -36,7 +51,9 @@ import numpy as np
 from .connectome import Connectome
 from .populations import CITE, resolve
 
-MAPPINGS = ("v1", "whole-brain/v2")
+V2, V3 = "whole-brain/v2", "brain-and-cord/v3"
+MAPPINGS = ("v1", V2, V3)
+MAPPING_DATASET = {"v1": "fafb-v783", V2: "fafb-v783", V3: "banc-v888"}
 
 SENSABLE = {
     "looming": "the strongest looming object, as angular size (deg), expansion rate (deg/s) and bearing (+ left, rad), or null",
@@ -172,13 +189,68 @@ READOUTS_V2 = {
 RATE_WINDOW_MS = 100.0
 SMALL_SIZE_FULL_DEG, SMALL_SIZE_ZERO_DEG, SMALL_SPEED_SAT_DEG_S, SMALL_CEILING_HZ = 15.0, 30.0, 100.0, 150.0
 
+# brain-and-cord/v3: v2's populations, selected from BANC v888's own neurons (populations.py, banc_*).
+# Food contact is the one channel whose neurons change: the legs' sugar GRNs, not the labellum's.
+V3_POPULATION = {
+    f"{name}_{side}": f"banc_{banc}_{side}"
+    for side in ("left", "right")
+    for name, banc in (
+        ("lplc2", "lplc2"),
+        ("lc4", "lc4"),
+        ("jo_wind", "jo_wind"),
+        ("orn_vinegar", "orn_vinegar"),
+        ("sugar_grn", "tarsal_sugar"),
+        ("lc11", "lc11"),
+        ("lc10a", "lc10a"),
+        ("mn9", "mn9"),
+        ("giant_fiber", "giant_fiber"),
+        ("dnp09", "dnp09"),
+        ("mdn", "mdn"),
+        ("dna02", "dna02"),
+        ("adn", "adn"),
+        ("dn_landing", "dn_landing"),
+    )
+}
+FOOD_CONTACT_V3 = Channel(
+    "food contact",
+    ("banc_tarsal_sugar_left", "banc_tarsal_sugar_right"),
+    "rate = 100 Hz while on food, else 0",
+    ("wang2004", "dethier1976", "bates2026"),
+    "model",
+    "the sugar GRNs of all six legs, which enter the ventral nerve cord; which legs touch the food is not sensed, so every leg's are driven together",
+)
+CHANNELS_V3 = tuple(
+    FOOD_CONTACT_V3
+    if ch.key == "food contact"
+    else Channel(ch.key, tuple(V3_POPULATION[p] for p in ch.populations), ch.form, (*ch.cite, "bates2026"), ch.status, ch.approximation.replace("this brain (FAFB) is a female's", "BANC is a female's").replace("this brain is a female's", "BANC is a female's"))
+    for ch in CHANNELS_V2
+)
+READOUTS_V3 = {
+    **{k: {**v, "populations": tuple(V3_POPULATION[p] for p in v["populations"]), "cite": (*v["cite"], "bates2026")} for k, v in READOUTS_V2.items()},
+    "jump": {
+        "populations": ("banc_ttmn_left", "banc_ttmn_right"),
+        "rule": "any TTMn (jump motor neuron) spike in the window; reported, decides nothing (the giant fiber's escape command does)",
+        "threshold_hz": None,
+        "cite": ("kingwyman1980", "vonreyn2014", "bates2026"),
+    },
+}
+# Read out of the cord over the trailing window, reported per neuron (Hz); none of them decides a command.
+MOTOR_V3 = {
+    "legs": {f"{leg}_{side}": f"banc_leg_mn_{leg}_{side}" for leg in ("front", "middle", "hind") for side in ("left", "right")},
+    "wing_power": {side: f"banc_wing_power_{side}" for side in ("left", "right")},
+}
+
 
 def channels(mapping: str = "v1") -> tuple[Channel, ...]:
-    return CHANNELS if mapping == "v1" else CHANNELS_V2
+    return {"v1": CHANNELS, V2: CHANNELS_V2, V3: CHANNELS_V3}[mapping]
 
 
 def readouts(mapping: str = "v1") -> dict:
-    return READOUTS if mapping == "v1" else READOUTS_V2
+    return {"v1": READOUTS, V2: READOUTS_V2, V3: READOUTS_V3}[mapping]
+
+
+def descending_key(mapping: str) -> str:
+    return "banc_descending_all" if mapping == V3 else "descending_all"
 
 
 def check_mapping(mapping: str) -> str:
@@ -200,6 +272,13 @@ def describe_mapping(mapping: str = "v1") -> dict:
     # v1's description stays exactly what the sealed shadow results recorded.
     if mapping != "v1":
         out = {"mapping": mapping, "rate_window_ms": RATE_WINDOW_MS, **out, "descending_summary": "how many neurons annotated descending fired in the trailing window (reported, decides nothing)"}
+    if mapping == V3:
+        out = {
+            "mapping": mapping,
+            "dataset": MAPPING_DATASET[mapping],
+            **{k: v for k, v in out.items() if k != "mapping"},
+            "motor": {"populations": {g: dict(m) for g, m in MOTOR_V3.items()}, "rule": "mean rate per neuron over the trailing window; reported, decides nothing"},
+        }
     return out
 
 
@@ -218,10 +297,17 @@ class Mapper:
     """Resolves the populations once, then turns observations into Poisson inputs."""
 
     def __init__(self, c: Connectome, mapping: str = "v1"):
+        from .banc import dataset_of
+
         self.mapping = check_mapping(mapping)
+        have, want = dataset_of(c), MAPPING_DATASET[mapping]
+        if have != want:
+            raise ObservationError(f"mapping {mapping} selects {want} neurons; this connectome holds {have}'s")
         keys = {p for ch in channels(mapping) for p in ch.populations} | {p for r in readouts(mapping).values() for p in r["populations"]}
         if mapping != "v1":
-            keys.add("descending_all")
+            keys.add(descending_key(mapping))
+        if mapping == V3:
+            keys |= {p for g in MOTOR_V3.values() for p in g.values()}
         self.idx = {}
         self.report = {}
         for k in sorted(keys):
@@ -230,21 +316,26 @@ class Mapper:
     def rates(self, obs: dict) -> dict[str, float]:
         if self.mapping == "v1" and obs.get("smallObject") is not None:
             raise ObservationError("smallObject is a whole-brain/v2 input; mapping v1 has no channel for it")
-        r = {k: 0.0 for ch in channels(self.mapping) for k in ch.populations}
+
+        # The population a channel drives under this mapping (v3 selects BANC's neurons).
+        def k(generic: str) -> str:
+            return V3_POPULATION[generic] if self.mapping == V3 else generic
+
+        r = {p: 0.0 for ch in channels(self.mapping) for p in ch.populations}
         if self.mapping != "v1" and obs.get("smallObject") is not None:
             side = "left" if obs["smallObject"]["bearing"] > 0 else "right"
-            r[f"lc11_{side}"] = r[f"lc10a_{side}"] = small_object_rate(obs["smallObject"])
+            r[k(f"lc11_{side}")] = r[k(f"lc10a_{side}")] = small_object_rate(obs["smallObject"])
         loom = obs["looming"]
         if loom is not None:
             side = "left" if loom["bearing"] > 0 else "right"
-            r[f"lplc2_{side}"] = 200.0 * min(1.0, max(0.0, loom["sizeDeg"]) / 40.0)
-            r[f"lc4_{side}"] = 200.0 * min(1.0, max(0.0, loom["expansionDegS"]) / 400.0)
+            r[k(f"lplc2_{side}")] = 200.0 * min(1.0, max(0.0, loom["sizeDeg"]) / 40.0)
+            r[k(f"lc4_{side}")] = 200.0 * min(1.0, max(0.0, loom["expansionDegS"]) / 400.0)
         air = 150.0 * min(1.0, max(0.0, obs["airflow"]) / 1.0)
-        r["jo_wind_left"] = r["jo_wind_right"] = air
+        r[k("jo_wind_left")] = r[k("jo_wind_right")] = air
         od = 100.0 * min(1.0, max(0.0, obs["odour"]))
-        r["orn_vinegar_left"] = r["orn_vinegar_right"] = od
+        r[k("orn_vinegar_left")] = r[k("orn_vinegar_right")] = od
         if obs["onFood"]:
-            r["sugar_grn_left"] = r["sugar_grn_right"] = 100.0
+            r[k("sugar_grn_left")] = r[k("sugar_grn_right")] = 100.0
         return r
 
     def poisson(self, obs: dict):
@@ -276,13 +367,20 @@ class TrailingReadout:
     annotated descending that fired in that window; it is reported and decides
     nothing."""
 
-    def __init__(self, idx: dict[str, np.ndarray], window_ms: float = RATE_WINDOW_MS):
+    def __init__(self, idx: dict[str, np.ndarray], window_ms: float = RATE_WINDOW_MS, mapping: str = V2):
         if not 10.0 <= window_ms <= 1000.0:
             raise ObservationError("rate_window_ms must be between 10 and 1000")
+        if check_mapping(mapping) == "v1":
+            raise ObservationError("v1 reads each request's window, not a trailing one")
         self.idx = idx
         self.window_ms = float(window_ms)
-        self.keys = sorted({p for r in READOUTS_V2.values() for p in r["populations"]})
-        self.dn = np.asarray(idx.get("descending_all", np.zeros(0, dtype=np.int64)), dtype=np.int64)
+        self.mapping = mapping
+        self.readouts = readouts(mapping)
+        # Reflexes are read from the newest request's window only.
+        self.reflexes = ("escape", "jump") if mapping == V3 else ("escape",)
+        self.motor = MOTOR_V3 if mapping == V3 else {}
+        self.keys = sorted({p for r in self.readouts.values() for p in r["populations"]} | {p for g in self.motor.values() for p in g.values()})
+        self.dn = np.asarray(idx.get(descending_key(mapping), np.zeros(0, dtype=np.int64)), dtype=np.int64)
         self.hist: deque[tuple[float, dict[str, int], np.ndarray]] = deque()
 
     def update(self, counts: np.ndarray, window_ms: float) -> dict:
@@ -299,9 +397,9 @@ class TrailingReadout:
             return sum(total[p] for p in pops) / max(1, n) / (span / 1000.0) if span > 0 else 0.0
 
         out = {}
-        for key, ro in READOUTS_V2.items():
+        for key, ro in self.readouts.items():
             pops = ro["populations"]
-            if key == "escape":
+            if key in self.reflexes:
                 s, n = sum(spikes[p] for p in pops), sum(size[p] for p in pops)
                 hz = s / max(1, n) / (window_ms / 1000.0) if window_ms > 0 else 0.0
                 out[key] = {"spikes": s, "mean_rate_hz": round(hz, 3), "predicted": s > 0}
@@ -317,6 +415,8 @@ class TrailingReadout:
             else:
                 r = rate(pops)
                 out[key] = {"spikes": sum(total[p] for p in pops), "mean_rate_hz": round(r, 3), "predicted": r >= ro["threshold_hz"]}
+        if self.motor:
+            out["motor"] = {g: {name: round(rate((p,)), 3) for name, p in m.items()} for g, m in self.motor.items()}
         fired_dn = np.unique(np.concatenate([d for _, _, d in self.hist])) if self.hist else self.dn[:0]
         out["descending"] = {"active": int(fired_dn.size), "of": int(self.dn.size)}
         out["window_ms"] = round(span, 3)

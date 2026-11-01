@@ -35,6 +35,15 @@
  *   aDN2) and commit a flight to landing below (DNp07, DNp10). ECHO keeps
  *   everything the readouts leave alone, and every command still passes the
  *   fly's gate. `WHOLE_BRAIN_RULES` lists each rule and its constants.
+ * - `brain-and-cord/v3` (`--mapping brain-and-cord/v3`, neural-experimental
+ *   only): the same channels and rules on another connectome, BANC v888, the
+ *   brain and ventral nerve cord of another fly (`fly_neural/banc.py`,
+ *   compiled as `banc-v888-predicted-nt`). Food contact drives the sugar
+ *   neurons of the legs, which enter the nerve cord, instead of a labellar
+ *   stand-in, and the cord's motor neurons come back beside the descending
+ *   commands (the jump motor neuron, each leg's motor neurons, the wing
+ *   power motor neurons); those are recorded and decide nothing
+ *   (`BRAIN_AND_CORD_RULES`).
  *
  * Each record keeps the sensable part of the decision input (looming size,
  * expansion and bearing; airflow; food odour; whether the tarsi touch food),
@@ -70,8 +79,23 @@ export const SHADOW_SCHEMA = "fly-neural-shadow/v1" as const;
 export const MODES = ["baseline", "neural-shadow", "neural-experimental"] as const;
 export type ShadowMode = (typeof MODES)[number];
 /** fly_neural/sensory.py MAPPINGS. */
-export const MAPPINGS = ["v1", "whole-brain/v2"] as const;
+export const MAPPINGS = ["v1", "whole-brain/v2", "brain-and-cord/v3"] as const;
 export type Mapping = (typeof MAPPINGS)[number];
+/** The compiled connectome each mapping needs (`serve --connectome`); null keeps serve's default (FAFB v783). */
+export const MAPPING_CONNECTOME: Readonly<Record<Mapping, string | null>> = Object.freeze(
+  {
+    v1: null,
+    "whole-brain/v2": null,
+    "brain-and-cord/v3": "banc-v888-predicted-nt",
+  },
+);
+/** Mappings with the small-object eye and the descending-neuron rules (`WHOLE_BRAIN_RULES`). */
+export const hasDescendingRules = (m: Mapping) => m !== "v1";
+/** The arguments that start `python -m fly_neural serve` for a mapping. */
+export function serveArgs(m: Mapping): string[] {
+  const c = MAPPING_CONNECTOME[m];
+  return ["-m", "fly_neural", "serve", ...(c ? ["--connectome", c] : [])];
+}
 export const SCENARIOS = ["looms", "food", "wind"] as const;
 export type Scenario = (typeof SCENARIOS)[number];
 
@@ -193,6 +217,12 @@ export interface Readouts {
     direction: "left" | "right" | null;
   };
   descending?: { active: number; of: number };
+  /** brain-and-cord/v3 only (READOUTS_V3, MOTOR_V3): reported, decides nothing. */
+  jump?: RateReadout;
+  motor?: {
+    legs: Record<string, number>;
+    wing_power: Record<string, number>;
+  };
   window_ms?: number;
 }
 
@@ -214,6 +244,22 @@ export const WHOLE_BRAIN_RULES = Object.freeze({
     "steering: while walking, a DNa02 left-right difference above threshold sets the yaw rate toward the more active side",
     "takeoff: only the giant fiber's short-mode escape; no descending neuron for a voluntary takeoff is mapped, so that stays ECHO's",
     "everything else stays ECHO's",
+  ],
+});
+
+/**
+ * brain-and-cord/v3: the same rules and constants, on BANC v888's brain and
+ * ventral nerve cord. What the cord changes is listed; nothing new decides.
+ */
+export const BRAIN_AND_CORD_RULES = Object.freeze({
+  ...WHOLE_BRAIN_RULES,
+  connectome:
+    "BANC v888, brain and ventral nerve cord (fly_neural/banc.py, banc-v888-predicted-nt)",
+  rules: [
+    ...WHOLE_BRAIN_RULES.rules.slice(0, -1),
+    "feeding: MN9 as before, but the food underfoot drives the legs' sugar neurons, so the signal has to climb from the ventral nerve cord to the proboscis motor neuron",
+    "jump (TTMn), leg and wing power motor neurons: read out of the cord and recorded; they decide nothing, and escape stays the giant fiber's command",
+    WHOLE_BRAIN_RULES.rules.at(-1)!,
   ],
 });
 
@@ -261,17 +307,22 @@ export class ShadowTap implements FlyNeuralAdapter {
     if (this.brain && mode !== "neural-experimental")
       throw new Error("only a neural-experimental subject has a brain to ask");
     const v2 = this.mapping === "whole-brain/v2";
+    const v3 = this.mapping === "brain-and-cord/v3";
     this.descriptor =
       mode === "neural-experimental"
         ? {
             ...echoDescriptor(inner.variant),
-            id: `${inner.descriptor.id} gated by fly-neural readouts${v2 ? " (whole-brain/v2)" : ""}`,
-            label: v2
-              ? "ECHO with connectome-model feeding, escape, walking, steering, grooming and landing (research subject)"
-              : "ECHO with connectome-model feeding and escape (research subject)",
-            fidelity: v2
-              ? `${inner.descriptor.fidelity} In this research mode, a leaky integrate-and-fire model on the whole FlyWire connectome (fly-neural/, mapping whole-brain/v2) decides feeding, escape, walking, steering, antennal grooming and landing through its descending neurons, and sees the object on the eye as a small moving thing; ECHO keeps the rest.`
-              : `${inner.descriptor.fidelity} In this research mode, feeding and escape follow the readouts of a leaky integrate-and-fire model on the FlyWire connectome (fly-neural/), not ECHO's own rules.`,
+            id: `${inner.descriptor.id} gated by fly-neural readouts${v2 || v3 ? ` (${this.mapping})` : ""}`,
+            label: v3
+              ? "ECHO with brain-and-cord connectome-model feeding, escape, walking, steering, grooming and landing (research subject)"
+              : v2
+                ? "ECHO with connectome-model feeding, escape, walking, steering, grooming and landing (research subject)"
+                : "ECHO with connectome-model feeding and escape (research subject)",
+            fidelity: v3
+              ? `${inner.descriptor.fidelity} In this research mode, a leaky integrate-and-fire model on the BANC v888 connectome, the brain and ventral nerve cord of another fly (fly-neural/, mapping brain-and-cord/v3), decides feeding, escape, walking, steering, antennal grooming and landing through its descending neurons; food underfoot is tasted by the legs' sugar neurons in the nerve cord, and the cord's jump, leg and wing motor neurons are recorded; ECHO keeps the rest.`
+              : v2
+                ? `${inner.descriptor.fidelity} In this research mode, a leaky integrate-and-fire model on the whole FlyWire connectome (fly-neural/, mapping whole-brain/v2) decides feeding, escape, walking, steering, antennal grooming and landing through its descending neurons, and sees the object on the eye as a small moving thing; ECHO keeps the rest.`
+                : `${inner.descriptor.fidelity} In this research mode, feeding and escape follow the readouts of a leaky integrate-and-fire model on the FlyWire connectome (fly-neural/), not ECHO's own rules.`,
             simulatesNeurons: true,
           }
         : inner.descriptor;
@@ -294,7 +345,7 @@ export class ShadowTap implements FlyNeuralAdapter {
     c: MotorCommand | null,
   ) {
     const obs = sensable(input);
-    if (this.mapping === "whole-brain/v2") obs.smallObject = this.eye.see(input.frame);
+    if (hasDescendingRules(this.mapping)) obs.smallObject = this.eye.see(input.frame);
     this.last = obs;
     if (this.records.length >= this.maxRecords) {
       this.dropped++;
@@ -345,8 +396,7 @@ export class ShadowTap implements FlyNeuralAdapter {
       c.mode !== "takeoff"
     )
       return { mode: "feed", reason: `fly-neural: MN9 at ${r.feed.mean_rate_hz} Hz` };
-    if (this.mapping === "whole-brain/v2" && r && c)
-      return descendingCommand(input, c, r);
+    if (hasDescendingRules(this.mapping) && r && c) return descendingCommand(input, c, r);
     return c;
   }
 
@@ -666,9 +716,10 @@ export async function runShadow(o: {
 
 /** `python -m fly_neural serve` as a readout function. */
 export async function neuralServer(python: string, header: Record<string, unknown>) {
+  const mapping = (header.mapping ?? "v1") as Mapping;
   const child: ChildProcessWithoutNullStreams = spawn(
     python,
-    ["-m", "fly_neural", "serve"],
+    serveArgs(MAPPINGS.includes(mapping) ? mapping : "v1"),
     {
       cwd: resolve(
         dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")),
@@ -721,7 +772,7 @@ async function main() {
   const mapping = arg("mapping", "v1") as Mapping;
   if (!MAPPINGS.includes(mapping))
     throw new Error(`--mapping must be one of ${MAPPINGS.join(", ")}`);
-  const tag = mapping === "v1" ? "" : "-whole-brain-v2";
+  const tag = mapping === "v1" ? "" : `-${mapping.replace("/", "-")}`;
   const out = arg("out", `.fly-neural/shadow/${scenario}-${seed}-${mode}${tag}.jsonl`);
   guard(out);
   let server: Awaited<ReturnType<typeof neuralServer>> | null = null;

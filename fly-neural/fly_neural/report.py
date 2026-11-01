@@ -62,6 +62,10 @@ def _verdict(v: dict) -> str:
         return f"{lo} → {hi} responders ({a} → {b})"
     if t == "all_respond":
         return ", ".join(f"{k} {x:.1f} Hz" for k, x in v["mean_hz"].items())
+    if t == "paired_greater":
+        st = v["sign_test"]
+        unit = " per neuron" if v.get("per_neuron") else ""
+        return f"{v['a_mean_hz']:.1f} vs {v['b_mean_hz']:.1f} Hz{unit}; higher in {st['a_greater']} of {st['a_greater'] + st['b_greater']} trials that differ, one-sided sign test p = {st['p']:.2g}"
     if t == "mn9_same":
         return f"{v['ours']['mean']:.1f} vs {v['brian2']['mean']:.1f} Hz (difference {v['difference_hz']:+.2f}, SE {v['se_difference_hz']:.2f}); two-sided p = {v['mann_whitney']['p']:.2g}"
     if t == "rate_correlation":
@@ -187,7 +191,7 @@ def write(results: Path) -> Path:
             f"Brian 2: {b2['wall_s_per_trial']['mean']:.1f} s per simulated second; this engine: {en['wall_s_per_trial']:.2f} s.",
             "",
         ]
-    exp = {d["split"]: (n, d) for n, d in pick("experiment")}
+    exp = {d["split"]: (n, d) for n, d in pick("experiment", experiment="shiu2024-v783")}
     for split in ("dev", "heldout"):
         if split not in exp:
             continue
@@ -244,6 +248,57 @@ def write(results: Path) -> Path:
         for spk, wall, name, split, wiring in sorted(act):
             lines.append(f"| {name} | {split} | {spk:,.0f} | {wall:.2f} |")
         lines.append("")
+    out = results / "README.md"
+    out.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+    if (results / BANC_DIR).is_dir():
+        write_banc(results / BANC_DIR)
+    return out
+
+
+BANC_DIR = "banc"
+BANC_EXPERIMENTS = ("banc-cord-v888", "banc-cord-v888-calibrated")
+
+
+def write_banc(results: Path) -> Path:
+    """``banc/README.md``: the BANC v888 experiments, from their sealed results (CC BY 4.0 data, its own LICENSE.md)."""
+    res = _load(results)
+    lines = [
+        "# Brain and cord: fly-neural results on BANC v888",
+        "",
+        "Written by `python -m fly_neural report` from the sealed results in this",
+        "directory; do not edit by hand. Every number is a model output on the BANC",
+        "v888 connectome, the brain and ventral nerve cord of one female fly (terms:",
+        "[LICENSE.md](LICENSE.md), CC BY 4.0). What the results mean, and what they",
+        "do not, is in [docs/ECHO_CONNECTOME.md](../../../ECHO_CONNECTOME.md#brain-and-cord-banc-v888).",
+        "",
+    ]
+    for exp_id in BANC_EXPERIMENTS:
+        for split in ("dev", "heldout"):
+            found = [(n, d) for n, d in res.items() if d.get("kind") == "experiment" and d.get("experiment") == exp_id and d.get("split") == split]
+            for n, d in found:
+                w = d["params"]["w_syn_mV"]
+                lines += [
+                    f"## `{exp_id}`, {split} seeds ([{n}]({n}), {_code(d)}{', partial' if d.get('partial') else ''})",
+                    "",
+                    f"w_syn {w} mV; {d['connectome']['neurons']:,} neurons, {d['connectome']['pairs']:,} pairs, {d['connectome']['synapses']:,} synapses. "
+                    f"{d['passed']} of {len(d['criteria'])} criteria passed; failed: {', '.join(d['failed']) or 'none'}.",
+                    "",
+                    *_criteria(d),
+                    "",
+                ]
+                keys = list(next(iter(d["conditions"].values()))["readout_spikes_per_trial"])
+                short = [k.removeprefix("banc_") for k in keys]
+                lines += [
+                    "Each readout population's rate summed over its neurons (Hz: all its spikes per trial second). A criterion marked per neuron divides by the population's size:",
+                    "",
+                    "| Condition | Wiring | Trials | " + " | ".join(short) + " | Responders > 0 Hz | Wall s |",
+                    "| --- | --- | --- | " + " | ".join("---" for _ in keys) + " | --- | --- |",
+                ]
+                for c in d["conditions"].values():
+                    r = c["readout_summary_hz"]
+                    cells = " | ".join(_f(r[k]["mean"]) if k in r else "–" for k in keys)
+                    lines.append(f"| {c['name']} | {c['wiring']} | {c['trials']} | {cells} | {c['responders_gt0']} | {c['resources']['wall_s']:.0f} |")
+                lines.append("")
     out = results / "README.md"
     out.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     return out

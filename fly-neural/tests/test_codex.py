@@ -34,7 +34,13 @@ def toy(dataset="fafb-v783"):
 def test_datasets_are_separate_and_honest():
     assert set(codex.DATASETS) == {"fafb-v783", "banc-v888"}
     banc = codex.DATASETS["banc-v888"]
-    assert banc.terms is None and banc.pinned_sources == () and "Not yet pinned" in banc.note
+    # No acquire terms key and no sources.py file: BANC is read from an operator's pin, and the
+    # simulation only from the pin reviewed into banc.py, whose hashes the note and banc.py agree on.
+    assert banc.terms is None and banc.pinned_sources == () and "banc.py" in banc.note
+    from fly_neural import banc as banc_module
+
+    assert "CC BY 4.0" in banc.note and banc_module.REVIEWED["terms"].startswith("CC BY 4.0")
+    assert any("10.1038/s41586-026-10735-w" in c for c in banc.cite) and "10.1038/s41586-026-10735-w" in banc_module.REVIEWED["cite"]
     assert {s.value for s in banc.stated if s.what == "neurons"} == {158_262}
     fafb = codex.DATASETS["fafb-v783"]
     text = (REPO / "docs" / "ECHO_CONNECTOME.md").read_text(encoding="utf-8")

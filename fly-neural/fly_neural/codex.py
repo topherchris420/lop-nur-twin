@@ -107,9 +107,15 @@ DATASETS: dict[str, Dataset] = {
         pinned_sources=(),
         terms=None,
         note=(
-            "Not yet pinned: no file, hash, licence or citation for v888 is recorded in this repository. "
-            "A person downloads the tables from Codex, accepts its terms there, and pins them with "
+            "Pinned by the operator on 2026-10-31 (neurons.csv.gz and connections_princeton.csv.gz, CC BY 4.0); "
+            "that pin's sizes, hashes, terms and citation were reviewed into fly_neural/banc.py (REVIEWED), and the "
+            "simulation reads only those bytes. This reference layer reads whatever is pinned: a person downloads "
+            "the tables from Codex, accepts its terms there, and pins them with "
             "`python -m fly_neural codex pin banc-v888 ...`, quoting the terms and the citation Codex gives."
+        ),
+        cite=(
+            "Bates et al. 2026, Distributed control circuits across a brain-and-cord connectome, Nature, doi:10.1038/s41586-026-10735-w",
+            "BANC v888, Harvard Dataverse, doi:10.7910/DVN/7WTH1N",
         ),
     ),
 }

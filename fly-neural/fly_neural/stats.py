@@ -53,6 +53,18 @@ def mann_whitney(a, b, alternative: str = "two-sided") -> dict:
     return {"u": float(u1), "p": float(p), "alternative": alternative}
 
 
+def sign_test(a, b) -> dict:
+    """One-sided exact sign test that paired values a exceed b: trials where they tie are left out,
+    and ``p`` is the chance of at least as many a > b among the rest if each were a fair coin."""
+    a = np.asarray(a, dtype=np.float64)
+    b = np.asarray(b, dtype=np.float64)
+    if a.shape != b.shape:
+        raise ValueError("a sign test pairs equal-length samples")
+    k, m = int((a > b).sum()), int((a != b).sum())
+    p = sum(math.comb(m, i) for i in range(k, m + 1)) / 2**m if m else 1.0
+    return {"a_greater": k, "b_greater": m - k, "ties": int(a.size - m), "p": float(p), "alternative": "greater"}
+
+
 def wilson(k: int, n: int, z: float = 1.959963984540054) -> tuple[float, float]:
     if n == 0:
         return (0.0, 1.0)

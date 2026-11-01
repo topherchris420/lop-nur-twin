@@ -188,3 +188,14 @@ lists neuron root ids that Shiu et al.'s `figures.ipynb` names (MIT).
 `model.py` on synthetic networks and contains no FlyWire data. The results in
 `docs/benchmarks/fly-neural/` are model outputs derived from FlyWire data and
 carry its terms (`docs/benchmarks/fly-neural/LICENSE.md`).
+
+No BANC data are included either. BANC v888 (the brain and ventral nerve
+cord connectome) is read only from two tables a person downloads from FlyWire
+Codex and pins by SHA-256 outside the repository; `fly-neural/fly_neural/banc.py`
+records the reviewed hashes and accepts no other bytes. BANC data are CC BY 4.0
+(BANC project; Harvard Dataverse, https://doi.org/10.7910/DVN/7WTH1N): cite
+Bates AS, et al. Distributed control circuits across a brain-and-cord
+connectome. Nature (2026), https://doi.org/10.1038/s41586-026-10735-w, and the
+Dataverse deposit. The results in `docs/benchmarks/fly-neural/banc/` are model
+outputs derived from BANC data and carry its terms
+(`docs/benchmarks/fly-neural/banc/LICENSE.md`).
