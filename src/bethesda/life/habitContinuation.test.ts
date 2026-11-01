@@ -74,15 +74,23 @@ describe("original ECHO, additive habit continuation", () => {
   it("only changes bounded walking pace, and learns from subsequent actual position", () => {
     const h = new ExperientialHabits();
     let x = 0;
-    const command: MotorCommand = { mode: "walk", reason: "the original decides", walkSpeed: 2 };
+    const command: MotorCommand = {
+      mode: "walk",
+      reason: "the original decides",
+      walkSpeed: 2,
+    };
     const sample = (t: number, airflow: number, mode: "walk" | "rest" = "walk") => {
       const body = {
-        t, p: [x, 0, 0], reserve: 0.7,
-        mode, edge: false, onFood: null,
+        t,
+        p: [x, 0, 0],
+        reserve: 0.7,
+        mode,
+        edge: false,
+        onFood: null,
       } as BodySnapshot;
       const input = { body, frame: { looming: null, airflow } } as DecisionInput;
       const out = h.decide(input, command);
-      if (mode === "walk") x += (out.walkSpeed ?? 0) / 100 * 0.1;
+      if (mode === "walk") x += ((out.walkSpeed ?? 0) / 100) * 0.1;
       return out;
     };
     for (let i = 0; i < 24; i++) {
@@ -97,7 +105,16 @@ describe("original ECHO, additive habit continuation", () => {
     expect(h.state.experiences).toBeGreaterThan(0);
     expect(h.state.adjustments).toBeGreaterThan(0);
     const escape: MotorCommand = { mode: "escape", reason: "giant fiber" };
-    const body = { t: 3, p: [x, 0, 0], reserve: 0.7, mode: "walk", edge: false, onFood: null } as BodySnapshot;
-    expect(h.decide({ body, frame: { looming: null, airflow: 0 } } as DecisionInput, escape)).toBe(escape);
+    const body = {
+      t: 3,
+      p: [x, 0, 0],
+      reserve: 0.7,
+      mode: "walk",
+      edge: false,
+      onFood: null,
+    } as BodySnapshot;
+    expect(
+      h.decide({ body, frame: { looming: null, airflow: 0 } } as DecisionInput, escape),
+    ).toBe(escape);
   });
 });
