@@ -8,11 +8,21 @@
  */
 import { sha256, sha256Json } from "../../rain/sha256.js";
 import type { AdapterStreams, DecisionInput, MotorCommand } from "../fly/neural.js";
-import { checkpointErrors, sameVersions, type LifeCheckpoint, type LifeKind } from "./continuity.js";
+import {
+  checkpointErrors,
+  sameVersions,
+  type LifeCheckpoint,
+  type LifeKind,
+} from "./continuity.js";
 import { Graph } from "./echoUpgrade.js";
 import { ExperientialHabits, HABIT_VERSION } from "./experientialHabits.js";
 import { BETHESDA_LIFE, type HeadlessGenesis } from "./headless.js";
-import { ORGANISM_ADAPTER_PATH as ADAPTER, ORGANISM_LIFE, OrganismAdapter, OrganismLife } from "./organism.js";
+import {
+  ORGANISM_ADAPTER_PATH as ADAPTER,
+  ORGANISM_LIFE,
+  OrganismAdapter,
+  OrganismLife,
+} from "./organism.js";
 import { GRAPH_SCHEMA, type GraphSnapshot } from "./snapshot.js";
 
 export const HABIT_CONTINUATION = "bethesda-echo-habit-continuation/v1";
@@ -48,7 +58,8 @@ export class HabitOrganismLife extends OrganismLife {
 
   get adaptive(): HabitOrganismAdapter {
     const o = this.organism;
-    if (!(o instanceof HabitOrganismAdapter)) throw new Error("expected the continued ECHO habit adapter");
+    if (!(o instanceof HabitOrganismAdapter))
+      throw new Error("expected the continued ECHO habit adapter");
     return o;
   }
 
@@ -64,7 +75,10 @@ export class HabitOrganismLife extends OrganismLife {
 /** Reverse ONLY the declared addition, then compare exactly to the old graph. */
 export function habitProjection(graph: GraphSnapshot): string {
   const g = new Graph(graph);
-  if (g.object([]).c !== "HabitOrganismLife" || g.object(ADAPTER).c !== "HabitOrganismAdapter")
+  if (
+    g.object([]).c !== "HabitOrganismLife" ||
+    g.object(ADAPTER).c !== "HabitOrganismAdapter"
+  )
     throw new Error("not an ECHO habit continuation graph");
   g.object([]).c = "OrganismLife";
   g.object(ADAPTER).c = "OrganismAdapter";
@@ -78,15 +92,15 @@ export const HABIT_LIFE: LifeKind<HeadlessGenesis, HabitOrganismLife> = {
   build: (genesis) => new HabitOrganismLife(genesis.config),
   step: (life, ticks) => ORGANISM_LIFE.step(life, ticks),
   tick: (life) => life.city.tick,
-  hash: (life) =>
-    `${ORGANISM_LIFE.hash(life)}|${sha256Json(life.adaptive.habits.state)}`,
+  hash: (life) => `${ORGANISM_LIFE.hash(life)}|${sha256Json(life.adaptive.habits.state)}`,
   history: {
     versions: [...ORGANISM_LIFE.history!.versions, ORGANISM_LIFE.versions],
     transition(previous, next) {
       const isNext = next.versions.habits === HABIT_VERSION;
       const wasPrevious = previous?.versions.habits === HABIT_VERSION;
       if (!isNext) {
-        if (wasPrevious) return ["an ECHO habit continuation cannot be reversed or erased"];
+        if (wasPrevious)
+          return ["an ECHO habit continuation cannot be reversed or erased"];
         if (next.events.some((e) => e.kind === HABIT_EVENT))
           return ["only the habit life may record a habit continuation"];
         return ORGANISM_LIFE.history!.transition(previous, next);
@@ -101,15 +115,21 @@ export const HABIT_LIFE: LifeKind<HeadlessGenesis, HabitOrganismLife> = {
       }
       if (!sameVersions(previous.versions, exactSource))
         return ["only the actual organism era can continue to the habit era"];
-      const events = next.events.filter((e) =>
-        e.kind === HABIT_EVENT ||
-        e.kind === "engine-upgrade" ||
-        e.kind === "self-model-upgrade" ||
-        e.kind === "organism-continuation",
+      const events = next.events.filter(
+        (e) =>
+          e.kind === HABIT_EVENT ||
+          e.kind === "engine-upgrade" ||
+          e.kind === "self-model-upgrade" ||
+          e.kind === "organism-continuation",
       );
       const e = events[0];
-      if (events.length !== 1 || !e || e.kind !== HABIT_EVENT ||
-          next.tick !== previous.tick || e.tick !== previous.tick)
+      if (
+        events.length !== 1 ||
+        !e ||
+        e.kind !== HABIT_EVENT ||
+        next.tick !== previous.tick ||
+        e.tick !== previous.tick
+      )
         return ["continuation requires exactly one habit event at an unchanged tick"];
       const d = e.data;
       if (
