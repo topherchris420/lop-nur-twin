@@ -132,7 +132,8 @@ The 2026-11 held-out set ([calibration](DIGITAL_FLY.md#calibration-against-real-
 is a first step: published summaries from nine papers, sealed with predeclared
 metrics before circuit-informed/v2 was scored, with each of v2's mechanisms
 ablated. It compares summaries, not trajectories, and its roles are per
-controller.
+controller. v2 passed the declared rule on a narrow base (one paper, one
+mechanism), and the walking bout durations it misses are still open.
 
 Select independently recorded, appropriately licensed datasets covering
 walking and turning, takeoff, flight and landing, looming responses,

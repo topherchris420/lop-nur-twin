@@ -848,6 +848,21 @@ source digests, and the order of work. Its paradigms
 reduced-order and v1 controllers only. Every held-out observation is held out
 for every controller.
 
+v2 passed the seal's rule, on a narrow base
+([report](benchmarks/fly-calibration/README.md)). It is within the flies' spread
+on 4 of the 6 observations with an interval, against 2 of 6 for v1 and the
+reduced-order controller, and its median relative error on the other ten is
+0.30 against 0.56. Both rows it gains come from one paper (Ferreira & Moita
+2020) and one mechanism: without defence, v2 is back to 2 of 6. That paper
+shares its senior author with Zacarias et al. 2018, the source of v2's freezing
+fit targets, and no controller is inside a published interval on any row.
+
+v2 still misses freezing in Barrios et al. (0.78 against 0.97) and flight speed
+in Maya et al. (0.24 against 0.10 m/s). It is further than v1 from Jung et al.'s
+stop and run durations (medians 0.10 s against 0.67 s, and 0.73 s against
+4.81 s): its time spent moving and its speeds are closer, in bouts far too
+short. The set is spent, so a change made from these rows needs a new one.
+
 `node scripts/run-ts.mjs scripts/fly-calibration.ts` runs every paradigm on
 the three controllers and on v2's five ablations, and writes
 `docs/benchmarks/fly-calibration/` (the report, and its README with every row,
