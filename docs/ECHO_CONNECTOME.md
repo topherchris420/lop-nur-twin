@@ -28,22 +28,30 @@ statistically.
 - **Plasticity:** a dopamine-gated learning rule on the real mushroom-body
   circuit depresses synapses, but for both odours alike, so it does not
   learn the association. This holds on development and held-out seeds alike.
+- **Brain and cord (BANC v888):** a second, separate connectome that
+  includes the ventral nerve cord, and research flies can run on it
+  (`brain-and-cord/v3`). Two pre-registered files pass 4 of 10 criteria at
+  Shiu et al.'s weight per synapse, and 9 of 10 with the weight scaled to
+  BANC's synapse density, on development and held-out seeds alike. In the
+  scaled file activity is broad and the shuffle control fails; both are
+  reported with it.
 
 ## Status at a glance
 
-| Part                                            | Status                                                                                                                                                      |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Full-brain **import**                           | **Done.** All of v783: 139,255 neurons, 15,091,983 pairs, 54,492,922 synapses. Checked, compiled, and identical to Shiu et al.'s table on every pair        |
-| Full-brain **execution**                        | **Done**, on one CPU thread: 1.30 s per simulated second, 233 MB. It matches Brian 2 running the authors' code (MN9 62.1 vs 62.5 Hz; per-neuron r = 0.9998) |
-| Sparse graph validation and scaling             | **Done.** The structure is revalidated and the hashes reverified on load. Synthetic graphs were run up to v783's size                                       |
-| Shiu et al. 2024 reproduction                   | **10 of 12 criteria pass**, on dev and on held-out seeds. Water (S6) and our sign-shuffle control (C3) fail on both                                         |
-| Ablations                                       | Weight shuffle, degree-preserving rewiring and a random graph each abolish MN9 activation. The sign shuffle instead causes runaway excitation               |
-| Sensory mapping (sensable observations only)    | **Done**, with every rate constant ours                                                                                                                     |
-| ECHO Neural Shadow: `baseline`, `neural-shadow` | **Run** on three research subjects. Wind: null. Food: partial (28%, limited by the readout window). Looms: negative (194 false alarms)                      |
-| ECHO Neural Shadow: `neural-experimental`       | **Implemented and tested with a stand-in readout only.** Not run live with the connectome model                                                             |
-| Plasticity comparison                           | **Negative.** The rule depresses synapses but not selectively, and P1–P3 fail on dev (and on held-out seeds)                                                |
-| Benchmarks                                      | **Done**, on this laptop only. No GPU or cloud compute                                                                                                      |
-| The original fly                                | **Untouched.** Nothing runs on, reads from or writes to it or its VM                                                                                        |
+| Part                                            | Status                                                                                                                                                                                                            |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full-brain **import**                           | **Done.** All of v783: 139,255 neurons, 15,091,983 pairs, 54,492,922 synapses. Checked, compiled, and identical to Shiu et al.'s table on every pair                                                              |
+| Full-brain **execution**                        | **Done**, on one CPU thread: 1.30 s per simulated second, 233 MB. It matches Brian 2 running the authors' code (MN9 62.1 vs 62.5 Hz; per-neuron r = 0.9998)                                                       |
+| Sparse graph validation and scaling             | **Done.** The structure is revalidated and the hashes reverified on load. Synthetic graphs were run up to v783's size                                                                                             |
+| Shiu et al. 2024 reproduction                   | **10 of 12 criteria pass**, on dev and on held-out seeds. Water (S6) and our sign-shuffle control (C3) fail on both                                                                                               |
+| Ablations                                       | Weight shuffle, degree-preserving rewiring and a random graph each abolish MN9 activation. The sign shuffle instead causes runaway excitation                                                                     |
+| Sensory mapping (sensable observations only)    | **Done**, with every rate constant ours                                                                                                                                                                           |
+| ECHO Neural Shadow: `baseline`, `neural-shadow` | **Run** on three research subjects. Wind: null. Food: partial (28%, limited by the readout window). Looms: negative (194 false alarms)                                                                            |
+| ECHO Neural Shadow: `neural-experimental`       | **Implemented and tested with a stand-in readout only.** Not run live with the connectome model                                                                                                                   |
+| Plasticity comparison                           | **Negative.** The rule depresses synapses but not selectively, and P1–P3 fail on dev (and on held-out seeds)                                                                                                      |
+| BANC v888, brain and cord                       | **Imported** (158,262 neurons, 23,556,214 synapses) and run by research subjects as `brain-and-cord/v3`. Dev and held-out alike: 4/10 at the published w_syn; 9/10 with w_syn scaled to BANC's density (B2 fails) |
+| Benchmarks                                      | **Done**, on this laptop only. No GPU or cloud compute                                                                                                                                                            |
+| The original fly                                | **Untouched.** Nothing runs on, reads from or writes to it or its VM                                                                                                                                              |
 
 ## What this is, and what it is not
 
@@ -559,6 +567,160 @@ model leaves out, though neither was tested here:
 - The model has no neuromodulation to separate a reward signal from odour
   drive onto the PAM neurons.
 
+## Brain and cord: BANC v888
+
+FAFB v783 is a brain, so a v783 research fly's output stops at its
+descending neurons. Its feet also taste through a labellar stand-in,
+because the legs' taste neurons and every motor neuron of the legs and wings
+are in the ventral nerve cord, which FAFB leaves out. BANC v888 (Bates et
+al. 2026) is another female fly's whole central nervous system, brain and
+cord in one graph. It is now a second connectome for the same model, kept
+apart from the first:
+
+- populations name their dataset, and `resolve` refuses another dataset's
+  connectome;
+- `Mapper` refuses a mapping on the wrong animal before anything runs;
+- BANC results live in `docs/benchmarks/fly-neural/banc/` under BANC's
+  terms (CC BY 4.0), never beside the FlyWire results.
+
+### Import
+
+`python -m fly_neural import --dataset banc-v888` takes 2.4 s. It reads only
+the operator's Codex pin of 2026-10-31, whose hashes, terms and citation
+are reviewed into `fly_neural/banc.py`; any other bytes are refused.
+
+- **The graph:** 158,262 neurons, 3,037,361 connected pairs and 23,556,214
+  synapses, from 3,990,039 rows (one per pair and neuropil). It has no
+  nulls, unknown ids, repeated rows or autapses.
+- **Weaker inputs are missing.** Codex's table lists only pairs of 3 or
+  more synapses. A BANC neuron here has 148.8 synapses on average; a FAFB
+  v783 neuron has 391.3, counting every pair.
+- **Signs.** BANC's connection rows carry no transmitter, so each neuron's
+  predicted transmitter in the neuron table signs all its outputs.
+  - 52,680 neurons are inhibitory (GABA 20,604, glutamate 24,382,
+    histamine 7,694), and they carry 43% of the synapses. Histamine gates
+    chloride channels in the fly (Ort, HisCl1).
+  - Tyramine (209 neurons) is excitatory, as Shiu et al. treat the other
+    modulators. This is an assumption.
+  - 8,780 neurons have no prediction and get +1. The 1,409 of them with
+    outputs carry 7,855 synapses (0.03%).
+  - 16,511 predictions have confidence below 0.5. They are counted and
+    used.
+
+### Mapping `brain-and-cord/v3`
+
+v3 is v2's channels and rules, applied to BANC's own neurons (each `banc_*`
+population is a rule over BANC's annotations, citing Bates et al. 2026 and
+the paper that identified the cell type), with two additions:
+
+| Change                   | Neurons (BANC annotation)                                                                     | Rule                                                                                                                                                |
+| ------------------------ | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Food contact** (sense) | the sugar GRNs of all six legs, 294 (167 left, 127 right; Wang et al. 2004; Dethier 1976)     | 100 Hz while on food. Which legs touch the food is not sensed, so every leg's GRNs are driven together. v1 and v2 drive labellar GRNs as a stand-in |
+| **jump** (readout)       | TTMn, the jump motor neuron (King & Wyman 1980)                                               | any spike in the trailing 100 ms; **reported, decides nothing**. The giant fiber's escape command still decides                                     |
+| **motor** (readout)      | leg motor neurons by leg and side (139 front, 126 middle, 126 hind); wing power motor neurons | each population's rate over the trailing 100 ms; **reported, decides nothing**                                                                      |
+
+`serve` runs v3 only with `--connectome banc-v888-predicted-nt`, and the
+ready line names the dataset. The model runs v3 at 3 to 5 s of wall time per
+simulated second on this laptop: 29 ms per 10 ms step in a smoke test, and
+146 to 163 s for each fly's 33 s in the first-contact demo
+([FIRST_CONTACT.md](FIRST_CONTACT.md#with-a-nerve-cord---mapping-brain-and-cordv3)).
+That is two to three times faster than v2 on FAFB, because the thinner graph
+is quieter.
+
+### The pre-registered test: does the model's sensorimotor pathway leave the brain?
+
+`fly-neural/experiments/banc-cord-v888.json` (10 criteria, 30 trials of
+1 s, Shiu et al.'s parameters unchanged) was written before any simulation
+on BANC. It asks whether pathways the model shows in FAFB carry on into the
+cord, and whether the cord adds the legs' taste route to the proboscis.
+
+**4 of 10 pass, on development and on held-out seeds.** The development
+seeds (2026103) ran on a working tree; the held-out seeds (8880001) ran
+once, from the clean commit 4e44d26
+([`banc-cord-v888-heldout.json`](benchmarks/fly-neural/banc/banc-cord-v888-heldout.json)).
+
+| Criterion                                                    | Dev seeds                                                | Held-out seeds                            |
+| ------------------------------------------------------------ | -------------------------------------------------------- | ----------------------------------------- |
+| B1 Sugar on the legs drives the proboscis motor neuron MN9   | **fail:** 0 of 30 trials                                 | **fail:** 0 of 30                         |
+| B2 A weight shuffle abolishes it                             | pass, but **vacuous**: MN9 never fired unshuffled        | pass, but **vacuous**, as on dev          |
+| B3 Labellar sugar drives MN9 (Shiu et al.'s result, in BANC) | **fail:** 0 of 30                                        | **fail:** 0 of 30                         |
+| B4 Bitter inhibits sugar-evoked MN9                          | **fail:** nothing to inhibit (0 vs 0 Hz)                 | **fail:** 0 vs 0 Hz                       |
+| B5 The giant fiber drives TTMn                               | **fail:** 0 of 30, with the giant fiber driven at 200 Hz | **fail:** 0 of 30                         |
+| B6 The giant fiber drives the DLM wing power motor neurons   | **fail:** 0 of 30                                        | **fail:** 0 of 30                         |
+| B7 Looming (LPLC2, LC4) drives the giant fiber               | **pass:** 30 of 30                                       | **pass:** 30 of 30                        |
+| B8 Looming reaches TTMn                                      | **fail:** 0 of 30                                        | **fail:** 0 of 30                         |
+| B9 aDN (antennal grooming) drives front-leg motor neurons    | **pass:** 30 of 30                                       | **pass:** 30 of 30                        |
+| B10 … more than the hind legs, per neuron                    | **pass:** 4.1 vs 0.07 Hz, sign test p = 9.3 × 10⁻¹⁰      | **pass:** 4.2 vs 0.07 Hz, p = 9.3 × 10⁻¹⁰ |
+
+What the runs show, and what they do not (figures from dev; held-out is
+within a few percent):
+
+- **A descending command crosses into the cord.** The grooming descending
+  neurons drive the front legs' motor neurons, and far more than the hind
+  legs'. The looming detectors drive the giant fiber in a second animal.
+- **Shiu et al.'s headline does not carry over unrefitted.** Even labellar
+  sugar never moves MN9. The sugar neurons are two synapses from MN9 in
+  both connectomes. But BANC's MN9s receive 1,913 and 2,437 synapses from 66
+  and 103 partners, while FAFB's surviving MN9 receives 5,579 from 227. A
+  weight per synapse set by hand for FAFB may simply be too weak here. This
+  run does not establish why.
+- **The jump pathway is electrical, and the model has no gap junctions.**
+  The giant fiber drives TTMn and PSI mainly through electrical synapses
+  (King & Wyman 1980). BANC has only 13 chemical synapses from the giant
+  fiber onto TTMn, out of TTMn's 2,343 inputs, and 15 onto PSI. B5, B6 and
+  B8 test something this model cannot carry, and their failure says so.
+- Outside the criteria: leg sugar drives the middle and hind legs' motor
+  neurons (54 and 26 Hz summed), and looming drives the DLMs (19 Hz) and
+  the front and middle legs through routes other than the giant fiber.
+
+### A second file: the weight per synapse, scaled to BANC's density
+
+Shiu et al. set the weight per synapse, w_syn, by hand (0.275 mV) for
+FAFB. After the dev run above, and before any run of its own,
+`fly-neural/experiments/banc-cord-v888-calibrated.json` was written. It
+keeps every condition, seed, readout and criterion, and fixes w_syn by one
+structural rule. The rule scales 0.275 mV by FAFB's synapses per neuron over
+BANC's (391.3 / 148.8), which gives 0.723 mV, so that a BANC neuron gets the
+same mean synaptic drive as in Shiu et al.'s network. No other value was
+tried. Its SHA-256 (`f9e62500…`) was recorded before its first run.
+
+**9 of 10 pass, and B2 fails, on development and on held-out seeds.** The
+development seeds ran on a working tree; the held-out seeds ran once, from
+the clean commit 4e44d26
+([`banc-cord-v888-calibrated-heldout.json`](benchmarks/fly-neural/banc/banc-cord-v888-calibrated-heldout.json)).
+Each pair of figures below is dev, then held-out.
+
+- **Sugar reaches MN9.** Labellar sugar moves MN9 in 30 of 30 trials on
+  both (41 and 39 Hz summed over BANC's two MN9s), and leg sugar in 27 and
+  28 of 30 (6.4 Hz on both). Bitter cuts the labellar response to 1.7 and
+  1.5 Hz (one-sided Mann-Whitney p = 1.2 × 10⁻¹¹ on both).
+- **The cord's reflexes carry, without gap junctions.** Giant-fiber drive
+  moves TTMn (30 of 30 on both; 24 and 21 Hz) and the DLMs (79 and 73 Hz)
+  through chemical synapses alone. Looming reaches TTMn (98 and 97 Hz). aDN
+  drives the front legs at 17.9 and 18.0 Hz per neuron, against 2.8 and
+  2.7 Hz for the hind legs.
+- **B2 fails, and it matters.** With the weights shuffled, the network runs
+  away: 66,715 and 68,217 neurons respond, and MN9 fires in 25 of 30 trials
+  on both. In this file, the shuffle control no longer separates sugar's
+  route to MN9 from excitation in general.
+- **The activity is broad.** Every unshuffled condition except direct
+  giant-fiber drive recruits 8,300 to 9,600 neurons on both seed sets; at
+  Shiu et al.'s weight the same conditions recruited 95 to 478. MN9 also
+  fires when aDN, not taste, is driven (17.6 and 18.0 Hz). The passes show
+  that these pathways exist in BANC and carry activity at this weight. They
+  do not show that this weight's regime is the fly's.
+- It costs more: up to 15.5 minutes for a condition's 30 trials on dev,
+  where the unscaled file needed at most 1.2. On held-out seeds the shuffle
+  condition took 56 minutes, while another process on the machine competed
+  for the CPU.
+
+The two files bracket the problem. At the published weight, BANC's taste
+pathway stays silent; at the weight scaled to its density, the whole graph
+becomes excitable. Each file's held-out seeds ran once, from the clean
+commit 4e44d26, and gave its development result again. `serve`, and so
+every v3 research subject, uses the published weight; the scaled one is for
+this test only.
+
 ## Cost on this machine
 
 `python -m fly_neural bench` times the full brain on Shiu et al.'s sugar
@@ -608,10 +770,13 @@ laptop. Nothing was provisioned and nothing ran on paid compute.
 - One leaky integrate-and-fire unit per neuron with shared parameters.
 - Two signs, set by a predicted transmitter.
 - Synaptic weight proportional to synapse count.
-- No neuromodulation, gap junctions, dendrites, adaptation, short-term
-  plasticity or ventral nerve cord.
-- The central brain only: sensory input arrives as Poisson spikes on chosen
-  neurons, and motor output is read from a few neurons.
+- No neuromodulation, gap junctions, dendrites, adaptation or short-term
+  plasticity.
+- On FAFB v783, the central brain only: sensory input arrives as Poisson
+  spikes on chosen neurons, and motor output is read from a few neurons. On
+  BANC v888 the cord's motor neurons are in the graph, but only its chemical
+  synapses of 3 or more per pair, so the giant fiber's electrical drive of
+  the jump muscle is missing.
 
 **Of the populations:**
 
@@ -667,6 +832,17 @@ neurons stand in for others:
   between odours, so this is measured, not assumed.
 - The learning rule and its constants are ours, chosen from the literature,
   not fitted.
+
+**Of BANC v888:**
+
+- It is another animal, so no BANC result confirms or refutes a FAFB one.
+  The two are never pooled.
+- Its signs come from per-neuron transmitter predictions, with tyramine
+  assumed excitatory and 8,780 uncalled neurons set to +1.
+- Shiu et al. chose the weight per synapse by hand for FAFB.
+  `banc-cord-v888.json` keeps it, and `banc-cord-v888-calibrated.json`
+  scales it by one structural ratio chosen before running it. Neither file
+  is a fit.
 
 **Of the hardware:**
 
@@ -810,6 +986,10 @@ python -m pytest -q
 - Rayshubskiy A, et al. Neural circuit mechanisms for steering control in walking _Drosophila_. _eLife_ 102230; bioRxiv doi:10.1101/2020.04.04.024703 (DNa02)
 - Hampel S, et al. A neural command circuit for grooming movement control. _eLife_ 4, e08758 (2015). doi:10.7554/eLife.08758 (aDN)
 - Ache JM, et al. State-dependent decoupling of sensory and motor circuits underlies behavioral flexibility in _Drosophila_. _Nature Neuroscience_ 22, 1132–1139 (2019). doi:10.1038/s41593-019-0413-4 (DNp07, DNp10)
+- Bates AS, et al. Distributed control circuits across a brain-and-cord connectome. _Nature_ (2026). doi:10.1038/s41586-026-10735-w; data: BANC v888, Harvard Dataverse, doi:10.7910/DVN/7WTH1N (CC BY 4.0)
+- Wang Z, et al. Taste representations in the _Drosophila_ brain. _Cell_ 117, 981–991 (2004). doi:10.1016/j.cell.2004.06.011 (the legs' sugar GRNs)
+- Dethier VG. _The Hungry Fly._ Harvard University Press (1976)
+- King DG, Wyman RJ. Anatomy of the giant fibre pathway in _Drosophila_. I. Three thoracic components of the pathway. _Journal of Neurocytology_ 9, 753–770 (1980). doi:10.1007/BF01205017
 - Keleş MF, Frye MA. Object-detecting neurons in _Drosophila_. _Current Biology_ 27, 680–687 (2017). doi:10.1016/j.cub.2017.01.012 (LC11)
 - Ribeiro IMA, et al. Visual projection neurons mediating directed courtship in _Drosophila_. _Cell_ 174, 607–621 (2018). doi:10.1016/j.cell.2018.06.020 (LC10)
 - Further citations for each population and parameter are in `fly-neural/fly_neural/populations.py` and `params.py`, each checked against Crossref.

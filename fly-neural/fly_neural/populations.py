@@ -27,6 +27,12 @@ the 20 surviving ids Shiu et al. used as "sugar", the annotation now calls 9
 ``sugar``. The ``*_shiu`` populations reproduce the paper; the ``*_grn_*``
 selections follow the current annotation.
 
+A third kind, kept apart from both: **BANC v888 selections** (keys
+``banc_*``), rules over the BANC neuron table (``banc.py``), the brain and
+ventral nerve cord of another fly. Each population names its dataset, and
+``resolve`` refuses a population on another dataset's connectome: a FAFB root
+id or annotation never selects a BANC neuron, or the reverse.
+
 Root ids are identifiers of public neurons, listed so experiments can be
 reproduced; no connectivity or annotation data is stored here.
 """
@@ -63,6 +69,10 @@ CITE = {
     "ache2019nn": "Ache et al. 2019, Nat Neurosci 22:1132-1139, doi:10.1038/s41593-019-0413-4 (DNp07 and DNp10 drive landing; their visual responses are gated by flight)",
     "keles2017": "Keles & Frye 2017, Curr Biol 27:680-687, doi:10.1016/j.cub.2017.01.012 (LC11 responds to small moving objects, not to wide-field motion)",
     "ribeiro2018": "Ribeiro et al. 2018, Cell 174:607-621, doi:10.1016/j.cell.2018.06.020 (LC10 prefers small moving objects; shown for male courtship)",
+    "bates2026": "Bates et al. 2026, Nature, doi:10.1038/s41586-026-10735-w (BANC: the brain-and-cord connectome and its cell typing); data CC BY 4.0, Harvard Dataverse doi:10.7910/DVN/7WTH1N",
+    "wang2004": "Wang et al. 2004, Cell 117:981-991, doi:10.1016/j.cell.2004.06.011 (Gr5a sugar neurons of the legs project to the thoracic ganglia)",
+    "dethier1976": "Dethier 1976, The Hungry Fly, Harvard University Press (sugar on the tarsi elicits proboscis extension)",
+    "kingwyman1980": "King & Wyman 1980, J Neurocytol 9:753-770, doi:10.1007/BF01205017 (the giant fiber pathway: GF to TTMn, and GF to PSI to the DLM motor neurons)",
 }
 
 
@@ -76,6 +86,8 @@ class Population:
     published_for: str | None = None
     select: dict = field(default_factory=dict)
     note: str = ""
+    #: Whose neurons the population is selected from; ``resolve`` refuses any other dataset's connectome.
+    dataset: str = "fafb-v783"
 
 
 def _ids(text: str) -> tuple[int, ...]:
@@ -195,6 +207,66 @@ _add(Population("kenyon_cells", "Kenyon cells", "interneuron", ("aso2014", "schl
 _add(Population("mbons", "mushroom body output neurons", "interneuron", ("aso2014",), select={"cell_class": ["MBON"]}))
 _add(Population("pam_dans", "PAM dopaminergic neurons", "interneuron", ("aso2014",), select={"cell_class": ["DAN"], "cell_type_prefix": ["PAM"]}))
 
+# BANC v888 (brain and ventral nerve cord, another animal): rules over its own neuron table (banc.py).
+# Cell types are BANC's ``Primary Cell Type``; side is its ``Soma side``. Every one cites BANC's typing
+# (bates2026) and the paper that identified the cell type's role.
+BANC = "banc-v888"
+LEGS = ("front", "middle", "hind")
+BANC_SELECTIONS: dict[str, tuple[str, str, tuple[str, ...], dict, str]] = {
+    # key: (label, role, cite, rule, note)
+    "lplc2": ("LPLC2 looming-sensitive visual projection neurons", "sensory", ("klapoetke2017", "ache2019"), {"cell_type": ["LPLC2"]}, ""),
+    "lc4": ("LC4 visual projection neurons", "sensory", ("vonreyn2017", "ache2019"), {"cell_type": ["LC4"]}, ""),
+    "jo_wind": (
+        "Johnston's organ C and E neurons",
+        "sensory",
+        ("yorozu2009", "kamikouchi2009"),
+        {"cell_sub_class": ["johnstons_organ_C_neuron", "johnstons_organ_E_neuron"]},
+        "BANC labels JO-C 'direction' and JO-E 'position'; FAFB's wind_gravity selection is the same two subgroups",
+    ),
+    "orn_vinegar": ("ORNs of the DM1 and VA2 glomeruli", "sensory", ("semmelhack2009",), {"cell_type": ["ORN_DM1", "ORN_VA2"]}, ""),
+    "lc11": ("LC11 small-object visual projection neurons", "sensory", ("keles2017",), {"cell_type": ["LC11"]}, ""),
+    "lc10a": ("LC10a small-object visual projection neurons", "sensory", ("ribeiro2018",), {"cell_type": ["LC10a"]}, "LC10's role was shown in males; BANC is a female's"),
+    "tarsal_sugar": (
+        "sugar gustatory receptor neurons of the legs (tarsi)",
+        "sensory",
+        ("wang2004", "dethier1976"),
+        {"body_part": ["front_leg", "middle_leg", "hind_leg"], "function_has": ["gustatory", "sugar"]},
+        "the neurons the fly tastes food with when it stands on it; they enter the ventral nerve cord, which FAFB lacks",
+    ),
+    "labellar_sugar": ("labellar sugar gustatory receptor neurons", "sensory", ("shiu2024",), {"body_part": ["labellum"], "function_has": ["gustatory", "sugar"]}, ""),
+    "labellar_bitter": ("labellar bitter gustatory receptor neurons", "sensory", ("shiu2024",), {"body_part": ["labellum"], "function_has": ["gustatory", "bitter"]}, ""),
+    "giant_fiber": ("giant fiber descending neuron DNp01", "descending", ("vonreyn2014", "kingwyman1980"), {"cell_type": ["DNp01"]}, ""),
+    "dnp09": ("DNp09 (P9) forward-walking descending neuron", "descending", ("bidaye2020",), {"cell_type": ["DNp09"]}, ""),
+    "mdn": ("MDN backward-walking descending neurons", "descending", ("bidaye2014",), {"cell_type": ["MDN"]}, "BANC's alternative types: DNp50, MDN, moonwalker descending neuron"),
+    "dna02": ("DNa02 steering descending neuron", "descending", ("rayshubskiy2020",), {"cell_type": ["DNa02"]}, ""),
+    "adn": (
+        "aDN1 and aDN2 antennal-grooming descending neurons",
+        "descending",
+        ("hampel2015",),
+        {"cell_type": ["DNg62"]},
+        "BANC types both as DNg62 (alternative types aDN1, and DNge078/aDN2)",
+    ),
+    "dn_landing": ("DNp07 and DNp10 landing descending neurons", "descending", ("ache2019nn",), {"cell_type": ["DNp07", "DNp10"]}, ""),
+    "mn9": ("MN9 proboscis motor neuron", "motor", ("gordon2009", "shiu2024"), {"cell_type": ["MN9"]}, ""),
+    "ttmn": (
+        "TTMn, the tergotrochanteral (jump) motor neuron",
+        "motor",
+        ("kingwyman1980", "vonreyn2014"),
+        {"cell_type": ["TTMn"]},
+        "the giant fiber drives it mostly through an electrical synapse, which the model lacks",
+    ),
+    "dlm": ("DLM wing-depressor (power) motor neurons", "motor", ("kingwyman1980",), {"cell_type": ["DLM1-4"]}, ""),
+    "psi": ("PSI, the peripherally synapsing interneuron", "interneuron", ("kingwyman1980",), {"cell_type": ["PSI"]}, "BANC files it under motor; its soma side is opposite its nerve"),
+    "wing_power": ("wing power motor neurons", "motor", ("kingwyman1980",), {"cell_sub_class": ["wing_power_motor_neuron"]}, ""),
+}
+for _leg in LEGS:
+    BANC_SELECTIONS[f"leg_mn_{_leg}"] = (f"{_leg}-leg motor neurons", "motor", (), {"cell_class": ["leg_motor_neuron"], "body_part": [f"{_leg}_leg"]}, "")
+for _k, (_label, _role, _cite, _rule, _note) in BANC_SELECTIONS.items():
+    _add(Population(f"banc_{_k}", f"{_label} (BANC v888, both sides)", _role, ("bates2026", *_cite), select=dict(_rule), note=_note, dataset=BANC))
+    for side in ("left", "right"):
+        _add(Population(f"banc_{_k}_{side}", f"{_label} (BANC v888, {side})", _role, ("bates2026", *_cite), select={**_rule, "side": side}, note=_note, dataset=BANC))
+_add(Population("banc_descending_all", "every neuron BANC annotates descending", "descending", ("bates2026",), select={"super_class": ["descending"]}, dataset=BANC))
+
 
 @lru_cache(maxsize=2)
 def _annotations(path: str):
@@ -225,9 +297,47 @@ def select_ids(rule: dict, root: Path | None = None) -> np.ndarray:
     return np.sort(ann.filter(expr)["root_id"].to_numpy())
 
 
+def banc_select_ids(rule: dict, root: Path | None = None) -> np.ndarray:
+    """BANC root ids matching every entry of ``rule``: a column's accepted values, ``side``,
+    ``cell_type_prefix``, or ``function_has`` (tokens all present in the comma-separated ``Function``)."""
+    import polars as pl
+
+    from .banc import neurons
+
+    t = neurons(root)
+    expr = pl.lit(True)
+    for col, want in rule.items():
+        if col == "cell_type_prefix":
+            expr = expr & pl.any_horizontal([pl.col("cell_type").str.starts_with(w) for w in want])
+        elif col == "function_has":
+            tokens = pl.col("function").fill_null("").str.split(",")
+            for w in want:
+                expr = expr & tokens.list.contains(w)
+        elif col == "side":
+            expr = expr & (pl.col("side") == want)
+        else:
+            expr = expr & pl.col(col).is_in(list(want))
+    return np.sort(t.filter(expr)["root_id"].to_numpy())
+
+
 def resolve(key: str, c: Connectome, root: Path | None = None) -> tuple[np.ndarray, dict]:
     """Indices of a population in ``c`` and a report of how they were found."""
+    from .banc import dataset_of
+    from .connectome import ConnectomeError
+
     pop = POPULATIONS[key]
+    have = dataset_of(c)
+    if pop.dataset != have:
+        raise ConnectomeError(f"population {key} is selected from {pop.dataset}'s neurons; this connectome holds {have}'s (datasets are never pooled)")
+    if pop.dataset == BANC:
+        ids = banc_select_ids(pop.select, root)
+        present = np.array([c.has(int(x)) for x in ids], dtype=bool)
+        idx = c.index_of(ids[present]) if present.any() else np.zeros(0, dtype=np.int64)
+        report = {"kind": "annotation selection", "dataset": BANC, "rule": pop.select, "selected": int(ids.size), "in_connectome": int(present.sum())}
+        if pop.note:
+            report["note"] = pop.note
+        report.update({"key": key, "label": pop.label, "role": pop.role, "cite": [CITE[k] for k in pop.cite], "neurons": int(idx.size)})
+        return np.sort(idx), report
     if pop.ids:
         ids = np.array(pop.ids, dtype=np.int64)
         present = np.array([c.has(int(x)) for x in ids])

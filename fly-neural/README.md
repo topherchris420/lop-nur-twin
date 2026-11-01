@@ -87,16 +87,57 @@ whole-brain research subject can step inside a first-contact session
 What has been run, and what came of it, is in
 [docs/ECHO_CONNECTOME.md](../docs/ECHO_CONNECTOME.md).
 
+## Brain and cord: BANC v888 in the simulator
+
+FAFB v783 is a brain, so a v783 research fly's output stops at its
+descending neurons and its feet taste through a labellar stand-in. BANC v888
+(Bates et al. 2026) is another fly's whole central nervous system, brain and
+ventral nerve cord: leg, wing, neck and proboscis motor neurons, the legs'
+taste neurons and the ascending neurons are in the same graph.
+`fly_neural/banc.py` compiles it into the format `lif.py` runs, from the
+pinned Codex tables only (the reviewed bytes in `REVIEWED`; any other pin is
+refused):
+
+```sh
+python -m fly_neural import --dataset banc-v888          # <data>/compiled/banc-v888-predicted-nt, about 3 s
+python -m fly_neural experiment banc-cord-v888.json --split dev             # Shiu et al.'s w_syn
+python -m fly_neural experiment banc-cord-v888-calibrated.json --split dev  # w_syn scaled to BANC's synapse density
+```
+
+- **Signs** come from each neuron's predicted transmitter in the neuron
+  table (BANC's connection rows carry none). Histamine is inhibitory
+  (chloride channels), tyramine excitatory like the other modulators (an
+  assumption); 8,780 neurons have no prediction and get +1, and the 1,409 of
+  them with outputs carry 7,855 synapses (0.03%).
+- **Populations** are rules over BANC's own annotations (`banc_*` in
+  `populations.py`, both sides or one). `resolve` refuses a FAFB population
+  on a BANC connectome and the reverse: the two animals are never pooled.
+- **Synapse density.** Codex's BANC table lists pairs of 3 or more synapses,
+  and BANC's network gives a neuron 148.8 synapses on average against
+  FAFB's 391.3. `banc-cord-v888-calibrated.json` scales Shiu et al.'s
+  hand-set `w_syn` (0.275 mV) by that ratio, to 0.723 mV; it was written after
+  the unscaled file's dev run, and both are reported.
+- **Results** go to `docs/benchmarks/fly-neural/banc/`, under BANC's terms
+  (its own `LICENSE.md`, CC BY 4.0).
+
+`"mapping": "brain-and-cord/v3"` in a `serve` header (with `--connectome
+banc-v888-predicted-nt`) runs a research subject on BANC: v2's channels and
+rules on BANC's neurons, food tasted by the legs' sugar neurons, and the
+cord's motor neurons reported beside the descending readouts (`jump`, the
+TTMn jump motor neuron; `motor`, each leg's motor neurons and the wing power
+motor neurons). The motor readouts decide nothing. v1 and v2 on BANC, and v3
+on FAFB, are refused before anything runs.
+
 ## FlyWire Codex: a reference layer
 
 [Codex](https://codex.flywire.ai/) is a research explorer, and
 `fly_neural/codex.py` reads the static tables it publishes. It runs no
 dynamics. It keeps two datasets apart and never combines them:
 
-| Dataset     | What                                                           | Codex states (read 2026-10-31)         | In this repository                                                                                                    |
-| ----------- | -------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `fafb-v783` | Female adult fly brain                                         | 139,255 neurons, 3,732,460 connections | the validated baseline: the pinned Zenodo tables and annotations above (139,255 neurons, 54,492,922 synapses)         |
-| `banc-v888` | Female adult fly brain and ventral nerve cord (another animal) | 158,262 neurons, 3,037,361 connections | **not pinned**: no file, hash, licence or citation recorded; Codex's "connections" definition is not on its home page |
+| Dataset     | What                                                           | Codex states (read 2026-10-31)         | In this repository                                                                                                                                                                   |
+| ----------- | -------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `fafb-v783` | Female adult fly brain                                         | 139,255 neurons, 3,732,460 connections | the validated baseline: the pinned Zenodo tables and annotations above (139,255 neurons, 54,492,922 synapses)                                                                        |
+| `banc-v888` | Female adult fly brain and ventral nerve cord (another animal) | 158,262 neurons, 3,037,361 connections | **pinned 2026-10-31** (CC BY 4.0); the reviewed hashes, terms and citation are in `fly_neural/banc.py` (`REVIEWED`), and compiled for simulation as `banc-v888-predicted-nt` (below) |
 
 Codex asks a person to sign in and accept its terms before data can be
 downloaded, so nothing here downloads from it. Download the tables yourself
@@ -117,7 +158,7 @@ human-readable headings (`Root ID`, `Super Class`, `Primary Cell Type`,
 snake_case headings. The importer now reads both, including quoted CSV fields.
 
 Keep the originals **outside Git** in
-`$FLY_NEURAL_DATA/codex/banc-v888/`, pin *both* files and the actual accepted
+`$FLY_NEURAL_DATA/codex/banc-v888/`, pin _both_ files and the actual accepted
 terms, then run the report:
 
 ```sh
@@ -150,25 +191,26 @@ table missing a required column is refused with the columns it has.
 
 ## Layout
 
-| Path                        | What                                                                                                                            |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `fly_neural/sources.py`     | Pinned inputs: URL, size, SHA-256, terms, citations.                                                                            |
-| `fly_neural/acquire.py`     | Fetch (resumable) and verify. The only network access.                                                                          |
-| `fly_neural/importer.py`    | Chunked v783 import to CSR; null, range, duplicate, unknown-id and autapse checks; transmitter calls; three sign policies.      |
-| `fly_neural/connectome.py`  | The compiled connectome (`.npy` arrays, memory-mapped) and its sealed manifest; structural validation.                          |
-| `fly_neural/lif.py`         | The integrator: Shiu et al.'s equations, Brian 2's schedule and refractoriness, exact linear updates; checkpoints; budgets.     |
-| `fly_neural/params.py`      | Every model parameter with its status (cited, free, simulator, assumption) and source.                                          |
-| `fly_neural/populations.py` | Shiu et al.'s published ids (resolved against v783, missing ones listed) and cited annotation selections.                       |
-| `fly_neural/controls.py`    | Weight shuffle, degree-preserving rewiring, sign shuffle, random graph.                                                         |
-| `fly_neural/experiments.py` | Runs a pre-registered experiment file and judges its criteria.                                                                  |
-| `fly_neural/plasticity.py`  | The dopamine-gated KC-to-MBON rule against its controls.                                                                        |
-| `fly_neural/sensory.py`     | Sensable observations to Poisson rates; MN9 and giant-fiber readouts.                                                           |
-| `fly_neural/shadow.py`      | Offline replay of a research fly's recording; the `serve` loop for a neural-experimental research subject.                      |
-| `fly_neural/bench.py`       | Measured cost: full-brain trials, synthetic scaling.                                                                            |
-| `fly_neural/codex.py`       | The Codex reference layer: FAFB v783 and BANC v888 kept apart, pinned by hash, inspected; no dynamics.                          |
-| `experiments/`              | Pre-registered experiment files. Their bytes are hashed into every result; do not reformat them.                                |
-| `reference/shiu_brian2.py`  | Shiu et al.'s own `model.py` under Brian 2: the conformance fixture and full-brain reference trials.                            |
-| `tests/`                    | Unit and small integration tests on synthetic data; `tests/data/brian2_conformance.json` is Brian 2's output on synthetic nets. |
+| Path                        | What                                                                                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `fly_neural/sources.py`     | Pinned inputs: URL, size, SHA-256, terms, citations.                                                                              |
+| `fly_neural/acquire.py`     | Fetch (resumable) and verify. The only network access.                                                                            |
+| `fly_neural/importer.py`    | Chunked v783 import to CSR; null, range, duplicate, unknown-id and autapse checks; transmitter calls; three sign policies.        |
+| `fly_neural/connectome.py`  | The compiled connectome (`.npy` arrays, memory-mapped) and its sealed manifest; structural validation.                            |
+| `fly_neural/lif.py`         | The integrator: Shiu et al.'s equations, Brian 2's schedule and refractoriness, exact linear updates; checkpoints; budgets.       |
+| `fly_neural/params.py`      | Every model parameter with its status (cited, free, simulator, assumption) and source.                                            |
+| `fly_neural/populations.py` | Shiu et al.'s published ids (resolved against v783, missing ones listed) and cited annotation selections.                         |
+| `fly_neural/controls.py`    | Weight shuffle, degree-preserving rewiring, sign shuffle, random graph.                                                           |
+| `fly_neural/experiments.py` | Runs a pre-registered experiment file and judges its criteria.                                                                    |
+| `fly_neural/plasticity.py`  | The dopamine-gated KC-to-MBON rule against its controls.                                                                          |
+| `fly_neural/sensory.py`     | Sensable observations to Poisson rates; MN9 and giant-fiber readouts.                                                             |
+| `fly_neural/shadow.py`      | Offline replay of a research fly's recording; the `serve` loop for a neural-experimental research subject.                        |
+| `fly_neural/bench.py`       | Measured cost: full-brain trials, synthetic scaling.                                                                              |
+| `fly_neural/codex.py`       | The Codex reference layer: FAFB v783 and BANC v888 kept apart, pinned by hash, inspected; no dynamics.                            |
+| `fly_neural/banc.py`        | BANC v888 compiled for the simulator from the reviewed Codex pin; per-neuron transmitter signs; its neuron table for populations. |
+| `experiments/`              | Pre-registered experiment files. Their bytes are hashed into every result; do not reformat them.                                  |
+| `reference/shiu_brian2.py`  | Shiu et al.'s own `model.py` under Brian 2: the conformance fixture and full-brain reference trials.                              |
+| `tests/`                    | Unit and small integration tests on synthetic data; `tests/data/brian2_conformance.json` is Brian 2's output on synthetic nets.   |
 
 ## Rules
 
@@ -186,6 +228,9 @@ table missing a required column is refused with the columns it has.
 - **Nothing random presented as a connectome.** Control wirings are labelled
   in every result and never reported as the connectome.
 - **No claim beyond the model.** A leaky integrate-and-fire network with two
-  signs and one weight per synapse; no neuromodulation, gap junctions,
-  morphology or ventral nerve cord. It is not the fly's nervous system, and
-  nothing here is a claim about awareness or experience.
+  signs and one weight per synapse; no neuromodulation, gap junctions or
+  morphology. On FAFB v783 there is no ventral nerve cord; on BANC v888 there
+  is the cord's chemical wiring, but still no gap junctions (the giant
+  fiber's electrical synapses onto TTMn and PSI are absent). It is not the
+  fly's nervous system, and nothing here is a claim about awareness or
+  experience.

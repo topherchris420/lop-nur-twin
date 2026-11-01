@@ -9,10 +9,14 @@ import { wrapAngle } from "../src/bethesda/fly/units";
 import { runSession, type SessionSpec } from "../src/bethesda/firstContact/session";
 import type { SubjectSpec } from "../src/bethesda/firstContact/subjects";
 import {
+  BRAIN_AND_CORD_RULES,
+  MAPPING_CONNECTOME,
   researchWorld,
   SAME_OBJECT_RAD,
+  serveArgs,
   ShadowTap,
   SmallObjectEye,
+  WHOLE_BRAIN_RULES,
   type Readouts,
   type Scenario,
   type SensableObservation,
@@ -292,4 +296,67 @@ describe("SyncBrain", () => {
     brain.close();
     expect(() => brain.ask(1, {})).toThrow(/closed/);
   }, 60_000);
+});
+
+describe("brain-and-cord/v3: BANC v888's brain and ventral nerve cord", () => {
+  it("starts serve on the BANC connectome, and v1 and v2 on serve's default", () => {
+    expect(serveArgs("brain-and-cord/v3")).toEqual([
+      "-m",
+      "fly_neural",
+      "serve",
+      "--connectome",
+      "banc-v888-predicted-nt",
+    ]);
+    expect(serveArgs("whole-brain/v2")).toEqual(["-m", "fly_neural", "serve"]);
+    expect(serveArgs("v1")).toEqual(["-m", "fly_neural", "serve"]);
+    expect(MAPPING_CONNECTOME["whole-brain/v2"]).toBeNull();
+  });
+
+  it("keeps v2's rules and constants, and adds no rule that decides from the cord", () => {
+    const { connectome, rules, ...constants } = BRAIN_AND_CORD_RULES;
+    const { rules: v2Rules, ...v2Constants } = WHOLE_BRAIN_RULES;
+    expect(constants).toEqual(v2Constants);
+    expect(connectome).toContain("BANC v888");
+    for (const r of v2Rules.slice(0, -1)) expect(rules).toContain(r);
+    expect(rules.at(-1)).toBe(v2Rules.at(-1));
+    expect(rules.some((r) => r.includes("decide nothing"))).toBe(true);
+  });
+
+  it("sees the small moving object and follows the descending rules, like v2", () => {
+    const { world, start, config } = researchWorld("looms");
+    const taps: ShadowTap[] = [];
+    const fly = new DigitalFly({
+      seed: 5,
+      world,
+      start,
+      config,
+      adapter: ShadowTap.factory("neural-experimental", 5, 200_000, taps, {
+        mapping: "brain-and-cord/v3",
+        brain: () =>
+          readouts({
+            groom: on(),
+            jump: off,
+            motor: { legs: { front_left: 30 }, wing_power: { left: 0 } },
+          }),
+      }),
+    });
+    for (let k = 0; k < 600; k++) fly.advance(0.01);
+    const tap = taps[0]!;
+    expect(tap.descriptor.id).toContain("brain-and-cord/v3");
+    expect(tap.descriptor.fidelity).toContain("BANC v888");
+    expect(tap.records.some((r) => r.obs.smallObject)).toBe(true);
+    expect(tap.overrides.groom ?? 0).toBeGreaterThan(0);
+    expect(tap.records.some((r) => r.neural?.motor?.legs.front_left === 30)).toBe(true);
+  }, 120_000);
+
+  it("runs only for a neural-experimental subject", () => {
+    const inner = new EchoAdapter(
+      () => 0.5,
+      { navigation: () => 0.5 },
+      { variant: "full", seed: 1 },
+    );
+    expect(
+      () => new ShadowTap(inner, "baseline", 10, { mapping: "brain-and-cord/v3" }),
+    ).toThrow(/neural-experimental/);
+  });
 });

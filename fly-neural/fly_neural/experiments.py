@@ -24,6 +24,7 @@ import numpy as np
 from . import RESULT_SCHEMA, controls, lif, stats
 from . import connectome as cx
 from . import populations as P
+from .params import LIFParams
 from .record import PROGRESS_SCHEMA, append_progress, code_watch, environment, resume_progress, sealed
 from .resources import Budget, Meter, machine
 
@@ -105,7 +106,8 @@ def run_condition(c: cx.Connectome, net: lif.Network, cond: dict, cfg: dict, spl
     return out
 
 
-def judge(crit: dict, res: dict[str, dict], secs: float) -> dict:
+def judge(crit: dict, res: dict[str, dict], secs: float, sizes: dict[str, int] | None = None) -> dict:
+    """``sizes`` (neurons per readout) is needed only by a ``per_neuron`` criterion."""
     t = crit["test"]
 
     def rates(name, readout):
@@ -136,6 +138,16 @@ def judge(crit: dict, res: dict[str, dict], secs: float) -> dict:
     elif t == "all_respond":
         means = {k: float(rates(crit["condition"], k).mean()) for k in crit["readouts"]}
         out.update(mean_hz=means, passed=all(v > 0 for v in means.values()))
+    elif t == "paired_greater":
+        # Two readouts of the same trials, compared trial by trial.
+        a, b = rates(crit["condition"], crit["a_readout"]), rates(crit["condition"], crit["b_readout"])
+        if crit.get("per_neuron"):
+            if not sizes or not sizes.get(crit["a_readout"]) or not sizes.get(crit["b_readout"]):
+                raise ValueError(f"criterion {crit['id']} needs the readouts' neuron counts")
+            a, b = a / sizes[crit["a_readout"]], b / sizes[crit["b_readout"]]
+        st = stats.sign_test(a, b)
+        out.update(a_mean_hz=float(a.mean()), b_mean_hz=float(b.mean()), per_neuron=bool(crit.get("per_neuron")), sign_test=st)
+        out["passed"] = bool(st["p"] < crit["alpha"] and a.mean() > b.mean())
     else:
         raise ValueError(f"unknown test {t!r}")
     return out
@@ -159,7 +171,9 @@ def run(
     c = cx.load(compiled)
     if c.manifest.get("sign_policy") != cfg["protocol"]["sign_policy"]:
         raise ValueError(f"{compiled} has sign policy {c.manifest.get('sign_policy')!r}; the protocol asks for {cfg['protocol']['sign_policy']!r}")
-    net = lif.Network(c)
+    # A protocol may fix w_syn (a free parameter of the published model); without one, Shiu et al.'s value.
+    params = LIFParams(w_syn_mV=float(cfg["protocol"]["w_syn_mV"])) if "w_syn_mV" in cfg["protocol"] else LIFParams()
+    net = lif.Network(c, params)
     keys = set(cfg["readouts"]) | {k for cond in cfg["conditions"] for k in [*cond["stimulate"], *cond.get("silence", [])]}
     pops = {k: P.resolve(k, c)[1] for k in sorted(keys)}
     readouts = {k: P.resolve(k, c)[0] for k in cfg["readouts"]}
@@ -192,7 +206,7 @@ def run(
     for crit in cfg["criteria"]:
         needed = [crit[k] for k in ("condition", "a", "b") if k in crit] + crit.get("conditions", [])
         if all(n in results for n in needed):
-            verdicts.append({**judge(crit, results, secs), "quote": crit.get("quote"), "threshold_note": crit.get("threshold_note")})
+            verdicts.append({**judge(crit, results, secs, {k: int(v.size) for k, v in readouts.items()}), "quote": crit.get("quote"), "threshold_note": crit.get("threshold_note")})
     body = {
         "schema": RESULT_SCHEMA,
         "kind": "experiment",

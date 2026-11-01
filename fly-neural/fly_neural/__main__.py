@@ -48,6 +48,12 @@ def cmd_import(args) -> int:
     from .importer import import_v783
     from .resources import Budget
 
+    if args.dataset == "banc-v888":
+        from .banc import COMPILED_NAME, import_banc
+
+        c = import_banc(compiled_dir(args.name or COMPILED_NAME))
+        print(json.dumps({"counts": c.manifest["counts"], "import": c.manifest["import"], "resources": c.manifest["resources"]}, indent=1))
+        return 0
     out = compiled_dir(args.name or f"fafb-v783-{args.sign}")
     c = import_v783(out, sign_policy=args.sign, chunk_rows=args.chunk_rows, budget=Budget(max_rss_mb=args.max_rss_mb))
     print(json.dumps({"counts": c.manifest["counts"], "resources": c.manifest["resources"]}, indent=1))
@@ -107,7 +113,11 @@ def cmd_experiment(args) -> int:
         cfg = Path(__file__).resolve().parents[1] / "experiments" / args.config
     budget = Budget(max_wall_s=args.max_wall_s, max_rss_mb=args.max_rss_mb, stop_file=WORK / "STOP")
     progress = WORK / "progress" / f"{cfg.stem}-{args.split}{'-partial' if args.only else ''}.jsonl"
-    data = run(cfg, args.split, compiled_dir(args.connectome), Path(args.out or RESULTS), only=args.only, budget=budget, progress=progress, resume=args.resume)
+    # The file names its connectome; BANC results carry BANC's terms, so they go in their own directory.
+    named = json.loads(cfg.read_text(encoding="utf-8")).get("protocol", {}).get("connectome", "fafb-v783-shiu")
+    connectome = args.connectome or named
+    out = Path(args.out) if args.out else (RESULTS / "banc" if connectome.startswith("banc-") else RESULTS)
+    data = run(cfg, args.split, compiled_dir(connectome), out, only=args.only, budget=budget, progress=progress, resume=args.resume)
     return 0 if not data["failed"] else 3
 
 
@@ -283,9 +293,10 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--accept", action="append", help="terms you accept (see `status`); repeatable")
     a.add_argument("--only", action="append", help="source key; repeatable (default: all)")
     a.set_defaults(fn=cmd_acquire)
-    i = sub.add_parser("import", help="compile the v783 connection table into a sparse connectome")
+    i = sub.add_parser("import", help="compile a connection table (v783, or BANC v888 from its pinned Codex tables) into a sparse connectome")
+    i.add_argument("--dataset", default="fafb-v783", choices=["fafb-v783", "banc-v888"], help="banc-v888 reads the reviewed Codex pin (fly_neural/banc.py); --sign does not apply to it")
     i.add_argument("--sign", default="synapse-weighted", choices=["synapse-weighted", "shiu", "annotation"])
-    i.add_argument("--name", help="output name under <data>/compiled/ (default fafb-v783-<sign>)")
+    i.add_argument("--name", help="output name under <data>/compiled/ (default fafb-v783-<sign>, or banc-v888-predicted-nt)")
     i.add_argument("--chunk-rows", type=int, default=2_000_000)
     i.add_argument("--max-rss-mb", type=float, default=None)
     i.set_defaults(fn=cmd_import)
@@ -296,9 +307,9 @@ def main(argv: list[str] | None = None) -> int:
     e = sub.add_parser("experiment", help="run a pre-registered experiment file and judge its criteria")
     e.add_argument("config", help="path, or a file name under fly-neural/experiments/")
     e.add_argument("--split", required=True, choices=["dev", "heldout"])
-    e.add_argument("--connectome", default="fafb-v783-shiu", help="name under <data>/compiled/")
+    e.add_argument("--connectome", default=None, help="name under <data>/compiled/ (default: the file's protocol.connectome)")
     e.add_argument("--only", action="append", help="condition name; repeatable (the result is marked partial)")
-    e.add_argument("--out", help=f"results directory (default {RESULTS})")
+    e.add_argument("--out", help=f"results directory (default {RESULTS}, or its banc/ for a BANC connectome)")
     e.add_argument("--max-wall-s", type=float, default=None)
     e.add_argument("--max-rss-mb", type=float, default=None)
     e.add_argument("--resume", action="store_true", help="reuse the conditions an interrupted run of this same commit, config and connectome finished (.fly-neural/progress/)")

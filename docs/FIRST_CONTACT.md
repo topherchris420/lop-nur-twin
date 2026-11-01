@@ -334,6 +334,38 @@ Two things worth stating plainly:
 The demo writes its summary to `.first-contact/whole-brain/session-<seed>.json`,
 which is not committed.
 
+### With a nerve cord: `--mapping brain-and-cord/v3`
+
+The same demo can run its two research flies on BANC v888, another fly's
+brain and ventral nerve cord
+([ECHO_CONNECTOME.md](ECHO_CONNECTOME.md#brain-and-cord-banc-v888)). The
+subjects are `research-brain-and-cord-A-<seed>` and `-B-<seed>`. Food
+underfoot drives the legs' sugar neurons, and the cord's jump, leg and wing
+power motor neurons are recorded beside the commands. They decide nothing.
+
+**One run** (`--mapping brain-and-cord/v3 --seed 2 --pre 3 --contact 30`,
+the same settings as above; 2026-10-31, a working tree, so not a result).
+Both brains simulated all 158,262 neurons for 33 s of each fly's life. That
+took 314 s of wall time; the brains' compute was 163 and 146 s.
+
+| Subject | Closest approach | Other fly on its eye (samples driving LC11/LC10a) | Commands the model made          | Descending neurons active in 100 ms (of 1,316) | Cord                                                         |
+| ------- | ---------------- | ------------------------------------------------- | -------------------------------- | ---------------------------------------------- | ------------------------------------------------------------ |
+| A       | 6.3 mm           | 200 (189)                                         | 4 escapes, 2 of them with B near | mean 1.1, at most 25                           | TTMn silent; leg motor neurons ≤ 0.5 Hz; wing power ≤ 8.3 Hz |
+| B       | 6.3 mm           | 180 (173)                                         | 1 escape                         | mean 1.0, at most 25                           | TTMn silent; leg motor neurons ≤ 0.6 Hz; wing power ≤ 8.3 Hz |
+
+What changed with the cord, stated plainly:
+
+- **The feed readout no longer fires on its own.** On FAFB, MN9 fired with
+  no taste input. On BANC it stayed silent throughout. With no food in the
+  arena, this run cannot say whether food would move it; the pre-registered
+  test in ECHO_CONNECTOME.md says that at Shiu et al.'s weight it does not.
+- **The escapes are the giant fiber's, and the jump muscle's motor neuron
+  never follows.** TTMn spiked in no sample, because the model has no
+  electrical synapse from the giant fiber. The body's escape is still
+  commanded through the fly's own gate.
+- The brain is quieter: about one descending neuron active per 100 ms,
+  against four or five on FAFB.
+
 ## Stage 4: a proposal for the originals (not implemented)
 
 Interaction capabilities for Eva and ECHO themselves, if they are ever wanted,

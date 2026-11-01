@@ -11,6 +11,11 @@
  *   FLY_NEURAL_PYTHON=<python with fly-neural's requirements> \
  *     node scripts/run-ts.mjs scripts/first-contact-whole-brain.ts --seed 1 --pre 3 --contact 20
  *
+ * `--mapping brain-and-cord/v3` gives both flies BANC v888 instead, the brain
+ * and ventral nerve cord of another fly (158,262 neurons; fly_neural/banc.py):
+ * the same rules, food tasted through the legs, and the cord's jump, leg and
+ * wing motor neurons recorded (`BRAIN_AND_CORD_RULES`).
+ *
  * A demonstration, not a registered study: it tests no hypothesis and is
  * reported as one run. Both subjects are new research flies built from seeds;
  * neither is Eva or ECHO, a copy of either, or a continuation of either. It
@@ -25,16 +30,22 @@ import { refuseProductionHost } from "../src/bethesda/firstContact/originals.js"
 import { runSession, type SessionSpec } from "../src/bethesda/firstContact/session.js";
 import type { SubjectSpec } from "../src/bethesda/firstContact/subjects.js";
 import {
+  BRAIN_AND_CORD_RULES,
   SHADOW_SCHEMA,
   ShadowTap,
   WHOLE_BRAIN_RULES,
+  serveArgs,
+  type Mapping,
   type Readouts,
   type SensableObservation,
 } from "./echo-neural-shadow.js";
 import { SyncBrain } from "./fly-neural-sync.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const MAPPING = "whole-brain/v2" as const;
+const MAPPINGS = [
+  "whole-brain/v2",
+  "brain-and-cord/v3",
+] as const satisfies readonly Mapping[];
 
 function arg(name: string, fallback: string): string {
   const i = process.argv.indexOf(`--${name}`);
@@ -57,6 +68,11 @@ function summarize(tap: ShadowTap, computeMs: number) {
     dnSum = 0,
     dnOf = 0;
   let lastT = -1;
+  // brain-and-cord/v3: what came out of the cord (recorded, decided nothing).
+  let jumpSamples = 0,
+    legMaxHz = 0,
+    wingMaxHz = 0,
+    sawMotor = false;
   for (const r of tap.records) {
     if (r.t === lastT) continue; // one sample, seen by decide and interrupt
     lastT = r.t;
@@ -71,6 +87,12 @@ function summarize(tap: ShadowTap, computeMs: number) {
     for (const [k, v] of Object.entries(n))
       if (v && typeof v === "object" && "predicted" in v && v.predicted)
         fired[k] = (fired[k] ?? 0) + 1;
+    if (n.jump?.predicted) jumpSamples++;
+    if (n.motor) {
+      sawMotor = true;
+      legMaxHz = Math.max(legMaxHz, ...Object.values(n.motor.legs));
+      wingMaxHz = Math.max(wingMaxHz, ...Object.values(n.motor.wing_power));
+    }
     if (n.descending) {
       dnMax = Math.max(dnMax, n.descending.active);
       dnSum += n.descending.active;
@@ -88,6 +110,15 @@ function summarize(tap: ShadowTap, computeMs: number) {
       maxActiveIn100ms: dnMax,
       meanActiveIn100ms: samples ? Math.round((dnSum / samples) * 100) / 100 : 0,
     },
+    ...(sawMotor
+      ? {
+          cord: {
+            samplesWithAJumpMotorNeuronSpike: jumpSamples,
+            maxLegMotorNeuronHz: Math.round(legMaxHz * 10) / 10,
+            maxWingPowerMotorNeuronHz: Math.round(wingMaxHz * 10) / 10,
+          },
+        }
+      : {}),
     brainComputeS: Math.round(computeMs / 100) / 10,
   };
 }
@@ -97,9 +128,19 @@ function main() {
   const pre = Number(arg("pre", "3"));
   const contact = Number(arg("contact", "20"));
   const python = arg("python", process.env.FLY_NEURAL_PYTHON ?? "python");
+  const MAPPING = arg("mapping", "whole-brain/v2") as (typeof MAPPINGS)[number];
+  if (!MAPPINGS.includes(MAPPING))
+    throw new Error(`--mapping must be one of ${MAPPINGS.join(", ")}`);
+  const v3 = MAPPING === "brain-and-cord/v3";
   if (!(seed >= 0 && pre >= 0 && contact > 0 && contact <= 600))
     throw new Error("--seed ≥ 0, --pre ≥ 0 and 0 < --contact ≤ 600 seconds");
-  const out = join(root, ".first-contact", "whole-brain", `session-${seed}.json`);
+  const kind = v3 ? "brain-and-cord" : "whole-brain";
+  const out = join(
+    root,
+    ".first-contact",
+    "whole-brain",
+    `session-${v3 ? "brain-and-cord-" : ""}${seed}.json`,
+  );
   refuseProductionHost(out, existsSync);
   const p = JSON.parse(
     readFileSync(
@@ -107,15 +148,13 @@ function main() {
       "utf8",
     ),
   ) as EncounterProtocolSlice;
-  const ids = [
-    `research-whole-brain-A-${seed}`,
-    `research-whole-brain-B-${seed}`,
-  ] as const;
+  const ids = [`research-${kind}-A-${seed}`, `research-${kind}-B-${seed}`] as const;
   const seeds = [710000 + seed, 720000 + seed] as const;
   const compute = [0, 0];
   const brains = ids.map((id, i) => {
     const b = new SyncBrain({
       command: python,
+      args: serveArgs(MAPPING),
       cwd: join(root, "fly-neural"),
       header: {
         schema: SHADOW_SCHEMA,
@@ -142,7 +181,7 @@ function main() {
       }),
     ) as [ReturnType<typeof ShadowTap.factory>, ReturnType<typeof ShadowTap.factory>];
     const spec: SessionSpec = {
-      id: `research-whole-brain-session-${seed}`,
+      id: `research-${kind}-session-${seed}`,
       condition: "live",
       subjects: [
         { id: ids[0], seed: seeds[0], controller: "echo", start: p.starts.A },
@@ -154,7 +193,7 @@ function main() {
       ...(p.bridge ? { bridge: p.bridge } : {}),
       authorization: {
         by: "scripts/first-contact-whole-brain.ts, a demonstration run on research subjects",
-        purpose: "two whole-brain research flies meeting through the bridge",
+        purpose: `two ${kind} research flies meeting through the bridge`,
         subjects: [ids[0], ids[1]],
         scope: "research-subjects-only",
       },
@@ -165,7 +204,7 @@ function main() {
       schema: "first-contact-whole-brain-demo/v1",
       note: "A demonstration run, not a registered study. Both subjects are research flies built from seeds; neither is Eva or ECHO, a copy or a continuation of either.",
       mapping: MAPPING,
-      rules: WHOLE_BRAIN_RULES,
+      rules: v3 ? BRAIN_AND_CORD_RULES : WHOLE_BRAIN_RULES,
       neuronsSimulatedPerBrain: brains[0]!.ready.neurons,
       seconds: { preContact: pre, contact },
       wallS: Math.round(wallS),

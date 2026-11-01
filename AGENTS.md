@@ -794,7 +794,11 @@ entries in `NOTICE`, the `.fly-neural/` and `fly-neural/*.egg-info/` lines of
   research subjects and is named in every header and ready line. A change to
   a channel or a readout is a new mapping, never an edit to an old one. Each
   population cites the paper that identified its cell type, and each rule's
-  constants are marked as ours (`WHOLE_BRAIN_RULES`).
+  constants are marked as ours (`WHOLE_BRAIN_RULES`). `brain-and-cord/v3`
+  runs only on the BANC v888 connectome (`banc-v888-predicted-nt`) and v1/v2
+  only on FAFB v783 (`MAPPING_DATASET`; `Mapper` refuses the other); its
+  motor readouts (`jump`, `motor`) are reported and decide nothing until a
+  frozen protocol says otherwise (`BRAIN_AND_CORD_RULES`).
 - **Pre-registered, and reported as run.** `fly-neural/experiments/*.json`
   fix conditions, seeds and criteria before a run; their bytes are hashed into
   each result. Dev seeds may run while code changes; held-out seeds run once,
@@ -807,9 +811,10 @@ entries in `NOTICE`, the `.fly-neural/` and `fly-neural/*.egg-info/` lines of
   to `lif.py` keeps it passing; regenerate the fixture only with
   `reference/shiu_brian2.py conformance`.
 - **No claim beyond the model.** It is a two-sign spiking network with one
-  weight per synapse, no neuromodulation, gap junctions, morphology or
-  ventral nerve cord. Never call it the fly's nervous system or brain
-  emulation, and never describe experience or awareness.
+  weight per synapse, no neuromodulation, gap junctions or morphology; on
+  FAFB no ventral nerve cord, and on BANC the cord's chemical synapses only.
+  Never call it the fly's nervous system or brain emulation, and never
+  describe experience or awareness.
 
 - **Codex is a reference layer** (`fly_neural/codex.py`). FAFB v783 and BANC
   v888 are different animals: never pool their neurons or edges into one
@@ -823,6 +828,14 @@ entries in `NOTICE`, the `.fly-neural/` and `fly-neural/*.egg-info/` lines of
   adjust a stated count to match a loaded one: `check_counts` reports the
   difference. Codex structure is not dynamics; evaluate it before any
   simulation uses it.
+- **BANC in the simulator** (`fly_neural/banc.py`). The operator's pin of
+  2026-10-31 (CC BY 4.0) is reviewed into `REVIEWED`; the import and the
+  `banc_*` populations read only those bytes, and a new export needs its own
+  review. Populations name their dataset and `resolve` refuses another
+  dataset's connectome. BANC results go to `docs/benchmarks/fly-neural/banc/`
+  under BANC's terms (its `LICENSE.md`), never beside the FlyWire results.
+  A protocol may fix `w_syn_mV` (a free parameter of the published model);
+  state the rule that chose it in the file before any run with it.
 
 ### First contact (`src/bethesda/firstContact/`) and neural augmentation (`src/bethesda/augmentation/`)
 

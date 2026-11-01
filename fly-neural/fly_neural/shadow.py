@@ -30,7 +30,7 @@ from . import RESULT_SCHEMA, SHADOW_SCHEMA, lif
 from . import connectome as cx
 from .record import code_watch, environment, sealed
 from .resources import Meter
-from .sensory import RATE_WINDOW_MS, Mapper, TrailingReadout, check_mapping, describe_mapping, observation
+from .sensory import MAPPING_DATASET, RATE_WINDOW_MS, V3, Mapper, TrailingReadout, check_mapping, describe_mapping, observation
 
 MODES = ("baseline", "neural-shadow", "neural-experimental")
 # What the deployed organism and its host are called (deploy/bethesda-life/,
@@ -203,7 +203,11 @@ def serve(compiled: Path, inp=sys.stdin, out=sys.stdout) -> int:
 
     The header's ``mapping`` picks the sensory mapping (``sensory.MAPPINGS``;
     ``v1`` when absent). ``whole-brain/v2`` adds the small-object channel and
-    the descending readouts, read over ``rate_window_ms`` (default 100)."""
+    the descending readouts, read over ``rate_window_ms`` (default 100).
+    ``brain-and-cord/v3`` needs the BANC v888 connectome (``--connectome
+    banc-v888-predicted-nt``): v2's readouts on BANC's neurons, food tasted
+    through the legs, and the cord's motor neurons reported (``jump``,
+    ``motor``). A mapping on the other dataset's connectome is refused."""
     head = json.loads(inp.readline())
     check_header(head)
     if head["mode"] != "neural-experimental":
@@ -212,12 +216,14 @@ def serve(compiled: Path, inp=sys.stdin, out=sys.stdout) -> int:
     c = cx.load(compiled)
     net = lif.Network(c)
     mapper = Mapper(c, mapping)
-    trailing = TrailingReadout(mapper.idx, float(head.get("rate_window_ms", RATE_WINDOW_MS))) if mapping != "v1" else None
+    trailing = TrailingReadout(mapper.idx, float(head.get("rate_window_ms", RATE_WINDOW_MS)), mapping) if mapping != "v1" else None
     state = lif.State(net, np.random.default_rng(np.random.SeedSequence([int(head.get("seed", 0)), 7])))
     t0 = None
     ready = {"ready": True, "neurons": c.n, "populations": {k: v["neurons"] for k, v in mapper.report.items()}}
     if trailing:
         ready.update({"mapping": mapping, "rate_window_ms": trailing.window_ms})
+    if mapping == V3:
+        ready.update({"dataset": MAPPING_DATASET[mapping], "pairs": c.pairs, "synapses": c.synapses})
     out.write(json.dumps(ready) + "\n")
     out.flush()
     for line in inp:
