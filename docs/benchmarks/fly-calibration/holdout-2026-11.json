@@ -1,0 +1,261 @@
+{
+  "schema": "fly-calibration-holdout/v1",
+  "set": "holdout-2026-11",
+  "registered": "2026-11-01",
+  "statement": "Observations from papers the calibration had not used, registered and sealed before circuit-informed/v2 was committed or run on any of their paradigms. Every observation is held out for every controller: nothing in any controller was set from it.",
+  "disclosure": [
+    "circuit-informed/v2's five mechanisms, its parameter table, its fit procedure (calibration/fitV2.ts) and its design note (docs/research/fly-circuit-v2-design-note.md) were written before the candidate observations were read. The candidates were gathered by a separate agent from open full texts; their values were first seen when this set was chosen from them.",
+    "After the candidates were read, v2's sources changed only by the fitted values that fit procedure reached on development observations (fit.json) and by Prettier's formatting (line breaks, trailing commas, one pair of parentheses).",
+    "preReading records digests taken at its time, before the candidates were read, of files not yet committed: this account's own record, not independent evidence. Since then: controller.ts changed by its descriptor (one reworded phrase, and a VFB link removed because the pinned reference does not hold it), after those digests and before reading, and by the formatting above; params.ts by its fitted values and that formatting (with the formatting and those edits undone, each reproduced its digest); roles.ts by a corrected comment. observations.ts, paradigms.ts and report.ts were extended to carry the set: observations.ts spreads it in and corrects wording, paradigms.ts exports two helpers and adds the body's yaw to each frame, report.ts measures and reports it. The other files listed are unchanged, among them compare.ts, which gives the verdicts. v2.sources holds the digests as sealed.",
+    "A preview of the fit started before those digests and finished after them; the official fit, run on the final code, reached the same seven values.",
+    "The implementation departs from the design note in three places, all before the set was read: the mean freeze is a model value derived from Zacarias et al.'s words (100 s) rather than fitted; 'a surface over it within enclosedM' became the paradigm's statement Setting.enclosed, as the note's own last bullet on it describes; and the note planned to commit the set before any v2 code, whereas both are committed together, in the order of work stated here.",
+    "The set was chosen by what the simulator can rebuild, with the reasons for each candidate left out recorded below; it was not chosen by any controller's result.",
+    "The held-out paradigms were written after the set was chosen and debugged on the reduced-order and circuit-informed/v1 controllers only (which have no fitted value from these papers). That debugging raised the chamber flights of Maya et al. from 300 to 3000, since few cross its central cube. circuit-informed/v2 is run on these paradigms for the first time for the report."
+  ],
+  "acceptance": [
+    "Primary metric: per controller, the number of held-out observations with a published interval on which its estimate is inside the published 95% interval or within the flies' spread (the comparison's own verdicts, compare.ts), out of those observations.",
+    "circuit-informed/v2 is said to generalize better than circuit-informed/v1 on this set only if its primary count is higher than v1's; equal or lower counts are reported as no improvement.",
+    "Secondary metric, for held-out observations with no published interval: the median over them of the absolute relative error |simulated − published| / |published|; an observation a controller does not produce counts as an error of 1 in that median.",
+    "No claim is made for v2 from development, fit or design rows. An ablation is described by the held-out verdicts that change when its mechanism is off, not as a test of a controller built without it.",
+    "Every held-out row is reported, including those v2 does not produce and those on which it does worse than v1."
+  ],
+  "designNote": {
+    "path": "docs/research/fly-circuit-v2-design-note.md",
+    "sha256": "93372076cc23cd4b056368c8455be13773d889ade98bd3cd389086a620437eed"
+  },
+  "preReading": {
+    "takenAt": "2026-11-01T08:11:45Z",
+    "sha256": {
+      "src/bethesda/fly/circuits/v2/controller.ts": "c533d785219c6a49d9a5ff85a2c4abe0908a81e6e50ccc20694710e555919981",
+      "src/bethesda/fly/circuits/v2/params.ts": "08014f26dae1c302b487365afcdd32b9d82f987adee7caae90afbcedac1e6dd5",
+      "src/bethesda/fly/circuits/v2/v2.test.ts": "8679dac7b8feb606f97136f723305d777ec7b3ecc72d2be7e4c9ceb99fc0bcd5",
+      "src/bethesda/fly/calibration/fitV2.ts": "4ed4e7226d89f47bd86c7cc9a3e71feb0e995c456c721724d12921bf5f1d25c2",
+      "src/bethesda/fly/calibration/roles.ts": "d388c34dbd393e88716c741b55ea0592f4eeed8da6a5431c5a94c0ee46ac0b65",
+      "src/bethesda/fly/calibration/calibration.test.ts": "df2cad85d1ca588152df4a8b5e7eec8ddc8b6349fdee1956e0d04d496492bbeb",
+      "src/bethesda/fly/calibration/compare.ts": "bdc87714b9fc6e8d1e2c67b99c49e5078a6067e3b0754390371af0769bd1d416",
+      "src/bethesda/fly/calibration/ethogram.ts": "63fa4d543cc9a5673cbf978fdac23540b1f42bdc65656ef2445ba2bcb1b86cb2",
+      "src/bethesda/fly/calibration/fit.ts": "9a62de0e9fed9add21cf320944ffdc9a0c0a36dd9450c35b2cf2fefc645acdf2",
+      "src/bethesda/fly/calibration/groomingReference.ts": "78d08988bc3d94d65fd2163a92eaa10b5c22374cb4c099659d3879db67e9b0ec",
+      "src/bethesda/fly/calibration/observations.ts": "2d36358a343cd7f6f41c93b4757eeff792254eb8a3bd242bddf36cb8efcee7bc",
+      "src/bethesda/fly/calibration/paradigms.ts": "19189789152d6a5602c4e26d5dec972286bd27b72620daf44c2cb4200bf62ebf",
+      "src/bethesda/fly/calibration/report.ts": "b2d313a50789e85db0fdc87a3cd878351e6b1c52a346840b75d5c1717d577bdf",
+      "src/bethesda/fly/calibration/stimuli.ts": "3f61a714ffcdfb389c1551f2f6e6239da1aafffd41ca77c2249cde4fefbb2e23",
+      "src/bethesda/fly/calibration/subjects.ts": "57042ca5d231de8720c5675f3f45a8d7254d3e04864d777f3a9b1d735b79496c",
+      "src/bethesda/fly/calibration/worlds.ts": "ad2db9eb5ff6138aa8e1c4a6156bcf92df4fbd037cdbc8aeee181bc6236643b6",
+      "docs/research/fly-circuit-v2-design-note.md": "93372076cc23cd4b056368c8455be13773d889ade98bd3cd389086a620437eed"
+    }
+  },
+  "v2": {
+    "controller": "circuit-informed/v2",
+    "sources": {
+      "src/bethesda/fly/circuits/v2/controller.ts": "b2f15ae42422972934607f3c7700b8ba8bb1434091de55e61db1507970cb3e86",
+      "src/bethesda/fly/circuits/v2/params.ts": "623d33242d50a8648efcabf1bb76473fcacb27e0ffe40ae81cb96e00c30dfda5",
+      "src/bethesda/fly/calibration/fitV2.ts": "4ed4e7226d89f47bd86c7cc9a3e71feb0e995c456c721724d12921bf5f1d25c2"
+    }
+  },
+  "observations": [
+    {
+      "id": "escape.lidded.freeze-time.ferreira",
+      "paradigm": "ferreira2020",
+      "value": 0.7667,
+      "unit": "fraction",
+      "spread": { "kind": "iqr", "lo": 0.3975, "hi": 0.9042 },
+      "n": null,
+      "sha256": "9b964b7a06ebc70c5fb3e9dc2a0772d44859fd18795a44af2714144e8cf516bf"
+    },
+    {
+      "id": "escape.lidded.freeze-exit.ferreira",
+      "paradigm": "ferreira2020",
+      "value": 0.08,
+      "unit": "fraction",
+      "spread": { "kind": "iqr", "lo": 0, "hi": 0.21 },
+      "n": null,
+      "sha256": "b172f72cc755758b74ca3e1e2a0baa2fc0ccf4c56d0ffecf6ba0f7a68acc84e2"
+    },
+    {
+      "id": "escape.lidded.freeze-time.barrios",
+      "paradigm": "barrios2021",
+      "value": 0.9653,
+      "unit": "fraction",
+      "spread": { "kind": "sem", "value": 0.0353 },
+      "n": null,
+      "sha256": "72f3457ecb865a7d4fd9a2152a7766623cea8a2c3450835800cc0af5ae12fae8"
+    },
+    {
+      "id": "walking.stop-median.jung",
+      "paradigm": "jung2015",
+      "value": 0.67,
+      "unit": "s",
+      "spread": null,
+      "n": 725,
+      "sha256": "bd39bffc3047db3b453ed988e4d0363b586ae41be904b57e1d4994631a85d181"
+    },
+    {
+      "id": "walking.run-median.jung",
+      "paradigm": "jung2015",
+      "value": 4.81,
+      "unit": "s",
+      "spread": null,
+      "n": 726,
+      "sha256": "763c5977195e818cf2e91cb8bced3e2dd9f683d449cd106f9a431daf70cd2f1d"
+    },
+    {
+      "id": "walking.run-speed.jung",
+      "paradigm": "jung2015",
+      "value": 0.0057,
+      "unit": "m/s",
+      "spread": null,
+      "n": 726,
+      "sha256": "8a1ada401dd3bcd5f3d20e74ba7fc1f74d99066da5a69fb6f2e2067efe72cfce"
+    },
+    {
+      "id": "walking.walking-share.cruz",
+      "paradigm": "cruz2021",
+      "value": 0.54,
+      "unit": "fraction",
+      "spread": null,
+      "n": 84,
+      "sha256": "b3c30e6a7b5bf3f95a1342bb273d4387e9d8a2ca5aeaef7533647bb8545c23d5"
+    },
+    {
+      "id": "walking.moving.iyengar",
+      "paradigm": "iyengar2012",
+      "value": 0.38,
+      "unit": "fraction",
+      "spread": null,
+      "n": 40,
+      "sha256": "fc0c62b3a7005cf7cbae37c1d93b690b09fa7df445188083ccb180827ea34a97"
+    },
+    {
+      "id": "walking.moving-speed.iyengar",
+      "paradigm": "iyengar2012",
+      "value": 0.00686,
+      "unit": "m/s",
+      "spread": null,
+      "n": 40,
+      "sha256": "f1d5bdaea2698530f7e2ff7709cc2ecabc656c2fbb194f8a32a12d14ce5500f2"
+    },
+    {
+      "id": "walking.distance.iyengar",
+      "paradigm": "iyengar2012",
+      "value": 4.33,
+      "unit": "m",
+      "spread": null,
+      "n": 40,
+      "sha256": "42921a89dc6ace0bf7a82579b27a3672340701a1a947c7dec413d5e77cd4132f"
+    },
+    {
+      "id": "flight.saccade-rate.stupski",
+      "paradigm": "stupski2024",
+      "value": 1.8,
+      "unit": "per s",
+      "spread": { "kind": "sd", "value": 0.95 },
+      "n": null,
+      "sha256": "b7ea02b84ffaf242bf11cd21c29538d114b7ac4860dbfd9033ce0a51454fbfb2"
+    },
+    {
+      "id": "flight.speed.straw",
+      "paradigm": "straw2011",
+      "value": 0.15,
+      "unit": "m/s",
+      "spread": { "kind": "sd", "value": 0.07 },
+      "n": null,
+      "sha256": "740738ebb7201c5a592f001b281caae7e940b1ae4389d4e6ba3bb6fe5470f903"
+    },
+    {
+      "id": "flight.speed.maya",
+      "paradigm": "maya2026",
+      "value": 0.1,
+      "unit": "m/s",
+      "spread": { "kind": "sd", "value": 0.04 },
+      "n": 322,
+      "sha256": "61ef27ddfaef597c56d2602ef54e1923c1ac95a565e4d8e97bdc5a65dd1bb877"
+    },
+    {
+      "id": "flight.saccade-amplitude.mongeau",
+      "paradigm": "mongeau2017",
+      "value": 56,
+      "unit": "deg",
+      "spread": null,
+      "n": 6852,
+      "sha256": "f133402313a3e2ce819e74352694841086d86c8a0e7bfc22de98ad97013d6f25"
+    },
+    {
+      "id": "flight.saccade-duration.mongeau",
+      "paradigm": "mongeau2017",
+      "value": 83,
+      "unit": "ms",
+      "spread": null,
+      "n": 6852,
+      "sha256": "570dae3a86f9aeb06e69a41bcbf041903d77a8fcebc7dada59164fdf9a9677ed"
+    },
+    {
+      "id": "flight.saccade-peak.mongeau",
+      "paradigm": "mongeau2017",
+      "value": 929,
+      "unit": "deg/s",
+      "spread": null,
+      "n": 6852,
+      "sha256": "0828d1415ee8470083c4e9dd0b1c623ad25c9679259ef3a6cad8d805fa8b6454"
+    }
+  ],
+  "paradigms": {
+    "ferreira2020": "4a174c990246aee206f7b2fc2e6774f5e0d4cda440d691f21265fe9f7681c580",
+    "barrios2021": "828f2d11e50283d40850a93823753c5c606d45464e8b52e1ebf5ca09629d5f33",
+    "jung2015": "39aae3c5b751868e3125754af81483a023944817caee3e5eba38d131998d4833",
+    "cruz2021": "868b41d6095b037b67672d9f7b7c0756591857be686b8888584021b2900960bd",
+    "iyengar2012": "bbd93e2cd29688c71fa39f506ee5d39f9b9af8a81e074e932d5f097211c083e1",
+    "stupski2024": "581a27ce7e4bdcd21441154ddcd0782cda2bb0610f0f21e9839a9ad0bf355db7",
+    "straw2011": "cf9d777b324a221bdab0e2599add003420849c401efcf2e837a548e06f338f72",
+    "maya2026": "f0fcb7079d4e267d8360cdf21ac2b91bb444d65ff6285d94ba5887d7e74b270d",
+    "mongeau2017": "720e77c691b5d0222badcc4ff2d4957745b2cf2fd085b3e9a6ff906e77910080"
+  },
+  "excluded": [
+    {
+      "candidate": "ferreira2020 groups of 2 and 5",
+      "reason": "the simulator runs one fly per arena"
+    },
+    {
+      "candidate": "barrios2021-small-arena-control-immobility",
+      "reason": "the control stimulus is not described in the text"
+    },
+    {
+      "candidate": "gibson2015-single-fly-shadow-freeze",
+      "reason": "an overhead paddle's shadow: the simulator has no such stimulus"
+    },
+    {
+      "candidate": "kajtor2025-shadow-stop-probability",
+      "reason": "a red screen sliding over tunnels: the simulator has no such stimulus"
+    },
+    { "candidate": "valente2007-*", "reason": "one fly" },
+    {
+      "candidate": "katsov2017-*",
+      "reason": "the value pools datasets, arenas and grouped flies without saying which give it"
+    },
+    {
+      "candidate": "cruz2021-saccade-time-share",
+      "reason": "an unsupervised segmentation the calibration cannot rebuild"
+    },
+    {
+      "candidate": "devries2012-*",
+      "reason": "the loom's parameters are in a supplement that was not retrieved"
+    },
+    {
+      "candidate": "chai2025-flypez-takeoff-*",
+      "reason": "the counts are of takeoffs whose sequence was measured, so the shares are only lower bounds"
+    },
+    {
+      "candidate": "mongeau2017-spontaneous-saccade-rate",
+      "reason": "the rate of a fly that can only turn depends on the tether; amplitude, duration and peak rate are kinematics of each saccade"
+    },
+    {
+      "candidate": "stupski2024-free-flight-saccade-rate-laminar-wind",
+      "reason": "the simulator has no wind"
+    },
+    {
+      "candidate": "maya2026-darkness-*",
+      "reason": "the simulator cannot switch the light off"
+    }
+  ],
+  "digest": "db70ed7edf869e9585c7aa434c8fac3f505f381c145fcb1eeb4aa2cb8095a612"
+}

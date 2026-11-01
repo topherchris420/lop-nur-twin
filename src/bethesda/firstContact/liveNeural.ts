@@ -10,7 +10,7 @@ import type { Observation as EvaObservation } from "../../garden/core/observatio
 import type { LifeObservation as EchoObservation } from "../life/observation.js";
 
 export interface NeuralProxy {
-  /** Compatible with fly_neural.sensory.observation, not a measured sensory frame. */
+  /** Shaped like the neural research package's sensory observation, not a measured sensory frame. */
   input: {
     looming: null;
     airflow: number;
