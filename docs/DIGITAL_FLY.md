@@ -852,8 +852,8 @@ v2 passed the seal's rule, on a narrow base
 ([report](benchmarks/fly-calibration/README.md)). It is within the flies' spread
 on 4 of the 6 observations with an interval, against 2 of 6 for v1 and the
 reduced-order controller, and its median relative error on the other ten is
-0.30 against 0.56. Both rows it gains come from one paper (Ferreira & Moita
-2020) and one mechanism: without defence, v2 is back to 2 of 6. That paper
+0.30 against 0.56. Both rows it gains come from one paper (Ferreira &
+Moita 2020) and one mechanism: without defence, v2 is back to 2 of 6. That paper
 shares its senior author with Zacarias et al. 2018, the source of v2's freezing
 fit targets, and no controller is inside a published interval on any row.
 
