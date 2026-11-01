@@ -8,11 +8,7 @@
  * body weights, self-model, physiology, remembered places, random streams and
  * archive are all preserved by a reversible, byte-for-byte graph projection.
  */
-import {
-  checkpointLife,
-  restoreLife,
-  type LifeCheckpoint,
-} from "./continuity.js";
+import { checkpointLife, restoreLife, type LifeCheckpoint } from "./continuity.js";
 import { Graph } from "./echoUpgrade.js";
 import {
   HABIT_CONTINUATION,
@@ -42,19 +38,22 @@ export function continueWithHabits(
 ): HabitContinuation {
   const errors = habitSourceErrors(source);
   if (errors.length) throw new Error(`habit continuation refused: ${errors.join("; ")}`);
-  if (!source.graph) throw new Error("habit continuation needs the un-compacted source graph");
+  if (!source.graph)
+    throw new Error("habit continuation needs the un-compacted source graph");
   if (
     !Number.isFinite(Date.parse(upgradedUtc)) ||
     !Number.isFinite(Date.parse(stoppedUtc)) ||
     Date.parse(stoppedUtc) > Date.parse(upgradedUtc)
-  ) throw new Error("invalid ECHO pause interval");
+  )
+    throw new Error("invalid ECHO pause interval");
   const old = new Graph(source.graph, false);
   if (
     old.object([]).c !== "OrganismLife" ||
     old.object(ADAPTER).c !== "OrganismAdapter" ||
     old.get(["cityFly", "controller"]) !== "echo" ||
     old.get(["cityFly", "failed"]) !== null
-  ) throw new Error("source is not the existing, healthy ECHO organism");
+  )
+    throw new Error("source is not the existing, healthy ECHO organism");
 
   // A fresh NEW-KIND template supplies only the new habits property. Existing
   // object references and streams are reused from the authentic source graph.
