@@ -1,9 +1,6 @@
 name: Original lives, read-only neural observation
 
 on:
-  push:
-    branches:
-      - feat/read-only-originals-neural-shadow
   workflow_dispatch:
 
 permissions:
@@ -23,10 +20,8 @@ jobs:
           node-version: "22"
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Show suggested formatting changes without committing
-        run: |
-          bunx prettier --write scripts/original-neural-shadow.ts src/bethesda/firstContact/liveNeural.ts src/bethesda/firstContact/liveNeural.test.ts docs/ORIGINALS_LIVE_NEURAL_SHADOW.md
-          git diff -- scripts/original-neural-shadow.ts src/bethesda/firstContact/liveNeural.ts src/bethesda/firstContact/liveNeural.test.ts docs/ORIGINALS_LIVE_NEURAL_SHADOW.md
+      - name: Check research code formatting
+        run: bunx prettier --check scripts/original-neural-shadow.ts src/bethesda/firstContact/liveNeural.ts src/bethesda/firstContact/liveNeural.test.ts docs/ORIGINALS_LIVE_NEURAL_SHADOW.md
       - name: Check proxy provenance and unknown-input handling
         run: bunx vitest run src/bethesda/firstContact/liveNeural.test.ts
       - name: Read the originals through existing public GET-only observers
