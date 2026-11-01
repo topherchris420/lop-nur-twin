@@ -43,7 +43,7 @@ function proxy(speed: number | null, source: string | null): NeuralProxy {
   return {
     input: {
       looming: null,
-      airflow: available ? speed! : 0,
+      airflow: available ? speed : 0,
       airflowFrom: null,
       odour: 0,
       onFood: false,
