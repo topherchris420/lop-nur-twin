@@ -62,7 +62,10 @@ function proxy(speed: number | null, source: string | null): NeuralProxy {
 /** Ten-metre weather wind, NOT the airspeed across Eva's antennae. */
 export function evaNeuralProxy(o: EvaObservation): NeuralProxy {
   const wind = o.weather.windKmh;
-  return proxy(wind === null ? null : wind / 3.6, "garden weather: wind at 10 m, not antenna airflow");
+  return proxy(
+    wind === null ? null : wind / 3.6,
+    "garden weather: wind at 10 m, not antenna airflow",
+  );
 }
 
 /** Wind at ECHO's body, NOT necessarily relative antenna airflow during motion. */
