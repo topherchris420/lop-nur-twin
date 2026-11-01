@@ -35,6 +35,8 @@ import {
   upgradeToEcho,
 } from "./echoUpgrade";
 import { OlfactoryNavigation } from "./foraging/olfaction";
+import { HABIT_EVENT, HABIT_LIFE } from "./habitOrganism";
+import { continueWithHabits } from "./habitContinuation";
 import { BETHESDA_LIFE, headlessGenesis, type HeadlessGenesis } from "./headless";
 import { Physiology } from "./immortal/physiology";
 import { parseObservation } from "./observation";
@@ -828,5 +830,43 @@ describe("the runner with an organism", () => {
     expect(t.head().tick).toBe(head.tick + 100);
     expect(t.head().birth.individual).toBe(born.individual);
     expect(t.events().filter((e) => e.kind === ORGANISM_EVENT)).toHaveLength(1);
+  }, 600_000);
+
+  it("commits one habit continuation onto the full legacy → ECHO → organism chain and resumes that individual", () => {
+    const dir = scratch("echo-habit-history");
+    historyStore(dir);
+    const organism = continued(dir);
+    const s = LifeStore.open(dir, HABIT_LIFE);
+    const { checkpoint: source, committedUtc } = s.headRecord();
+    expect(source.digest).toBe(organism.digest);
+    const before = restoreLife(ORGANISM_LIFE, source);
+    const keptState = before.organism.state;
+    const next = continueWithHabits(source, new Date().toISOString(), committedUtc);
+    expect(next.checkpoint.birth).toEqual(source.birth);
+    expect(next.checkpoint.genesis).toEqual(source.genesis);
+    expect(next.checkpoint.parent).toBe(source.digest);
+    expect(next.checkpoint.tick).toBe(source.tick);
+    expect(next.preservedGraphDigest).toBe(source.graphDigest);
+    const inherited: Record<string, unknown> = { ...next.life.adaptive.state };
+    delete inherited.habits;
+    expect(inherited).toEqual(keptState);
+    s.acquire();
+    try {
+      s.commit(next.checkpoint);
+    } finally {
+      s.release();
+    }
+    const reopened = LifeStore.open(dir, HABIT_LIFE);
+    reopened.verify();
+    expect(bethesdaStoreKind(dir)).toBe(HABIT_LIFE);
+    expect(reopened.head().birth.individual).toBe(source.birth.individual);
+    expect(reopened.events().filter((e) => e.kind === HABIT_EVENT)).toHaveLength(1);
+    expect(reopened.events().filter((e) => e.kind === ORGANISM_EVENT)).toHaveLength(1);
+    const run = runner(["--store", dir, "--ticks", "10"]);
+    expect(run.status, run.stderr).toBe(0);
+    const resumed = LifeStore.open(dir, HABIT_LIFE);
+    expect(resumed.head().birth).toEqual(source.birth);
+    expect(resumed.head().tick).toBe(source.tick + 10);
+    expect(resumed.events().filter((e) => e.kind === HABIT_EVENT)).toHaveLength(1);
   }, 600_000);
 });

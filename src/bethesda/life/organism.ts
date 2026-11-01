@@ -289,11 +289,23 @@ interface Watched {
 export class OrganismLife extends HeadlessBethesdaLife {
   archive: LifeEvent[] = [];
 
-  constructor(config: Config) {
+  constructor(
+    config: Config,
+    /** An additive descendant may choose its adapter at birth/restore; the
+     * historical OrganismLife remains byte-identical by default. */
+    createAdapter?: (
+      rng: () => number,
+      streams: AdapterStreams,
+      seed: number,
+    ) => OrganismAdapter,
+  ) {
     const seed = flySeed(config);
     super(config, {
       flyController: "echo",
-      researchAdapter: (rng, streams) => new OrganismAdapter(rng, streams, seed),
+      researchAdapter: (rng, streams) =>
+        createAdapter
+          ? createAdapter(rng, streams, seed)
+          : new OrganismAdapter(rng, streams, seed),
     });
     if (this.cityFly.seed !== seed)
       throw new Error("the organism is not seeded as its fly");
