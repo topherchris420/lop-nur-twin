@@ -13,7 +13,9 @@ export function bethesdaStoreKind(dir: string): typeof BETHESDA_LIFE {
     .at(-1);
   if (!latest) throw new Error(`${dir} holds no checkpoint`);
   const record = JSON.parse(readFileSync(join(dir, "checkpoints", latest), "utf8")) as {
-    checkpoint?: { versions?: { upgrade?: unknown; organism?: unknown; habits?: unknown } };
+    checkpoint?: {
+      versions?: { upgrade?: unknown; organism?: unknown; habits?: unknown };
+    };
   };
   const versions = record.checkpoint?.versions;
   if (versions?.habits === HABIT_LIFE.versions.habits) return HABIT_LIFE;
