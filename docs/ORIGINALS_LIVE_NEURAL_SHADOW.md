@@ -54,15 +54,15 @@ needs Node 22.18+ and the repository's development dependencies.
 
 ## What goes into the model?
 
-| Input | Eva | ECHO | Interpretation |
-| --- | --- | --- | --- |
-| Wind magnitude | Garden weather at 10 m, converted km/h to m/s | Environmental wind at fly height | **Proxy**, not measured antenna airflow |
-| Looming vision | Unavailable | Unavailable | Unknown; zero-filled for counterfactual model |
-| Small-object vision | Unavailable | Unavailable | Unknown; zero-filled |
-| Food odour | Unavailable | Unavailable | Unknown; zero-filled |
-| Tarsal sugar contact | Unavailable | Unavailable | Unknown; set false |
+| Input                | Eva                                           | ECHO                             | Interpretation                                |
+| -------------------- | --------------------------------------------- | -------------------------------- | --------------------------------------------- |
+| Wind magnitude       | Garden weather at 10 m, converted km/h to m/s | Environmental wind at fly height | **Proxy**, not measured antenna airflow       |
+| Looming vision       | Unavailable                                   | Unavailable                      | Unknown; zero-filled for counterfactual model |
+| Small-object vision  | Unavailable                                   | Unavailable                      | Unknown; zero-filled                          |
+| Food odour           | Unavailable                                   | Unavailable                      | Unknown; zero-filled                          |
+| Tarsal sugar contact | Unavailable                                   | Unavailable                      | Unknown; set false                            |
 
-Even when Eva is observed *feeding* or ECHO is observed *escaping*, those
+Even when Eva is observed _feeding_ or ECHO is observed _escaping_, those
 outcomes are **not** used as substitute sensory input. Doing so would fabricate
 the causality being tested. The neural probe is a controlled response to the
 available **environmental wind proxy under counterfactual no-other-stimulation
