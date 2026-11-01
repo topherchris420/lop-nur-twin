@@ -33,7 +33,7 @@ the BANC research sidecar and `circuit-informed/v2`.
 The continuation `bethesda-echo-habit-continuation/v1` is only valid from an
 existing `bethesda-echo-organism/v1` checkpoint. At the same simulated tick
 it adds exactly **one** `habits` object. Its reversible projection must
-regenerate the prior organism's full graph digest *byte for byte*, including:
+regenerate the prior organism's full graph digest _byte for byte_, including:
 
 - the original birth, individual ID, genesis, city, body and experience archive;
 - the ECHO self-model, episodes, beliefs and open inquiries;
@@ -82,7 +82,7 @@ life into the earlier version is refused.
    its single-writer lease and exact parent on commit. Run it against that
    stopped release and then resume the new checked release. The pause is an
    honestly recorded gap, not simulated life.
-5. Observe the *same* ID afterwards, test that the clock advances, new habit
+5. Observe the _same_ ID afterwards, test that the clock advances, new habit
    evidence starts accumulating only after continuation, and inspect failures,
    motor commands and energy consumption. Keep both release engines available.
 
