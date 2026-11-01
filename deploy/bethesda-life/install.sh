@@ -161,7 +161,7 @@ build_release() {
   git_ archive --format=tar HEAD package.json package-lock.json scripts/run-ts.mjs \
     scripts/ts-hooks.mjs scripts/bethesda-life-headless.ts scripts/bethesda-life-observer.ts \
     scripts/bethesda-life-upgrade-echo.ts scripts/bethesda-life-continue-echo.ts \
-    scripts/bethesda-life-continue-organism.ts src | tar -x -C "$tmp"
+    scripts/bethesda-life-continue-organism.ts scripts/bethesda-life-continue-habits.ts src | tar -x -C "$tmp"
   say "release: $commit (installing its production dependencies)"
   (cd "$tmp" && PATH=$node_dir/bin:$PATH PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev \
     --ignore-scripts --no-audit --no-fund --loglevel=error)
