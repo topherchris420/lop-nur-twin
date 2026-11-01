@@ -22,6 +22,10 @@ jobs:
         with:
           bun-version: "1.3.11"
       - run: bun install --frozen-lockfile
+      - name: Inspect repository formatter patch for history test
+        run: |
+          bunx prettier --write src/bethesda/life/organism.test.ts
+          git diff -- src/bethesda/life/organism.test.ts
       - name: Formatting of continuation and test
         run: bunx prettier --check docs/ECHO_EXPERIENTIAL_CONTINUATION.md scripts/bethesda-life-continue-habits.ts src/bethesda/life/bethesdaStore.ts src/bethesda/life/experientialHabits.ts src/bethesda/life/habitContinuation.test.ts src/bethesda/life/habitContinuation.ts src/bethesda/life/habitOrganism.ts src/bethesda/life/organism.ts
       - name: Same-individual graph digest and deterministic restore
