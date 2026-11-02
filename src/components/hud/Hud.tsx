@@ -47,7 +47,10 @@ export function Hud() {
         hdgRef.current.textContent = `${h.toFixed(0).padStart(3, "0")}° ${cardinal}`;
       }
       if (fpsRef.current) {
-        fpsRef.current.textContent = telemetry.fps.toFixed(0);
+        // The panel is on screen during the load, when nothing has been drawn to count.
+        fpsRef.current.textContent = useTwinStore.getState().ready
+          ? telemetry.fps.toFixed(0)
+          : "—";
       }
       raf = requestAnimationFrame(loop);
     };

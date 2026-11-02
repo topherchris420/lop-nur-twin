@@ -87,6 +87,9 @@ function TwinView() {
   return (
     <div className="relative h-full w-full select-none">
       <Scene />
+      {/* Ahead of the HUD and above the canvas: the panels work during the load, and
+          the evidence labels are on screen before the scene is. */}
+      <IntroOverlay />
       {!sceneUnavailable && (
         <>
           <TouchControls />
@@ -113,7 +116,6 @@ function TwinView() {
           <HelpOverlay />
         </>
       )}
-      <IntroOverlay />
     </div>
   );
 }

@@ -23,7 +23,7 @@ export function IntroOverlay() {
   return (
     <div
       className={[
-        "pointer-events-none absolute inset-0 z-50 flex flex-col items-center justify-center",
+        "pointer-events-none absolute inset-0 flex flex-col items-center justify-center",
         "bg-background transition-opacity duration-700 ease-out",
         ready ? "opacity-0" : "opacity-100",
       ].join(" ")}
