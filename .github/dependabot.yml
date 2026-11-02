@@ -4,6 +4,11 @@ version: 2
 # happens. Grouped updates keep the review burden proportional to a repository
 # this size: one pull request a week for routine bumps, and security updates
 # arrive on their own as soon as an advisory lands.
+#
+# A group lands whole or not at all, so packages tied by a peer range belong in
+# one group, and an upgrade nothing can satisfy yet is ignored by name. Otherwise
+# it blocks everything grouped with it, indefinitely. Dependabot does not update
+# bun.lock; .github/workflows/dependabot-lockfile.yml does.
 updates:
   - package-ecosystem: npm
     directory: /
@@ -12,14 +17,23 @@ updates:
       day: monday
       time: "06:00"
     open-pull-requests-limit: 5
+    ignore:
+      # Until eslint-plugin-jsx-a11y allows it (6.10.2 stops at ^9).
+      - dependency-name: "eslint"
+        versions: [">=10"]
+      - dependency-name: "@eslint/js"
+        versions: [">=10"]
+      # Until typescript-eslint allows it (8.72.1 stops below 6.1).
+      - dependency-name: "typescript"
+        versions: [">=6.1"]
     groups:
-      three-and-react-three:
+      # @react-three/fiber bounds react from above, and postprocessing bounds three.
+      react-and-three:
         patterns:
           - "three"
           - "@types/three"
           - "@react-three/*"
-      react:
-        patterns:
+          - "postprocessing"
           - "react"
           - "react-dom"
           - "@types/react"
@@ -38,6 +52,7 @@ updates:
           - "three"
           - "@types/three"
           - "@react-three/*"
+          - "postprocessing"
           - "react"
           - "react-dom"
           - "@types/react"
