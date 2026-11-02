@@ -3,6 +3,7 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -44,18 +45,33 @@ function ReadySignal() {
   return null;
 }
 
-/** Keeps a quality step off the main thread too: see `warmProgramsThenRender`. */
+/**
+ * Keeps a quality step off the main thread too: see `warmProgramsThenRender`.
+ *
+ * Rendering stops the moment the tier changes, because a frame could otherwise land
+ * before the new materials do. The warmup starts from a layout effect, so inside the
+ * commit that swapped them in. Started any earlier it compiles the outgoing tier's
+ * materials, which are then disposed while it waits for them.
+ */
 function QualityStepWarmup() {
   const get = useThree((s) => s.get);
-  useEffect(
+  const qualityTier = useTwinStore((s) => s.qualityTier);
+  const warmedTier = useRef(qualityTier);
+
+  useLayoutEffect(
     () =>
       useTwinStore.subscribe((state, previous) => {
-        if (state.qualityTier !== previous.qualityTier) {
-          void warmProgramsThenRender(get());
-        }
+        if (state.qualityTier !== previous.qualityTier) pauseRendering(get());
       }),
     [get],
   );
+
+  useLayoutEffect(() => {
+    if (warmedTier.current === qualityTier) return;
+    warmedTier.current = qualityTier;
+    void warmProgramsThenRender(get());
+  }, [qualityTier, get]);
+
   return null;
 }
 

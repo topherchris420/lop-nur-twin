@@ -25,16 +25,6 @@ export function pauseRendering(state: RootState): void {
   setActive(state, false);
 }
 
-function collectMaterials(scene: THREE.Object3D): Set<THREE.Material> {
-  const materials = new Set<THREE.Material>();
-  scene.traverse((object) => {
-    const material = (object as THREE.Mesh).material;
-    if (Array.isArray(material)) material.forEach((entry) => materials.add(entry));
-    else if (material) materials.add(material);
-  });
-  return materials;
-}
-
 function collectTextures(materials: Set<THREE.Material>): Set<THREE.Texture> {
   const textures = new Set<THREE.Texture>();
   const take = (value: unknown) => {
@@ -50,6 +40,36 @@ function collectTextures(materials: Set<THREE.Material>): Set<THREE.Texture> {
     }
   }
   return textures;
+}
+
+type TrackedProgram = {
+  isReady(): boolean;
+  getUniforms(): unknown;
+  getAttributes(): unknown;
+};
+
+function programOf(gl: THREE.WebGLRenderer, material: THREE.Material) {
+  return (gl.properties.get(material) as { currentProgram?: TrackedProgram })
+    .currentProgram;
+}
+
+/**
+ * Resolves when every program has linked. This is `compileAsync` with two changes:
+ * a material disposed while its program links is skipped, where `compileAsync` throws
+ * inside its timer and never resolves, and it asks about one program per poll, not
+ * every program, because each question is a round trip to the GPU process.
+ */
+async function programsLinked(
+  gl: THREE.WebGLRenderer,
+  materials: Set<THREE.Material>,
+): Promise<void> {
+  const deadline = performance.now() + WARMUP_TIMEOUT_MS;
+  const pending = [...materials];
+  while (pending.length > 0 && performance.now() < deadline) {
+    const material = pending[pending.length - 1] as THREE.Material;
+    if (programOf(gl, material)?.isReady() ?? true) pending.pop();
+    else await new Promise((resolve) => setTimeout(resolve, 10));
+  }
 }
 
 /** Runs `work` on each item, giving the page a turn whenever a slice is used up. */
@@ -92,10 +112,10 @@ async function gpuQueueDrained(gl: WebGL2RenderingContext): Promise<void> {
  * Linking is the single largest cost of starting the twin: three.js reads a
  * program's status the first time it draws with it, and that read waits for the
  * link. On ANGLE over D3D11 that held the main thread for seconds, with the page
- * unable to take input. `compileAsync` hands the same work to the driver's worker
- * threads through `KHR_parallel_shader_compile` and polls for it, so the page keeps
- * running. Without the extension it resolves at once and the first frame blocks,
- * exactly as it would have.
+ * unable to take input. Here the driver's worker threads do the same work through
+ * `KHR_parallel_shader_compile` while this polls for it, so the page keeps running.
+ * Without the extension every program reports ready at once and the first lookup
+ * of each one blocks, which is no worse than it was.
  *
  * Uniform lookups and texture uploads then run in slices. Left to the first frame
  * they pile up behind one another, and every synchronous call in that frame waits
@@ -109,26 +129,19 @@ async function gpuQueueDrained(gl: WebGL2RenderingContext): Promise<void> {
 export async function warmProgramsThenRender(state: RootState): Promise<void> {
   const run = ++latestRun;
   setActive(state, false);
-  // A quality step arrives mid-frame, ahead of the React commits that swap the
-  // materials and the shadow setup. Compiling now would compile the outgoing tier.
+  // Canvas applies the tier's shadow setting from the page's own React root, which
+  // commits separately from the scene's. Give it its turn before reading it.
   await nextTask();
   if (run !== latestRun) return;
 
   try {
     const { gl, scene, camera } = state.get();
-    await Promise.race([
-      gl.compileAsync(scene, camera),
-      new Promise((resolve) => setTimeout(resolve, WARMUP_TIMEOUT_MS)),
-    ]);
+    const materials = gl.compile(scene, camera);
+    await programsLinked(gl, materials);
     if (run !== latestRun) return;
 
-    const materials = collectMaterials(scene);
     await sliced(materials, (material) => {
-      const program = (
-        gl.properties.get(material) as {
-          currentProgram?: { getUniforms(): unknown; getAttributes(): unknown };
-        }
-      ).currentProgram;
+      const program = programOf(gl, material);
       program?.getUniforms();
       program?.getAttributes();
     });
