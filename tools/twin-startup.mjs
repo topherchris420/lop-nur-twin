@@ -25,8 +25,6 @@
  *   --width, --height, --dpr   default 1536 x 735 at 1.25
  *   --chrome <path>        default CHROME_PATH, then an installed Chrome
  *   --headed               a real window, closest to what a visitor sees
- *   --uncapped             no vsync or frame rate limit, to see headroom above 60;
- *                          only compare it with another uncapped run
  *   --profile-dir <dir>    reuse a profile, to measure a warm shader cache
  *   --out <file>           also write the JSON there
  *   --shot <file.png>      screenshot after the last run
@@ -53,7 +51,6 @@ const width = Number(arg("width", "1536"));
 const height = Number(arg("height", "735"));
 const dpr = Number(arg("dpr", "1.25"));
 const headed = flag("headed");
-const uncapped = flag("uncapped");
 const attribute = flag("attribute");
 const cpuProfilePath = arg("cpu-profile", null);
 const shotPath = arg("shot", null);
@@ -319,7 +316,6 @@ async function run(index) {
       "--disable-background-timer-throttling",
       "--disable-backgrounding-occluded-windows",
       "--disable-renderer-backgrounding",
-      ...(uncapped ? ["--disable-gpu-vsync", "--disable-frame-rate-limit"] : []),
       `--window-size=${width},${height + 140}`,
     ],
   });
@@ -432,7 +428,6 @@ const output = {
   browser: results[0].browser,
   chrome: executablePath ?? "puppeteer's bundled Chrome",
   mode: headed ? "headed" : "headless",
-  uncapped,
   renderer,
   software: /swiftshader|llvmpipe|software|basic render/i.test(renderer ?? "unknown"),
   parallelShaderCompile: results[0].parallelShaderCompile,
