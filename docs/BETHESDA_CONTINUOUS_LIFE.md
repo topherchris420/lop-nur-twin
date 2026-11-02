@@ -253,6 +253,11 @@ its source (the `*_SOURCE` commits in `src/bethesda/life/`) or that
 history the store holds. A release pruned before this rule, such as
 `c8b5fb1`, is rebuilt from git as `build_release` builds any release.
 
+Measured on 2026-11-02, from `62bd125` to `bdb7c02` with a store of about 330 MB:
+the fly's own `gap` record says it lived no ticks for 96 s, from 14:52:50 to 14:54:26
+UTC, which took in the check of the whole chain. It came back at epoch 12 with no
+restarts, and the check of the chain afterwards passed all 2,028 checkpoints.
+
 A checkpoint is refused by any other city, fly, ECHO, headless or graph
 version, so **an ordinary release that bumps any of those cannot continue this
 individual**, and `install.sh` says so (for example
@@ -613,7 +618,7 @@ the release that made it, and compare each later checkpoint with what came out
   `OBSERVATION_LEAVES_NO_TRACE` from `headless.ts`): the state hash, every record
   the life kept about itself, the graph digest and so the seal must all come out
   the same, digit for digit.
-- **From an earlier release, which is what the fly is running now**: the seals
+- **From an earlier release**: the seals
   cannot be reproduced by anyone, ever. A seal covers the whole graph, lookup
   caches included, and watching the fly moved those caches at moments nobody
   recorded (`world.wind` from the observer, about once a simulated second). The
@@ -622,9 +627,19 @@ the release that made it, and compare each later checkpoint with what came out
   field, apart from the four fields named in `replay.ts`. That is still a
   history re-derived, but it is not seal for seal, and `/live` says so.
 
-The fix is in the code, and it reaches the fly only with a deployment, which is a
-decision about the VM. Nothing about the fly changes when it happens: its graph
-keeps the same shape, and only what later checkpoints seal becomes reproducible.
+The fly crossed from one to the other on 2026-11-02, when the VM moved from
+`62bd125` to `bdb7c02`. Checkpoint #2,026 is the last one the earlier release
+sealed, and #2,027 the first from the release that leaves no trace. It is the same
+individual on the same engine versions, and its graph keeps the same shape. Only
+what later checkpoints seal becomes reproducible.
+
+So a replay has to start at #2,026 or later: this release requires every seal to
+come out the same, and those from before that line never can. An archive's oldest
+whole checkpoint passes the line about 20 minutes after the upgrade, and no archive
+was taken in that time. The first replay of an archive from after it is the first
+to compare seals, and its line in `replays.jsonl`, which `/live` reads, holds the
+result. That replay cannot continue from the one before, on `62bd125`, so the
+checkpoints from #1,993 to its start have no replay.
 
 It needs only an archive and this repository, and takes no lease and writes
 nothing to a store, so it cannot fork the individual:
@@ -668,7 +683,9 @@ The workflow can read the archives only with a read-only request on the bucket,
 which you make as you made [the write request](#off-site-copies): target the
 bucket, **permit object reads**, no listing, and put the URL (ending in `/o/`)
 in the repository's Actions secret `LIVE_FLY_BACKUP_READ_URL`. Without the
-secret each run says so and replays nothing. To let anyone run the commands
+secret each run says so and replays nothing. The current request is
+`bethesda-life-backup-read-2`, and it expires on 2027-10-30 at 14:00 UTC, so make
+a new one before then. To let anyone run the commands
 above against the real fly, you could make the bucket's objects public as well:
 they hold the fly's state and leases, and nothing else, but a public archive
 is also a copy anyone can keep, which is your call.
@@ -697,7 +714,7 @@ about itself, and no input reached it beyond its genesis and its ticks.
   of experience.
 
 **It needs the VM's platform: the same official Node build, Linux on arm64.**
-Measured from one chain of 6,100 ticks that the deployed release's own runner made
+Measured from one chain of 6,100 ticks that the runner of `62bd125` made
 on a GitHub Linux arm64 machine, watched as the VM's service watches it, on the Node
 that release pins (24.22.1):
 
@@ -710,8 +727,13 @@ that release pins (24.22.1):
 So a mismatch on another platform says nothing about the history. Node's compiled
 `Math` functions need not agree to the last digit across builds, and one digit is
 enough. That chain is an ordinary ECHO life and not the organism the VM runs, and
-GitHub's machines are not the VM's: whether the VM's own archives reproduce is what
-the first real replay will show. On one machine, a watched organism on the deployed
+GitHub's machines are not the VM's. The VM's own archives were first tried on
+2026-11-02: the backup `bethesda-life-20261102T120936Z-62bd12502c17` replayed from
+#1,990 to #1,993 on a GitHub Linux arm64 machine with Node 24.22.1 and passed, at the
+level that release allows, 0 seals compared
+([run 41459569425](https://github.com/topherchris420/lop-nur-twin/actions/runs/41459569425)).
+That was 9,000 ticks, about 0.15% of those the fly had lived, in 58 s at a peak of
+4,067 MB. On one machine, a watched organism on the deployed
 history through the real runner, with the observer that leaves no trace, reproduces
 every seal (`organism.test.ts`).
 
@@ -781,10 +803,10 @@ restore it as above.
   checkpoint per kept backup, so it fixes the history up to about 6 hours
   ago, and nothing from before it began except through the chain.
 - **A replay is only as far back as the first replay** ([above](#replaying-it)),
-  and only comparable on the VM's platform, and the deployed release's seals
-  cannot be reproduced at all (`Replaying it` says why, and how much can). The first
-  replay of a real archive needs a read-only request on the bucket that does not
-  exist yet.
+  and only comparable on the VM's platform, and the seals up to checkpoint #2,026
+  cannot be reproduced at all (`Replaying it` says why, and how much can). Replays of
+  real archives began on 2026-11-02, from #1,990, so nothing before that has been
+  re-derived.
 - **One observer, on the life's machine.** Viewers reach Caddy and the
   observer on the VM itself, which shares its one core with the life. Not
   load-tested.
