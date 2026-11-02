@@ -55,8 +55,12 @@ be operable:
 - The bottom panels (site map, mode hints, timeline, touch pan-stick, legend)
   share one grid that reflows by width, so no panel covers another at any
   screen size, and an opened legend scrolls inside the screen rather than off
-  it. Phone-width screens and touch devices start with the legend folded;
-  opened on a phone it is a sheet over the bottom of the view. `tools/routes.mjs`
+  it. The legend starts folded to a header that keeps its heading, the evidence
+  mode in force and the statement that the model is not operational data on
+  screen; a phone-width header keeps the heading and the record count, as its
+  column is too narrow for more. It opens by itself when the lens or the
+  uncertainty rings paint the scene, except on phone-width screens and touch
+  devices; opened on a phone it is a sheet over the bottom of the view. `tools/routes.mjs`
   measures the panel boxes on a phone, a phone held sideways, a tablet, a narrow
   window and a 1280 × 720 laptop and fails on any overlap.
 - The Bethesda anomaly and its lab each hold a history entry, so the browser's

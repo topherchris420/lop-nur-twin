@@ -173,6 +173,14 @@ props run on active tiers, keep their geometry cheap and treat motion as illustr
 - The adaptive ladder (`AdaptiveQuality.tsx`) must keep working: profiles in
   `src/lib/quality.ts` scale terrain, dust, shadows, pixel ratio, effects and animation.
   Test tiers by hand with `?quality=N` (also disables auto-stepping).
+- Programs link off the main thread: `warmProgramsThenRender` in
+  `src/components/scene/programWarmup.ts` holds the frame loop while they do, on
+  load and on every quality step. A material or a render path the warmup does not
+  compile for links on its first draw and blocks the page, and a render target
+  counts, because it changes a program's key.
+- `npm run twin:startup` measures the first seconds of `/` against a running
+  server: blocking, first frame, input and FPS, with `--attribute` to name the slow
+  GL calls. It prints the renderer it got; a software result is not comparable.
 - Instancing is only warranted when a structure type has >5 instances; none
   do today.
 - Textures are generated once and cached by `useMemo` — keep new generators

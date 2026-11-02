@@ -5,6 +5,7 @@ import { EvidenceLegendList } from "@/components/evidence/EvidenceUi";
 import { EvidenceModeControl } from "@/components/evidence/EvidenceModeControl";
 import { PRIMARY_CRS, evidenceClassificationCounts } from "@/lib/evidence";
 import { describeLens, lensTally } from "@/lib/evidenceLens";
+import { EVIDENCE_MODE_META } from "@/lib/evidenceMode";
 import { SITE_PROFILE } from "@/lib/siteData";
 import { isCoarsePointer } from "@/lib/touchInput";
 import { useTwinStore } from "@/lib/store";
@@ -19,24 +20,23 @@ import { cn } from "@/lib/utils";
  * which coordinate system the numbers are in, and the standing statement that
  * none of it is operational data.
  *
- * It starts folded to its header on touch devices, where the orbit pan-stick
- * sits above it, and on phone-width screens, where opened it is a sheet over
- * the bottom of the view. The full legend also lives in the research panel and
+ * It starts folded to its header, because opened it is a panel the height of a
+ * laptop screen sitting on the thing it describes. The header is the part that must
+ * stay: it keeps the heading, the evidence mode in force and the statement that none
+ * of this is operational data on screen, one click from the rest, and on a phone the
+ * heading and the record count. The full legend also lives in the research panel and
  * on `/analysis`, so the information is never only in one place.
+ *
+ * It opens by itself when something paints evidence onto the scene, since the paint
+ * cannot be read without its key, except on touch devices, where the orbit pan-stick
+ * sits above it, and on phone-width screens, where opened it is a sheet over the
+ * bottom of the view.
  */
-function startsOpen(): boolean {
+function hasRoomToOpen(): boolean {
   return !isCoarsePointer() && !window.matchMedia?.("(max-width: 639px)").matches;
 }
 
 export function EvidenceLegend() {
-  const [open, setOpen] = useState(startsOpen);
-  // The legend and the dossier share the right-hand column. Opening a dossier
-  // folds the legend to its header so the claim being read is not painted over;
-  // closing it brings the legend back. The legend can still be reopened by hand.
-  const dossierOpen = useTwinStore((state) => state.selectedId !== null);
-  useEffect(() => {
-    setOpen(!dossierOpen && startsOpen());
-  }, [dossierOpen]);
   const toggleResearch = useTwinStore((state) => state.toggleResearch);
   const evidenceMode = useTwinStore((state) => state.evidenceMode);
   const setEvidenceMode = useTwinStore((state) => state.setEvidenceMode);
@@ -44,6 +44,24 @@ export function EvidenceLegend() {
   const toggleUncertainty = useTwinStore((state) => state.toggleUncertainty);
   const showLens = useTwinStore((state) => state.showLens);
   const toggleLens = useTwinStore((state) => state.toggleLens);
+  const paintsEvidence = showLens || showUncertainty;
+
+  // The legend and the dossier share the right-hand column. A dossier folds the
+  // legend to its header so the claim being read is not painted over, and closing it
+  // puts the legend back as it was. It can still be reopened by hand over a dossier.
+  const dossierOpen = useTwinStore((state) => state.selectedId !== null);
+  const [wanted, setWanted] = useState(() => paintsEvidence && hasRoomToOpen());
+  const [overDossier, setOverDossier] = useState(false);
+  const open = dossierOpen ? overDossier : wanted;
+  const toggleOpen = dossierOpen ? setOverDossier : setWanted;
+
+  useEffect(() => {
+    if (!dossierOpen) setOverDossier(false);
+  }, [dossierOpen]);
+  useEffect(() => {
+    if (paintsEvidence && hasRoomToOpen()) setWanted(true);
+  }, [paintsEvidence]);
+
   const snapshotDate = useTwinStore((state) => state.snapshotDate);
   const counts = useMemo(evidenceClassificationCounts, []);
   // What the lens paints, counted from the same predicate the scene draws by.
@@ -71,10 +89,18 @@ export function EvidenceLegend() {
           <p className="text-muted-foreground mt-0.5 font-mono text-[10px]">
             {total} records · {PRIMARY_CRS}
           </p>
+          {/* The one line that stays when the rest folds away. Which subjects are being
+              drawn, and that it is a reconstruction, are not details to open a panel for.
+              A phone's column is too narrow to hold it without becoming a tower. */}
+          <p className="text-muted-foreground mt-1 hidden text-[10px] leading-relaxed sm:block">
+            <span aria-hidden="true">{EVIDENCE_MODE_META[evidenceMode].glyph}</span>{" "}
+            {EVIDENCE_MODE_META[evidenceMode].label}. Reconstruction, not operational
+            data.
+          </p>
         </div>
         <button
           type="button"
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => toggleOpen((value) => !value)}
           aria-expanded={open}
           aria-controls="evidence-legend-body"
           className="border-border hover:bg-accent focus-visible:ring-ring inline-flex items-center gap-1 rounded border px-2 py-1 text-[10px] focus-visible:ring-2 focus-visible:outline-none"

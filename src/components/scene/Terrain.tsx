@@ -23,7 +23,15 @@ const C_COMPACT = new THREE.Color("#c8bca0");
 
 const geometryCache = new Map<number, THREE.PlaneGeometry>();
 
-function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
+/** Vertices between yields, about 12 ms of work on a Snapdragon X laptop. */
+const VERTICES_PER_STEP = 8192;
+
+/**
+ * The terrain mesh, one step at a time. There is one path through this whether it
+ * is drained in a single call or across many tasks, so the mesh cannot depend on
+ * how it was built.
+ */
+function* terrainGeometrySteps(segments: number): Generator<void, THREE.PlaneGeometry> {
   const geo = new THREE.PlaneGeometry(SITE_SIZE, SITE_SIZE, segments, segments);
   geo.rotateX(-Math.PI / 2);
 
@@ -56,6 +64,8 @@ function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
     colors[i * 3] = scratch.r;
     colors[i * 3 + 1] = scratch.g;
     colors[i * 3 + 2] = scratch.b;
+
+    if ((i + 1) % VERTICES_PER_STEP === 0) yield;
   }
 
   geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
@@ -64,12 +74,47 @@ function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
   return geo;
 }
 
+/** Builds the mesh in one go. Used when nothing got the chance to prebuild it. */
+export function buildTerrainGeometry(segments: number): THREE.PlaneGeometry {
+  const steps = terrainGeometrySteps(segments);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
+}
+
 function getTerrainGeometry(segments: number): THREE.PlaneGeometry {
   const cached = geometryCache.get(segments);
   if (cached) return cached;
   const geometry = buildTerrainGeometry(segments);
   geometryCache.set(segments, geometry);
   return geometry;
+}
+
+/**
+ * Builds the mesh a tier needs without holding the main thread, yielding between
+ * steps. The top tier's mesh is otherwise a few hundred milliseconds in one task.
+ */
+export async function prebuildTerrainGeometry(segments: number): Promise<void> {
+  if (geometryCache.has(segments)) return;
+  const steps = terrainGeometrySteps(segments);
+  let step = steps.next();
+  while (!step.done) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    step = steps.next();
+  }
+  geometryCache.set(segments, step.value);
+}
+
+/**
+ * Everything the terrain's first render would otherwise build at once, built ahead
+ * of it in small tasks. The terrain then finds it all in the caches.
+ */
+export async function prebuildTerrainAssets(tier: QualityTier): Promise<void> {
+  await prebuildTerrainGeometry(getQualityProfile(tier).terrainSegments);
+  for (const family of ["desert", "pavement"] as const) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    groundDetailFor(tier, family);
+  }
 }
 
 export function Terrain() {
@@ -81,22 +126,21 @@ export function Terrain() {
   useEffect(() => {
     const warmTiers: QualityTier[] = [];
     if (qualityTier > 0) warmTiers.push((qualityTier - 1) as QualityTier);
-    if (!reducedMotion && qualityTier < 2)
+    if (!reducedMotion && qualityTier < 3)
       warmTiers.push((qualityTier + 1) as QualityTier);
     // The adaptive ladder steps up as well as down, and both the terrain
     // geometry and the ground detail maps are a couple of hundred milliseconds
     // of main-thread work at the top tier. Warm the neighbouring tier's
     // versions of both on idle so a step never lands as a stall.
-    const jobs: Array<() => void> = [];
+    const jobs: Array<() => void | Promise<void>> = [];
     for (const tier of warmTiers) {
       const profile = getQualityProfile(tier);
-      jobs.push(() => getTerrainGeometry(profile.terrainSegments));
+      jobs.push(() => prebuildTerrainGeometry(profile.terrainSegments));
       if (profile.groundDetailSize > 0) {
-        jobs.push(() => {
-          // Building the maps is what costs;  caches them.
-          groundDetailFor(tier, "desert");
-          groundDetailFor(tier, "pavement");
-        });
+        // Building the maps is what costs; `groundDetailFor` caches them. One job
+        // each, as the top tier's two together are a long task of their own.
+        jobs.push(() => void groundDetailFor(tier, "desert"));
+        jobs.push(() => void groundDetailFor(tier, "pavement"));
       }
     }
     let cancelled = false;
@@ -106,15 +150,15 @@ export function Terrain() {
     const warmNext = () => {
       const next = jobs.shift();
       if (cancelled || next === undefined) return;
-      const build = () => {
+      const build = async () => {
         if (cancelled) return;
-        next();
+        await next();
         warmNext();
       };
       if ("requestIdleCallback" in window) {
-        idleId = window.requestIdleCallback(build, { timeout: 1500 });
+        idleId = window.requestIdleCallback(() => void build(), { timeout: 1500 });
       } else {
-        timeoutId = globalThis.setTimeout(build, 150);
+        timeoutId = globalThis.setTimeout(() => void build(), 150);
       }
     };
 

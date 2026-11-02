@@ -31,6 +31,15 @@ export function Hud() {
   useEffect(() => {
     let raf = 0;
     const loop = () => {
+      raf = requestAnimationFrame(loop);
+      // The panel is on screen during the load, when no frame has placed a camera to
+      // report or been drawn to count. Printing the defaults would state a position.
+      if (!useTwinStore.getState().ready) {
+        for (const ref of [eastRef, northRef, altRef, hdgRef, fpsRef]) {
+          if (ref.current) ref.current.textContent = "—";
+        }
+        return;
+      }
       const projected = localToProjected({ x: telemetry.x, z: telemetry.z });
       if (eastRef.current) {
         eastRef.current.textContent = projected.easting.toFixed(0).padStart(6, "0");
@@ -49,7 +58,6 @@ export function Hud() {
       if (fpsRef.current) {
         fpsRef.current.textContent = telemetry.fps.toFixed(0);
       }
-      raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);

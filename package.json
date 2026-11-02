@@ -97,6 +97,7 @@
     "test:evidence": "node scripts/run-ts.mjs scripts/test-evidence-validation.ts",
     "test:jev": "vitest run src/game/pilot server",
     "test:run": "vitest run",
+    "twin:startup": "node tools/twin-startup.mjs",
     "typecheck": "tsc --noEmit",
     "validate:data": "node scripts/run-ts.mjs scripts/validate-data.ts",
     "validate:model-history": "node scripts/run-ts.mjs scripts/validate-model-history.ts",

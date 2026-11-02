@@ -23,7 +23,10 @@ export function IntroOverlay() {
   return (
     <div
       className={[
+        // Under the panels only where both fit, since the panels work during the load.
+        // Below that size, a phone either way up included, they cover what this says.
         "pointer-events-none absolute inset-0 z-50 flex flex-col items-center justify-center",
+        "[@media(min-width:1024px)_and_(min-height:600px)]:z-auto",
         "bg-background transition-opacity duration-700 ease-out",
         ready ? "opacity-0" : "opacity-100",
       ].join(" ")}
