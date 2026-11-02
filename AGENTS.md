@@ -977,7 +977,7 @@ verified to be; a copy is always someone else.**
   rewrite or a restore.
 - **Watching leaves no trace.** A checkpoint seals the whole graph, lookup caches
   included, and a replay can only reproduce a seal if nothing unrecorded moved them.
-  Anything that reads the world for an observer goes through `world.untraced`.
+  Anything that reads the world for an observer goes through `untraced` in `headless.ts`.
   `replay.test.ts` seals a watched life beside an unwatched one, and they must match.
 - **A replay never touches the fly.** `replay.ts` restores a checkpoint in
   memory, with no lease and no writes, on a machine that is not the VM, so it

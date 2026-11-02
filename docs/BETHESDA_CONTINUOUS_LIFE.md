@@ -697,20 +697,23 @@ about itself, and no input reached it beyond its genesis and its ticks.
   of experience.
 
 **It needs the VM's platform: the same official Node build, Linux on arm64.**
-Measured from one chain of 6,100 ticks that the release 62bd125's own runner made
-on a GitHub Linux arm64 machine, on the Node that release pins (24.22.1):
+Measured from one chain of 6,100 ticks that the deployed release's own runner made
+on a GitHub Linux arm64 machine, watched as the VM's service watches it, on the Node
+that release pins (24.22.1):
 
-| Replayed on                        | Result                                                      |
-| ---------------------------------- | ----------------------------------------------------------- |
-| Another GitHub Linux arm64 machine | Every seal reproduced                                       |
-| GitHub Linux x64                   | Differs at the first checkpoint: the city same, the fly not |
-| Windows on arm64 (a laptop)        | Differs at the first checkpoint: the city same, the fly not |
+| Replayed on                        | Result                                                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Another GitHub Linux arm64 machine | Passed: state and records at all 3 checkpoints, the whole graph apart from the caches at the last; 0 seals    |
+| GitHub Linux x64                   | Differs at the first checkpoint: the city same, the fly not                                                   |
+| Windows on arm64 (a laptop)        | Differs at the first checkpoint: the city same, the fly not (measured on an unwatched chain of the same kind) |
 
 So a mismatch on another platform says nothing about the history. Node's compiled
 `Math` functions need not agree to the last digit across builds, and one digit is
 enough. That chain is an ordinary ECHO life and not the organism the VM runs, and
 GitHub's machines are not the VM's: whether the VM's own archives reproduce is what
-the first real replay will show.
+the first real replay will show. On one machine, a watched organism on the deployed
+history through the real runner, with the observer that leaves no trace, reproduces
+every seal (`organism.test.ts`).
 
 **What a mismatch means.** First, that it needs looking at, not that the history
 was forged. The likeliest causes, in order: the replay ran on another platform or
