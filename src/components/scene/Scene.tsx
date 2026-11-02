@@ -79,6 +79,30 @@ function QualityStepWarmup() {
   return null;
 }
 
+/**
+ * How long a tier with the post stack waits for that stack's chunk. Long enough that
+ * a usual load links its programs once, for the frame it will really draw.
+ */
+const POST_STACK_PATIENCE_MS = 1000;
+
+/**
+ * Takes over from `Effects` while its chunk is on the way. That chunk is the one thing
+ * rendering waits for that the warmup's own timeouts do not cover, so without this a
+ * slow or hung request holds the canvas paused for as long as the request stays open:
+ * the boot screen for good, on a load. The scene draws without the stack until it comes.
+ */
+function DrawWithoutPostStack() {
+  const get = useThree((s) => s.get);
+  useEffect(() => {
+    const timeout = setTimeout(
+      () => void warmProgramsThenRender(get()),
+      POST_STACK_PATIENCE_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [get]);
+  return null;
+}
+
 /** Where `SceneContents` stops adding pieces and starts on the shaders. */
 const LAST_STAGE = 4;
 
@@ -100,9 +124,14 @@ function SceneContents({
 
   useEffect(() => {
     let cancelled = false;
-    void prebuildTerrainAssets(useTwinStore.getState().qualityTier).then(() => {
-      if (!cancelled) setStage((current) => Math.max(current, 1));
-    });
+    void prebuildTerrainAssets(useTwinStore.getState().qualityTier)
+      // A failure here is the terrain's to report. Its render builds the same things
+      // again and throws to the error boundary, which a promise cannot reach: stopping
+      // here would leave the boot screen up for good, with nothing said.
+      .catch(() => undefined)
+      .then(() => {
+        if (!cancelled) setStage((current) => Math.max(current, 1));
+      });
     return () => {
       cancelled = true;
     };
@@ -141,7 +170,7 @@ function SceneContents({
               CORS-capable deployments or a same-origin proxy. */}
           {liveTraffic ? <LiveTraffic /> : null}
           {postprocessing && (
-            <Suspense fallback={null}>
+            <Suspense fallback={<DrawWithoutPostStack />}>
               <Effects />
             </Suspense>
           )}
