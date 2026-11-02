@@ -393,6 +393,10 @@ What the recorded experiments establish:
 - **Adaptive intelligence:** closed-loop neural control has run on research
   subjects. Odor-specific learning and held-out threat discrimination remain
   negative findings. [Protocols and results](docs/ECHO_ADAPTIVE_INTELLIGENCE.md).
+- **Acquired behavior:** research flies come to prefer what their own meals favored,
+  carry that to unseen yards and reverse it when later food says otherwise. In the
+  real city it brought no detectable benefit; the held-out test has not been run and
+  nothing is deployed. [Study and results](docs/ECHO_ACQUIRED_BEHAVIOR.md).
 
 The model simplifies chemical signaling to signed synaptic effects and omits
 gap junctions, morphology, and neuromodulation. BANC adds the cord's chemical

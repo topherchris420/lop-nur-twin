@@ -1,0 +1,87 @@
+{
+  "commit": "7b2627daeda77f70b835c10749bfe6d3bb7dbc2a",
+  "sets": {
+    "dev-v1": {
+      "flies": 30,
+      "bundleSha256": "273f0e172bc501faf8ce28f653ac581a7bdcbfb677ede89a05df171912b0e934",
+      "sha256": "95d8c84024b7f2e6a02f641cf457410883e30badb3590aa160278b3033c6261d",
+      "jobs": [
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T18:07:37Z",
+          "finishedUtc": "2026-11-02T18:39:01Z"
+        },
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T18:07:40Z",
+          "finishedUtc": "2026-11-02T18:35:44Z"
+        }
+      ]
+    },
+    "dev-v2": {
+      "flies": 30,
+      "bundleSha256": "4459adf2b396228d95d5f51554de960de4b817a6bce11c55467f0d25b42065b3",
+      "sha256": "bd40eef6f08153ba05bcbaec0484f4857673b3709e4c7e7c2cb129d4ab31a9a3",
+      "jobs": [
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T18:55:32Z",
+          "finishedUtc": "2026-11-02T19:26:45Z"
+        },
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T18:55:32Z",
+          "finishedUtc": "2026-11-02T19:26:17Z"
+        }
+      ]
+    },
+    "city": {
+      "flies": 24,
+      "bundleSha256": "33458b4809eeb869359015ebf6cfd6e9945cd8e37c0c5660680ae19cf96a341d",
+      "sha256": "868c057983745b0c231290ee982d86686358e6c18fd6d4cf52ad4c5f2f8cd71b",
+      "jobs": [
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T19:35:58Z",
+          "finishedUtc": "2026-11-02T20:12:55Z"
+        },
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T19:35:59Z",
+          "finishedUtc": "2026-11-02T20:14:34Z"
+        },
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T19:36:01Z",
+          "finishedUtc": "2026-11-02T20:14:08Z"
+        }
+      ]
+    },
+    "persist": {
+      "flies": 48,
+      "bundleSha256": "9a319484dee3eddc9b862bd892351a747be24691da60f2c04948e370316f4094",
+      "sha256": "a06fa2cb49251c91883787ee32eb25878137e40442e0a556aaa87071dd9ef6d3",
+      "jobs": [
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T20:29:00Z",
+          "finishedUtc": "2026-11-02T20:45:44Z"
+        },
+        {
+          "node": "v24.22.1",
+          "machine": "x86_64",
+          "startedUtc": "2026-11-02T20:29:38Z",
+          "finishedUtc": "2026-11-02T20:46:10Z"
+        }
+      ]
+    }
+  }
+}
