@@ -1,64 +1,30 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useTwinStore, type QualityTier } from "@/lib/store";
+import { useTwinStore } from "@/lib/store";
 import { telemetry } from "@/lib/telemetry";
 import { getQualityProfile } from "@/lib/quality";
+import { QualityLadder } from "@/lib/qualityLadder";
 
 /**
- * Adaptive quality ladder, stepped by a rolling FPS estimate. Profiles scale
- * terrain, dust, shadows, pixel ratio, postprocessing, and the illustrative
- * aircraft circuit; see `lib/quality.ts` for exact values.
- *
- * Downgrade after >1 s below 50 FPS; recover after >2 s above 55 FPS.
+ * Adaptive quality ladder. Profiles scale terrain, dust, shadows, pixel ratio,
+ * postprocessing, and the illustrative aircraft circuit; see `lib/quality.ts` for
+ * exact values, and `lib/qualityLadder.ts` for when it steps and why.
  */
 export function AdaptiveQualityManager() {
   const setDpr = useThree((s) => s.setDpr);
   const qualityTier = useTwinStore((s) => s.qualityTier);
-
-  const ema = useRef(60);
-  const lowTime = useRef(0);
-  const highTime = useRef(0);
-  const cooldown = useRef(0);
+  const ladder = useRef(new QualityLadder());
 
   useFrame((_, delta) => {
-    const dt = Math.max(delta, 1e-4);
-    const fps = 1 / dt;
-    ema.current += (fps - ema.current) * Math.min(1, dt * 4);
-    telemetry.fps = ema.current;
-
-    if (cooldown.current > 0) {
-      cooldown.current -= dt;
-      lowTime.current = 0;
-      highTime.current = 0;
-      return;
-    }
-
     const {
       qualityTier: tier,
       autoQuality,
       reducedMotion,
       setQualityTier,
     } = useTwinStore.getState();
-    if (!autoQuality || reducedMotion) return;
-
-    if (ema.current < 50) {
-      lowTime.current += dt;
-      highTime.current = 0;
-    } else if (ema.current > 55) {
-      highTime.current += dt;
-      lowTime.current = 0;
-    } else {
-      lowTime.current = 0;
-      highTime.current = 0;
-    }
-
-    if (lowTime.current > 1 && tier > 0) {
-      setQualityTier((tier - 1) as QualityTier);
-      cooldown.current = 1.5;
-    } else if (highTime.current > 2 && tier < 3) {
-      setQualityTier((tier + 1) as QualityTier);
-      cooldown.current = 1.5;
-    }
+    const step = ladder.current.sample(delta, tier);
+    telemetry.fps = ladder.current.fps;
+    if (step !== null && autoQuality && !reducedMotion) setQualityTier(step);
   });
 
   useEffect(() => {
