@@ -1,25 +1,28 @@
 # ECHO acquired search: a learned preference that transfers, with no benefit shown
 
-**Status: research flies only, development results, NOT DEPLOYED.** Nothing here
-has run on the original individual, a copy of its archive, or the VM. The
-held-out test below has not been run. The question this study sets out to answer
-is whether a fly can acquire a persistent, useful behavior that was not
+**Status: research flies only, NOT DEPLOYED.** Nothing here has run on the original
+individual, a copy of its archive, or the VM. The question this study sets out to
+answer is whether a fly can acquire a persistent, useful behavior that was not
 explicitly scripted and carry it into an unfamiliar situation under controlled
-evaluation. **So far: acquired and carried over, yes; lasting only until later
-experience changes it; useful in its own world, not shown.**
+evaluation. **The sealed test's answer: acquired and carried over, yes; useful, not
+shown.** The first-meal gain seen in development did not replicate, the real city
+showed no detectable benefit, and the preference lasts only until later experience
+changes it.
 
-| Question                                  | Answer on development flies                                                                                                                    |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Does a preference form from experience?   | Yes. Same code and seed, opposite preferences depending only on where the fly ate.                                                             |
-| Does it transfer to unseen places?        | Yes. +0.41 [0.24, 0.55] in foodless yards it had never met; flies fed with no pattern −0.11 [−0.34, 0.10].                                     |
-| Can later experience change it?           | Yes. Food by the opposite rule reversed it, +0.41 to −0.42 [−0.59, −0.24].                                                                     |
-| Does it last?                             | Partly. After about 10 meals with no pattern it had faded to +0.11 [−0.00, 0.22].                                                              |
-| Does it help find food in an unseen yard? | A first meal came 257 s sooner [−0.5, 526] where food matched, an advantage of 362 s [34, 667] over where it did not. Over 8 h stays, no gain. |
-| Does it help in the real city?            | **Not shown.** On day 2: −1.0 meals [−9.5, +6.4] on 20.1, −0.15 J [−1.09, +0.79] net.                                                          |
-| Is it the same individual?                | A continuation exists and passes its tests on small synthetic lives. Never run on a real archive.                                              |
+| Question                                  | Answer                                                                                                                                                                             |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Does a preference form from experience?   | Yes. Same code and seed, opposite preferences depending only on where the fly ate.                                                                                                 |
+| Does it transfer to unseen places?        | **Yes, on the sealed test.** +0.42 [0.30, 0.53] in foodless yards it had never met; flies fed with no pattern −0.04 [−0.19, 0.13].                                                 |
+| Does carrying it cost much?               | **No, on the sealed test.** +0.03 J [0.02, 0.05] in a foodless hour.                                                                                                               |
+| Does it help find food in an unseen yard? | **Not on the sealed test.** First meal −9 s [−174, 155] where food matched, and −56 s [−273, 163] matched less crossed. Development had suggested +362 s [34, 667] for the second. |
+| Does it pay over a long stay?             | **Not on the sealed test.** +0.00 J [−0.17, 0.19] per 8 h stay where food matched, and −0.23 J [−0.43, −0.04] where it did not.                                                    |
+| Can later experience change it?           | Yes, in development. Food by the opposite rule reversed it, +0.41 to −0.42 [−0.59, −0.24].                                                                                         |
+| Does it last?                             | Partly, in development. After about 10 meals with no pattern it had faded to +0.11 [−0.00, 0.22].                                                                                  |
+| Does it help in the real city?            | **Not shown**, in development. On day 2: −1.0 meals [−9.5, +6.4] on 20.1, −0.15 J [−1.09, +0.79] net.                                                                              |
+| Is it the same individual?                | A continuation exists and passes its tests on small synthetic lives. Never run on a real archive.                                                                                  |
 
-Intervals are 95%, from resampling seeds; every comparison has 12 seeds, and the
-no-pattern control 6. The
+Intervals are 95%, from resampling seeds. The sealed test has 24 seeds, each
+development comparison 12, and each no-pattern control 6. The
 results are in [`docs/benchmarks/echo-acquired/2026-11-02/`](benchmarks/echo-acquired/2026-11-02/).
 
 ## What is scripted and what is not
@@ -118,8 +121,10 @@ unchanged apart from the no-comparison rule; how it acts was rewritten as above.
   gone the predicted way. Last version: −338 s [−809, 148].
 - Extra energy in a foodless hour: +0.04 J [0.01, 0.06]; last version +0.18 J.
 
-So it now costs little and finds a first meal sooner where experience predicts,
-but over long stays it only breaks even. One suspected reason, not verified: after
+So on these flies it costs little and finds a first meal sooner where experience
+predicts, but over long stays it only breaks even. The sealed test below confirmed
+the low cost and the break-even, and not the first meal. One suspected reason for the
+break-even, not verified: after
 a meal, the innate return to remembered food takes over from the layer, and a yard's
 food moves on after every meal, so those returns find nothing.
 
@@ -189,7 +194,7 @@ authorization, and these results would not justify one.
 
 ## Held-out plan, frozen before it is run
 
-Fixed at the commit that adds this file, before any held-out result exists. From
+Fixed at commit `5cc4e1c`, before any held-out result existed. From
 a clean commit, with no bundle: `--split heldout`, whose test yards have cell sizes,
 canopy heights, sun heights and shaded shares no development yard has; seeds
 1001–1024 fed both ways; seeds 1001–1006 fed with no pattern.
@@ -207,11 +212,41 @@ H5 is expected to fail on what is known now. Results are reported whichever way
 they go, and the set is spent by being looked at: any later change needs new yards
 and seeds, and says so. No bar here can make up for the null in the real city.
 
+## Held-out result
+
+Run once, from commit `5cc4e1c` with no bundle, on 2026-11-02 (`heldout`, 54 flies).
+Beforehand the held-out path ran once as a crash test, for a few simulated minutes on
+an unrelated seed (9001), with its output discarded unread.
+
+| Bar | Claim                                           | Result                | Verdict  |
+| --- | ----------------------------------------------- | --------------------- | -------- |
+| H1  | The preference transfers                        | +0.42 [0.30, 0.53]    | **Pass** |
+| H2  | It finds a first meal sooner where food matches | −9 s [−174, 155]      | **Fail** |
+| H3  | That gain is specific to what it learned        | −56 s [−273, 163]     | **Fail** |
+| H4  | It costs little                                 | +0.03 J [0.02, 0.05]  | **Pass** |
+| H5  | It pays for itself over a long stay             | +0.00 J [−0.17, 0.19] | **Fail** |
+
+A fly reliably carries what it learned into places it has never seen, cheaply, and
+that does not help it eat. The development first-meal gain did not replicate. Where
+food did not match, a long stay cost it energy, −0.23 J [−0.43, −0.04], against a
+baseline of −0.45 J and 19.1 meals. The no-pattern control stayed near zero, −0.04
+[−0.19, 0.13].
+
+**Not a bar, and decides nothing, chosen after seeing the results.** These yards were
+harder to learn in: a median of 4 training meals against 6 in development, and 10 of
+48 flies had fewer than the three the layer needs before it acts. That does not
+explain the failure. On the 16 seeds where both flies reached three, the preference
+was stronger, +0.55 [0.46, 0.64], but the first meal was still +13 s [−218, 241], and
+−52 s [−352, 242] matched less crossed.
+
+This set is now spent.
+
 ## Limits
 
-- **All development.** The redesign came from looking at results. Seeds 41–52 are
-  fresh, but `specific` is one of many intervals read, and `usefulMatched` just
-  touches zero. The held-out test exists to find out if these hold.
+- **Only one section is sealed.** Everything but the held-out result is development.
+  The redesign came from looking at results, and the first-meal gain it seemed to
+  bring, one of many intervals read, did not survive. Lasting, reversing and the city
+  have no sealed test of their own.
 - **The yards are invented.** Food follows a clean rule there; in the city the same
   patterns are much weaker. The city's result is the one that speaks to usefulness.
 - **Not independent runs.** One fly meets every test in turn, with the order
@@ -235,6 +270,7 @@ and seeds, and says so. No bar here can make up for the null in the real city.
 E=scripts/echo-acquired-evaluate.ts
 B=docs/benchmarks/echo-acquired/2026-11-02
 # The reports, from the archived flies.
+node scripts/run-ts.mjs $E analyse $B/heldout.jsonl
 node scripts/run-ts.mjs $E analyse $B/dev-v2.jsonl
 node scripts/run-ts.mjs $E analyse-persist $B/persist.jsonl
 node scripts/run-ts.mjs $E analyse-city $B/city.jsonl --from 24
@@ -258,6 +294,6 @@ hf jobs run --detach --flavor cpu-upgrade --timeout 2h --secrets HF_TOKEN \
   python:3.11 bash -c "pip install -q huggingface_hub && python -c \"import os, runpy; from huggingface_hub import hf_hub_download as d; runpy.run_path(d(os.environ['RESULTS_REPO'], os.environ['RUN_PREFIX'] + '/acquired_job.py', repo_type='dataset'), run_name='__main__')\""
 ```
 
-Four streams fit one `cpu-upgrade` job. At its listed $0.03 an hour, the four sets
-here came to about 14 cents of run time, estimated from their records and not read
+Four streams fit one `cpu-upgrade` job. At its listed $0.03 an hour, the five sets
+here came to about 19 cents of run time, estimated from their records and not read
 from billing, and excluding each job's few minutes of setup.
