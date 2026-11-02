@@ -10,11 +10,19 @@ name: Dependabot lockfile
 # branch is executed. This is `pull_request`, not `pull_request_target`: a fork
 # gets none of this, and the `if` confines it to Dependabot's own pull requests.
 #
-# A push made with this token starts no workflow, so the job then asks for CI on
-# the branch itself. The first CI run, on Dependabot's commit, fails at the install
-# step as expected; what counts is the run on the new head. Having seen another
-# author's commit, Dependabot stops rebasing the pull request on its own: ask it
-# with a comment, `@dependabot recreate`, and this job runs again.
+# GitHub holds the runs a push with this token sets off, as approval-required: CI,
+# dependency review and CodeQL then wait on the pull request's page until someone
+# with write access selects "Approve workflows to run". That one click is the point
+# at which a person looks at the update, so nothing here gets around it. The first
+# CI run, on Dependabot's commit, fails at the install step as expected; what counts
+# is the run on the new head. Having seen another author's commit, Dependabot stops
+# rebasing the pull request on its own: ask it with a comment, `@dependabot
+# recreate`, and this job runs again.
+#
+# A security update of a transitive dependency changes package-lock.json alone. Bun
+# then keeps its pin, so bun.lock, which CI installs from, stays on the old version.
+# This job cannot fix that (`bun update` would move more than the one package), so
+# it says so on the run instead of reporting that all is well.
 on:
   pull_request:
     paths:
@@ -35,7 +43,6 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: write
-      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,10 +59,10 @@ jobs:
       - name: Update bun.lock
         run: bun install --lockfile-only --ignore-scripts
 
-      - name: Push it and ask for CI
+      - name: Push it
         env:
-          GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ github.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           # Bun's lockfile is the only thing this may change.
           if [ -n "$(git status --porcelain -- . ':!bun.lock')" ]; then
@@ -64,7 +71,14 @@ jobs:
             exit 1
           fi
           if git diff --quiet -- bun.lock; then
-            echo "bun.lock already matches." >>"$GITHUB_STEP_SUMMARY"
+            git fetch --quiet --depth=1 origin "$BASE_SHA"
+            if git diff --quiet "$BASE_SHA" HEAD -- package.json; then
+              msg="package.json is unchanged, so bun.lock keeps its pins and CI will not install this update. Move it in bun.lock by hand."
+              echo "::warning::$msg"
+              echo "$msg" >>"$GITHUB_STEP_SUMMARY"
+            else
+              echo "bun.lock already matches." >>"$GITHUB_STEP_SUMMARY"
+            fi
             exit 0
           fi
           git add bun.lock
@@ -72,5 +86,4 @@ jobs:
             -c user.email="41898579+github-actions[bot]@users.noreply.github.com" \
             commit --quiet -m "Bring bun.lock along with package.json"
           git push --quiet origin "HEAD:refs/heads/$BRANCH"
-          gh workflow run ci.yml --ref "$BRANCH"
-          echo "Updated bun.lock and asked for CI on $BRANCH." >>"$GITHUB_STEP_SUMMARY"
+          echo "Updated bun.lock on $BRANCH. Its checks now wait for your approval on the pull request's page." >>"$GITHUB_STEP_SUMMARY"
