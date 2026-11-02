@@ -657,6 +657,65 @@ describe("the runner with an organism", () => {
     expect(readFileSync(join(dir, "individual.json"), "utf8")).toBe(identity);
   }, 300_000);
 
+  it("is reproduced seal for seal by a replay, gaps and what it recorded about itself included", () => {
+    // The deployed kind, from the deployed history, through the two real programs in separate processes.
+    const dir = scratch("organism-replay");
+    historyStore(dir);
+    const organism = continued(dir);
+    const live = (ticks: number, times: number) => {
+      for (let i = 0; i < times; i++) {
+        const run = runner(["--store", dir, "--ticks", String(ticks)]);
+        expect(run.status, run.stderr).toBe(0);
+      }
+    };
+    const replay = () => {
+      const run = runTs("scripts/bethesda-life-replay.ts", ["--store", dir]);
+      expect(run.status, run.stderr + run.stdout).toBe(0);
+      return lastJson(run.stdout);
+    };
+
+    // Right after a continuation: it starts there, not from the older engine's checkpoint beside it.
+    live(300, 2);
+    expect(replay()).toMatchObject({
+      passed: true,
+      individual: born.individual,
+      from: { sequence: organism.sequence, digest: organism.digest },
+      reproduced: 2,
+      ticks: 600,
+      difference: null,
+      stopped: null,
+    });
+
+    // A test intervention, sealed as its own checkpoint: the reserve nearly empty, so
+    // the fly soon records a recovery, and the seals depend on what it recorded.
+    const store = LifeStore.open(dir, ORGANISM_LIFE);
+    const head = store.head();
+    const life = restoreLife(ORGANISM_LIFE, head);
+    const fly = life.cityFly.fly;
+    fly.state.reserve = 0.02 * fly.params.reserveJ;
+    const depleted = checkpointLife(ORGANISM_LIFE, life, {
+      genesis: head.genesis,
+      birth: head.birth,
+      previous: head,
+    });
+    store.acquire();
+    store.commit(depleted);
+    store.release();
+    live(1000, 3);
+    const after = LifeStore.open(dir, ORGANISM_LIFE)
+      .events()
+      .filter((e) => e.tick > depleted.tick);
+    expect(after.map((e) => e.kind)).toContain("recovery-enter");
+    expect(replay()).toMatchObject({
+      passed: true,
+      from: { sequence: depleted.sequence, digest: depleted.digest },
+      reproduced: 3,
+      ticks: 3000,
+      difference: null,
+      stopped: null,
+    });
+  }, 400_000);
+
   it("after a hard kill: refuses a second writer, resumes only what was committed, and starts no one new", async () => {
     const dir = scratch("organism-kill");
     historyStore(dir);

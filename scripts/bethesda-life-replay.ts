@@ -20,7 +20,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { bethesdaStoreKind } from "../src/bethesda/life/bethesdaStore.js";
-import type { LifeCheckpoint } from "../src/bethesda/life/continuity.js";
+import { sameVersions, type LifeCheckpoint } from "../src/bethesda/life/continuity.js";
 import type {
   HeadlessBethesdaLife,
   HeadlessGenesis,
@@ -67,12 +67,16 @@ const checkpointIn = (dir: string, sequence: number): Checkpoint =>
     ) as { checkpoint: Checkpoint }
   ).checkpoint;
 
-/** The oldest checkpoint the store still holds whole: a store compacts all but its newest few. */
+/**
+ * The oldest checkpoint the store still holds whole and this engine can restore: a
+ * store compacts all but its newest few, and just after a recorded continuation
+ * some of those were made by the engine before it.
+ */
 function oldestWhole(dir: string, head: Checkpoint): Checkpoint {
   let c = head;
   while (c.sequence > 0) {
     const older = checkpointIn(dir, c.sequence - 1);
-    if (!older.graph) break;
+    if (!older.graph || !sameVersions(older.versions, head.versions)) break;
     c = older;
   }
   return c;
