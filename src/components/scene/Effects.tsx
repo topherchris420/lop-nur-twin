@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { type ComponentRef, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer, N8AO, SMAA, Vignette } from "@react-three/postprocessing";
 import {
   AgXToneMappingEffect,
@@ -7,6 +8,7 @@ import {
   LensArtifactsEffect,
 } from "@/gfx/postfx";
 import { useTwinStore } from "@/lib/store";
+import { compileComposerFrame, warmProgramsThenRender } from "./programWarmup";
 
 /**
  * Full post-processing stack, only mounted on the top quality tier.
@@ -84,6 +86,18 @@ export default function Effects() {
     [],
   );
 
+  // Linking this stack on its first frame held the page for over two seconds. A
+  // layout effect, so inside the commit, before a frame can land, and after the
+  // composer's own layout effect has added the passes.
+  const get = useThree((s) => s.get);
+  const composer = useRef<ComponentRef<typeof EffectComposer>>(null);
+  useLayoutEffect(() => {
+    void warmProgramsThenRender(
+      get(),
+      composer.current ? compileComposerFrame(composer.current) : undefined,
+    );
+  }, [get]);
+
   useEffect(() => () => agx.dispose(), [agx]);
   useEffect(() => () => lens.dispose(), [lens]);
   useEffect(() => () => streaks.dispose(), [streaks]);
@@ -106,7 +120,11 @@ export default function Effects() {
   }, [agx, lens, streaks, look]);
 
   return (
-    <EffectComposer multisampling={0} frameBufferType={THREE.HalfFloatType}>
+    <EffectComposer
+      ref={composer}
+      multisampling={0}
+      frameBufferType={THREE.HalfFloatType}
+    >
       <N8AO aoRadius={14} intensity={2.4} distanceFalloff={120} halfRes />
       <Bloom
         mipmapBlur

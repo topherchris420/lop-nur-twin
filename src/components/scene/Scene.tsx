@@ -52,6 +52,9 @@ function ReadySignal() {
  * before the new materials do. The warmup starts from a layout effect, so inside the
  * commit that swapped them in. Started any earlier it compiles the outgoing tier's
  * materials, which are then disposed while it waits for them.
+ *
+ * A tier with the post stack stays paused for `Effects` to do this when it mounts, as
+ * only it knows what a composer frame draws with.
  */
 function QualityStepWarmup() {
   const get = useThree((s) => s.get);
@@ -69,7 +72,8 @@ function QualityStepWarmup() {
   useLayoutEffect(() => {
     if (warmedTier.current === qualityTier) return;
     warmedTier.current = qualityTier;
-    void warmProgramsThenRender(get());
+    if (!getQualityProfile(qualityTier).postprocessing)
+      void warmProgramsThenRender(get());
   }, [qualityTier, get]);
 
   return null;
@@ -107,12 +111,13 @@ function SceneContents({
   useEffect(() => {
     if (stage === 0) return;
     if (stage === LAST_STAGE) {
-      void warmProgramsThenRender(get());
+      // With the post stack, `Effects` does this when its chunk has loaded.
+      if (!postprocessing) void warmProgramsThenRender(get());
       return;
     }
     const timeout = setTimeout(() => setStage(stage + 1), 0);
     return () => clearTimeout(timeout);
-  }, [stage, get]);
+  }, [stage, postprocessing, get]);
 
   return (
     <>

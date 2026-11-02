@@ -105,6 +105,41 @@ async function gpuQueueDrained(gl: WebGL2RenderingContext): Promise<void> {
   gl.deleteSync(fence);
 }
 
+/** Creates the programs the next frame will draw with, and returns their materials. */
+type CompileNextFrame = (state: RootState) => Set<THREE.Material>;
+
+const compileScene: CompileNextFrame = ({ gl, scene, camera }) =>
+  gl.compile(scene, camera);
+
+/**
+ * The same for a frame of the post stack, which `compileScene` gets wrong twice. The
+ * passes' own materials are not in the scene, and the scene itself is drawn into the
+ * composer's buffer, not the screen. The output colour space is part of a program's
+ * key, so what `compileScene` links for that is a set of programs nothing draws with.
+ *
+ * So this walks one composer frame with `render` swapped for `compile`. Every pass asks
+ * for what it really draws, with its real target bound, and nothing is drawn. That
+ * needs no knowledge of what each pass keeps inside it, which for N8AO and the bloom
+ * mip chain is quite a lot.
+ */
+export function compileComposerFrame(composer: {
+  render(deltaTime?: number): void;
+}): CompileNextFrame {
+  return ({ gl }) => {
+    const materials = new Set<THREE.Material>();
+    const render = gl.render;
+    gl.render = (scene, camera) => {
+      gl.compile(scene, camera).forEach((material) => materials.add(material));
+    };
+    try {
+      composer.render(0);
+    } finally {
+      gl.render = render;
+    }
+    return materials;
+  };
+}
+
 /**
  * Pauses the frame loop while the driver links what the scene is about to draw,
  * and does the rest of the work its first frame would otherwise do at once.
@@ -126,7 +161,10 @@ async function gpuQueueDrained(gl: WebGL2RenderingContext): Promise<void> {
  * which the aircraft, vehicles and dust are positioned from, so pausing that way
  * would teleport them on every quality step.
  */
-export async function warmProgramsThenRender(state: RootState): Promise<void> {
+export async function warmProgramsThenRender(
+  state: RootState,
+  compile: CompileNextFrame = compileScene,
+): Promise<void> {
   const run = ++latestRun;
   setActive(state, false);
   // Canvas applies the tier's shadow setting from the page's own React root, which
@@ -135,8 +173,8 @@ export async function warmProgramsThenRender(state: RootState): Promise<void> {
   if (run !== latestRun) return;
 
   try {
-    const { gl, scene, camera } = state.get();
-    const materials = gl.compile(scene, camera);
+    const { gl } = state.get();
+    const materials = compile(state.get());
     await programsLinked(gl, materials);
     if (run !== latestRun) return;
 

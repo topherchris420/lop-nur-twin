@@ -126,7 +126,7 @@ export function Terrain() {
   useEffect(() => {
     const warmTiers: QualityTier[] = [];
     if (qualityTier > 0) warmTiers.push((qualityTier - 1) as QualityTier);
-    if (!reducedMotion && qualityTier < 2)
+    if (!reducedMotion && qualityTier < 3)
       warmTiers.push((qualityTier + 1) as QualityTier);
     // The adaptive ladder steps up as well as down, and both the terrain
     // geometry and the ground detail maps are a couple of hundred milliseconds
@@ -137,11 +137,10 @@ export function Terrain() {
       const profile = getQualityProfile(tier);
       jobs.push(() => prebuildTerrainGeometry(profile.terrainSegments));
       if (profile.groundDetailSize > 0) {
-        jobs.push(() => {
-          // Building the maps is what costs;  caches them.
-          groundDetailFor(tier, "desert");
-          groundDetailFor(tier, "pavement");
-        });
+        // Building the maps is what costs; `groundDetailFor` caches them. One job
+        // each, as the top tier's two together are a long task of their own.
+        jobs.push(() => void groundDetailFor(tier, "desert"));
+        jobs.push(() => void groundDetailFor(tier, "pavement"));
       }
     }
     let cancelled = false;
