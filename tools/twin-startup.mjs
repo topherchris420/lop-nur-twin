@@ -227,7 +227,11 @@ function median(values) {
 }
 
 function summarise({ page, probes, fpsWindow }) {
-  const { frames, longTasks } = page;
+  const { longTasks } = page;
+  // Only frames that drew something. The page's own animation frames keep ticking
+  // while the scene is paused or frozen, and counting those would report 60 FPS
+  // for a picture that is not moving.
+  const frames = page.frames.filter((frame) => frame[1] + frame[2] > 0);
   const inWindow = frames.filter(([t]) => t >= fpsWindow[0] && t <= fpsWindow[1]);
   const gaps = [];
   for (let i = 1; i < inWindow.length; i++)
@@ -239,7 +243,7 @@ function summarise({ page, probes, fpsWindow }) {
   // The first frame that drew anything, and the first that drew what the page
   // goes on drawing once it has settled. A scene that streams in would otherwise
   // pass off a frame of bare sky as its first rendered frame.
-  const firstDraw = frames.find((frame) => frame[1] + frame[2] > 0);
+  const firstDraw = frames[0];
   const firstFull = frames.find(
     (frame) => settledScreenDraws > 0 && frame[1] >= settledScreenDraws * 0.9,
   );
@@ -250,6 +254,11 @@ function summarise({ page, probes, fpsWindow }) {
   const startupTasks = longTasks.filter(([start]) => start < fpsWindow[0]);
   const round = (value) => (value === null ? null : Math.round(value));
 
+  let longestFreeze = 0;
+  for (let i = 1; i < frames.length; i++) {
+    longestFreeze = Math.max(longestFreeze, frames[i][0] - frames[i - 1][0]);
+  }
+
   const framesEachSecond = [];
   for (const [t] of frames) {
     const second = Math.floor(t / 1000);
@@ -259,6 +268,8 @@ function summarise({ page, probes, fpsWindow }) {
     firstContentfulPaintMs: round(page.fcp),
     firstDrawMs: firstDraw ? round(firstDraw[0]) : null,
     firstFullSceneMs: firstFull ? round(firstFull[0]) : null,
+    /** The longest the picture stood still once there was one, quality steps included. */
+    longestFreezeMs: round(longestFreeze),
     longTaskCount: startupTasks.length,
     longestTaskMs: startupTasks.reduce((most, task) => Math.max(most, task[1]), 0),
     longTaskTotalMs: startupTasks.reduce((sum, task) => sum + task[1], 0),
@@ -285,9 +296,7 @@ function summarise({ page, probes, fpsWindow }) {
     framesEachSecond: Array.from(framesEachSecond, (count) => count ?? 0),
     longTasks,
     gl: page.gl,
-    ...(attribute
-      ? { frames: page.frames, probes, slowCalls: page.slowCalls, marks: page.marks }
-      : {}),
+    ...(attribute ? { frames: page.frames, probes, slowCalls: page.slowCalls } : {}),
   };
 }
 
@@ -373,9 +382,6 @@ async function run(index) {
         quality: record.quality,
         gl: record.gl,
         slowCalls: record.slowCalls,
-        marks: performance
-          .getEntriesByType("mark")
-          .map((m) => [Math.round(m.startTime), m.name]),
         fcp: performance.getEntriesByName("first-contentful-paint")[0]?.startTime ?? null,
         renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : null,
         parallelShaderCompile: Boolean(gl?.getExtension("KHR_parallel_shader_compile")),
