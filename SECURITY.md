@@ -187,9 +187,13 @@ State these plainly to anyone evaluating this project:
   to same-origin files; inline scripts are blocked. See
   `docs/THREAT_MODEL.md` for what this does and does not mitigate.
 - **One opt-in third-party request exists**: `?liveTraffic=1` fetches a public
-  ADS-B feed. It is off by default; without it the application makes no
-  cross-origin request at all. Remove `https://api.adsb.lol` from the
+  ADS-B feed. It is off by default. Remove `https://api.adsb.lol` from the
   Content-Security-Policy to forbid it entirely.
+- **`/live` reads two other origins, and only that page does**: the live fly's
+  read-only observer (`https://129-213-139-78.sslip.io`) and GitHub's raw files
+  (`https://raw.githubusercontent.com`), for the fly's public ledger. It sends
+  them nothing but the requests themselves. Elsewhere, without `?liveTraffic=1`,
+  the application makes no cross-origin request.
 - **Four opt-in server-side calls exist**: choosing Jev, Glide or the LLM on
   `/play` makes the page post a bounded game observation (numbers and fixed
   vocabularies — no free text, no identity) to this deployment's own

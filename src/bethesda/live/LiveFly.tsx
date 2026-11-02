@@ -3,6 +3,7 @@ import { Minus, Plus } from "lucide-react";
 import type { LifeObservation, ObservedWeather, Witness } from "../life/observation";
 import { NEARBY_M } from "../life/observation";
 import {
+  bounds,
   buildings,
   geographic,
   landmarks,
@@ -661,6 +662,45 @@ function WitnessMap({
       const ring = (points: Point[]) =>
         points.forEach((v, i) => (i === 0 ? c.moveTo(...p(v)) : c.lineTo(...p(v))));
 
+      // Past the imported city there is no model, which is not the same as empty ground.
+      const [mx0, mz0] = p(bounds.min),
+        [mx1, mz1] = p(bounds.max);
+      if (mx0 > 0 || mz0 > 0 || mx1 < w || mz1 < h) {
+        c.save();
+        c.beginPath();
+        c.rect(0, 0, w, h);
+        c.rect(mx0, mz0, mx1 - mx0, mz1 - mz0);
+        c.clip("evenodd");
+        c.strokeStyle = "#1a2528";
+        c.lineWidth = 1;
+        c.beginPath();
+        for (let d = (-cx * scale - cz * scale) % 18; d < w + h; d += 18) {
+          c.moveTo(d, 0);
+          c.lineTo(d - h, h);
+        }
+        c.stroke();
+        c.restore();
+        c.strokeStyle = "rgba(170, 190, 195, 0.45)";
+        c.lineWidth = 1;
+        c.setLineDash([6, 5]);
+        c.strokeRect(mx0, mz0, mx1 - mx0, mz1 - mz0);
+        c.setLineDash([]);
+        c.fillStyle = "rgba(170, 190, 195, 0.7)";
+        c.font = "10px ui-monospace, monospace";
+        const label = "the model of the city ends here";
+        const clamp = (v: number, lo: number, hi: number) =>
+          Math.max(lo, Math.min(hi, v));
+        const middle = {
+          x: clamp((Math.max(mx0, 0) + Math.min(mx1, w)) / 2, 100, w - 100),
+          z: clamp((Math.max(mz0, 0) + Math.min(mz1, h)) / 2, 40, h - 40),
+        };
+        if (mx1 < w - 16) c.fillText(label, Math.min(mx1 + 8, w - 190), middle.z);
+        else if (mx0 > 16) c.fillText(label, Math.max(mx0 - 190, 8), middle.z);
+        else if (mz1 < h - 16)
+          c.fillText(label, middle.x - 90, Math.min(mz1 + 14, h - 40));
+        else if (mz0 > 16) c.fillText(label, middle.x - 90, Math.max(mz0 - 6, 40));
+      }
+
       c.fillStyle = "#1b3326";
       for (const park of parks) {
         c.beginPath();
@@ -801,7 +841,7 @@ function WitnessMap({
       ref={ref}
       className="h-full w-full"
       role="img"
-      aria-label="Map of the fly in Bethesda: the city's buildings and streets, the fly, its recent path and the people near it"
+      aria-label="Map of the fly in Bethesda: the city's buildings and streets, where the model of the city ends, the fly, its recent path and the people near it"
     />
   );
 }
