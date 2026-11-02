@@ -23,9 +23,9 @@ import { cn } from "@/lib/utils";
  * It starts folded to its header, because opened it is a panel the height of a
  * laptop screen sitting on the thing it describes. The header is the part that must
  * stay: it keeps the heading, the evidence mode in force and the statement that none
- * of this is operational data on screen, one click from the rest. The full legend
- * also lives in the research panel and on `/analysis`, so the information is never
- * only in one place.
+ * of this is operational data on screen, one click from the rest, and on a phone the
+ * heading and the record count. The full legend also lives in the research panel and
+ * on `/analysis`, so the information is never only in one place.
  *
  * It opens by itself when something paints evidence onto the scene, since the paint
  * cannot be read without its key, except on touch devices, where the orbit pan-stick
