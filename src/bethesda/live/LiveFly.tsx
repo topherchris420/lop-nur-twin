@@ -493,17 +493,17 @@ function CheckIt({ o, live }: { o: LifeObservation; live: boolean }) {
                   Every checkpoint after #{covered.from.toLocaleString("en-US")}, up to #
                   {covered.to.toLocaleString("en-US")}, came out{" "}
                   {covered.sealed
-                    ? "seal for seal"
-                    : "the same, in its state and its records, and in all of its state at the last"}{" "}
-                  on another machine: {covered.ticks.toLocaleString("en-US")} ticks
-                  recomputed from public code, the last {sinceUtc(replay.seenUtc)} ago
+                    ? "seal for seal on another machine"
+                    : "the same on another machine: its state and records at each, and all of its state at the last"}
+                  . {covered.ticks.toLocaleString("en-US")} ticks recomputed from public
+                  code, the last {sinceUtc(replay.seenUtc)} ago
                   {replay.machine
                     ? ` on ${replay.machine.platform}/${replay.machine.arch}`
                     : ""}
                   .{" "}
                   {covered.sealed
                     ? null
-                    : "The seals themselves cannot be compared yet: the fly's release lets watching it move lookup caches they cover. "}
+                    : "The seals themselves cannot be compared yet: watching this release of the fly moves lookup caches they cover. "}
                   <a className="underline" href={replay.run}>
                     The run
                   </a>
