@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
@@ -43,7 +43,9 @@ export function useRendererToneMapping({
   restoreOnUnmount?: boolean;
 }) {
   const { gl } = useThree();
-  useEffect(() => {
+  // A layout effect, like the fog below: tone mapping is part of every lit
+  // program's key, so setting it after the first frame compiles them all twice.
+  useLayoutEffect(() => {
     const previousToneMapping = gl.toneMapping;
     const previousExposure = gl.toneMappingExposure;
     gl.toneMapping = postprocessing ? THREE.NoToneMapping : THREE.AgXToneMapping;
@@ -115,7 +117,11 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   const dayFactor = useRef(1);
 
   const fog = useMemo(() => new THREE.FogExp2("#d8c29b", 0.0003), []);
-  useEffect(() => {
+  // Fog is compiled into every lit program. A passive effect runs after the first
+  // frame has rendered, which linked every shader in the scene without fog and then
+  // linked them all again with it: 16 of the 33 programs at tier 2, ~1.5 s of blocked
+  // main thread on an integrated GPU, spent on one frame nobody saw.
+  useLayoutEffect(() => {
     scene.fog = fog;
     return () => {
       scene.fog = null;
