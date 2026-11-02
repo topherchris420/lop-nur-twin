@@ -35,6 +35,7 @@ const replay = (from: number, to: number, o: object = {}) => ({
   reproduced: to - from,
   ticks: (to - from) * 3000,
   machine: { platform: "linux", arch: "arm64", node: "v24.22.1" },
+  seals: { required: false, reproduced: 0 },
   difference: null,
   stopped: null,
   run,
@@ -66,13 +67,25 @@ describe("reading the public record", () => {
       lines(replay(100, 170), replay(170, 243), replay(243, 316)),
       me,
     );
-    expect(r.replay?.to.sequence).toBe(316);
-    expect(r.covered).toEqual({ from: 100, to: 316, ticks: 216 * 3000, runs: 3 });
+    expect(r.replay?.to?.sequence).toBe(316);
+    expect(r.covered).toEqual({
+      from: 100,
+      to: 316,
+      ticks: 216 * 3000,
+      runs: 3,
+      sealed: false,
+    });
   });
 
   it("does not claim coverage across a gap", () => {
     const r = readPublicRecord("", lines(replay(100, 170), replay(313, 316)), me);
-    expect(r.covered).toEqual({ from: 313, to: 316, ticks: 3 * 3000, runs: 1 });
+    expect(r.covered).toEqual({
+      from: 313,
+      to: 316,
+      ticks: 3 * 3000,
+      runs: 1,
+      sealed: false,
+    });
   });
 
   it("does not claim coverage across a failed replay", () => {
@@ -82,7 +95,13 @@ describe("reading the public record", () => {
       difference: { sequence: 172, tick: 516000, field: "stateHash" },
     });
     const r = readPublicRecord("", lines(replay(100, 170), failed, replay(243, 316)), me);
-    expect(r.covered).toEqual({ from: 243, to: 316, ticks: 73 * 3000, runs: 1 });
+    expect(r.covered).toEqual({
+      from: 243,
+      to: 316,
+      ticks: 73 * 3000,
+      runs: 1,
+      sealed: false,
+    });
   });
 
   it("shows the newest replay's failure and claims nothing covered", () => {
@@ -106,6 +125,76 @@ describe("reading the public record", () => {
       difference: { sequence: 171, tick: 0, field: "digest" },
     });
     expect(readPublicRecord("", lines(differing), me).replay).toBeNull();
+  });
+
+  it("says seal for seal only if every run in the stretch required it", () => {
+    const sealed = (from: number, to: number) =>
+      replay(from, to, { seals: { required: true, reproduced: to - from } });
+    expect(
+      readPublicRecord("", lines(sealed(100, 170), sealed(170, 243)), me).covered?.sealed,
+    ).toBe(true);
+    expect(
+      readPublicRecord("", lines(replay(100, 170), sealed(170, 243)), me).covered?.sealed,
+    ).toBe(false);
+    // A release that requires its seals must have reproduced every one of them.
+    const short = replay(100, 170, { seals: { required: true, reproduced: 69 } });
+    expect(readPublicRecord("", lines(short), me).replay).toBeNull();
+  });
+
+  it("does not believe a pass that does not add up", () => {
+    const wrong = [
+      // Everything claimed, nothing reproduced.
+      replay(1, 999, { reproduced: 0 }),
+      replay(1, 999, { ticks: 0 }),
+      // Nothing after its start.
+      replay(5, 5),
+      // A seal that is not one.
+      replay(1, 2, { to: { ...point(2), digest: "x" } }),
+      // Nothing to say what ran it.
+      replay(1, 2, { machine: null }),
+      replay(1, 2, { seals: null }),
+    ];
+    for (const line of wrong)
+      expect(
+        readPublicRecord("", lines(line), me).replay,
+        JSON.stringify(line),
+      ).toBeNull();
+    // A malformed difference is no reason to break the page.
+    expect(
+      readPublicRecord("", lines(replay(1, 2, { passed: false, difference: {} })), me)
+        .replay,
+    ).toBeNull();
+  });
+
+  it("shows a failure that came before any chain could be read", () => {
+    const failed = {
+      ...replay(1, 2),
+      passed: false,
+      reason: "the stores disagree at checkpoint 170",
+      from: null,
+      to: null,
+      head: null,
+      reproduced: 0,
+      ticks: 0,
+      seals: null,
+      machine: null,
+    };
+    const r = readPublicRecord("", lines(replay(100, 170), failed), me);
+    expect(r.replay?.reason).toMatch(/disagree/);
+    expect(r.covered).toBeNull();
+  });
+
+  it("does not join a stretch across such a failure", () => {
+    const failed = {
+      ...replay(1, 2),
+      passed: false,
+      reason: "no verdict",
+      from: null,
+      to: null,
+      head: null,
+    };
+    const r = readPublicRecord("", lines(replay(100, 170), failed, replay(170, 243)), me);
+    expect(r.covered?.from).toBe(170);
   });
 
   it("ignores another individual's replays, garbage, and links away from the repository", () => {
@@ -134,6 +223,23 @@ describe("the live chain against the public record", () => {
 
   it("says so when the live chain is behind what was seen in public", () => {
     expect(standing(record, { sequence: 1776 })).toBe("behind-ledger");
+  });
+
+  it("keeps saying so after a rewind, until the chain passes the highest it saw", () => {
+    const rewound = readPublicRecord(
+      [anchor(1500), anchor(1777), anchor(1500), anchor(1510)].join("\n") + "\n",
+      "",
+      me,
+    );
+    expect(rewound.newest?.checkpoint).toBe(1510);
+    expect(rewound.highest).toBe(1777);
+    expect(standing(rewound, { sequence: 1600 })).toBe("behind-ledger");
+    expect(standing(rewound, { sequence: 1777 })).toBe("consistent");
+    expect(rewound.lastRewind).toMatchObject({ from: 1777, to: 1500 });
+  });
+
+  it("records no rewind where there was none", () => {
+    expect(record.lastRewind).toBeNull();
   });
 
   it("makes no claim without anchors", () => {

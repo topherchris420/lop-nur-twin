@@ -6,6 +6,7 @@ import {
   rmSync,
   symlinkSync,
   writeFileSync,
+  existsSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -662,11 +663,32 @@ describe("the runner with an organism", () => {
     const dir = scratch("organism-replay");
     historyStore(dir);
     const organism = continued(dir);
+    // Watched, as the VM's service is: its observer writes a file about every 10 ticks. Without
+    // the observer leaving no trace, this fails at the first checkpoint's graph digest.
+    const watching = join(scratch("organism-replay-observed"), "observation.json");
     const live = (ticks: number, times: number) => {
       for (let i = 0; i < times; i++) {
-        const run = runner(["--store", dir, "--ticks", String(ticks)]);
+        const run = spawnSync(
+          process.execPath,
+          [
+            "scripts/run-ts.mjs",
+            "scripts/bethesda-life-headless.ts",
+            "--store",
+            dir,
+            "--ticks",
+            String(ticks),
+          ],
+          {
+            cwd: repo,
+            encoding: "utf8",
+            timeout: 240_000,
+            env: { ...process.env, BETHESDA_LIFE_OBSERVE: watching },
+          },
+        );
         expect(run.status, run.stderr).toBe(0);
       }
+      // It removes the file as it stops: a stale one must not outlive the life.
+      expect(existsSync(watching)).toBe(false);
     };
     const replay = () => {
       const run = runTs("scripts/bethesda-life-replay.ts", ["--store", dir]);
@@ -682,6 +704,8 @@ describe("the runner with an organism", () => {
       from: { sequence: organism.sequence, digest: organism.digest },
       reproduced: 2,
       ticks: 600,
+      seals: { required: true, reproduced: 2 },
+      graphs: 1,
       difference: null,
       stopped: null,
     });
@@ -711,6 +735,8 @@ describe("the runner with an organism", () => {
       from: { sequence: depleted.sequence, digest: depleted.digest },
       reproduced: 3,
       ticks: 3000,
+      seals: { required: true, reproduced: 3 },
+      graphs: 1,
       difference: null,
       stopped: null,
     });

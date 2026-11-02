@@ -132,7 +132,7 @@ export default function LiveFly() {
         {o ? <Now o={o} /> : null}
         {o ? <Recent o={o} /> : null}
         {o ? <Life o={o} /> : null}
-        {o ? <CheckIt o={o} /> : null}
+        {o ? <CheckIt o={o} live={view.status === "live"} /> : null}
         {o ? <SelfModel o={o} /> : null}
         <footer className="text-muted-foreground border-border space-y-2 border-t pt-4 text-xs leading-relaxed">
           <p>
@@ -429,7 +429,7 @@ function usePublicRecord(individual: string) {
 const sinceUtc = (utc: string) => span(Math.max(0, Date.now() - Date.parse(utc)) / 1000);
 
 /** The checks that do not rest on this page or on the fly's machine (publicRecord.ts). */
-function CheckIt({ o }: { o: LifeObservation }) {
+function CheckIt({ o, live }: { o: LifeObservation; live: boolean }) {
   const { record, unreachable } = usePublicRecord(o.individual);
   const newest = record?.newest;
   const replay = record?.replay;
@@ -467,7 +467,15 @@ function CheckIt({ o }: { o: LifeObservation }) {
               ) : (
                 "No checkpoint of this individual is in the ledger yet."
               )}
-              {standing(record, o.checkpoint) === "behind-ledger" ? (
+              {record.lastRewind ? (
+                <span className="block text-amber-300">
+                  The ledger records a rewind, {sinceUtc(record.lastRewind.seenUtc)} ago:
+                  from #{record.lastRewind.from.toLocaleString("en-US")} back to #
+                  {record.lastRewind.to.toLocaleString("en-US")}.
+                </span>
+              ) : null}
+              {/* An observation kept from before the connection was lost says nothing about now. */}
+              {live && standing(record, o.checkpoint) === "behind-ledger" ? (
                 <span className="block text-amber-300">
                   The fly&apos;s chain is behind what the ledger saw, which is what a
                   restore from an older backup looks like.
@@ -482,11 +490,20 @@ function CheckIt({ o }: { o: LifeObservation }) {
                 "Not yet: no other machine has re-derived this chain in public."
               ) : covered ? (
                 <>
-                  Every checkpoint from #{covered.from.toLocaleString("en-US")} to #
-                  {covered.to.toLocaleString("en-US")} came out seal for seal on another
-                  machine: {covered.ticks.toLocaleString("en-US")} ticks recomputed from
-                  public code, the last {sinceUtc(replay.seenUtc)} ago on{" "}
-                  {replay.machine.platform}/{replay.machine.arch}.{" "}
+                  Every checkpoint after #{covered.from.toLocaleString("en-US")}, up to #
+                  {covered.to.toLocaleString("en-US")}, came out{" "}
+                  {covered.sealed
+                    ? "seal for seal"
+                    : "the same, in its state and its records, and in all of its state at the last"}{" "}
+                  on another machine: {covered.ticks.toLocaleString("en-US")} ticks
+                  recomputed from public code, the last {sinceUtc(replay.seenUtc)} ago
+                  {replay.machine
+                    ? ` on ${replay.machine.platform}/${replay.machine.arch}`
+                    : ""}
+                  .{" "}
+                  {covered.sealed
+                    ? null
+                    : "The seals themselves cannot be compared yet: the fly's release lets watching it move lookup caches they cover. "}
                   <a className="underline" href={replay.run}>
                     The run
                   </a>
@@ -494,8 +511,10 @@ function CheckIt({ o }: { o: LifeObservation }) {
               ) : (
                 <span className="text-amber-300">
                   {replay.difference
-                    ? `The last replay did not reproduce checkpoint #${replay.difference.sequence.toLocaleString("en-US")} (${replay.difference.field}).`
-                    : `The last replay stopped at #${replay.to.sequence.toLocaleString("en-US")}: ${replay.stopped ?? "no reason recorded"}.`}{" "}
+                    ? `The last replay did not reproduce checkpoint #${replay.difference.sequence.toLocaleString("en-US")} (${replay.difference.field}). `
+                    : replay.stopped
+                      ? `The last replay stopped: ${replay.stopped}. `
+                      : `The last replay failed: ${replay.reason ?? "no reason recorded"}. `}
                   <a className="underline" href={replay.run}>
                     The run
                   </a>

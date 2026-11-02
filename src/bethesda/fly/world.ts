@@ -683,7 +683,7 @@ const GRID_EDGE_M = 1e-6;
  */
 export class FootprintGrid {
   private readonly cells = new Map<number, number[]>();
-  private readonly seen: Int32Array;
+  private seen: Int32Array;
   private stamp = 0;
   private readonly lo: { x: number; z: number };
   private readonly hi: { x: number; z: number };
@@ -718,6 +718,19 @@ export class FootprintGrid {
   }
   private key(cx: number, cz: number): number {
     return (cx - this.lo.x) * this.width + (cz - this.lo.z);
+  }
+  /**
+   * Sets this grid's query bookkeeping aside until the function it returns puts
+   * it back. See `PrimitiveWorld.untraced`.
+   */
+  setAside(): () => void {
+    const { seen, stamp } = this;
+    this.seen = new Int32Array(this.count);
+    this.stamp = 0;
+    return () => {
+      this.seen = seen;
+      this.stamp = stamp;
+    };
   }
   private begin(): number {
     if (++this.stamp > 0x7fffffff) {
@@ -1123,6 +1136,27 @@ export class PrimitiveWorld implements FlyWorld {
         };
     }
     return best;
+  }
+  /**
+   * Runs `read`, leaving no mark on this world. Its caches and its grids'
+   * bookkeeping change no answer, but a checkpoint seals them with everything
+   * else, so a reader who is not part of the life must not move them: a seal could
+   * then not be reproduced by anyone who did not read at the same moments.
+   */
+  untraced<T>(read: () => T): T {
+    const { localAt, local } = this;
+    const back = [this.foodGrid, ...Object.values(this.grids ?? {})].map((g) =>
+      g.setAside(),
+    );
+    this.localAt = [NaN, NaN, NaN];
+    this.local = LOCAL_REACH.map(() => null);
+    try {
+      return read();
+    } finally {
+      for (const putBack of back) putBack();
+      this.localAt = localAt;
+      this.local = local;
+    }
   }
   /**
    * The primitives a ray from `o` reaching `reachM` metres could touch (and

@@ -57,6 +57,13 @@ export interface HeadlessLifeStatus {
 }
 
 /**
+ * Watching this life moves nothing a checkpoint seals. A replay reads this to
+ * learn whether a chain's seals can be reproduced (life/replay.ts): before this
+ * was true, the observer moved lookup caches at moments nobody recorded.
+ */
+export const OBSERVATION_LEAVES_NO_TRACE = true;
+
+/**
  * One authority within this process. No second fly is made for an observer.
  *
  * Its whole state is checkpointed and restored through `BETHESDA_LIFE`
@@ -137,8 +144,8 @@ export class HeadlessBethesdaLife {
 
   /**
    * What an observer may see of this life now (observation.ts). It only
-   * reads: no random draw, no step, no field written, so a watched life lives
-   * exactly as an unwatched one.
+   * reads: no random draw, no step, no field written, not even a lookup cache,
+   * so a watched life lives and seals exactly as an unwatched one.
    */
   observation(at: {
     individual: string;
@@ -199,7 +206,7 @@ export class HeadlessBethesdaLife {
     const world = this.cityFly.world,
       s = this.cityFly.fly.state;
     const now = world.windNow(s.t);
-    const w = world.wind(s.p, s.t);
+    const w = world.untraced(() => world.wind(s.p, s.t));
     const deg = (now.from * 180) / Math.PI;
     return {
       regime: now.regime,

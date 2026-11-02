@@ -5,32 +5,38 @@
  * store, so it cannot fork the individual, and it needs no access to the VM.
  *
  *   node scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store STORE
- *        [--from-store OLDER_STORE] [--ledger ledger.jsonl] [--out RECORD.json]
+ *        [--from-store OLDER_STORE] [--individual HEX] [--ledger ledger.jsonl]
+ *        [--out RECORD.json]
  *
  * With --store alone it starts from the oldest checkpoint STORE still holds
  * whole. With --from-store it starts from OLDER_STORE's head and reproduces
- * every checkpoint STORE has since, however many that is.
+ * every checkpoint STORE has since, however many that is. --individual is the
+ * one this must be. --ledger holds every checkpoint seen in public: each must be
+ * in this chain, those before the start included, since a chain rewritten from
+ * birth with an honest last stretch would otherwise pass.
  *
  * It runs in a checkout of the release that made the store (the name of the
- * archive says which), under the Node version that release ran on. Exit 0: every
- * seal reproduced. Exit 1: the replay and the record disagree, or it could not
- * finish. It prints one JSON line per checkpoint and the record last.
+ * archive says which), under the Node version that release ran on, and compares
+ * as much as that release allows (replay.ts says how much, and why).
+ *
+ * Exit 0: every checkpoint reproduced. Exit 1: the replay and the record
+ * disagree, or it could not finish; the record says which, in `difference`,
+ * `stopped` or `reason`. Exit 75: no checkpoint follows the one to start from, so
+ * there is nothing to judge, and no record. It prints one JSON line per
+ * checkpoint and the record last.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { bethesdaStoreKind } from "../src/bethesda/life/bethesdaStore.js";
 import { sameVersions, type LifeCheckpoint } from "../src/bethesda/life/continuity.js";
+import * as headless from "../src/bethesda/life/headless.js";
 import type {
   HeadlessBethesdaLife,
   HeadlessGenesis,
 } from "../src/bethesda/life/headless.js";
 import { OrganismLife } from "../src/bethesda/life/organism.js";
-import {
-  REPLAY_SCHEMA,
-  replayChain,
-  type ReplayOutcome,
-} from "../src/bethesda/life/replay.js";
+import { REPLAY_SCHEMA, replayChain } from "../src/bethesda/life/replay.js";
 import { LifeStore } from "../src/bethesda/life/store.js";
 
 type Checkpoint = LifeCheckpoint<HeadlessGenesis>;
@@ -82,32 +88,85 @@ function oldestWhole(dir: string, head: Checkpoint): Checkpoint {
   return c;
 }
 
-/** The ledger's anchors this replay reproduced, of those it covers; the chain before `from` is out of its reach. */
-function anchorsReproduced(path: string, outcome: ReplayOutcome) {
-  const reproduced = new Set(outcome.digests);
+/**
+ * Every checkpoint seen in public against this chain, wherever the replay starts.
+ * A line lower than the one before it is the ledger openly recording a rewind, and
+ * what it rewound past is no longer expected here. /live keeps saying it happened.
+ */
+function judgeLedger(path: string, dir: string, head: Checkpoint, individual: string) {
   const anchors = readFileSync(path, "utf8")
     .split("\n")
     .filter((line) => line.trim())
-    .map((line) => JSON.parse(line) as { checkpoint: number; digest: string });
-  const covered = anchors.filter(
-    (a) => a.checkpoint > outcome.from.sequence && a.checkpoint <= outcome.to.sequence,
-  );
-  const wrong = covered.filter((a) => !reproduced.has(a.digest));
-  return { covered: covered.length, contradicted: wrong.map((a) => a.checkpoint) };
+    .map(
+      (line) =>
+        JSON.parse(line) as { individual: string; checkpoint: number; digest: string },
+    )
+    .filter((a) => a.individual === individual);
+  const standing: typeof anchors = [];
+  let rewound = 0;
+  for (const a of anchors) {
+    while (standing.length && standing.at(-1)!.checkpoint > a.checkpoint) {
+      standing.pop();
+      rewound += 1;
+    }
+    if (
+      standing.at(-1)?.checkpoint === a.checkpoint &&
+      standing.at(-1)?.digest !== a.digest
+    ) {
+      standing.pop();
+      rewound += 1;
+    }
+    if (standing.at(-1)?.checkpoint !== a.checkpoint) standing.push(a);
+  }
+  const contradicted = standing
+    .filter((a) => {
+      if (a.checkpoint > head.sequence) return true;
+      try {
+        return checkpointIn(dir, a.checkpoint).digest !== a.digest;
+      } catch {
+        return true;
+      }
+    })
+    .map((a) => a.checkpoint);
+  return { checked: standing.length, rewound, contradicted };
 }
 
-function run() {
-  const self = process.argv.findIndex((a) => a.endsWith("bethesda-life-replay.ts"));
-  const o = options(process.argv.slice(self + 1));
+const machine = {
+  node: process.version,
+  v8: process.versions.v8,
+  platform: process.platform,
+  arch: process.arch,
+};
+const started = performance.now();
+const cost = () => ({
+  wallSeconds: Math.round((performance.now() - started) / 100) / 10,
+  peakMB: Math.round(process.resourceUsage().maxRSS / 1024),
+});
+
+/** Published as it stands, so nothing in it may start a mention, tag or code span. */
+const inert = (s: string) => s.replace(/[@<>`]/g, "").slice(0, 500);
+
+function finish(path: string | undefined, record: { passed: boolean }): void {
+  if (path) writeFileSync(path, JSON.stringify(record, null, 2) + "\n");
+  say(record);
+  process.exitCode = record.passed ? 0 : 1;
+}
+
+function run(o: Record<string, string>): void {
   if (!o.store) throw new Error("--store DIR is required");
-  const started = performance.now();
   const store = openStore(o.store);
   const head = store.head();
+  if (o.individual && head.birth.individual !== o.individual)
+    throw new Error(`the store holds ${head.birth.individual}, not ${o.individual}`);
 
   let from: Checkpoint;
   if (o["from-store"]) {
     from = openStore(o["from-store"]).head();
     // Both copies must be the same life: the record of `from` has to be in the newer chain.
+    if (from.sequence > head.sequence)
+      throw new Error(
+        `the newer store ends at ${head.sequence}, before ${from.sequence}`,
+      );
     const same = checkpointIn(o.store, from.sequence);
     if (same.digest !== from.digest)
       throw new Error(
@@ -116,53 +175,82 @@ function run() {
   } else {
     from = oldestWhole(o.store, head);
   }
+  if (from.sequence === head.sequence) {
+    say({ nothing: `no checkpoint follows ${from.sequence}` });
+    process.exitCode = 75;
+    return;
+  }
   const later: Checkpoint[] = [];
   for (let s = from.sequence + 1; s <= head.sequence; s++) {
-    later.push({ ...checkpointIn(o.store, s), graph: null });
+    const c = checkpointIn(o.store, s);
+    // The newest is compared whole. It holds whatever the earlier ones led to.
+    later.push(s === head.sequence ? c : { ...c, graph: null });
   }
-  if (!later.length) throw new Error("no checkpoint follows the one to start from");
 
+  // Each release says for itself whether its seals can be reproduced.
+  const sealsRequired = "OBSERVATION_LEAVES_NO_TRACE" in headless;
   const outcome = replayChain(store.kind, from, later, {
     derived: (life) => (life instanceof OrganismLife ? life.takeArchive() : []),
+    seals: sealsRequired,
     onMatch: (point, ticks) =>
       say({ reproduced: point.sequence, tick: point.tick, ticks }),
   });
-  const ledger = o.ledger ? anchorsReproduced(o.ledger, outcome) : null;
+  const ledger = o.ledger
+    ? judgeLedger(o.ledger, o.store, head, head.birth.individual)
+    : null;
   const passed =
     !outcome.difference &&
     !outcome.stopped &&
     outcome.to.sequence === head.sequence &&
     !ledger?.contradicted.length;
-  const record = {
+  finish(o.out, {
     schema: REPLAY_SCHEMA,
     passed,
+    reason: ledger?.contradicted.length
+      ? `this chain contradicts what the ledger saw at ${ledger.contradicted.slice(0, 5).join(", ")}`
+      : null,
     individual: head.birth.individual,
     versions: head.versions,
-    machine: {
-      node: process.version,
-      v8: process.versions.v8,
-      platform: process.platform,
-      arch: process.arch,
-    },
+    machine,
     from: outcome.from,
     to: outcome.to,
     head: { sequence: head.sequence, tick: head.tick, digest: head.digest },
     reproduced: outcome.matched,
     ticks: outcome.ticks,
+    seals: { required: sealsRequired, reproduced: outcome.seals },
+    graphs: outcome.graphs,
     ledger,
     difference: outcome.difference,
     stopped: outcome.stopped,
-    wallSeconds: Math.round((performance.now() - started) / 100) / 10,
-    peakMB: Math.round(process.resourceUsage().maxRSS / 1024),
-  };
-  if (o.out) writeFileSync(o.out, JSON.stringify(record, null, 2) + "\n");
-  say(record);
-  process.exitCode = passed ? 0 : 1;
+    ...cost(),
+  } as { passed: boolean });
 }
 
+const self = process.argv.findIndex((a) => a.endsWith("bethesda-life-replay.ts"));
+const given = options(process.argv.slice(self + 1));
 try {
-  run();
+  run(given);
 } catch (error) {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-  process.exitCode = 1;
+  // A chain that cannot even be read is a finding as well, and it must leave a record.
+  const reason = inert(error instanceof Error ? error.message : String(error));
+  process.stderr.write(`${reason}\n`);
+  finish(given.out, {
+    schema: REPLAY_SCHEMA,
+    passed: false,
+    reason,
+    individual: given.individual ?? null,
+    versions: null,
+    machine,
+    from: null,
+    to: null,
+    head: null,
+    reproduced: 0,
+    ticks: 0,
+    seals: null,
+    graphs: 0,
+    ledger: null,
+    difference: null,
+    stopped: null,
+    ...cost(),
+  } as { passed: boolean });
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { sha256Json } from "../../rain/sha256";
 import { birth, checkpointLife, type LifeCheckpoint, type LifeEvent } from "./continuity";
+import type { GraphNode } from "./snapshot";
 import {
   BETHESDA_LIFE,
   headlessGenesis,
@@ -8,7 +9,7 @@ import {
   type HeadlessGenesis,
 } from "./headless";
 import { ORGANISM_LIFE, type OrganismLife } from "./organism";
-import { replayChain } from "./replay";
+import { graphDifference, replayChain } from "./replay";
 
 const genesis = headlessGenesis({
   seed: 393977,
@@ -63,7 +64,7 @@ describe("replaying a stored life", { timeout: 120_000 }, () => {
     expect(outcome.matched).toBe(3);
     expect(outcome.ticks).toBe(125);
     expect(outcome.to.digest).toBe(stored.at(-1)!.digest);
-    expect(outcome.digests).toEqual(later.map((c) => c.digest));
+    expect(outcome.seals).toBe(3);
   });
 
   it("carries a gap across from the record: it says when no process ran, and changes nothing", () => {
@@ -204,6 +205,133 @@ describe("replaying a stored life", { timeout: 120_000 }, () => {
     });
     expect(caught.difference?.field).toBe("events");
     expect(caught.difference?.sequence).toBe(index);
+
+    // A record invented on top of what it says: told how to take the archive, this is a disagreement.
+    const invented = sealed.map((c, i) =>
+      i === index
+        ? reseal({
+            ...c,
+            events: [{ tick: c.tick, kind: "recovery-enter", data: {} }, ...c.events],
+          })
+        : c,
+    );
+    for (let i = index + 1; i < invented.length; i++) {
+      invented[i] = reseal({ ...invented[i]!, parent: invented[i - 1]!.digest });
+    }
+    const made = replayChain(ORGANISM_LIFE, first, invented.slice(1).map(header), {
+      derived,
+    });
+    expect(made.stopped).toBeNull();
+    expect(made.difference?.field).toBe("events");
+    // Few enough words to publish, however long the record.
+    expect(made.difference!.recorded.length).toBeLessThan(160);
+  });
+
+  describe("a chain whose observer moved its caches, as the deployed release's does", () => {
+    // What release 62bd125's observation did: query the wind at the fly, through the caches.
+    const look = (life: HeadlessBethesdaLife) => {
+      const { world, fly } = life.cityFly;
+      world.wind(fly.state.p, fly.state.t);
+    };
+    const observed = () => {
+      const life = ORGANISM_LIFE.build(structuredClone(genesis));
+      const out = [
+        checkpointLife(ORGANISM_LIFE, life, { genesis, birth: born, previous: null }),
+      ];
+      for (let c = 0; c < 2; c++) {
+        for (let i = 0; i < 12; i++) {
+          life.advanceTicks(10);
+          look(life);
+        }
+        out.push(
+          checkpointLife(ORGANISM_LIFE, life, {
+            genesis,
+            birth: born,
+            previous: out.at(-1)!,
+            events: life.takeArchive(),
+          }),
+        );
+      }
+      return out;
+    };
+    const derived = (life: HeadlessBethesdaLife) => (life as OrganismLife).takeArchive();
+    const sealed = observed();
+    const whole = [header(sealed[1]!), sealed[2]!];
+
+    it("cannot reproduce its seals, and says where they part", () => {
+      const outcome = replayChain(ORGANISM_LIFE, sealed[0]!, whole, { derived });
+      expect(outcome.matched).toBe(0);
+      expect(outcome.difference?.field).toBe("graphDigest");
+    });
+
+    it("still reproduces its state, its records and its whole graph apart from the caches", () => {
+      const outcome = replayChain(ORGANISM_LIFE, sealed[0]!, whole, {
+        derived,
+        seals: false,
+      });
+      expect(outcome.difference).toBeNull();
+      expect(outcome.stopped).toBeNull();
+      expect(outcome.matched).toBe(2);
+      expect(outcome.seals).toBe(0);
+      expect(outcome.graphs).toBe(1);
+    });
+
+    it("finds a change hidden from the state hash, and names where it is", () => {
+      const { graph } = sealed[2]!;
+      const nodes = structuredClone(graph!.nodes);
+      // The fly's energy, with the recorded state hash left as it was.
+      const state = nodes.find(
+        (n: GraphNode) => n.t === "o" && n.e.some(([k]) => k === "reserve"),
+      ) as Extract<GraphNode, { t: "o" }>;
+      const reserve = state.e.find(([k]) => k === "reserve")!;
+      reserve[1] = (reserve[1] as number) + 1;
+      const forged = { ...sealed[2]!, graph: { ...graph!, nodes } };
+      const outcome = replayChain(ORGANISM_LIFE, sealed[0]!, [whole[0]!, forged], {
+        derived,
+        seals: false,
+      });
+      expect(outcome.difference?.field).toBe("graph");
+      expect(outcome.difference?.recorded).toMatch(/^root.*\.reserve: /);
+    });
+
+    it("compares only the caches it names", () => {
+      const { graph } = sealed[2]!;
+      expect(graphDifference(graph!, graph!)).toBeNull();
+      const nodes = structuredClone(graph!.nodes);
+      const grid = nodes.find(
+        (n: GraphNode) => n.t === "o" && n.c === "FootprintGrid",
+      ) as Extract<GraphNode, { t: "o" }>;
+      const stamp = grid.e.find(([k]) => k === "stamp")!;
+      stamp[1] = (stamp[1] as number) + 7;
+      expect(graphDifference(graph!, { ...graph!, nodes })).toBeNull();
+      const other = grid.e.find(([k]) => k === "count")!;
+      other[1] = (other[1] as number) + 1;
+      expect(graphDifference(graph!, { ...graph!, nodes })?.path).toMatch(/\.count$/);
+    });
+  });
+
+  it("seals the same whether or not it was watched, right up to the seal", () => {
+    // The whole point of OBSERVATION_LEAVES_NO_TRACE: a watcher cannot be told from no watcher.
+    const look = (life: HeadlessBethesdaLife) =>
+      life.observation({
+        individual: born.individual,
+        epoch: 1,
+        checkpoint: { sequence: 0, tick: 0, committedUtc: "2026-11-02T00:00:00.000Z" },
+        checkpointing: false,
+        observedUtc: "2026-11-02T00:00:00.000Z",
+      });
+    for (const kind of [BETHESDA_LIFE, ORGANISM_LIFE]) {
+      const watched = kind.build(structuredClone(genesis));
+      const alone = kind.build(structuredClone(genesis));
+      for (let i = 0; i < 12; i++) {
+        kind.step(watched, 10);
+        kind.step(alone, 10);
+        look(watched);
+      }
+      const seal = (life: typeof watched) =>
+        checkpointLife(kind, life, { genesis, birth: born, previous: null });
+      expect(seal(watched).digest).toBe(seal(alone).digest);
+    }
   });
 
   it("does not disturb the record it reads", () => {

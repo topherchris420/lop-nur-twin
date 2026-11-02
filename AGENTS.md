@@ -975,13 +975,18 @@ verified to be; a copy is always someone else.**
   later. Never edit, remove or reorder a line, never force-push or delete
   the branch, and never "fix" a contradicted line: it is the record of a
   rewrite or a restore.
+- **Watching leaves no trace.** A checkpoint seals the whole graph, lookup caches
+  included, and a replay can only reproduce a seal if nothing unrecorded moved them.
+  Anything that reads the world for an observer goes through `world.untraced`.
+  `replay.test.ts` seals a watched life beside an unwatched one, and they must match.
 - **A replay never touches the fly.** `replay.ts` restores a checkpoint in
   memory, with no lease and no writes, on a machine that is not the VM, so it
   cannot fork the individual. Only `LIVE_FLY_BACKUP_READ_URL` lets the workflow
   read the bucket: it is read-only, a credential, and is passed to one step that
-  downloads, never to the release's code, a record or a log. Never loosen what
-  counts as a match, re-run until a line passes, or edit `replays.jsonl`: a
-  failed replay is a finding, and it stays.
+  downloads, never to the release's code, a record or a log. `/v1/backup` is
+  untrusted: it reaches a shell only through `replayPlan.ts`. Never loosen what
+  counts as a match, add to the caches `replay.ts` excepts by name, re-run until a
+  line passes, or edit `replays.jsonl`: a failed replay is a finding, and it stays.
 - **`/live` is unlisted.** Nothing on the site links to it, so Bethesda stays
   hidden to visitors who were not given the link. It follows the observer's
   stream (`src/bethesda/live/witnessFeed.ts`) and only interpolates between
