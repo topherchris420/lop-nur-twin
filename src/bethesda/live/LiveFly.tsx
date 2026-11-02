@@ -13,6 +13,12 @@ import {
   type Point,
 } from "../model";
 import {
+  fetchPublicRecord,
+  RECORD_URL,
+  standing,
+  type PublicRecord,
+} from "./publicRecord";
+import {
   addSample,
   followWitness,
   presentPose,
@@ -125,6 +131,7 @@ export default function LiveFly() {
         {o ? <Now o={o} /> : null}
         {o ? <Recent o={o} /> : null}
         {o ? <Life o={o} /> : null}
+        {o ? <CheckIt o={o} /> : null}
         {o ? <SelfModel o={o} /> : null}
         <footer className="text-muted-foreground border-border space-y-2 border-t pt-4 text-xs leading-relaxed">
           <p>
@@ -380,6 +387,136 @@ function Life({ o }: { o: LifeObservation }) {
       </dl>
       <p className="text-muted-foreground mt-2 font-mono text-[10px]">
         {o.versions.city} · {o.versions.fly} · {o.flyController}
+      </p>
+    </Section>
+  );
+}
+
+/** How often to look again: the ledger and the replays change every few hours. */
+const RECORD_REFRESH_MS = 10 * 60_000;
+
+/** What others have on record about this individual, kept fresh; null until first known. */
+function usePublicRecord(individual: string) {
+  const [state, setState] = useState<{
+    record: PublicRecord | null;
+    unreachable: string | null;
+  }>({ record: null, unreachable: null });
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = () => {
+      fetchPublicRecord(individual, controller.signal)
+        .then((record) => setState({ record, unreachable: null }))
+        .catch((e: unknown) => {
+          if (controller.signal.aborted) return;
+          // What was read stays true; the page only adds that it cannot look again.
+          setState((s) => ({
+            record: s.record,
+            unreachable: e instanceof Error ? e.message : String(e),
+          }));
+        });
+    };
+    load();
+    const timer = setInterval(load, RECORD_REFRESH_MS);
+    return () => {
+      controller.abort();
+      clearInterval(timer);
+    };
+  }, [individual]);
+  return state;
+}
+
+const sinceUtc = (utc: string) => span(Math.max(0, Date.now() - Date.parse(utc)) / 1000);
+
+/** The checks that do not rest on this page or on the fly's machine (publicRecord.ts). */
+function CheckIt({ o }: { o: LifeObservation }) {
+  const { record, unreachable } = usePublicRecord(o.individual);
+  const newest = record?.newest;
+  const replay = record?.replay;
+  const covered = record?.covered;
+  return (
+    <Section title="Check it yourself">
+      <p className="text-sm leading-relaxed">
+        Each checkpoint is sealed and names the one before it, so one digest fixes the
+        whole history up to it. These two records are kept on GitHub, out of reach of the
+        fly&apos;s server.
+      </p>
+      {!record && !unreachable ? (
+        <p className="text-muted-foreground mt-2 text-sm">Reading the public record.</p>
+      ) : null}
+      {unreachable ? (
+        <p className="mt-2 text-sm text-amber-300">
+          The public record could not be read from here ({unreachable}).
+          {record ? " What follows is from the last time it could." : ""}
+        </p>
+      ) : null}
+      {record ? (
+        <dl className="mt-3 space-y-3">
+          <div>
+            <dt className="text-muted-foreground text-[11px]">Seen in public</dt>
+            <dd className="text-sm">
+              {newest ? (
+                <>
+                  {record.anchors.toLocaleString("en-US")} checkpoints in the ledger.
+                  Newest is #{newest.checkpoint.toLocaleString("en-US")}, first seen{" "}
+                  {sinceUtc(newest.seenUtc)} ago:{" "}
+                  <span className="font-mono text-xs break-all">
+                    {newest.digest.slice(0, 16)}
+                  </span>
+                </>
+              ) : (
+                "No checkpoint of this individual is in the ledger yet."
+              )}
+              {standing(record, o.checkpoint) === "behind-ledger" ? (
+                <span className="block text-amber-300">
+                  The fly&apos;s chain is behind what the ledger saw, which is what a
+                  restore from an older backup looks like.
+                </span>
+              ) : null}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground text-[11px]">Recomputed elsewhere</dt>
+            <dd className="text-sm">
+              {!replay ? (
+                "Not yet: no other machine has re-derived this chain in public."
+              ) : covered ? (
+                <>
+                  Every checkpoint from #{covered.from.toLocaleString("en-US")} to #
+                  {covered.to.toLocaleString("en-US")} came out seal for seal on another
+                  machine: {covered.ticks.toLocaleString("en-US")} ticks recomputed from
+                  public code, the last {sinceUtc(replay.seenUtc)} ago on{" "}
+                  {replay.machine.platform}/{replay.machine.arch}.{" "}
+                  <a className="underline" href={replay.run}>
+                    The run
+                  </a>
+                </>
+              ) : (
+                <span className="text-amber-300">
+                  {replay.difference
+                    ? `The last replay did not reproduce checkpoint #${replay.difference.sequence.toLocaleString("en-US")} (${replay.difference.field}).`
+                    : `The last replay stopped at #${replay.to.sequence.toLocaleString("en-US")}: ${replay.stopped ?? "no reason recorded"}.`}{" "}
+                  <a className="underline" href={replay.run}>
+                    The run
+                  </a>
+                </span>
+              )}
+            </dd>
+          </div>
+        </dl>
+      ) : null}
+      <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
+        A match shows this history follows from public code and the fly&apos;s earlier
+        state. It does not show who computed it or when.{" "}
+        <a
+          className="underline"
+          href="https://github.com/topherchris420/lop-nur-twin/blob/main/docs/BETHESDA_CONTINUOUS_LIFE.md#replaying-it"
+        >
+          Run it yourself
+        </a>{" "}
+        ·{" "}
+        <a className="underline" href={RECORD_URL}>
+          The record
+        </a>
       </p>
     </Section>
   );

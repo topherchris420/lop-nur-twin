@@ -223,6 +223,14 @@ Three experiences have deliberately separate histories:
 | **[Eva · clay garden](https://150-136-49-49.sslip.io/)**                  | Separate Python garden service on its own VM. | A different fly, presented through a read-only clay exhibit. |
 | **Local Bethesda and research runs**                                      | Browser session or controlled experiment.     | Separate instances for exploration and comparison.           |
 
+**You do not have to take its word for it.** Every checkpoint is sealed and names
+the one before it, GitHub keeps a public ledger of them, and a
+[replay](docs/BETHESDA_CONTINUOUS_LIFE.md#replaying-it) recomputes them on a machine
+that has no other part in the fly's life, from public code: state, self-kept records
+and seals, digit for digit. That catches what seals alone cannot, a history rewritten
+and re-sealed from end to end. `/live` shows how far replays have reached, or says that
+none has yet. A match shows the history follows from its past, not who computed it.
+
 ### What the fly can learn
 
 The fly uses **FlyBody-derived anatomy** and a reduced-order behavioral
