@@ -245,7 +245,9 @@ export function Scene() {
       <Canvas
         shadows={qualityTier > 0 ? "percentage" : false}
         dpr={[1, profile.dprMax]}
-        camera={{ fov: 55, near: 1, far: 26000, position: [1740, 560, 2240] }}
+        // The same bearing and pitch onto the compound as the orbit target has always
+        // had, from half the distance, so the first thing seen is the site itself.
+        camera={{ fov: 55, near: 1, far: 26000, position: [1379, 280, 1825] }}
         gl={{
           powerPreference: "high-performance",
           antialias: true,
