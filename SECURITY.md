@@ -108,7 +108,9 @@ any kind.
   and in the container build, so a build cannot silently resolve a different
   tree.
 - Dependabot proposes grouped updates weekly and security updates as soon as an
-  advisory is published (`.github/dependabot.yml`).
+  advisory is published (`.github/dependabot.yml`). It does not update `bun.lock`,
+  so `.github/workflows/dependabot-lockfile.yml` does, on Dependabot's own branch,
+  without running any of the update's code, and then asks for CI on the result.
 - Every pull request runs `bun audit --prod --audit-level=high`, a Trivy
   vulnerability and secret scan, GitHub dependency review, and CodeQL static
   analysis. A high or critical advisory with a fix available blocks the merge.

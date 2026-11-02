@@ -1,0 +1,89 @@
+name: Dependabot lockfile
+# Dependabot updates package.json and package-lock.json. It does not update
+# bun.lock, from which CI installs with --frozen-lockfile, so without this every
+# npm update it proposes fails CI at the install step, in every job, whatever it
+# changes. This job brings bun.lock along on Dependabot's own branch, with the Bun
+# that CI pins, because a lockfile from another Bun version fails CI as well.
+#
+# It holds a token that may push, so it never runs the update's code: Bun only
+# resolves versions here (--lockfile-only, --ignore-scripts) and nothing from the
+# branch is executed. This is `pull_request`, not `pull_request_target`: a fork
+# gets none of this, and the `if` confines it to Dependabot's own pull requests.
+#
+# GitHub holds the runs a push with this token sets off, as approval-required: CI,
+# dependency review and CodeQL then wait on the pull request's page until someone
+# with write access selects "Approve workflows to run". That one click is the point
+# at which a person looks at the update, so nothing here gets around it. The first
+# CI run, on Dependabot's commit, fails at the install step as expected; what counts
+# is the run on the new head. Having seen another author's commit, Dependabot stops
+# rebasing the pull request on its own: ask it with a comment, `@dependabot
+# recreate`, and this job runs again.
+#
+# A security update of a transitive dependency changes package-lock.json alone. Bun
+# then keeps its pin, so bun.lock, which CI installs from, stays on the old version.
+# This job cannot fix that (`bun update` would move more than the one package), so
+# it says so on the run instead of reporting that all is well.
+on:
+  pull_request:
+    paths:
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Bring bun.lock along
+    if: >-
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Find the Bun that CI pins
+        id: bun
+        run: echo "version=$(sed -n 's/^  BUN_VERSION:[[:space:]]*"\(.*\)"$/\1/p' .github/workflows/ci.yml)" >>"$GITHUB_OUTPUT"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ steps.bun.outputs.version }}
+
+      - name: Update bun.lock
+        run: bun install --lockfile-only --ignore-scripts
+
+      - name: Push it
+        env:
+          BRANCH: ${{ github.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Bun's lockfile is the only thing this may change.
+          if [ -n "$(git status --porcelain -- . ':!bun.lock')" ]; then
+            git status --short
+            echo "::error::Updating the lockfile changed something else."
+            exit 1
+          fi
+          if git diff --quiet -- bun.lock; then
+            git fetch --quiet --depth=1 origin "$BASE_SHA"
+            if git diff --quiet "$BASE_SHA" HEAD -- package.json; then
+              msg="package.json is unchanged, so bun.lock keeps its pins and CI will not install this update. Move it in bun.lock by hand."
+              echo "::warning::$msg"
+              echo "$msg" >>"$GITHUB_STEP_SUMMARY"
+            else
+              echo "bun.lock already matches." >>"$GITHUB_STEP_SUMMARY"
+            fi
+            exit 0
+          fi
+          git add bun.lock
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898579+github-actions[bot]@users.noreply.github.com" \
+            commit --quiet -m "Bring bun.lock along with package.json"
+          git push --quiet origin "HEAD:refs/heads/$BRANCH"
+          echo "Updated bun.lock on $BRANCH. Its checks now wait for your approval on the pull request's page." >>"$GITHUB_STEP_SUMMARY"
