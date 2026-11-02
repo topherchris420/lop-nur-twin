@@ -61,13 +61,14 @@ available for someone else to examine.
 **Status from repository records · November 2, 2026.** The public viewers,
 production services, and research experiments have separate lifecycles.
 
-| Work                                    | Recorded status                                                                                                          | Read more                                                                   |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| **ECHO's continuing life**              | The October 28 deployment preserved the original individual and added learning, physiology, and an archive.              | [Continuation record](docs/ECHO_ORGANISM_CONTINUATION.md)                   |
-| **Verifiable continuity**               | Verified backups, off-site copies, a public checkpoint ledger, and replay reports support inspection of the shared life. | [Operations and replay](docs/BETHESDA_CONTINUOUS_LIFE.md)                   |
-| **Brain and nerve-cord research**       | FAFB v783 and BANC v888 are imported as separate connectomes; both have recorded experiments.                            | [Connectome backend](#computational-neural-research-the-connectome-backend) |
-| **Observing the originals**             | A read-only workflow can feed incomplete public observations into disposable BANC probes.                                | [Originals' neural shadow](#observing-eva-and-echo-without-restarting-them) |
-| **Experience-dependent walking habits** | An additive continuation candidate is implemented; production deployment is not recorded.                                | [Next continuation](#next-continuation-experience-dependent-habits)         |
+| Work                                    | Recorded status                                                                                                                            | Read more                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| **ECHO's continuing life**              | The October 28 deployment preserved the original individual and added learning, physiology, and an archive.                                | [Continuation record](docs/ECHO_ORGANISM_CONTINUATION.md)                                |
+| **Verifiable continuity**               | November 2: the observer fix was deployed with the same individual, a 96-second pause, and all 2,028 checkpoints passing chain validation. | [Operations and replay](docs/BETHESDA_CONTINUOUS_LIFE.md)                                |
+| **First real archive replay**           | 9,000 ticks reproduced from the older release; zero seals compared. New-release seal verification remains unconfirmed.                     | [Replay record](https://github.com/topherchris420/lop-nur-twin/actions/runs/41459569425) |
+| **Brain and nerve-cord research**       | FAFB v783 and BANC v888 are imported as separate connectomes; both have recorded experiments.                                              | [Connectome backend](#computational-neural-research-the-connectome-backend)              |
+| **Observing the originals**             | A read-only workflow can feed incomplete public observations into disposable BANC probes.                                                  | [Originals' neural shadow](#observing-eva-and-echo-without-restarting-them)              |
+| **Experience-dependent walking habits** | An additive continuation candidate is implemented; production deployment is not recorded.                                                  | [Next continuation](#next-continuation-experience-dependent-habits)                      |
 
 **A merged feature is not a migrated life.** Continuing an original requires its
 verified state, a compatible release, and a recorded transition. Research results
@@ -254,12 +255,26 @@ and a [replay](docs/BETHESDA_CONTINUOUS_LIFE.md#replaying-it) recomputes a recor
 stretch on another machine using the producing release. `/live` reports how far
 replay has reached and exactly what it compared.
 
-The scope matters: for the older deployed release described in the operation
-record, replay compares state hashes and self-kept records at each checkpoint,
-then the newest full graph **except four named cache fields**. It cannot reproduce
-that release's seals. Releases whose observer leaves no trace can also reproduce
-the graph digest and seal. A match checks the history from its starting checkpoint;
-it does not establish who computed it, when, or what the fly experiences.
+**Recorded deployment — November 2, 2026.** ECHO moved from release `62bd125`
+to `bdb7c02`, retaining the same individual, engine versions, and state-graph
+shape. The pause was recorded as **96 seconds without simulated ticks**; the
+subsequent chain check passed for all **2,028 checkpoints**. Checkpoint #2,026
+is the last sealed by the old release; #2,027 is the first from the observer
+that leaves no trace in the checkpoint state.
+
+**The first real archive replay passed:** a
+[separate GitHub runner](https://github.com/topherchris420/lop-nur-twin/actions/runs/41459569425)
+recomputed **9,000 ticks**, from checkpoint #1,990 to #1,993, on Linux arm64 with
+the producing release's Node build. That archive came from the **older release**:
+the replay compared state hashes and self-kept records at each checkpoint, then
+the newest full graph except four named cache fields. **Zero seals were compared.**
+
+The new release requires the graph digest and seal to reproduce as well. Its
+replay must start at #2,026 or later; **a successful replay of the new seals is
+not yet recorded** in the public ledger checked for this update. Earlier seals
+remain outside that stronger check, and the older replay does not bridge the
+upgrade boundary. A match checks the history from its starting checkpoint; it
+does not establish who computed it, when, or what the fly experiences.
 
 ### What the fly can learn
 
