@@ -1,8 +1,16 @@
-import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Link } from "@tanstack/react-router";
 import { useTwinStore } from "@/lib/store";
-import { Terrain } from "./Terrain";
+import { prebuildTerrainAssets, Terrain } from "./Terrain";
 import { Pavements } from "./Pavements";
 import { Structures } from "./Structures";
 import { EvidenceGhosts } from "./EvidenceGhosts";
@@ -13,6 +21,7 @@ import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
 import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
+import { pauseRendering, warmProgramsThenRender } from "./programWarmup";
 import { getQualityProfile } from "@/lib/quality";
 import { readFlag } from "@/lib/params";
 import { canCreateWebGLContext } from "@/lib/webgl";
@@ -21,19 +30,104 @@ import { isChunkLoadError, reloadPage, STALE_BUILD_NOTICE } from "@/lib/staleBui
 const Effects = lazy(() => import("./Effects"));
 
 /**
- * Flips the store's `ready` flag once the GL context exists and one frame has
- * been painted, so the intro overlay can fade out at the right moment.
+ * Flips the store's `ready` flag once the scene has actually rendered, so the
+ * intro overlay fades out onto a picture. It counts frames from `useFrame`, which
+ * does not run while the programs are still linking, and waits for the second so
+ * the first has reached the screen.
  */
 function ReadySignal() {
-  const gl = useThree((s) => s.gl);
   const setReady = useTwinStore((s) => s.setReady);
-  useEffect(() => {
-    let raf = requestAnimationFrame(() => {
-      raf = requestAnimationFrame(setReady);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [gl, setReady]);
+  const frames = useRef(0);
+  useFrame(() => {
+    if (frames.current < 2 && ++frames.current === 2) setReady();
+  });
   return null;
+}
+
+/** Keeps a quality step off the main thread too: see `warmProgramsThenRender`. */
+function QualityStepWarmup() {
+  const get = useThree((s) => s.get);
+  useEffect(
+    () =>
+      useTwinStore.subscribe((state, previous) => {
+        if (state.qualityTier !== previous.qualityTier) {
+          void warmProgramsThenRender(get());
+        }
+      }),
+    [get],
+  );
+  return null;
+}
+
+/** Where `SceneContents` stops adding pieces and starts on the shaders. */
+const LAST_STAGE = 4;
+
+/**
+ * The scene's contents, committed a piece at a time. Mounted together they were one
+ * task of about half a second that nothing could interrupt, and nothing is on screen
+ * yet for the pieces to be seen arriving: rendering stays paused until the last stage
+ * is in and its programs have linked.
+ */
+function SceneContents({
+  liveTraffic,
+  postprocessing,
+}: {
+  liveTraffic: boolean;
+  postprocessing: boolean;
+}) {
+  const get = useThree((s) => s.get);
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    void prebuildTerrainAssets(useTwinStore.getState().qualityTier).then(() => {
+      if (!cancelled) setStage((current) => Math.max(current, 1));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (stage === 0) return;
+    if (stage === LAST_STAGE) {
+      void warmProgramsThenRender(get());
+      return;
+    }
+    const timeout = setTimeout(() => setStage(stage + 1), 0);
+    return () => clearTimeout(timeout);
+  }, [stage, get]);
+
+  return (
+    <>
+      <Atmosphere />
+      <CameraRigs />
+      <AdaptiveQualityManager />
+      <QualityStepWarmup />
+      <ReadySignal />
+      {stage >= 1 && <Terrain />}
+      {stage >= 2 && <Pavements />}
+      {stage >= 3 && <Structures />}
+      {stage >= 4 && (
+        <>
+          <EvidenceGhosts />
+          <EvidenceLens />
+          <UncertaintyLayer />
+          <LivingScene />
+          {/* The upstream feed currently omits browser CORS headers. Keep the
+              existing layer opt-in so the deterministic twin makes no failing
+              runtime request by default; ?liveTraffic=1 preserves the hook for
+              CORS-capable deployments or a same-origin proxy. */}
+          {liveTraffic ? <LiveTraffic /> : null}
+          {postprocessing && (
+            <Suspense fallback={null}>
+              <Effects />
+            </Suspense>
+          )}
+        </>
+      )}
+    </>
+  );
 }
 
 function WebGLFallback({ stale = false }: { stale?: boolean }) {
@@ -140,30 +234,14 @@ export function Scene() {
           // logdepth chunks — see `createHardSurfaceShaderMaterial`.
           logarithmicDepthBuffer: true,
         }}
+        onCreated={pauseRendering}
         onPointerMissed={() => select(null)}
       >
         <Suspense fallback={null}>
-          <Atmosphere />
-          <Terrain />
-          <Pavements />
-          <Structures />
-          <EvidenceGhosts />
-          <EvidenceLens />
-          <UncertaintyLayer />
-          <LivingScene />
-          {/* The upstream feed currently omits browser CORS headers. Keep the
-              existing layer opt-in so the deterministic twin makes no failing
-              runtime request by default; ?liveTraffic=1 preserves the hook for
-              CORS-capable deployments or a same-origin proxy. */}
-          {liveTrafficRequested ? <LiveTraffic /> : null}
-          <CameraRigs />
-          <AdaptiveQualityManager />
-          <ReadySignal />
-          {postEnabled && (
-            <Suspense fallback={null}>
-              <Effects />
-            </Suspense>
-          )}
+          <SceneContents
+            liveTraffic={liveTrafficRequested}
+            postprocessing={postEnabled}
+          />
         </Suspense>
       </Canvas>
     </SceneErrorBoundary>
