@@ -223,6 +223,15 @@ export class OrganismAdapter extends EchoAdapter {
   }
 
   /**
+   * A descendant's place to adjust what the fly intends, before the self-model
+   * acts on it, so the self-model predicts from what is really commanded. The
+   * organism itself adjusts nothing here: it draws nothing and holds nothing.
+   */
+  protected shape(_input: DecisionInput, intention: MotorCommand): MotorCommand {
+    return intention;
+  }
+
+  /**
    * The self-model observes; the controller (its navigator valued as above)
    * intends; physiology may hold a perched fly at rest; odour adjusts a walk;
    * fatigue slows it; then the self-model acts, as in EchoAdapter.
@@ -253,7 +262,7 @@ export class OrganismAdapter extends EchoAdapter {
       return command;
     }
     if (!p.protective && !p.sleeping)
-      intention = this.olfaction.modulate(intention, smell, input.dt);
+      intention = this.shape(input, this.olfaction.modulate(intention, smell, input.dt));
     if (intention.mode === "walk" && intention.walkSpeed !== undefined)
       intention = {
         ...intention,
