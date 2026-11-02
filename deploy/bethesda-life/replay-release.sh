@@ -14,7 +14,7 @@
 # The checkout gets the replay's two files from this one, since the release
 # predates them, and that release's production dependencies, installed as the
 # VM installed them. It prints the Node version the release pinned: the replay
-# is only meaningful under that version, on that CPU architecture.
+# is only meaningful under that official build, on Linux arm64, as the VM runs it.
 set -Eeuo pipefail
 
 die() {

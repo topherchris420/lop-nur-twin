@@ -661,14 +661,28 @@ about itself, and no input reached it beyond its genesis and its ticks.
   poor model is still a poor model, and a repeatable history is not evidence
   of experience.
 
+**It needs the VM's platform: the same official Node build, Linux on arm64.**
+Measured from one chain of 6,100 ticks that the release 62bd125's own runner made
+on a GitHub Linux arm64 machine, on the Node that release pins (24.22.1):
+
+| Replayed on                        | Result                                                      |
+| ---------------------------------- | ----------------------------------------------------------- |
+| Another GitHub Linux arm64 machine | Every seal reproduced                                       |
+| GitHub Linux x64                   | Differs at the first checkpoint: the city same, the fly not |
+| Windows on arm64 (a laptop)        | Differs at the first checkpoint: the city same, the fly not |
+
+So a mismatch on another platform says nothing about the history. Node's compiled
+`Math` functions need not agree to the last digit across builds, and one digit is
+enough. That chain is an ordinary ECHO life and not the organism the VM runs, and
+GitHub's machines are not the VM's: whether the VM's own archives reproduce is what
+the first real replay will show.
+
 **What a mismatch means.** First, that it needs looking at, not that the history
-was forged. The likeliest causes, in order: the replay ran on another CPU
-architecture or Node than the VM (`Math.sin` and its kin need not agree to the
-last digit across them, which is why the workflow runs on arm64 with the Node
-the release pinned); something in the simulation that a restore does not carry;
-and only then a record that does not follow from its past. Re-run it on the
-same platform, and compare `machine` in the verdict. The run fails and opens an
-issue labelled `live-fly-replay`.
+was forged. The likeliest causes, in order: the replay ran on another platform or
+Node than the VM; something in the simulation that a restore does not carry; and
+only then a record that does not follow from its past. Re-run it on the same
+platform, and compare `machine` in the verdict. The run fails and opens an issue
+labelled `live-fly-replay`.
 
 ### Recovery
 
@@ -721,13 +735,16 @@ restore it as above.
   it, a gap), or take a backup with the life stopped (also a gap):
   `systemctl stop bethesda-life`, `backup.sh`, `systemctl start bethesda-life`.
 - **The watcher is one scheduled job on GitHub** ([above](#watching-it)):
-  it can be late, and it cannot report its own absence.
+  it can be late, and it cannot report its own absence. It is scheduled every 15
+  minutes, but GitHub ran it about every 5 hours over 2026-10-31 to 2026-11-02 (14
+  gaps, 3 to 7 hours each), so an outage can go unreported for that long. An
+  outside monitor of `/v1/health` would close that gap; none is set up.
 - **The ledger trusts GitHub** ([above](#the-ledger)) and anchors one
   checkpoint per kept backup, so it fixes the history up to about 6 hours
   ago, and nothing from before it began except through the chain.
 - **A replay is only as far back as the first replay** ([above](#replaying-it)),
-  and only comparable on the VM's CPU architecture and Node. The first replay of
-  a real archive needs a read-only request on the bucket that does not exist yet.
+  and only comparable on the VM's platform. The first replay of a real archive
+  needs a read-only request on the bucket that does not exist yet.
 - **One observer, on the life's machine.** Viewers reach Caddy and the
   observer on the VM itself, which shares its one core with the life. Not
   load-tested.

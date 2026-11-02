@@ -18,8 +18,9 @@ name: Live fly replay
 #
 # On a pull request that changes the replay, the second half checks the thing
 # the whole idea rests on without touching the fly: a chain made on one machine
-# reproduces on another. Linux on arm64 is the VM's platform and must pass; x64
-# reports what it finds, since JavaScript's Math need not agree across CPUs.
+# reproduces on another. Linux on arm64 is the VM's platform and must pass. x64
+# only reports what it finds, since Node's Math need not agree across builds: it
+# differed when measured, and would be news if it stopped.
 on:
   schedule:
     # About an hour after the backup timer's usual runs (00:15, 06:15, ...).
@@ -57,7 +58,7 @@ jobs:
     if: >-
       github.event_name != 'pull_request' &&
       github.repository == 'topherchris420/lop-nur-twin'
-    # The VM's platform. Runs of JavaScript's Math are only comparable on one CPU architecture.
+    # The VM's platform: a replay is only comparable on the same official Node build.
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 340
     outputs:
@@ -323,7 +324,6 @@ jobs:
           - os: ubuntu-24.04
             required: false
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ !matrix.required }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -339,10 +339,17 @@ jobs:
       - name: Reproduce every seal
         env:
           COMMIT: ${{ needs.chain.outputs.release }}
+          REQUIRED: ${{ matrix.required }}
         run: |
           git fetch --quiet origin main:refs/remotes/origin/main
           tar -xzf chain.tar.gz -C "$RUNNER_TEMP"
           deploy/bethesda-life/replay-release.sh "$COMMIT" "$RUNNER_TEMP/release"
           cd "$RUNNER_TEMP/release"
-          node scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store "$RUNNER_TEMP/store" --out "$RUNNER_TEMP/verdict.json"
-          jq '{passed, machine, from, to, reproduced, ticks, difference, wallSeconds, peakMB}' "$RUNNER_TEMP/verdict.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          status=0
+          node scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store "$RUNNER_TEMP/store" \
+            --out "$RUNNER_TEMP/verdict.json" || status=$?
+          [ -f "$RUNNER_TEMP/verdict.json" ] || exit 1
+          jq '{passed, machine, from, to, reproduced, ticks, difference, wallSeconds, peakMB}' \
+            "$RUNNER_TEMP/verdict.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$REQUIRED" = true ] && exit "$status"
+          exit 0
