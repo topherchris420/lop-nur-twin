@@ -597,6 +597,131 @@ Anyone who can push to the repository could still rewrite the branch: a
 ruleset that refuses force pushes and deletion on it, or a copy of the
 ledger elsewhere, guards against that.
 
+### Replaying it
+
+The seals and the ledger show that the history was not changed after it was
+seen. They do not show that it follows from anything: whoever writes a chain
+can seal whatever they like, and `--verify` accepts a chain that was rewritten
+and re-sealed from end to end. A replay asks the stronger question. Restore
+one checkpoint's whole state on another machine, advance it with the code of
+the release that made it, and compare each later checkpoint with what came out
+(`src/bethesda/life/replay.ts`).
+
+**How much it can compare depends on the release.**
+
+- **From a release whose observer leaves no trace** (it exports
+  `OBSERVATION_LEAVES_NO_TRACE` from `headless.ts`): the state hash, every record
+  the life kept about itself, the graph digest and so the seal must all come out
+  the same, digit for digit.
+- **From an earlier release, which is what the fly is running now**: the seals
+  cannot be reproduced by anyone, ever. A seal covers the whole graph, lookup
+  caches included, and watching the fly moved those caches at moments nobody
+  recorded (`world.wind` from the observer, about once a simulated second). The
+  caches change no answer they give. So the replay compares the state hash and
+  every record at each checkpoint, and at the newest the whole graph, field by
+  field, apart from the four fields named in `replay.ts`. That is still a
+  history re-derived, but it is not seal for seal, and `/live` says so.
+
+The fix is in the code, and it reaches the fly only with a deployment, which is a
+decision about the VM. Nothing about the fly changes when it happens: its graph
+keeps the same shape, and only what later checkpoints seal becomes reproducible.
+
+It needs only an archive and this repository, and takes no lease and writes
+nothing to a store, so it cannot fork the individual:
+
+```sh
+# From a full clone, on main, with the release's Node (the script prints it) on Linux arm64:
+deploy/bethesda-life/replay-release.sh <the 40-digit release in /v1/backup> ../fly-release
+tar -xzf bethesda-life-<UTC>-<commit>.tar.gz -C /tmp/check
+cd ../fly-release
+node --max-old-space-size=6144 scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store /tmp/check/store
+```
+
+A store holds its newest four checkpoints whole, so one archive can reproduce
+its own last three. With `--from-store OLDER/store` it starts from an older
+archive's head and reproduces every checkpoint since. `--individual` says who it
+must be. With `--ledger` every checkpoint seen in public must be in this chain,
+those before the replay's start included, so a chain rewritten from birth with an
+honest last stretch does not pass; lines a later, lower line rewound past are no
+longer expected, and `/live` keeps saying the rewind happened. Exit 0 means every
+checkpoint came out the same. Exit 1 means it did not or could not, and the record
+says where (`difference`), or why (`stopped`, `reason`). Exit 75 means no checkpoint
+follows the one to start from, so there is nothing to judge.
+
+`.github/workflows/bethesda-life-replay.yml` does this about an hour after each
+backup, on one of GitHub's Linux arm64 machines, continuing from the last replay
+when it passed, on the same release, within about a day. Otherwise it starts again
+from the newest archive and the record shows the gap. It appends each verdict to
+`replays.jsonl` on the ledger branch, including one for a chain that could not be
+read, a checksum that does not hold, a release that is not on main, or a replay
+that was killed. An archive not there yet, a VM out of reach, or no new checkpoint
+leaves no line: there is nothing to judge. `/live` reads the ledger and the verdicts
+from GitHub under "Check it yourself". It is also a standing restore drill that uses
+only the bucket, git and this page, on a machine with no other part in the fly's
+life. It stops short of a failover: it installs no service and takes no traffic.
+
+`/v1/backup` is the VM's word, so the workflow treats it as hostile: a plan step
+(`replayPlan.ts`, with tests) parses it against fixed patterns before any of it
+reaches a shell, a URL or the secret's step.
+
+The workflow can read the archives only with a read-only request on the bucket,
+which you make as you made [the write request](#off-site-copies): target the
+bucket, **permit object reads**, no listing, and put the URL (ending in `/o/`)
+in the repository's Actions secret `LIVE_FLY_BACKUP_READ_URL`. Without the
+secret each run says so and replays nothing. To let anyone run the commands
+above against the real fly, you could make the bucket's objects public as well:
+they hold the fly's state and leases, and nothing else, but a public archive
+is also a copy anyone can keep, which is your call.
+
+**What a match shows.** The later checkpoints follow from the earlier one under
+public code: nothing was altered, dropped or invented in what the life recorded
+about itself, and no input reached it beyond its genesis and its ticks.
+
+**What it does not show.**
+
+- **Anything about the last few fields, from a release whose seals it cannot
+  reproduce.** The caches named in `replay.ts` are excepted by name, and at the
+  headers between whole checkpoints the graph is gone, so only the state hash and
+  records are compared there.
+- **Who computed it, or when.** Anyone with the code and an archive could
+  compute the same chain anywhere, at any speed. That the VM did it live rests
+  on the watcher and on the ledger's GitHub timestamps.
+- **The state it starts from.** Each replay takes its first checkpoint as given:
+  it is the one thing never reproduced. An unbroken run of replays reaches back
+  only to the first one. Before that there are seals, and the ledger's anchors,
+  alone.
+- **Gaps.** A `gap` says when no process ran. It changes nothing in the life, so
+  a replay carries it over from the record and cannot check it.
+- **Anything about the fly beyond its arithmetic.** A faithful computation of a
+  poor model is still a poor model, and a repeatable history is not evidence
+  of experience.
+
+**It needs the VM's platform: the same official Node build, Linux on arm64.**
+Measured from one chain of 6,100 ticks that the deployed release's own runner made
+on a GitHub Linux arm64 machine, watched as the VM's service watches it, on the Node
+that release pins (24.22.1):
+
+| Replayed on                        | Result                                                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Another GitHub Linux arm64 machine | Passed: state and records at all 3 checkpoints, the whole graph apart from the caches at the last; 0 seals    |
+| GitHub Linux x64                   | Differs at the first checkpoint: the city same, the fly not                                                   |
+| Windows on arm64 (a laptop)        | Differs at the first checkpoint: the city same, the fly not (measured on an unwatched chain of the same kind) |
+
+So a mismatch on another platform says nothing about the history. Node's compiled
+`Math` functions need not agree to the last digit across builds, and one digit is
+enough. That chain is an ordinary ECHO life and not the organism the VM runs, and
+GitHub's machines are not the VM's: whether the VM's own archives reproduce is what
+the first real replay will show. On one machine, a watched organism on the deployed
+history through the real runner, with the observer that leaves no trace, reproduces
+every seal (`organism.test.ts`).
+
+**What a mismatch means.** First, that it needs looking at, not that the history
+was forged. The likeliest causes, in order: the replay ran on another platform or
+Node than the VM; something in the simulation that a restore does not carry; and
+only then a record that does not follow from its past. Re-run it on the same
+platform, and compare `machine` in the verdict. The run fails and opens an issue
+labelled `live-fly-replay`.
+
 ### Recovery
 
 | In `journalctl -u bethesda-life`                                          | What it means                                                          | What to do                                                                                                                                                                 |
@@ -648,10 +773,18 @@ restore it as above.
   it, a gap), or take a backup with the life stopped (also a gap):
   `systemctl stop bethesda-life`, `backup.sh`, `systemctl start bethesda-life`.
 - **The watcher is one scheduled job on GitHub** ([above](#watching-it)):
-  it can be late, and it cannot report its own absence.
+  it can be late, and it cannot report its own absence. It is scheduled every 15
+  minutes, but GitHub ran it about every 5 hours over 2026-10-31 to 2026-11-02 (14
+  gaps, 3 to 7 hours each), so an outage can go unreported for that long. An
+  outside monitor of `/v1/health` would close that gap; none is set up.
 - **The ledger trusts GitHub** ([above](#the-ledger)) and anchors one
   checkpoint per kept backup, so it fixes the history up to about 6 hours
   ago, and nothing from before it began except through the chain.
+- **A replay is only as far back as the first replay** ([above](#replaying-it)),
+  and only comparable on the VM's platform, and the deployed release's seals
+  cannot be reproduced at all (`Replaying it` says why, and how much can). The first
+  replay of a real archive needs a read-only request on the bucket that does not
+  exist yet.
 - **One observer, on the life's machine.** Viewers reach Caddy and the
   observer on the VM itself, which shares its one core with the life. Not
   load-tested.

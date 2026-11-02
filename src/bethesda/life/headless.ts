@@ -56,6 +56,61 @@ export interface HeadlessLifeStatus {
   };
 }
 
+/** The parts of a world's queries that remember: see `untraced`. */
+interface QueryCaches {
+  grids: Record<string, QueryGrid> | null;
+  foodGrid: QueryGrid;
+  localAt: readonly number[];
+  local: readonly unknown[];
+}
+interface QueryGrid {
+  seen: Int32Array;
+  stamp: number;
+}
+
+/**
+ * Runs `read` against the world, leaving no mark on it. A query moves lookup caches
+ * (each grid's stamp, the candidate lists for the last ray) that change no answer,
+ * but a checkpoint seals them with everything else, so a reader who is not part of
+ * the life must not move them: nobody who did not read at the same moments could
+ * then reproduce a seal.
+ *
+ * They are private to fly/world.ts, and they are reached from here on purpose. The
+ * experiments' source digest covers that file, and what only an observer needs is
+ * no reason to list every record made with it as made by other code. Should those
+ * fields change, replay.test.ts, which seals a watched life beside an unwatched
+ * one, fails.
+ */
+function untraced<T>(world: object, read: () => T): T {
+  const w = world as QueryCaches;
+  const { localAt, local } = w;
+  const grids = [w.foodGrid, ...Object.values(w.grids ?? {})];
+  const held = grids.map((g) => ({ g, seen: g.seen, stamp: g.stamp }));
+  for (const g of grids) {
+    g.seen = new Int32Array(g.seen.length);
+    g.stamp = 0;
+  }
+  w.localAt = [NaN, NaN, NaN];
+  w.local = local.map(() => null);
+  try {
+    return read();
+  } finally {
+    for (const { g, seen, stamp } of held) {
+      g.seen = seen;
+      g.stamp = stamp;
+    }
+    w.localAt = localAt;
+    w.local = local;
+  }
+}
+
+/**
+ * Watching this life moves nothing a checkpoint seals. A replay reads this to
+ * learn whether a chain's seals can be reproduced (life/replay.ts): before this
+ * was true, the observer moved lookup caches at moments nobody recorded.
+ */
+export const OBSERVATION_LEAVES_NO_TRACE = true;
+
 /**
  * One authority within this process. No second fly is made for an observer.
  *
@@ -137,8 +192,8 @@ export class HeadlessBethesdaLife {
 
   /**
    * What an observer may see of this life now (observation.ts). It only
-   * reads: no random draw, no step, no field written, so a watched life lives
-   * exactly as an unwatched one.
+   * reads: no random draw, no step, no field written, not even a lookup cache,
+   * so a watched life lives and seals exactly as an unwatched one.
    */
   observation(at: {
     individual: string;
@@ -199,7 +254,7 @@ export class HeadlessBethesdaLife {
     const world = this.cityFly.world,
       s = this.cityFly.fly.state;
     const now = world.windNow(s.t);
-    const w = world.wind(s.p, s.t);
+    const w = untraced(world, () => world.wind(s.p, s.t));
     const deg = (now.from * 180) / Math.PI;
     return {
       regime: now.regime,

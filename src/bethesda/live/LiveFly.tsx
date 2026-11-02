@@ -3,6 +3,7 @@ import { Minus, Plus } from "lucide-react";
 import type { LifeObservation, ObservedWeather, Witness } from "../life/observation";
 import { NEARBY_M } from "../life/observation";
 import {
+  bounds,
   buildings,
   geographic,
   landmarks,
@@ -12,6 +13,12 @@ import {
   roadWays,
   type Point,
 } from "../model";
+import {
+  fetchPublicRecord,
+  RECORD_URL,
+  standing,
+  type PublicRecord,
+} from "./publicRecord";
 import {
   addSample,
   followWitness,
@@ -125,6 +132,7 @@ export default function LiveFly() {
         {o ? <Now o={o} /> : null}
         {o ? <Recent o={o} /> : null}
         {o ? <Life o={o} /> : null}
+        {o ? <CheckIt o={o} live={view.status === "live"} /> : null}
         {o ? <SelfModel o={o} /> : null}
         <footer className="text-muted-foreground border-border space-y-2 border-t pt-4 text-xs leading-relaxed">
           <p>
@@ -385,6 +393,155 @@ function Life({ o }: { o: LifeObservation }) {
   );
 }
 
+/** How often to look again: the ledger and the replays change every few hours. */
+const RECORD_REFRESH_MS = 10 * 60_000;
+
+/** What others have on record about this individual, kept fresh; null until first known. */
+function usePublicRecord(individual: string) {
+  const [state, setState] = useState<{
+    record: PublicRecord | null;
+    unreachable: string | null;
+  }>({ record: null, unreachable: null });
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = () => {
+      fetchPublicRecord(individual, controller.signal)
+        .then((record) => setState({ record, unreachable: null }))
+        .catch((e: unknown) => {
+          if (controller.signal.aborted) return;
+          // What was read stays true; the page only adds that it cannot look again.
+          setState((s) => ({
+            record: s.record,
+            unreachable: e instanceof Error ? e.message : String(e),
+          }));
+        });
+    };
+    load();
+    const timer = setInterval(load, RECORD_REFRESH_MS);
+    return () => {
+      controller.abort();
+      clearInterval(timer);
+    };
+  }, [individual]);
+  return state;
+}
+
+const sinceUtc = (utc: string) => span(Math.max(0, Date.now() - Date.parse(utc)) / 1000);
+
+/** The checks that do not rest on this page or on the fly's machine (publicRecord.ts). */
+function CheckIt({ o, live }: { o: LifeObservation; live: boolean }) {
+  const { record, unreachable } = usePublicRecord(o.individual);
+  const newest = record?.newest;
+  const replay = record?.replay;
+  const covered = record?.covered;
+  return (
+    <Section title="Check it yourself">
+      <p className="text-sm leading-relaxed">
+        Each checkpoint is sealed and names the one before it, so one digest fixes the
+        whole history up to it. These two records are kept on GitHub, out of reach of the
+        fly&apos;s server.
+      </p>
+      {!record && !unreachable ? (
+        <p className="text-muted-foreground mt-2 text-sm">Reading the public record.</p>
+      ) : null}
+      {unreachable ? (
+        <p className="mt-2 text-sm text-amber-300">
+          The public record could not be read from here ({unreachable}).
+          {record ? " What follows is from the last time it could." : ""}
+        </p>
+      ) : null}
+      {record ? (
+        <dl className="mt-3 space-y-3">
+          <div>
+            <dt className="text-muted-foreground text-[11px]">Seen in public</dt>
+            <dd className="text-sm">
+              {newest ? (
+                <>
+                  {record.anchors.toLocaleString("en-US")} checkpoints in the ledger.
+                  Newest is #{newest.checkpoint.toLocaleString("en-US")}, first seen{" "}
+                  {sinceUtc(newest.seenUtc)} ago:{" "}
+                  <span className="font-mono text-xs break-all">
+                    {newest.digest.slice(0, 16)}
+                  </span>
+                </>
+              ) : (
+                "No checkpoint of this individual is in the ledger yet."
+              )}
+              {record.lastRewind ? (
+                <span className="block text-amber-300">
+                  The ledger records a rewind, {sinceUtc(record.lastRewind.seenUtc)} ago:
+                  from #{record.lastRewind.from.toLocaleString("en-US")} back to #
+                  {record.lastRewind.to.toLocaleString("en-US")}.
+                </span>
+              ) : null}
+              {/* An observation kept from before the connection was lost says nothing about now. */}
+              {live && standing(record, o.checkpoint) === "behind-ledger" ? (
+                <span className="block text-amber-300">
+                  The fly&apos;s chain is behind what the ledger saw, which is what a
+                  restore from an older backup looks like.
+                </span>
+              ) : null}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground text-[11px]">Recomputed elsewhere</dt>
+            <dd className="text-sm">
+              {!replay ? (
+                "Not yet: no other machine has re-derived this chain in public."
+              ) : covered ? (
+                <>
+                  Every checkpoint after #{covered.from.toLocaleString("en-US")}, up to #
+                  {covered.to.toLocaleString("en-US")}, came out{" "}
+                  {covered.sealed
+                    ? "seal for seal"
+                    : "the same, in its state and its records, and in all of its state at the last"}{" "}
+                  on another machine: {covered.ticks.toLocaleString("en-US")} ticks
+                  recomputed from public code, the last {sinceUtc(replay.seenUtc)} ago
+                  {replay.machine
+                    ? ` on ${replay.machine.platform}/${replay.machine.arch}`
+                    : ""}
+                  .{" "}
+                  {covered.sealed
+                    ? null
+                    : "The seals themselves cannot be compared yet: the fly's release lets watching it move lookup caches they cover. "}
+                  <a className="underline" href={replay.run}>
+                    The run
+                  </a>
+                </>
+              ) : (
+                <span className="text-amber-300">
+                  {replay.difference
+                    ? `The last replay did not reproduce checkpoint #${replay.difference.sequence.toLocaleString("en-US")} (${replay.difference.field}). `
+                    : replay.stopped
+                      ? `The last replay stopped: ${replay.stopped}. `
+                      : `The last replay failed: ${replay.reason ?? "no reason recorded"}. `}
+                  <a className="underline" href={replay.run}>
+                    The run
+                  </a>
+                </span>
+              )}
+            </dd>
+          </div>
+        </dl>
+      ) : null}
+      <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
+        A match shows this history follows from public code and the fly&apos;s earlier
+        state. It does not show who computed it or when.{" "}
+        <a
+          className="underline"
+          href="https://github.com/topherchris420/lop-nur-twin/blob/main/docs/BETHESDA_CONTINUOUS_LIFE.md#replaying-it"
+        >
+          Run it yourself
+        </a>{" "}
+        ·{" "}
+        <a className="underline" href={RECORD_URL}>
+          The record
+        </a>
+      </p>
+    </Section>
+  );
+}
+
 /** What the fly's self-model can conclude about a change, in words. */
 const EXPLANATION_WORDS: Record<string, string> = {
   none: "nothing had changed",
@@ -523,6 +680,45 @@ function WitnessMap({
         x1 > cx - half.x && x0 < cx + half.x && z1 > cz - half.z && z0 < cz + half.z;
       const ring = (points: Point[]) =>
         points.forEach((v, i) => (i === 0 ? c.moveTo(...p(v)) : c.lineTo(...p(v))));
+
+      // Past the imported city there is no model, which is not the same as empty ground.
+      const [mx0, mz0] = p(bounds.min),
+        [mx1, mz1] = p(bounds.max);
+      if (mx0 > 0 || mz0 > 0 || mx1 < w || mz1 < h) {
+        c.save();
+        c.beginPath();
+        c.rect(0, 0, w, h);
+        c.rect(mx0, mz0, mx1 - mx0, mz1 - mz0);
+        c.clip("evenodd");
+        c.strokeStyle = "#1a2528";
+        c.lineWidth = 1;
+        c.beginPath();
+        for (let d = (-cx * scale - cz * scale) % 18; d < w + h; d += 18) {
+          c.moveTo(d, 0);
+          c.lineTo(d - h, h);
+        }
+        c.stroke();
+        c.restore();
+        c.strokeStyle = "rgba(170, 190, 195, 0.45)";
+        c.lineWidth = 1;
+        c.setLineDash([6, 5]);
+        c.strokeRect(mx0, mz0, mx1 - mx0, mz1 - mz0);
+        c.setLineDash([]);
+        c.fillStyle = "rgba(170, 190, 195, 0.7)";
+        c.font = "10px ui-monospace, monospace";
+        const label = "the model of the city ends here";
+        const clamp = (v: number, lo: number, hi: number) =>
+          Math.max(lo, Math.min(hi, v));
+        const middle = {
+          x: clamp((Math.max(mx0, 0) + Math.min(mx1, w)) / 2, 100, w - 100),
+          z: clamp((Math.max(mz0, 0) + Math.min(mz1, h)) / 2, 40, h - 40),
+        };
+        if (mx1 < w - 16) c.fillText(label, Math.min(mx1 + 8, w - 190), middle.z);
+        else if (mx0 > 16) c.fillText(label, Math.max(mx0 - 190, 8), middle.z);
+        else if (mz1 < h - 16)
+          c.fillText(label, middle.x - 90, Math.min(mz1 + 14, h - 40));
+        else if (mz0 > 16) c.fillText(label, middle.x - 90, Math.max(mz0 - 6, 40));
+      }
 
       c.fillStyle = "#1b3326";
       for (const park of parks) {
@@ -664,7 +860,7 @@ function WitnessMap({
       ref={ref}
       className="h-full w-full"
       role="img"
-      aria-label="Map of the fly in Bethesda: the city's buildings and streets, the fly, its recent path and the people near it"
+      aria-label="Map of the fly in Bethesda: the city's buildings and streets, where the model of the city ends, the fly, its recent path and the people near it"
     />
   );
 }

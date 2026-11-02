@@ -1,0 +1,382 @@
+name: Live fly replay
+# After each backup, on a machine that has never seen the fly: download the
+# archive, restore it in memory, advance it with the code of the release that
+# made it, and compare every checkpoint it reaches with what the live fly
+# committed (src/bethesda/life/replay.ts says how much a release allows, and
+# docs/BETHESDA_CONTINUOUS_LIFE.md, "Replaying it", what a match does not show).
+# The verdict, either way, is appended to `replays.jsonl` on the ledger branch,
+# where /live reads it. A disagreement also fails this run and opens an issue.
+#
+# A replay takes no lease and writes no checkpoint, so it cannot fork the fly,
+# and nothing here reaches the VM except its public /v1/backup record. That record
+# is untrusted: the plan step parses it in code against fixed patterns
+# (replayPlan.ts), and no value of it reaches a shell before that. The only secret
+# is LIVE_FLY_BACKUP_READ_URL, the bucket's read-only pre-authenticated request,
+# passed to the one step that downloads. Without it the run says so and stops. The
+# replay itself runs with a read-only token: only the later `record` job may push,
+# it runs none of the release's code, and it pushes only to the ledger branch,
+# never force.
+#
+# On a pull request that changes the replay, the second half checks the thing
+# the whole idea rests on without touching the fly: a chain made on one machine by
+# the deployed release's real runner, watched as the VM's service watches it,
+# reproduces on another. Linux on arm64 is the VM's platform and must pass. x64
+# only reports what it finds, since Node's Math need not agree across builds: it
+# differed when measured, and would be news if it stopped.
+on:
+  schedule:
+    # About an hour after the backup timer's usual runs (00:15, 06:15, ...).
+    - cron: "23 1,7,13,19 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/bethesda-life-replay.yml"
+      - "deploy/bethesda-life/replay-release.sh"
+      - "scripts/bethesda-life-replay.ts"
+      - "scripts/bethesda-life-replay-plan.ts"
+      - "src/bethesda/life/replay.ts"
+      - "src/bethesda/life/replayPlan.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-fly-replay-${{ github.event_name == 'pull_request' && github.ref || 'live' }}
+  cancel-in-progress: false
+
+env:
+  OBSERVER_URL: https://129-213-139-78.sslip.io
+  # The deployed individual; a store holding any other fails the replay.
+  INDIVIDUAL: 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
+  LEDGER_BRANCH: live-fly-ledger
+  LEDGER_RAW: https://raw.githubusercontent.com/topherchris420/lop-nur-twin/live-fly-ledger
+  # A replay holds a whole life in memory, as the VM's backup check does (about 3.4 GB).
+  NODE_OPTIONS: --max-old-space-size=6144
+  # Beyond this many checkpoints (about a day) start again from the newest
+  # archive alone: the record then shows the gap rather than risk the time limit.
+  MAX_CHECKPOINTS: 300
+
+jobs:
+  replay:
+    name: Replay the newest backup
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.repository == 'topherchris420/lop-nur-twin'
+    # The VM's platform: a replay is only comparable on the same official Node build.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 340
+    outputs:
+      ran: ${{ steps.result.outputs.ran }}
+    steps:
+      - name: Check out main, whole
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node for the plan
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Plan from what the backup claims
+        id: plan
+        run: |
+          curl --fail --silent --show-error --max-time 30 "$LEDGER_RAW/ledger.jsonl" >"$RUNNER_TEMP/ledger.jsonl"
+          # No replay has been recorded before the first: a 404 here is not a failure.
+          curl --silent --max-time 30 --fail "$LEDGER_RAW/replays.jsonl" >"$RUNNER_TEMP/replays.jsonl" ||
+            : >"$RUNNER_TEMP/replays.jsonl"
+          node scripts/run-ts.mjs scripts/bethesda-life-replay-plan.ts \
+            --url "$OBSERVER_URL" --individual "$INDIVIDUAL" --replays "$RUNNER_TEMP/replays.jsonl" \
+            --max "$MAX_CHECKPOINTS" --verdict "$RUNNER_TEMP/verdict.json" >>"$GITHUB_OUTPUT"
+
+      - name: Download the archives
+        id: download
+        if: steps.plan.outputs.action == 'replay'
+        env:
+          READ_URL: ${{ secrets.LIVE_FLY_BACKUP_READ_URL }}
+          ARCHIVE: ${{ steps.plan.outputs.archive }}
+          SHA256: ${{ steps.plan.outputs.sha256 }}
+          RELEASE: ${{ steps.plan.outputs.release }}
+          PREVIOUS: ${{ steps.plan.outputs.previous }}
+          PREVIOUS_SHA256: ${{ steps.plan.outputs.previous_sha256 }}
+        run: |
+          if [ -z "$READ_URL" ]; then
+            msg="No read access to the backups: LIVE_FLY_BACKUP_READ_URL is not set. Nothing was replayed."
+            echo "::notice::$msg"
+            echo "$msg" >>"$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # What the VM claimed turning out false is a finding, and it is published.
+          refuse() {
+            jq -n --arg reason "$1" --arg individual "$INDIVIDUAL" \
+              '{schema: "bethesda-life-replay/v1", passed: false, reason: $reason, individual: $individual,
+                versions: null, machine: null, from: null, to: null, head: null, reproduced: 0, ticks: 0,
+                seals: null, graphs: 0, ledger: null, difference: null, stopped: null}' \
+              >"$RUNNER_TEMP/verdict.json"
+            {
+              echo "ready=false"
+              echo "refused=true"
+            } >>"$GITHUB_OUTPUT"
+            exit 0
+          }
+          git merge-base --is-ancestor "$RELEASE" origin/main ||
+            refuse "the backup names a release that is not on main: $RELEASE"
+          version=$(git show "$RELEASE:deploy/bethesda-life/install.sh" | sed -n 's/^NODE_VERSION=//p')
+          [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+            refuse "the release pins no Node version this can use"
+          mkdir -p "$RUNNER_TEMP/new" "$RUNNER_TEMP/old"
+          # An archive not there yet is not a finding: the next run looks again.
+          if ! curl --fail --silent --show-error --max-time 600 "$READ_URL$ARCHIVE" -o "$RUNNER_TEMP/new.tar.gz"; then
+            echo "::warning::Could not download $ARCHIVE."
+            echo "ready=false" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$SHA256  $RUNNER_TEMP/new.tar.gz" | sha256sum --check --strict --quiet ||
+            refuse "$ARCHIVE does not have the checksum the backup recorded"
+          tar -xzf "$RUNNER_TEMP/new.tar.gz" -C "$RUNNER_TEMP/new" ||
+            refuse "$ARCHIVE cannot be unpacked"
+          # An older archive gone is no finding: the newest still holds its last few
+          # checkpoints whole, and the record shows the gap. One that has changed since
+          # it was replayed is another matter.
+          from_archive=
+          if [ -n "$PREVIOUS" ] &&
+            curl --fail --silent --show-error --max-time 600 "$READ_URL$PREVIOUS" -o "$RUNNER_TEMP/old.tar.gz"; then
+            echo "$PREVIOUS_SHA256  $RUNNER_TEMP/old.tar.gz" | sha256sum --check --strict --quiet ||
+              refuse "$PREVIOUS has changed since it was replayed"
+            tar -xzf "$RUNNER_TEMP/old.tar.gz" -C "$RUNNER_TEMP/old" ||
+              refuse "$PREVIOUS cannot be unpacked"
+            from_archive=$PREVIOUS
+          fi
+          {
+            echo "ready=true"
+            echo "from_archive=$from_archive"
+            echo "node=$version"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Set up the Node the release ran on
+        if: steps.download.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.download.outputs.node }}
+
+      - name: Check out the release
+        if: steps.download.outputs.ready == 'true'
+        env:
+          RELEASE: ${{ steps.plan.outputs.release }}
+        run: deploy/bethesda-life/replay-release.sh "$RELEASE" "$RUNNER_TEMP/release"
+
+      - name: Re-derive the checkpoints
+        id: derive
+        if: steps.download.outputs.ready == 'true'
+        # Its own limit, short of the job's, so that running out of time still leaves a record.
+        timeout-minutes: 300
+        env:
+          FROM_ARCHIVE: ${{ steps.download.outputs.from_archive }}
+        run: |
+          from=()
+          [ -z "$FROM_ARCHIVE" ] || from=(--from-store "$RUNNER_TEMP/old/store")
+          cd "$RUNNER_TEMP/release"
+          # Its exit status is the verdict, and `record` reports it: this step must not end the job first.
+          set +e
+          node scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store "$RUNNER_TEMP/new/store" \
+            "${from[@]}" --individual "$INDIVIDUAL" --ledger "$RUNNER_TEMP/ledger.jsonl" \
+            --out "$RUNNER_TEMP/verdict.json" | tail -n 40
+          echo "status=${PIPESTATUS[0]}" >>"$GITHUB_OUTPUT"
+          set -e
+
+      - name: Compose the record
+        id: result
+        # Whatever happened to the replay, unless it found nothing to judge (75) or never started.
+        if: >-
+          !cancelled() && (
+            steps.plan.outputs.action == 'refuse' ||
+            steps.download.outputs.refused == 'true' ||
+            (steps.derive.conclusion != 'skipped' && steps.derive.outputs.status != '75')
+          )
+        env:
+          ARCHIVE: ${{ steps.plan.outputs.archive }}
+          SHA256: ${{ steps.plan.outputs.sha256 }}
+          RELEASE: ${{ steps.plan.outputs.release }}
+          FROM_ARCHIVE: ${{ steps.download.outputs.from_archive }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # No verdict: it was killed, or ran out of memory or time. That is published too.
+          if [ ! -f "$RUNNER_TEMP/verdict.json" ]; then
+            jq -n --arg individual "$INDIVIDUAL" \
+              '{schema: "bethesda-life-replay/v1", passed: false,
+                reason: "the replay reached no verdict: it was killed, or ran out of memory or time",
+                individual: $individual, versions: null, machine: null, from: null, to: null, head: null,
+                reproduced: 0, ticks: 0, seals: null, graphs: 0, ledger: null, difference: null, stopped: null}' \
+              >"$RUNNER_TEMP/verdict.json"
+          fi
+          jq . "$RUNNER_TEMP/verdict.json"
+          jq -c --arg seen "$(date -u +%FT%TZ)" --arg archive "$ARCHIVE" --arg sha256 "$SHA256" \
+            --arg release "$RELEASE" --arg from "$FROM_ARCHIVE" --arg run "$RUN_URL" \
+            '. + {seenUtc: $seen,
+                  archive: (if $archive == "" then null else $archive end),
+                  sha256: (if $sha256 == "" then null else $sha256 end),
+                  release: (if $release == "" then null else $release end),
+                  fromArchive: (if $from == "" then null else $from end), run: $run}' \
+            "$RUNNER_TEMP/verdict.json" >"$RUNNER_TEMP/record.json"
+          echo "ran=true" >>"$GITHUB_OUTPUT"
+
+      - name: Keep the record
+        if: ${{ !cancelled() && steps.result.outputs.ran == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: replay-record
+          path: ${{ runner.temp }}/record.json
+          retention-days: 7
+
+  record:
+    name: Publish the verdict
+    needs: replay
+    if: ${{ !cancelled() && needs.replay.outputs.ran == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: replay-record
+
+      - name: Check out the ledger
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LEDGER_BRANCH }}
+          path: ledger
+
+      - name: Append the verdict
+        run: |
+          # For the commit and for any rebase below.
+          git -C ledger config user.name "github-actions[bot]"
+          git -C ledger config user.email "41898579+github-actions[bot]@users.noreply.github.com"
+          cat record.json >>ledger/replays.jsonl
+          git -C ledger add replays.jsonl
+          git -C ledger commit --quiet -m "Replay of the newest backup: $(jq -r 'if .passed then "reproduced to checkpoint \(.to.sequence)" else "see the record" end' record.json)"
+          # The watcher pushes to this branch too.
+          for attempt in 1 2 3; do
+            if git -C ledger push --quiet origin "HEAD:refs/heads/$LEDGER_BRANCH"; then exit 0; fi
+            sleep $((attempt * 10))
+            git -C ledger pull --quiet --rebase origin "$LEDGER_BRANCH"
+          done
+          exit 1
+
+      - name: Report it
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          jq -r '"Reproduced \(.reproduced) checkpoints after #\(.from.sequence // "?") up to #\(.head.sequence // "?"): \(.ticks) ticks on \(.machine.platform // "?")/\(.machine.arch // "?"), Node \(.machine.node // "?"), in \(.wallSeconds // "?") s. Seals required: \(.seals.required // "?"); reproduced: \(.seals.reproduced // "?"). Reason given: \(.reason // "none")."' record.json >>"$GITHUB_STEP_SUMMARY"
+          [ "$(jq -r .passed record.json)" = true ] && exit 0
+          {
+            echo "A replay of the live fly's newest backup did not reproduce its record."
+            echo
+            echo '```json'
+            jq '{reason, from, to, head, difference, stopped, seals, ledger, machine, archive, release, run}' record.json
+            echo '```'
+            echo
+            echo "What this can and cannot mean: [Replaying it](https://github.com/$GH_REPO/blob/main/docs/BETHESDA_CONTINUOUS_LIFE.md#replaying-it)."
+          } >body.md
+          gh label create live-fly-replay --color B60205 --force \
+            --description "A replay did not reproduce the live fly's record"
+          # One open issue, with each further failure as a comment on it.
+          open=$(gh issue list --label live-fly-replay --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body-file body.md
+          else
+            gh issue create --title "The live fly's replay disagrees with its record" \
+              --label live-fly-replay --body-file body.md
+          fi
+          exit 1
+
+  chain:
+    name: Make a chain on arm64
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    outputs:
+      release: ${{ steps.release.outputs.commit }}
+      node: ${{ steps.release.outputs.node }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Find the deployed release
+        id: release
+        run: |
+          git fetch --quiet origin main:refs/remotes/origin/main
+          commit=$(curl --fail --silent --show-error --max-time 30 "$OBSERVER_URL/v1/backup" | jq -r .kept.release)
+          [[ $commit =~ ^[0-9a-f]{40}$ ]] || { echo "::error::malformed release"; exit 1; }
+          version=$(git show "$commit:deploy/bethesda-life/install.sh" | sed -n 's/^NODE_VERSION=//p')
+          [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::malformed Node version"; exit 1; }
+          {
+            echo "commit=$commit"
+            echo "node=$version"
+          } >>"$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.release.outputs.node }}
+      - name: Live a short life with the real runner, watched as the VM's service watches it
+        env:
+          COMMIT: ${{ steps.release.outputs.commit }}
+        run: |
+          deploy/bethesda-life/replay-release.sh "$COMMIT" "$RUNNER_TEMP/release"
+          cd "$RUNNER_TEMP/release"
+          export BETHESDA_LIFE_OBSERVE="$RUNNER_TEMP/observation.json"
+          node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store "$RUNNER_TEMP/store" --create --controller echo
+          node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store "$RUNNER_TEMP/store" --ticks 6100
+          tar -czf "$RUNNER_TEMP/chain.tar.gz" -C "$RUNNER_TEMP" store
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chain
+          path: ${{ runner.temp }}/chain.tar.gz
+          retention-days: 3
+
+  elsewhere:
+    name: Reproduce it on ${{ matrix.os }}
+    needs: chain
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04-arm
+            required: true
+          - os: ubuntu-24.04
+            required: false
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.chain.outputs.node }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: chain
+      - name: Reproduce the chain
+        env:
+          COMMIT: ${{ needs.chain.outputs.release }}
+          REQUIRED: ${{ matrix.required }}
+        run: |
+          git fetch --quiet origin main:refs/remotes/origin/main
+          tar -xzf chain.tar.gz -C "$RUNNER_TEMP"
+          deploy/bethesda-life/replay-release.sh "$COMMIT" "$RUNNER_TEMP/release"
+          cd "$RUNNER_TEMP/release"
+          status=0
+          node scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store "$RUNNER_TEMP/store" \
+            --out "$RUNNER_TEMP/verdict.json" || status=$?
+          [ -f "$RUNNER_TEMP/verdict.json" ] || exit 1
+          jq '{passed, reason, machine, from, to, reproduced, ticks, seals, graphs, difference, stopped, wallSeconds, peakMB}' \
+            "$RUNNER_TEMP/verdict.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$REQUIRED" = true ] && exit "$status"
+          exit 0

@@ -15,6 +15,7 @@
     "benchmark:jev:precision": "node tools/jev-benchmark.mjs --brain jev --control precision",
     "benchmark:random": "node tools/jev-benchmark.mjs --brain random --control direct",
     "benchmark:random:precision": "node tools/jev-benchmark.mjs --brain random --control precision",
+    "bethesda:life:replay": "node scripts/run-ts.mjs scripts/bethesda-life-replay.ts",
     "bethesda:life:smoke": "node scripts/run-ts.mjs scripts/bethesda-life-headless.ts --ticks 100",
     "echo:immortal:test": "vitest run src/bethesda/life/immortal --maxWorkers=1",
     "echo:immortal:evaluate": "node scripts/run-ts.mjs scripts/echo-immortal-evaluate.ts",

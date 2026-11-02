@@ -6,6 +6,7 @@ import {
   rmSync,
   symlinkSync,
   writeFileSync,
+  existsSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -656,6 +657,90 @@ describe("the runner with an organism", () => {
     expect(first.data.stoppedUtc).toBe(organism.events[0]!.data.pausedFromUtc);
     expect(readFileSync(join(dir, "individual.json"), "utf8")).toBe(identity);
   }, 300_000);
+
+  it("is reproduced seal for seal by a replay, gaps and what it recorded about itself included", () => {
+    // The deployed kind, from the deployed history, through the two real programs in separate processes.
+    const dir = scratch("organism-replay");
+    historyStore(dir);
+    const organism = continued(dir);
+    // Watched, as the VM's service is: its observer writes a file about every 10 ticks. Without
+    // the observer leaving no trace, this fails at the first checkpoint's graph digest.
+    const watching = join(scratch("organism-replay-observed"), "observation.json");
+    const live = (ticks: number, times: number) => {
+      for (let i = 0; i < times; i++) {
+        const run = spawnSync(
+          process.execPath,
+          [
+            "scripts/run-ts.mjs",
+            "scripts/bethesda-life-headless.ts",
+            "--store",
+            dir,
+            "--ticks",
+            String(ticks),
+          ],
+          {
+            cwd: repo,
+            encoding: "utf8",
+            timeout: 240_000,
+            env: { ...process.env, BETHESDA_LIFE_OBSERVE: watching },
+          },
+        );
+        expect(run.status, run.stderr).toBe(0);
+      }
+      // It removes the file as it stops: a stale one must not outlive the life.
+      expect(existsSync(watching)).toBe(false);
+    };
+    const replay = () => {
+      const run = runTs("scripts/bethesda-life-replay.ts", ["--store", dir]);
+      expect(run.status, run.stderr + run.stdout).toBe(0);
+      return lastJson(run.stdout);
+    };
+
+    // Right after a continuation: it starts there, not from the older engine's checkpoint beside it.
+    live(300, 2);
+    expect(replay()).toMatchObject({
+      passed: true,
+      individual: born.individual,
+      from: { sequence: organism.sequence, digest: organism.digest },
+      reproduced: 2,
+      ticks: 600,
+      seals: { required: true, reproduced: 2 },
+      graphs: 1,
+      difference: null,
+      stopped: null,
+    });
+
+    // A test intervention, sealed as its own checkpoint: the reserve nearly empty, so
+    // the fly soon records a recovery, and the seals depend on what it recorded.
+    const store = LifeStore.open(dir, ORGANISM_LIFE);
+    const head = store.head();
+    const life = restoreLife(ORGANISM_LIFE, head);
+    const fly = life.cityFly.fly;
+    fly.state.reserve = 0.02 * fly.params.reserveJ;
+    const depleted = checkpointLife(ORGANISM_LIFE, life, {
+      genesis: head.genesis,
+      birth: head.birth,
+      previous: head,
+    });
+    store.acquire();
+    store.commit(depleted);
+    store.release();
+    live(1000, 3);
+    const after = LifeStore.open(dir, ORGANISM_LIFE)
+      .events()
+      .filter((e) => e.tick > depleted.tick);
+    expect(after.map((e) => e.kind)).toContain("recovery-enter");
+    expect(replay()).toMatchObject({
+      passed: true,
+      from: { sequence: depleted.sequence, digest: depleted.digest },
+      reproduced: 3,
+      ticks: 3000,
+      seals: { required: true, reproduced: 3 },
+      graphs: 1,
+      difference: null,
+      stopped: null,
+    });
+  }, 400_000);
 
   it("after a hard kill: refuses a second writer, resumes only what was committed, and starts no one new", async () => {
     const dir = scratch("organism-kill");
