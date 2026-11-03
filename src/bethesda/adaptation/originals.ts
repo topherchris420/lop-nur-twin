@@ -11,11 +11,11 @@
 import {
   parseObservation as parseGarden,
   type Observation,
-} from "../../../garden/core/observation.js";
-import { parseReplay } from "../../live/publicRecord.js";
-import { checkGardenClock, checkLifeClock } from "../../firstContact/clock.js";
-import { parseLedger } from "../ledger.js";
-import { parseWitness, type LifeObservation } from "../observation.js";
+} from "../../garden/core/observation.js";
+import { parseReplay } from "../live/publicRecord.js";
+import { checkGardenClock, checkLifeClock } from "../firstContact/clock.js";
+import { parseLedger } from "../life/ledger.js";
+import { parseWitness, type LifeObservation } from "../life/observation.js";
 import type { Verdict } from "./benchmarks.js";
 
 /** One recorded response, as the first-contact recorder writes it. */

@@ -30,7 +30,7 @@
  * Functional words only: a fly that remembers where it fed and acts on it is
  * not evidence of a self, of awareness or of consciousness.
  */
-import { seedDomain } from "../individualityReport.js";
+import { seedDomain } from "../life/individualityReport.js";
 
 export const ADAPTATION_SUITE = "echo-adaptation-continuity/v1" as const;
 

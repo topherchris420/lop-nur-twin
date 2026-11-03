@@ -28,9 +28,9 @@ can be read, and where that cannot decide a benchmark the verdict is
 
 ## The benchmarks
 
-Fixed in [`src/bethesda/life/adaptation/benchmarks.ts`](../src/bethesda/life/adaptation/benchmarks.ts),
+Fixed in [`src/bethesda/adaptation/benchmarks.ts`](../src/bethesda/adaptation/benchmarks.ts),
 with the code that judges them (`judgeResearch`, and `judgeOriginals` in
-[`originals.ts`](../src/bethesda/life/adaptation/originals.ts)). The generated
+[`originals.ts`](../src/bethesda/adaptation/originals.ts)). The generated
 report prints every one in full.
 
 | Id  | Family     | Subject             | Question                                                        | Passes if                                                          |
@@ -75,3 +75,29 @@ reported for both releases, whichever way it goes.
 - One timing run of a research organism fly in Study B's yard, on a draw outside
   both splits (12345): 10 s of computing for 99 simulated minutes; 13 meals, 2
   places remembered at the end. No fly from either split had been run.
+
+## What is left out, and why
+
+Nothing was deleted. Everything below still exists, is still tested and still
+ships where it shipped before. It is outside what these benchmarks measure, so
+the suite does not touch it, and two tests make sure it stays that way:
+
+- `src/bethesda/adaptation/scope.test.ts` lists what the suite may import (the
+  yard, the organism, continuity and snapshots, the two witnesses' parsers) and
+  fails on anything else, naming each deferred feature and why.
+- `src/bethesda/firstContact/isolation.test.ts` now also fails if anything that
+  runs, serves or deploys either original imports the suite. The suite moved out
+  of `src/bethesda/life/` into `src/bethesda/adaptation/` for that reason: it is
+  research beside production, like the first-contact and augmentation code.
+
+| Deferred                                                          | Why it is not part of these benchmarks                                                                  |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Acquired search (`life/acquired/`)                                | Not deployed; it has its own sealed held-out study                                                      |
+| The foraging and immortal studies (`life/foraging/`, `immortal/`) | The organism's parts are reached through `organism.ts` only, as deployed, never through those studies   |
+| The city (`life/headless.ts`, `city`)                             | The yard asks the same questions at a fraction of the cost: 99 simulated minutes take 10 s, not minutes |
+| Connectome, augmentation, first-contact bridge                    | Not in ECHO's deployed configuration                                                                    |
+| The R.A.I.N. lab, the game, Noeterra, the twin                    | Other products in the same repository                                                                   |
+
+The research flies run the deployed configuration whole: nothing in the organism
+is switched off to make a benchmark easier, because then it would measure a fly
+that does not exist.
