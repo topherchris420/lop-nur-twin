@@ -1,0 +1,431 @@
+{
+  "note": "Development runs only, with uncommitted code laid over the base commit from a checksummed bundle. No sealed test has been run.",
+  "baseCommit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+  "resultsDataset": "ciaochris/echo-adaptive-runs (private)",
+  "runs": {
+    "ranging-dev2": [
+      {
+        "part": "city-learner-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:39Z",
+        "finishedUtc": "2026-11-03T03:36:31Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-learner-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:38Z",
+        "finishedUtc": "2026-11-03T03:55:50Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-learner-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:39Z",
+        "finishedUtc": "2026-11-03T03:56:16Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-organism-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:34Z",
+        "finishedUtc": "2026-11-03T03:33:25Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-organism-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:34Z",
+        "finishedUtc": "2026-11-03T03:37:26Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-organism-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:34Z",
+        "finishedUtc": "2026-11-03T03:34:19Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-roam-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:42Z",
+        "finishedUtc": "2026-11-03T03:55:06Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-roam-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:44Z",
+        "finishedUtc": "2026-11-03T03:59:26Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "city-roam-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:51Z",
+        "finishedUtc": "2026-11-03T03:59:48Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "yard1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:32Z",
+        "finishedUtc": "2026-11-03T03:19:28Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "yard2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "60e43014232216aa62ed8db9d0c9a33b0461275cd7d9cf57d90f998e6cbd05bd",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T02:58:32Z",
+        "finishedUtc": "2026-11-03T03:56:40Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "foodless-probe2": [
+      {
+        "part": "organism-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "a87afc58d713399c057df914740544c00c389bacdb51b0055145f55a25d17a9e",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T04:37:03Z",
+        "finishedUtc": "2026-11-03T05:28:59Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "organism-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "a87afc58d713399c057df914740544c00c389bacdb51b0055145f55a25d17a9e",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T04:37:03Z",
+        "finishedUtc": "2026-11-03T05:36:47Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "organism-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "a87afc58d713399c057df914740544c00c389bacdb51b0055145f55a25d17a9e",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T04:37:03Z",
+        "finishedUtc": "2026-11-03T05:30:29Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "guarded-city1": [
+      {
+        "part": "fresh-learner-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:24Z",
+        "finishedUtc": "2026-11-03T13:16:49Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-learner-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:28Z",
+        "finishedUtc": "2026-11-03T13:12:56Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-learner-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:24Z",
+        "finishedUtc": "2026-11-03T12:47:39Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-organism-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:15Z",
+        "finishedUtc": "2026-11-03T13:16:23Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-organism-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:20Z",
+        "finishedUtc": "2026-11-03T13:12:03Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-organism-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:22Z",
+        "finishedUtc": "2026-11-03T13:11:58Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-roam-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:32Z",
+        "finishedUtc": "2026-11-03T13:17:06Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-roam-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:26Z",
+        "finishedUtc": "2026-11-03T12:49:12Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "fresh-roam-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:29Z",
+        "finishedUtc": "2026-11-03T12:49:08Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "replay-organism-0",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:08Z",
+        "finishedUtc": "2026-11-03T13:12:09Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "replay-organism-1",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:10Z",
+        "finishedUtc": "2026-11-03T13:18:34Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "part": "replay-organism-2",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "2a0fd6616e4243dfba088a404e24556ab01e3dbba00f62ab6cc359f4074ff131",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T12:12:14Z",
+        "finishedUtc": "2026-11-03T13:16:03Z",
+        "exitCodes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "guard-leak1": [
+      {
+        "part": "leak",
+        "commit": "67b28187b7c5bcfbad9b77334d8dc2692285c26a",
+        "bundleSha256": "332fcb065daddc88d475e45fd5647bd2cf5768eb4c1bfe884039eb70579cb2ed",
+        "node": "v24.22.1",
+        "machine": "x86_64",
+        "startedUtc": "2026-11-03T16:33:49Z",
+        "finishedUtc": "2026-11-03T16:38:45Z",
+        "exitCodes": [
+          0
+        ]
+      }
+    ]
+  },
+  "sha256": {
+    "dev-v2-yards.jsonl": "5aa8346497524a67639ece9b6204474f43d9f6a0f4ffe176f037815dd5d0f352",
+    "entries-plain.jsonl": "cc45fa9643ac3336d8f7bbdf50866ebde3a99c7284bd90270d0dd8a1a858f3a6",
+    "guarded-fresh.jsonl": "0e63870793d17e2d3086f12588ffd283ebc7735e038724b4084acc8ce1031c78",
+    "guarded-replay.jsonl": "db8279e093131d104d14faedc376500b29a52c7781e892713abe86ec881b250f",
+    "leak-seed-205.jsonl": "48f22d14c6b79fc748ec42ec9ff1879220d72882c1ec2222b2361921f8a01352",
+    "plain-replay-other-arms.jsonl": "587a994cab22a4e43835adf723083dcf81266635a1adac254bc92cccdfe8fb94",
+    "plain-replay.jsonl": "bf3bc017eba5758f01482b11d762aa36ed1f56cf1c10c64a1f1e424b5da0d422",
+    "report-ceiling-city.json": "8850e73be2a78d2fa982270f5943ca8cd0c4bcc65fd3165022ef505a5ad2b147",
+    "report-ceiling-yard.json": "2711fa2beba833bd443b5441c55579967fb173871f51fc39567b835eec3b6336",
+    "report-dev-v2-city-plain.json": "091bdfac1527e4aff6654f0fe8f48cc6290a1b3774470b46c2d9da89df139ed6",
+    "report-dev-v2-yards.json": "9cb4a7af3e107eda575461a1d1bba5f60bfb5366c1d841b6fad9eb5101fbe248",
+    "report-guarded-fresh.json": "61c32bf3b99015ec3110a525ec7dcdfc6823a425d9501a66ffec49560269e91a"
+  }
+}

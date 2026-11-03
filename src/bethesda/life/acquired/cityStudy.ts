@@ -47,15 +47,13 @@ export const CITY_CONFIG = {
   statisticalPopulation: 900,
 } as const;
 
-export function runCity(
-  seed: number,
-  arm: CityArm,
+/** Live a research life for `hours`, with one row per `everyH`. */
+export function livePeriods(
+  life: OrganismLife,
   hours: number,
   everyH = 3,
-): CityResult {
-  const started = Date.now();
-  const config = { seed, ...CITY_CONFIG };
-  const life = arm === "layer" ? new AcquiredLife(config) : new OrganismLife(config);
+  onPeriod?: (h: number) => void,
+): CityPeriod[] {
   const fly = life.cityFly.fly;
   const periods: CityPeriod[] = [];
   const stepTicks = 600;
@@ -80,6 +78,7 @@ export function runCity(
       reserve: fly.state.reserve / fly.params.reserveJ,
       meanReserve: sum / steps,
     });
+    onPeriod?.(h);
     last.meals = c.meals;
     last.fedJ = c.fedJ;
     last.spentJ = c.spentJ;
@@ -87,6 +86,19 @@ export function runCity(
     last.bouts = p.recoveryBouts;
     last.flownM = c.flownM;
   }
+  return periods;
+}
+
+export function runCity(
+  seed: number,
+  arm: CityArm,
+  hours: number,
+  everyH = 3,
+): CityResult {
+  const started = Date.now();
+  const config = { seed, ...CITY_CONFIG };
+  const life = arm === "layer" ? new AcquiredLife(config) : new OrganismLife(config);
+  const periods = livePeriods(life, hours, everyH);
   const out: CityResult = {
     seed,
     arm,

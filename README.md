@@ -397,6 +397,10 @@ What the recorded experiments establish:
   and carry that to unseen yards, on a sealed test. It did not help them find food
   sooner or pay for itself there, and in the real city it brought no detectable
   benefit. Nothing is deployed. [Study and results](docs/ECHO_ACQUIRED_BEHAVIOR.md).
+- **Ranging:** in development runs, research flies on the real map were getting trapped
+  inside solid buildings, and a guard for research flies stops it. With that gone, a
+  fixed wider search beats learning when to search widely. No sealed test has been run,
+  and the deployed fly is unchanged. [Study and results](docs/ECHO_RANGING.md).
 
 The model simplifies chemical signaling to signed synaptic effects and omits
 gap junctions, morphology, and neuromodulation. BANC adds the cord's chemical
