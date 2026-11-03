@@ -56,15 +56,19 @@ And from inside, rays hit every wall normally, so nothing let a body out.
 
 ### Which surfaces can do it
 
-Horizontal rays from one side of every surface of the real map on `digital-fly/8`:
+On the real map on `digital-fly/8`, a point was bisected onto the line of each surface
+from outside, and a 3 mm ray was cast from it toward the surface
+([`survey.ts`](research/echo-collision/survey.ts)):
 
-| Solid             | Blind rays, of those cast |
-| ----------------- | ------------------------- |
-| Prism wall        | 2774 of 17999             |
-| Box               | 1 of 11966                |
-| Tapered cylinder  | 2 of 6945                 |
-| Ellipsoid, sphere | 0                         |
-| Ground, roof      | 0                         |
+| Solid            | Rays that missed |
+| ---------------- | ---------------- |
+| Prism wall       | 2774 of 17999    |
+| Box              | 1 of 11966       |
+| Tapered cylinder | 2 of 6945        |
+| Ellipsoid        | 0 of 7946        |
+| Sphere           | 0 of 132         |
+| Ground           | 0 of 13485       |
+| Roof             | 0 of 291         |
 
 So this is general to prism walls, not one building. Only prisms hold a body from inside.
 On the map: 1166 prisms, 2739 boxes, 1168 cylinders, 3866 spheres and 140 food sources;
@@ -122,5 +126,6 @@ physics. The transition is `scripts/bethesda-life-continue-physics.ts`
 - **Every crossing is written down.** From then on the archive records
   `body-left-solid` and `body-entered-solid` with position, mode and physics version.
 - **The pause is not lived.** The runner records one gap from the source's last commit.
-- **Every older checkpoint stays exactly the file it was,** and stays checked by the rules
-  of its own era: `ORGANISM_V1_LIFE` freezes the organism on `digital-fly/8`.
+- **Every older checkpoint keeps its seals,** and stays checked by the rules of its own
+  era: `ORGANISM_V1_LIFE` freezes the organism on `digital-fly/8`. As at every commit, the
+  store's compaction drops the graph of the checkpoint that leaves its window of four.

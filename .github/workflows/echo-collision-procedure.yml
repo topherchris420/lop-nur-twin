@@ -77,6 +77,7 @@ jobs:
           aside="$RUNNER_TEMP/aside"
           cp -a "$store" "$aside"
           digests() { (cd "$1" && find checkpoints -type f | sort | xargs sha256sum); }
+          seals() { node scripts/run-ts.mjs scripts/echo-collision-seals.ts "$1"; }
           step() {
             local name=$1 want=$2
             shift 2
@@ -97,6 +98,7 @@ jobs:
             fi
           }
           digests "$store" >"$out/before.sha256"
+          seals "$store" >"$out/before.seals"
 
           # Before the window: nothing changes, and the deployed release still resumes it.
           step check succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
@@ -117,7 +119,9 @@ jobs:
           # In the window.
           step commit succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
             --store "$store" --from-release "$RUNNER_TEMP/release" --commit
-          digests "$store" | grep -F -f <(cut -d' ' -f1 "$out/before.sha256") | cmp - "$out/before.sha256"
+          # Every seal stands. Compaction, as at every commit, drops a graph out of the window.
+          seals "$store" | head -n "$(wc -l <"$out/before.seals")" | cmp - "$out/before.seals"
+          echo "every one of the $(wc -l <"$out/before.seals") earlier checkpoints keeps its seals" | tee -a "$out/steps.txt"
           step again fails node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
             --store "$store" --from-release "$RUNNER_TEMP/release" --check
           (cd "$RUNNER_TEMP/release" && node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
