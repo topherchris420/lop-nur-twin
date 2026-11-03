@@ -94,7 +94,7 @@ const isMachine = (v: unknown) => {
 };
 
 /** A line of `replays.jsonl` for this individual, or null if it is anything else. */
-function parseReplay(line: string, individual: string): ReplayLine | null {
+export function parseReplay(line: string, individual: string): ReplayLine | null {
   let v: Partial<ReplayLine> & { individual?: unknown };
   try {
     v = JSON.parse(line) as typeof v;
