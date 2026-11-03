@@ -57,7 +57,10 @@ const root = process.cwd();
 const DIR = join(root, "docs/benchmarks/echo-adaptation");
 const RECORDS = join(DIR, "records");
 const ORIGINALS = join(DIR, "originals");
-const args = process.argv.slice(2);
+// After this script's own path: `node scripts/run-ts.mjs <this> …` and `bun <this> …` alike.
+const args = process.argv.slice(
+  process.argv.findIndex((a) => a.endsWith("echo-adaptation-evaluate.ts")) + 1,
+);
 const command = args[0];
 const flag = (name: string) => args.includes(name);
 const value = (name: string): string | undefined => {
