@@ -81,6 +81,11 @@ While testing the learner, some flies stopped eating for good. They were inside
 buildings. `DigitalFly` refuses to _start_ inside a solid, so this state was never
 meant to exist.
 
+**Since this was written, `digital-fly/9` has fixed this in the fly's physics
+([`ECHO_COLLISION.md`](ECHO_COLLISION.md)).** What follows is as it was measured on
+`digital-fly/8`, and the code it describes has changed. The deployed fly's place and
+history are in that report too.
+
 ### How a fly gets in
 
 Measured on research flies (`src/bethesda/fly/fly.ts`, `src/bethesda/fly/world.ts`,

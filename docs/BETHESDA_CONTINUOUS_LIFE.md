@@ -402,6 +402,23 @@ engines, and the v3 release can no longer resume it. The deployed individual
 was continued this way on October 28, 2026
 ([as it ran](ECHO_ORGANISM_CONTINUATION.md#the-cutover-as-it-ran)).
 
+### Continue the organism onto the repaired physics
+
+`scripts/bethesda-life-continue-physics.ts` supports the fourth explicit
+transition: the organism on release
+`bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1` (`digital-fly/8`) to `digital-fly/9`,
+in which a moving body cannot enter a solid
+([the report](ECHO_COLLISION.md)). The same individual keeps its whole graph. One
+leaf changes, the self-model's note of its fly version, and putting it back must
+reproduce the source graph's SHA-256, or nothing is committed. The body is not
+moved. The `physics-repair` event records the source release, the exact parent,
+the old state and graph hashes, the preserved-graph digest, the two versions,
+where the body was, what was kept and the pause, and says this was an environmental
+repair and nothing the fly did. **This has not been applied to the deployed
+individual,** and doing so needs the owner's approval, step by step
+([the cutover plan](ECHO_COLLISION.md#cutover-plan)). Afterwards the release before
+it can no longer resume the store, and the store's history holds five engines.
+
 ### Backup
 
 ```sh

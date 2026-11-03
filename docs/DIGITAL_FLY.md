@@ -15,7 +15,7 @@ a reference layer: where, in a real fly, the functions the controller imitates
 are known to be processed. Everything the simulator reports describes the
 simulator, not a fly, and nothing in it is evidence of experience or awareness.
 
-Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/8`). Importers:
+Code: `src/bethesda/fly/` (`FLY_VERSION` is `digital-fly/9`). Importers:
 `scripts/import-flybody.ts` (with `scripts/mjcf.ts` and `scripts/decimate.ts`)
 and `scripts/import-vfb-reference.ts`. Experiments:
 `src/rain/scientific/fly.ts` and `scripts/rain-fly.ts`.
@@ -181,6 +181,14 @@ The body moves by ray casts against the static world, stopping its thorax its
 standing height short of any surface on its path. Moving things are not in
 those casts (see [Senses and the world](#senses-and-the-world)).
 
+- **No way in.** Since `digital-fly/9` a move asks `sweep` (`world.ts`), which
+  checks the ray against `solid` a millionth of a metre along the step, because a
+  point on a wall's line can miss that wall. A step or a slide that would still
+  end inside a solid does not happen, and a stand whose point is solid is refused.
+  A surface stops a body going in, never one coming out, so a restored body that
+  is inside can leave. No controller decides any of this. Before it, 9 of 12
+  research flies got trapped in 96 simulated hours
+  ([the report](ECHO_COLLISION.md)).
 - **Standing height.** The thorax stands 1.06 mm above the surface: 0.8
   (`standingCrouch`) of the 1.32 mm from the thorax down to the lowest claw
   tip in FlyBody's zero pose. That pose (every joint at 0, the MJCF's

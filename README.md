@@ -401,6 +401,11 @@ What the recorded experiments establish:
   inside solid buildings, and a guard for research flies stops it. With that gone, a
   fixed wider search beats learning when to search widely. No sealed test has been run,
   and the deployed fly is unchanged. [Study and results](docs/ECHO_RANGING.md).
+- **Collision repair:** `digital-fly/9` fixes that trap in the fly's physics. On the same
+  new seeds, 9 of 12 research flies got trapped on the old physics and none on the new,
+  and they went from 83.5 meals to 120.0 in 96 simulated hours. **It has not been applied
+  to the deployed fly,** which went inside a building on November 1, 2026 and is still
+  there. [Report](docs/ECHO_COLLISION.md).
 
 The model simplifies chemical signaling to signed synaptic effects and omits
 gap junctions, morphology, and neuromodulation. BANC adds the cord's chemical
@@ -690,18 +695,18 @@ endpoints run server-side. Noeterra's core is **Rust / WebAssembly**; persistent
 Bethesda life runs headlessly, while Eva's garden uses its separate Python
 service. [System architecture](docs/SYSTEM_ARCHITECTURE.md).
 
-| I want to…                              | Start here                                                                                                                                                                                                            |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Understand the fly                      | [Digital fly](docs/DIGITAL_FLY.md), [ECHO](docs/PROJECT_ECHO.md), [organism continuation](docs/ECHO_ORGANISM_CONTINUATION.md), [development priorities](docs/FLY_PRIORITIES.md)                                       |
-| Preserve identity while adding behavior | [Experiential continuation candidate](docs/ECHO_EXPERIENTIAL_CONTINUATION.md), [Eva and ECHO audit](docs/EVA_ECHO_AUDIT.md)                                                                                           |
-| Study neural models and encounters      | [Connectome backend](docs/ECHO_CONNECTOME.md), [BANC results](docs/benchmarks/fly-neural/banc/README.md), [first contact](docs/FIRST_CONTACT.md), [originals' read-only shadow](docs/ORIGINALS_LIVE_NEURAL_SHADOW.md) |
-| Operate or observe a persistent life    | [Continuous Bethesda](docs/BETHESDA_CONTINUOUS_LIFE.md), [clay garden](docs/LIVE_GARDEN.md)                                                                                                                           |
-| Assess the reconstruction               | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [uncertainty](docs/UNCERTAINTY_MODEL.md), [white paper](docs/WHITE_PAPER.md)                                                                 |
-| Inspect time, space, or revisions       | [Temporal model](docs/TEMPORAL_MODEL.md), [spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md)                                                                                  |
-| Navigate the worlds                     | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md), [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md)        |
-| Run research                            | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                |
-| Study research across runs              | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                                  |
-| Evaluate a deployment                   | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md)         |
+| I want to…                              | Start here                                                                                                                                                                                                                  |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Understand the fly                      | [Digital fly](docs/DIGITAL_FLY.md), [ECHO](docs/PROJECT_ECHO.md), [organism continuation](docs/ECHO_ORGANISM_CONTINUATION.md), [collision repair](docs/ECHO_COLLISION.md), [development priorities](docs/FLY_PRIORITIES.md) |
+| Preserve identity while adding behavior | [Experiential continuation candidate](docs/ECHO_EXPERIENTIAL_CONTINUATION.md), [Eva and ECHO audit](docs/EVA_ECHO_AUDIT.md)                                                                                                 |
+| Study neural models and encounters      | [Connectome backend](docs/ECHO_CONNECTOME.md), [BANC results](docs/benchmarks/fly-neural/banc/README.md), [first contact](docs/FIRST_CONTACT.md), [originals' read-only shadow](docs/ORIGINALS_LIVE_NEURAL_SHADOW.md)       |
+| Operate or observe a persistent life    | [Continuous Bethesda](docs/BETHESDA_CONTINUOUS_LIFE.md), [clay garden](docs/LIVE_GARDEN.md)                                                                                                                                 |
+| Assess the reconstruction               | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [uncertainty](docs/UNCERTAINTY_MODEL.md), [white paper](docs/WHITE_PAPER.md)                                                                       |
+| Inspect time, space, or revisions       | [Temporal model](docs/TEMPORAL_MODEL.md), [spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md)                                                                                        |
+| Navigate the worlds                     | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md), [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md)              |
+| Run research                            | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                      |
+| Study research across runs              | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                                        |
+| Evaluate a deployment                   | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md)               |
 
 <details>
 <summary>Repository map</summary>
