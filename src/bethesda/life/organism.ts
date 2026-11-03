@@ -32,6 +32,7 @@
 import { sha256, sha256Json } from "../../rain/sha256.js";
 import { DT, type Config } from "../simulation.js";
 import { ReducedOrderController, REDUCED_ORDER_DESCRIPTOR } from "../fly/controller.js";
+import { FLY_VERSION } from "../fly/fly.js";
 import { EchoAdapter, echoDescriptor, type EchoDecision } from "../fly/echo/adapter.js";
 import type { Episode } from "../fly/echo/memory.js";
 import { selfModelView } from "../fly/echo/view.js";
@@ -72,6 +73,18 @@ export const ORGANISM_VERSION = "bethesda-echo-organism/v1";
 export const ORGANISM_CONTINUATION = "bethesda-organism-continuation/v1";
 export const ORGANISM_CONTINUATION_SOURCE = "d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592";
 export const ORGANISM_EVENT = "organism-continuation";
+/**
+ * The recorded continuation onto the repaired physics (physicsRepair.ts), and the
+ * deployed release whose engine wrote its source.
+ */
+export const PHYSICS_REPAIR = "bethesda-physics-repair/v1";
+export const PHYSICS_REPAIR_SOURCE = "bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1";
+export const PHYSICS_REPAIR_EVENT = "physics-repair";
+/** The one leaf of the graph the repair changes: what the self-model says it runs on. */
+export const PHYSICS_REPAIR_LEAF = ["cityFly", "fly", "adapter", "model", "state", "fly"];
+/** What the fly's body did about a solid, recorded when it happens. */
+export const BODY_ENTERED_SOLID = "body-entered-solid";
+export const BODY_LEFT_SOLID = "body-left-solid";
 /** The engine the deployed individual ran on before this continuation. */
 export const ECHO_V3_VERSIONS = ECHO_UPGRADED_LIFE.versions;
 /** Records held for the archive at most. The runner checkpoints long before; past it the clock stops. */
@@ -118,6 +131,23 @@ export function organismProjection(
   for (const key of ORGANISM_ADDITIONS.adapter) projection.remove([...A, key]);
   const d = new Graph(descriptor);
   projection.set([...A, "descriptor"], projection.import(d, d.snapshot.root));
+  return sha256(JSON.stringify(projection.canonical()));
+}
+
+/**
+ * The digest of the organism graph on digital-fly/8 that a repaired graph holds:
+ * the self-model's label of the fly it runs on, put back. It equals the source's
+ * graph digest exactly when nothing else in the graph changed. Pure, like
+ * `organismProjection`, so anyone holding the checkpoint can check it again.
+ */
+export function physicsRepairProjection(graph: GraphSnapshot): string {
+  const projection = new Graph(graph);
+  if (
+    projection.object([]).c !== "OrganismLife" ||
+    projection.get(PHYSICS_REPAIR_LEAF) !== FLY_VERSION
+  )
+    throw new Error("not a repaired organism graph");
+  projection.set(PHYSICS_REPAIR_LEAF, ECHO_V2_VERSIONS.fly);
   return sha256(JSON.stringify(projection.canonical()));
 }
 
@@ -281,6 +311,8 @@ interface Watched {
   protective: boolean;
   sleeping: boolean;
   trials: number;
+  /** Whether the body was inside a solid: never, from digital-fly/9, unless it started there. */
+  inside: boolean;
   /** The self-model's episodes before the tick, by id. */
   episodes: Map<number, Episode>;
 }
@@ -344,6 +376,7 @@ export class OrganismLife extends HeadlessBethesdaLife {
         protective: p.protective,
         sleeping: p.sleeping,
         trials: a.circuit.state.trials,
+        inside: this.cityFly.world.solid(fly.state.p),
         episodes: new Map(a.model!.state.episodes.map((e) => [e.id, e])),
       };
       // The body's own ledger is untouched unless maintenance actually supplies energy.
@@ -381,6 +414,14 @@ export class OrganismLife extends HeadlessBethesdaLife {
         updates: S.trials - before.trials,
         trials: S.trials,
         latestTrial: structuredClone(S.last),
+      });
+    const fly = this.cityFly.fly.state;
+    const inside = this.cityFly.world.solid(fly.p);
+    if (inside !== before.inside)
+      add(inside ? BODY_ENTERED_SOLID : BODY_LEFT_SOLID, {
+        p: [...fly.p],
+        mode: fly.mode,
+        physics: FLY_VERSION,
       });
     const kept = new Set(a.model!.state.episodes.map((e) => e.id));
     for (const [id, episode] of before.episodes)
@@ -441,11 +482,13 @@ const MARKS = ["engine-upgrade", "self-model-upgrade", ORGANISM_EVENT];
 const isOrganism = (c: Checkpoint) => "organism" in c.versions;
 
 /**
- * The same kind and immutable birth as every earlier engine of this
- * individual. Its history is all of theirs: the legacy reduced-order fly,
- * ECHO v2, ECHO v3, then this.
+ * The organism's era on digital-fly/8, frozen: from the organism continuation to
+ * the physics repair. Its checkpoints are history, checked by the same rules they
+ * were written under. This release cannot continue a real one: its state hash names
+ * the fly that wrote it, so only that fly's own release restores it (`continueAsOrganism`
+ * and the tests build fixtures from this kind, on whatever fly this release has).
  */
-export const ORGANISM_LIFE: LifeKind<HeadlessGenesis, OrganismLife> = {
+export const ORGANISM_V1_LIFE: LifeKind<HeadlessGenesis, OrganismLife> = {
   id: BETHESDA_LIFE.id,
   versions: {
     ...ECHO_V3_VERSIONS,
@@ -536,6 +579,85 @@ export const ORGANISM_LIFE: LifeKind<HeadlessGenesis, OrganismLife> = {
         Date.parse(d.pausedFromUtc) > Date.parse(d.upgradedUtc)
       )
         errors.push("the continuation has no valid pause interval");
+      return errors;
+    },
+  },
+};
+
+/** The engine the deployed individual ran on before the physics repair. */
+export const ORGANISM_V1_VERSIONS = ORGANISM_V1_LIFE.versions;
+const V1 = { ...ORGANISM_V1_VERSIONS, graph: GRAPH_SCHEMA };
+const isRepaired = (c: Checkpoint) => "physicsRepair" in c.versions;
+
+/**
+ * The same kind and immutable birth as every earlier engine of this individual,
+ * on this release's fly. Its history is all of theirs: the legacy reduced-order
+ * fly, ECHO v2, ECHO v3, the organism on digital-fly/8, then this.
+ */
+export const ORGANISM_LIFE: LifeKind<HeadlessGenesis, OrganismLife> = {
+  ...ORGANISM_V1_LIFE,
+  versions: { ...ORGANISM_V1_VERSIONS, fly: FLY_VERSION, physicsRepair: PHYSICS_REPAIR },
+  history: {
+    versions: [LEGACY_VERSIONS, ECHO_V2_VERSIONS, ECHO_V3_VERSIONS, ORGANISM_V1_VERSIONS],
+    transition: (previous, next) => {
+      const repairs = next.events.filter((e) => e.kind === PHYSICS_REPAIR_EVENT);
+      if (!isRepaired(next)) {
+        if (previous && isRepaired(previous))
+          return ["a life cannot revert its physics repair"];
+        if (repairs.length)
+          return ["only a repaired checkpoint records the physics repair"];
+        return ORGANISM_V1_LIFE.history!.transition(previous, next);
+      }
+      if (next.genesis.flyController !== "reduced-order")
+        return [
+          "this continuation requires the deployed individual's reduced-order birth",
+        ];
+      if (!previous) return ["the physics repair is a continuation, never a birth"];
+      if (isRepaired(previous))
+        return repairs.length ? ["a physics repair cannot be repeated or changed"] : [];
+      if (!sameVersions(previous.versions, V1))
+        return ["only an organism checkpoint on digital-fly/8 takes the physics repair"];
+      const e = repairs[0];
+      if (
+        repairs.length !== 1 ||
+        next.events.length !== 1 ||
+        !e ||
+        e.tick !== previous.tick ||
+        next.tick !== previous.tick
+      )
+        return [
+          "the repair needs exactly one event, and no other, at the unchanged tick",
+        ];
+      const errors: string[] = [];
+      const d = e.data;
+      if (
+        d.migration !== PHYSICS_REPAIR ||
+        d.sourceRelease !== PHYSICS_REPAIR_SOURCE ||
+        d.parent !== previous.digest ||
+        d.sourceStateHash !== previous.stateHash ||
+        d.sourceGraphDigest !== previous.graphDigest ||
+        d.preservedGraphDigest !== previous.graphDigest
+      )
+        errors.push("the repair does not attest preservation of its exact parent");
+      // While its graph is held, the claim is not trusted: the parent's must come back out of it.
+      else if (next.graph) {
+        let held: string | null = null;
+        try {
+          held = physicsRepairProjection(next.graph);
+        } catch {
+          held = null;
+        }
+        if (held !== previous.graphDigest)
+          errors.push("the repair's graph does not hold its parent's, byte for byte");
+      }
+      if (
+        typeof d.pausedFromUtc !== "string" ||
+        typeof d.upgradedUtc !== "string" ||
+        !Number.isFinite(Date.parse(d.pausedFromUtc)) ||
+        !Number.isFinite(Date.parse(d.upgradedUtc)) ||
+        Date.parse(d.pausedFromUtc) > Date.parse(d.upgradedUtc)
+      )
+        errors.push("the repair has no valid pause interval");
       return errors;
     },
   },

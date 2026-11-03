@@ -70,7 +70,12 @@ type Checkpoint = LifeCheckpoint<HeadlessGenesis>;
 /** Same kind and immutable birth; its genesis still says which controller it was born with. */
 export const ECHO_UPGRADED_LIFE: LifeKind<HeadlessGenesis, HeadlessBethesdaLife> = {
   ...BETHESDA_LIFE,
-  versions: { ...BETHESDA_LIFE.versions, upgrade: ECHO_UPGRADE },
+  // Frozen: this era ran on digital-fly/8 whatever this release's fly is.
+  versions: {
+    ...BETHESDA_LIFE.versions,
+    fly: ECHO_V2_VERSIONS.fly,
+    upgrade: ECHO_UPGRADE,
+  },
   build: (g) => BETHESDA_LIFE.build({ ...g, flyController: "echo" }),
   history: {
     versions: [LEGACY_VERSIONS, ECHO_V2_VERSIONS],
@@ -276,13 +281,15 @@ export function upgradeToEcho(
     throw new Error("upgrade needs the complete graph of a reduced-order individual");
   pauseCheck(upgradedUtc, stoppedUtc);
   // Guard this specific migration against future simulator changes. ECHO
-  // starts innate here, so it starts as the current self-model.
+  // starts innate here, so it starts as the current self-model. The fly is not
+  // in this guard since digital-fly/9: a real source's state hash names the fly
+  // that wrote it, so its own script refuses it on any later fly, and what is
+  // left here is the fixture the later continuations are tested from.
   if (
-    BETHESDA_LIFE.versions.fly !== "digital-fly/8" ||
     BETHESDA_LIFE.versions.echo !== "echo-self-model/v3" ||
     BETHESDA_LIFE.versions.city !== LEGACY_VERSIONS.city
   )
-    throw new Error("this migration supports digital-fly/8 and ECHO v3 only");
+    throw new Error("this migration supports ECHO v3 only");
   const old = new Graph(source.graph, false);
   if (
     old.get(["cityFly", "controller"]) !== "reduced-order" ||
@@ -307,6 +314,8 @@ export function upgradeToEcho(
   const t = graph.get([...ROOT, "state", "t"]);
   graph.set([...ADAPTER, "now"], t);
   graph.set([...ADAPTER, "model", "state", "t"], t);
+  // The fly this self-model was born on, whatever the template's is now.
+  graph.set([...ADAPTER, "model", "state", "fly"], ECHO_V2_VERSIONS.fly);
   for (const name of ["params", "adapterParams"]) {
     const path = [...ROOT, name];
     const before = graph.object(path),
@@ -432,11 +441,10 @@ export function continueEchoSelfModel(
   pauseCheck(upgradedUtc, stoppedUtc);
   if (
     BETHESDA_LIFE.versions.echo !== "echo-self-model/v3" ||
-    BETHESDA_LIFE.versions.fly !== ECHO_V2_VERSIONS.fly ||
     BETHESDA_LIFE.versions.city !== ECHO_V2_VERSIONS.city ||
     BETHESDA_LIFE.versions.headless !== ECHO_V2_VERSIONS.headless
   )
-    throw new Error("this continuation supports ECHO v2 to v3 on digital-fly/8 only");
+    throw new Error("this continuation supports ECHO v2 to v3 only");
   const old = new Graph(source.graph, false);
   if (
     old.get(["cityFly", "controller"]) !== "echo" ||

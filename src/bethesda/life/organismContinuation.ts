@@ -31,7 +31,7 @@ import {
   ORGANISM_CONTINUATION,
   ORGANISM_CONTINUATION_SOURCE,
   ORGANISM_EVENT,
-  ORGANISM_LIFE,
+  ORGANISM_V1_LIFE,
   organismProjection,
   type OrganismLife,
   subgraph,
@@ -78,14 +78,15 @@ export function continueAsOrganism(
     Date.parse(stoppedUtc) > Date.parse(upgradedUtc)
   )
     throw new Error("continuation needs its real UTC time, after the source's");
-  // Guard this specific continuation against later simulator changes.
+  // Guard this specific continuation against later simulator changes. The fly
+  // is not in this guard since digital-fly/9: a real source's state hash names
+  // the fly that wrote it, so its own script refuses it on any later fly.
   if (
-    BETHESDA_LIFE.versions.fly !== "digital-fly/8" ||
     BETHESDA_LIFE.versions.echo !== "echo-self-model/v3" ||
     BETHESDA_LIFE.versions.city !== "bethesda-city/4" ||
     BETHESDA_LIFE.versions.headless !== "bethesda-headless-life/v2"
   )
-    throw new Error("this continuation supports ECHO v3 on digital-fly/8 only");
+    throw new Error("this continuation supports ECHO v3 only");
   const old = new Graph(source.graph, false);
   const root = old.object([]);
   const adapter = old.object(ADAPTER);
@@ -102,7 +103,7 @@ export function continueAsOrganism(
     old.get([...STATE, "variant"]) !== "full"
   )
     throw new Error("continuation refused: the source is not a healthy ECHO v3 fly");
-  const fresh = () => ORGANISM_LIFE.build(structuredClone(source.genesis));
+  const fresh = () => ORGANISM_V1_LIFE.build(structuredClone(source.genesis));
   const template = new Graph(snapshotGraph(fresh(), indexGraph(fresh())), false);
   const graph = new Graph(source.graph);
   graph.object([]).c = "OrganismLife";
@@ -144,7 +145,7 @@ export function continueAsOrganism(
   if (preservedGraphDigest !== source.graphDigest)
     throw new Error("continuation refused: the old state did not survive byte for byte");
   const S = a.model!.state;
-  const checkpoint = checkpointLife(ORGANISM_LIFE, life, {
+  const checkpoint = checkpointLife(ORGANISM_V1_LIFE, life, {
     genesis: source.genesis,
     birth: source.birth,
     previous: source,
@@ -183,8 +184,8 @@ export function continueAsOrganism(
       },
     ],
   });
-  const transition = ORGANISM_LIFE.history!.transition(source, checkpoint);
+  const transition = ORGANISM_V1_LIFE.history!.transition(source, checkpoint);
   if (transition.length) throw new Error(transition.join("; "));
-  restoreLife(ORGANISM_LIFE, checkpoint);
+  restoreLife(ORGANISM_V1_LIFE, checkpoint);
   return { life, checkpoint, preservedGraphDigest };
 }

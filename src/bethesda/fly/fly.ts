@@ -59,14 +59,26 @@ import { inVisualField, Senses, type SenseFrame } from "./senses.js";
 import { FOOT_RADIUS_CM, SKELETON } from "./skeleton.js";
 import { degToRad, forward, left, radToDeg, type V3, wrapAngle } from "./units.js";
 import {
+  sweep,
+  SWEEP_SKIN_M,
   WALKABLE_NORMAL_Y,
   type FlyWorld,
+  type Hit,
   type LandingSite,
   type Perch,
   type SurfaceKind,
 } from "./world.js";
 
-export const FLY_VERSION = "digital-fly/8";
+export const FLY_VERSION = "digital-fly/9";
+/** Square across, to find the wall a step ended just inside. Horizontal first: tops do not do this. */
+const SIDE_DIRECTIONS: readonly V3[] = [
+  ...Array.from({ length: 16 }, (_, k): V3 => {
+    const a = (k * Math.PI) / 8;
+    return [Math.cos(a), 0, Math.sin(a)];
+  }),
+  [0, 1, 0],
+  [0, -1, 0],
+];
 const G = 9.81;
 /** Drag per unit mass used only to tilt the drawn body in forward flight (1/s). Not fitted. */
 const DRAW_DRAG = 3;
@@ -1294,6 +1306,11 @@ export class DigitalFly {
     const s = this.state;
     const c = s.contact;
     if (!c) return;
+    // Inside a solid only the ground holds a body (`sweep`), so nothing else is touched.
+    if (c.id !== "ground" && this.world.solid(s.p)) {
+      s.contact = null;
+      return;
+    }
     const back = this.world.raycast(
       s.p,
       [-c.normal[0], -c.normal[1], -c.normal[2]],
@@ -1321,7 +1338,9 @@ export class DigitalFly {
 
   /**
    * Move by the ground velocity `g` for one step, with contacts, sliding and
-   * touchdowns; `wind` is the part of it the air carries the fly, if any.
+   * touchdowns; `wind` is the part of it the air carries the fly, if any. A step
+   * goes as `sweep` says, and whatever it ends in, it never ends inside a solid
+   * it did not start in.
    */
   private move(h: number, g: V3, wind: V3 | null = null): void {
     const s = this.state;
@@ -1331,12 +1350,17 @@ export class DigitalFly {
     const margin = this.standingHeight;
     const dir: V3 =
       dist > 0 ? [step[0] / dist, step[1] / dist, step[2] / dist] : [0, 0, 0];
-    const hit = dist > 0 ? this.world.raycast(s.p, dir, dist + margin, false) : null;
+    let hit = dist > 0 ? sweep(this.world, s.p, dir, dist + margin) : null;
     if (!hit) {
-      s.p = [s.p[0] + step[0], s.p[1] + step[1], s.p[2] + step[2]];
-      s.counts.flownM += dist;
-      this.reachTarget(g);
-      return;
+      const end: V3 = [s.p[0] + step[0], s.p[1] + step[1], s.p[2] + step[2]];
+      if (!this.world.solid(end) || this.world.solid(s.p)) {
+        s.p = end;
+        s.counts.flownM += dist;
+        this.reachTarget(g);
+        return;
+      }
+      // Nearly along a wall, no ray meets it, and rounding still carries the step in.
+      hit = { ...sideOn(this.world, s.p, dir, end), fromLine: true };
     }
     // How fast the fly meets the surface: over the ground, in wind.
     const speed = this.world.wind ? Math.hypot(...g) : Math.hypot(...s.v);
@@ -1353,13 +1377,12 @@ export class DigitalFly {
         : Infinity;
     const onset =
       (!s.contact || s.contact.id !== hit.id) && reach > margin + CONTACT_SLOP_M;
-    // The thorax stops the standing height short of the surface along its path.
+    // The thorax stops the standing height short of the surface along its path. A
+    // fly that walked up to the surface is on it already, and takes that much off it.
     const stop = Math.max(0, hit.t - margin);
-    const at: V3 = [
-      s.p[0] + dir[0] * stop,
-      s.p[1] + dir[1] * stop,
-      s.p[2] + dir[2] * stop,
-    ];
+    const at: V3 = hit.fromLine
+      ? this.offSurface(hit.normal)
+      : [s.p[0] + dir[0] * stop, s.p[1] + dir[1] * stop, s.p[2] + dir[2] * stop];
     // A slow touch on a top the fly can stand on: a touchdown if the feet are on it there.
     const gentle = hit.normal[1] > WALKABLE_NORMAL_Y && speed <= P.touchdownSpeedMS;
     let failed: string | null = null;
@@ -1390,10 +1413,14 @@ export class DigitalFly {
         along[2] / alongLength,
       ];
       const reach = rest * alongLength;
-      const block = this.world.raycast(p, sd, reach + margin, false);
+      const block = sweep(this.world, p, sd, reach + margin);
       const go = block ? Math.max(0, Math.min(reach, block.t - margin)) : reach;
-      p = [p[0] + sd[0] * go, p[1] + sd[1] * go, p[2] + sd[2] * go];
-      moved += go;
+      const slid: V3 = [p[0] + sd[0] * go, p[1] + sd[1] * go, p[2] + sd[2] * go];
+      // The slide runs along a surface, and rounding can put its end just inside.
+      if (!this.world.solid(slid) || this.world.solid(s.p)) {
+        p = slid;
+        moved += go;
+      }
     }
     s.p = p;
     s.counts.flownM += moved;
@@ -1413,6 +1440,14 @@ export class DigitalFly {
           ? `landing aborted after contact with ${hit.kind}: ${failed}`
           : `landing aborted after contact with ${hit.kind}`,
       );
+  }
+
+  /** Where a fly on a surface goes to be a standing height off it: here, if that is no clearer. */
+  private offSurface(n: V3): V3 {
+    const s = this.state;
+    const h = this.standingHeight;
+    const off: V3 = [s.p[0] + n[0] * h, s.p[1] + n[1] * h, s.p[2] + n[2] * h];
+    return this.world.solid(off) ? s.p : off;
   }
 
   /** Count and log the start of a contact. */
@@ -1447,7 +1482,8 @@ export class DigitalFly {
    * Stand the fly with its thorax at `p`'s x and z if its feet are on a
    * walkable top there, within `TOUCHDOWN_GAP_M` of it. Returns null on
    * touchdown, or why not: the fly is never moved more than that gap to meet
-   * a surface.
+   * a surface, and never stands where its body would be inside a solid: in a gap
+   * under a floor lower than it stands, or inside anything at all.
    */
   private settle(p: V3, reason: string): string | null {
     const s = this.state;
@@ -1457,7 +1493,9 @@ export class DigitalFly {
     const gap = feetY - perch.y;
     if (gap > TOUCHDOWN_GAP_M)
       return `the feet are ${(gap * 1000).toFixed(1)} mm above the ${perch.kind}`;
-    s.p = [p[0], perch.y + this.standingHeight, p[2]];
+    const stand: V3 = [p[0], perch.y + this.standingHeight, p[2]];
+    if (this.world.solid(stand)) return `no room to stand on the ${perch.kind} here`;
+    s.p = stand;
     s.v = [0, 0, 0];
     s.perch = perch;
     s.target = null;
@@ -1508,6 +1546,35 @@ export class DigitalFly {
         : {}),
     });
   }
+}
+
+/**
+ * The surface a step from `p` to `end` crossed unseen, running nearly along it,
+ * as a surface it starts on: `sweep` in the direction that goes in. It is looked
+ * for square-on from the end, which is just inside, since along the step there is
+ * no ray to meet it.
+ */
+function sideOn(world: FlyWorld, p: V3, dir: V3, end: V3): Hit {
+  const back = 2 * SWEEP_SKIN_M;
+  for (const k of SIDE_DIRECTIONS) {
+    const out = world.raycast(end, k, back, false);
+    if (out)
+      return {
+        t: 0,
+        point: [p[0], p[1], p[2]],
+        // A ray's normal faces it, so seen from inside, the open side is behind that.
+        normal: [-out.normal[0], -out.normal[1], -out.normal[2]],
+        kind: out.kind,
+        id: out.id,
+      };
+  }
+  return {
+    t: 0,
+    point: [p[0], p[1], p[2]],
+    normal: [-dir[0], -dir[1], -dir[2]],
+    kind: "obstacle",
+    id: "unnamed surface",
+  };
 }
 
 /** `v` without its component into a surface with outward normal `n`. */

@@ -26,7 +26,7 @@ import type {
 import {
   ORGANISM_CONTINUATION_SOURCE,
   ORGANISM_EVENT,
-  ORGANISM_LIFE,
+  ORGANISM_V1_LIFE as ORGANISM_LIFE,
   type OrganismLife,
 } from "../src/bethesda/life/organism.js";
 import { continueAsOrganism } from "../src/bethesda/life/organismContinuation.js";

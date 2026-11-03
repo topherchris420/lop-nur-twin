@@ -217,6 +217,96 @@ export interface FlyWorld {
   landmarks(near: V3, radius: number, out: Landmark[]): void;
 }
 
+// --- A moving body ---------------------------------------------------------
+
+/**
+ * How near (m) a moving body's start must lie to a surface for a ray to be no
+ * authority on it. Far above the rounding of a position in a city (about 1e-13 m)
+ * and far below anything a body does in a step.
+ */
+export const SWEEP_SKIN_M = 1e-6;
+/** How many surfaces one sweep may pass on its way out of a solid. */
+const SWEEP_MAX_PASSED = 16;
+
+/** What a moving body meets. */
+export interface SweptHit extends Hit {
+  /**
+   * The body started on this surface, to within rounding, and is going into it,
+   * so a ray could not be relied on to see it. It has been named for the body.
+   */
+  fromLine?: true;
+}
+
+/** Whether what `hit` names holds a body in, wherever it is: the ground and a world's ceiling. */
+const holdsEverywhere = (hit: Hit) => hit.id === "ground" || hit.id === "ceiling";
+
+/**
+ * The first surface a body at `o` meets going along unit `d` within `reach`, as a
+ * movement rather than a line of sight. `raycast` answers for an eye: a surface
+ * its origin lies on, to within rounding, may or may not be there. A body cannot
+ * have that, since a point can be outside a wall by the test `solid` makes and yet
+ * lie on the far side of the ray's arithmetic. A body on a wall's line going in
+ * would pass through, and one going out would be stopped by the wall behind it.
+ *
+ * - **Everywhere else** this is exactly `raycast`, and it adds only reads.
+ * - **On a surface, going in:** it meets that surface where it stands (`fromLine`).
+ * - **On a surface, going out:** the surface is behind it, and does not hold it.
+ * - **Inside a solid** (which no movement leads to, but which a fly restored from
+ *   an earlier release can be in): surfaces stop a body going in, never one coming
+ *   out, so only the ground, a world's ceiling and whatever it meets once it is
+ *   out hold it, and it can leave.
+ */
+export function sweep(world: FlyWorld, o: V3, d: V3, reach: number): SweptHit | null {
+  const along = (t: number): V3 => [o[0] + d[0] * t, o[1] + d[1] * t, o[2] + d[2] * t];
+  if (!world.solid(along(SWEEP_SKIN_M))) {
+    const hit = world.raycast(o, d, reach, false);
+    if (!hit || hit.t > SWEEP_SKIN_M || !world.solid(along(-SWEEP_SKIN_M))) return hit;
+    // Going out: look again from just past the surface it is leaving.
+    const past = world.raycast(along(SWEEP_SKIN_M), d, reach - SWEEP_SKIN_M, false);
+    return past ? { ...past, t: past.t + SWEEP_SKIN_M } : null;
+  }
+  if (world.solid(o)) {
+    let passed = 0;
+    for (let k = 0; k < SWEEP_MAX_PASSED && passed < reach; k++) {
+      const hit = world.raycast(along(passed), d, reach - passed, false);
+      if (!hit) return null;
+      const t = passed + hit.t;
+      // Out already, and this one is ahead of it: it holds like any other.
+      if (holdsEverywhere(hit) || !world.solid(along(t - SWEEP_SKIN_M)))
+        return { ...hit, t };
+      passed = t + SWEEP_SKIN_M;
+    }
+    return null;
+  }
+  const hit = world.raycast(o, d, reach, false);
+  if (hit && hit.t <= SWEEP_SKIN_M) return hit;
+  return { ...named(world, o, d), fromLine: true };
+}
+
+/**
+ * The surface a body at `o` is going into along `d`, seen from just behind it. If
+ * no ray names it (a corner, to within rounding), whatever it is stops the body
+ * head on.
+ */
+function named(world: FlyWorld, o: V3, d: V3): Hit {
+  const back = 2 * SWEEP_SKIN_M;
+  const hit = world.raycast(
+    [o[0] - d[0] * back, o[1] - d[1] * back, o[2] - d[2] * back],
+    d,
+    2 * back,
+    false,
+  );
+  return hit
+    ? { ...hit, t: 0, point: [o[0], o[1], o[2]] }
+    : {
+        t: 0,
+        point: [o[0], o[1], o[2]],
+        normal: [-d[0], -d[1], -d[2]],
+        kind: "obstacle",
+        id: "unnamed surface",
+      };
+}
+
 // --- Primitives ------------------------------------------------------------
 
 export interface Box {

@@ -56,6 +56,17 @@ paths = [
   '''(^|/)docs/research/echo-organism-continuation/rehearse\.ts$''',
 ]
 
+# The physics repair pins the public bdb7c02 commit as its only source release.
+[[rules.allowlists]]
+description = "Public bdb7c02 engine commit required as the physics repair's source release, not a credential."
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1$''']
+paths = [
+  '''(^|/)src/bethesda/life/organism\.ts$''',
+  '''(^|/)docs/ECHO_COLLISION\.md$''',
+]
+
 [[rules.allowlists]]
 description = "Public 3db627b engine commit whose release the organism rehearsal rebuilt, not a credential."
 condition = "AND"
