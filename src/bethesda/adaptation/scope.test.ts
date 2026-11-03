@@ -51,12 +51,10 @@ const DEFERRED: readonly { pattern: RegExp; why: string }[] = [
   },
 ];
 
-function specifiers(path: string): string[] {
-  const text = readFileSync(path, "utf8");
-  const out: string[] = [];
-  for (const m of text.matchAll(/(?:from|import)\s*\(?\s*"([^"]+)"/g)) out.push(m[1]!);
-  return out;
-}
+/** Every module specifier a source imports: `from "x"`, `import "x"` and `import("x")`. */
+const IMPORT = /(?:\bfrom\s+|^\s*import\s+|\bimport\s*\(\s*)"([^"]+)"/gm;
+const specifiersOf = (text: string) => [...text.matchAll(IMPORT)].map((m) => m[1]!);
+const specifiers = (path: string) => specifiersOf(readFileSync(path, "utf8"));
 
 const modules = readdirSync(SUITE)
   .filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"))
@@ -93,9 +91,9 @@ describe("the adaptation suite's scope", () => {
     } catch {
       return; // the script does not exist yet
     }
-    const outside = [...text.matchAll(/(?:from|import)\s*\(?\s*"([^"]+)"/g)]
-      .map((m) => m[1]!)
-      .filter((s) => !/^(node:|prettier$|\.\.\/src\/bethesda\/adaptation\/)/.test(s));
+    const outside = specifiersOf(text).filter(
+      (s) => !/^(node:|prettier$|\.\.\/src\/bethesda\/adaptation\/)/.test(s),
+    );
     expect(outside).toEqual([]);
   });
 });
