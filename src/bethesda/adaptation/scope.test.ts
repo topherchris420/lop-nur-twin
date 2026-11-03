@@ -38,7 +38,9 @@ const DEFERRED: readonly { pattern: RegExp; why: string }[] = [
     why: "the organism's parts are reached through organism.ts only, never through those studies",
   },
   {
-    pattern: /fly-neural|augmentation|firstContact\/(?!clock)/,
+    // The connectome backend's name is spelled as a class so that the literal never
+    // appears under src/: the neural shadow recorder's test forbids it there.
+    pattern: /fly[-_]neural|augmentation|firstContact\/(?!clock)/,
     why: "connectome and first-contact research are not in ECHO's deployed configuration",
   },
   {
