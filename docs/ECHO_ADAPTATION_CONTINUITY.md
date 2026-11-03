@@ -144,3 +144,56 @@ event ([issue 162](https://github.com/topherchris420/lop-nur-twin/issues/162)).
 So its behaviour re-derives; the sealed bytes that should prove it do not, and the
 cause is not known. Finding it needs the archives, which are not readable from
 here.
+
+## One improvement, and the held-out plan frozen before it runs
+
+**Diagnosis, development individuals only** (`src/bethesda/adaptation/diagnose.ts`,
+each of the 24 baseline lives lived again with one part of navigation memory
+erased every tick):
+
+| Erased every tick           | Meals per life, less the baseline's | Return flights (aimed where food had left) |
+| --------------------------- | ----------------------------------- | ------------------------------------------ |
+| nothing (the baseline)      | 11.79                               | 4.54 (3.71)                                |
+| remembered places           | +0.04 [−0.88, +0.88]                | 0                                          |
+| visited cells               | +0.08 [−1.08, +1.21]                | 4.62 (3.88)                                |
+| failed sites, blocked heads | 0, identical lives                  | 4.54 (3.71)                                |
+| local search                | 0, identical lives                  | 4.54 (3.71)                                |
+
+Food odour was detectable in 99.2% of every life's ticks. The controller counts a
+return as fruitless only with "neither food in view nor its odour", so back at a
+place the food has left, the fly smells the food elsewhere and counts nothing: no
+miss is ever registered, and the place keeps drawing it. Memory in this yard is
+neither a cost nor a help, because odour already says that food is near, and the
+memory adds nothing it uses to say where.
+
+**The improvement** (`evidence.ts`, release `evidence`, `echo-place-evidence/v1`):
+judge a remembered place by what is at it, not by what is in the air. A hungry
+visit within the controller's own 3 m of a remembered food place, with no food in
+view, is a miss, whatever is smelled, once per visit, and goes to the place's
+valuation exactly as the navigator sends its own: the mushroom body learns the
+omission, and a place under the bookkeeping's rule is forgotten after two. Food
+never returns to the site it has just left, so devaluing that site should send
+return flights to older remembered sites, one of which may hold it. It is added
+beside the deployed adapter; the controller and the fly's digest are untouched.
+`update.ts` moves a baseline individual onto it as a recorded continuation that
+keeps every byte of what it was.
+
+On the 24 development individuals, memory arm only: **+0.67 meals per life
+[−0.04, +1.42]** against the baseline (more in 10, fewer in 6), and stale places
+remembered unchanged, 1.48 against 1.45.
+
+**Frozen at this commit, before any held-out fly runs:**
+
+- Releases `baseline` and `evidence` as committed at `2231abe`, each run once on
+  the held-out split fixed at `b1e1844` (24 individuals, a genesis no study has
+  used), from a clean commit, with no change in between.
+- Judged by `COMPARISON`: meals per life with memory, `evidence` less `baseline`,
+  paired; shown only if the 95% lower bound is above 0 **and** B1, C1, C2 and C4
+  pass on `evidence`. Every benchmark is reported for both releases.
+- Predictions, on record so they can be wrong: **M1 fails** on both releases (the
+  mushroom body devalues a place and never forgets it, and M1 counts what is
+  remembered, not what still draws the fly); the primary comparison is uncertain
+  (the development lower bound is −0.04); B2 is uncertain on both; C1, C2 and C4
+  pass.
+- Whatever comes out is reported. The held-out split is then spent, and any later
+  change needs new seeds and says so.
