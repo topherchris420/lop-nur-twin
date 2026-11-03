@@ -986,7 +986,10 @@ verified to be; a copy is always someone else.**
 - **Watching leaves no trace.** A checkpoint seals the whole graph, lookup caches
   included, and a replay can only reproduce a seal if nothing unrecorded moved them.
   Anything that reads the world for an observer goes through `untraced` in `headless.ts`.
-  `replay.test.ts` seals a watched life beside an unwatched one, and they must match.
+  `replay.test.ts` seals a watched life beside an unwatched one, and they must match,
+  also watched while it flies in wind: a read that only runs in flight (the velocity
+  over the ground adds the wind) once escaped `untraced` and left the deployed fly's
+  seals irreproducible (issue 162).
 - **A replay never touches the fly.** `replay.ts` restores a checkpoint in
   memory, with no lease and no writes, on a machine that is not the VM, so it
   cannot fork the individual. Only `LIVE_FLY_BACKUP_READ_URL` lets the workflow

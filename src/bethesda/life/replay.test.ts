@@ -334,6 +334,44 @@ describe("replaying a stored life", { timeout: 120_000 }, () => {
     }
   });
 
+  it("seals the same when it was watched flying in wind", () => {
+    // A flying fly's velocity over the ground adds the wind, whose query moves the
+    // world's lookup caches. Watched only while perched, that path never runs: the
+    // test above passed while the deployed fly's seals could not be reproduced
+    // (issue 162, state hash and events equal, graph digest not).
+    for (const kind of [BETHESDA_LIFE, ORGANISM_LIFE]) {
+      const watched = kind.build(structuredClone(genesis));
+      const alone = kind.build(structuredClone(genesis));
+      let inWind = 0;
+      for (let i = 0; i < 4000 && inWind < 5; i++) {
+        kind.step(watched, 10);
+        kind.step(alone, 10);
+        const s = watched.cityFly.fly.state;
+        if (
+          (s.mode === "flight" || s.mode === "land") &&
+          watched.cityFly.world.windNow(s.t).speedMS > 0
+        ) {
+          watched.observation({
+            individual: born.individual,
+            epoch: 1,
+            checkpoint: {
+              sequence: 0,
+              tick: 0,
+              committedUtc: "2026-11-02T00:00:00.000Z",
+            },
+            checkpointing: false,
+            observedUtc: "2026-11-02T00:00:00.000Z",
+          });
+          inWind++;
+        }
+      }
+      expect(inWind).toBe(5);
+      const seal = (life: typeof watched) =>
+        checkpointLife(kind, life, { genesis, birth: born, previous: null });
+      expect(seal(watched).digest).toBe(seal(alone).digest);
+    }
+  }, 120_000);
+
   it("does not disturb the record it reads", () => {
     const before = JSON.stringify(stored);
     replayChain(BETHESDA_LIFE, from!, later);
