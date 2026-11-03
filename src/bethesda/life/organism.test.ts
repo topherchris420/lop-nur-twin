@@ -983,7 +983,15 @@ describe("the runner with an organism", () => {
       readdirSync(join(dir, "checkpoints")).map((f) =>
         sha256(readFileSync(join(dir, "checkpoints", f), "utf8")),
       );
+    const seals = () =>
+      readdirSync(join(dir, "checkpoints")).map((f) => {
+        const { checkpoint } = JSON.parse(
+          readFileSync(join(dir, "checkpoints", f), "utf8"),
+        ) as { checkpoint: Checkpoint };
+        return [checkpoint.digest, checkpoint.stateHash, checkpoint.graphDigest];
+      });
     const before = files();
+    const sealed = seals();
     const check = runTs(script, ["--store", dir, "--from-release", release, "--check"]);
     expect(check.status, check.stderr).toBe(0);
     expect(lastJson(check.stdout)).toMatchObject({
@@ -1016,8 +1024,8 @@ describe("the runner with an organism", () => {
     const again = runTs(script, ["--store", dir, "--from-release", release, "--check"]);
     expect(again.status).toBe(1);
     expect(again.stderr).toMatch(/already on the repaired physics/);
-    // Every checkpoint before it is the file it was.
-    expect(files().slice(0, before.length)).toEqual(before);
+    // Every checkpoint before it keeps its seals; compaction drops a graph, as at any commit.
+    expect(seals().slice(0, sealed.length)).toEqual(sealed);
     const run = runner(["--store", dir, "--ticks", "100"]);
     expect(run.status, run.stderr).toBe(0);
     const s = LifeStore.open(dir, REPAIRED_LIFE);
