@@ -1,0 +1,249 @@
+{
+  "seeds": [
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    192
+  ],
+  "fromH": 0,
+  "learnerVsOrganism": {
+    "seeds": 12,
+    "meals": {
+      "arm": 108.33333333333333,
+      "against": 78,
+      "gain": {
+        "mean": 30.333333333333332,
+        "low": -3.0833333333333335,
+        "high": 63.166666666666664,
+        "n": 12
+      }
+    },
+    "netJ": {
+      "arm": -12.16399090109511,
+      "against": -14.674589349697785,
+      "gain": {
+        "mean": 2.5105984486026736,
+        "low": -2.699451064340384,
+        "high": 7.993977864232636,
+        "n": 12
+      }
+    },
+    "recoveryBouts": {
+      "arm": 30.166666666666668,
+      "against": 36.75,
+      "gain": {
+        "mean": -6.583333333333333,
+        "low": -20,
+        "high": 6.5,
+        "n": 12
+      }
+    },
+    "flownM": {
+      "arm": 45729.388034464464,
+      "against": 40559.57322010875,
+      "gain": {
+        "mean": 5169.81481435572,
+        "low": 853.2839539073551,
+        "high": 9436.284068207611,
+        "n": 12
+      }
+    }
+  },
+  "roamVsOrganism": {
+    "seeds": 12,
+    "meals": {
+      "arm": 122.33333333333333,
+      "against": 78,
+      "gain": {
+        "mean": 44.333333333333336,
+        "low": 11.333333333333334,
+        "high": 81.75,
+        "n": 12
+      }
+    },
+    "netJ": {
+      "arm": -15.225130058959886,
+      "against": -14.674589349697785,
+      "gain": {
+        "mean": -0.5505407092621036,
+        "low": -9.284268877118457,
+        "high": 6.616716777098227,
+        "n": 12
+      }
+    },
+    "recoveryBouts": {
+      "arm": 32.083333333333336,
+      "against": 36.75,
+      "gain": {
+        "mean": -4.666666666666667,
+        "low": -18.25,
+        "high": 9.416666666666666,
+        "n": 12
+      }
+    },
+    "flownM": {
+      "arm": 65196.87358408825,
+      "against": 40559.57322010875,
+      "gain": {
+        "mean": 24637.300363979495,
+        "low": 19827.80004261254,
+        "high": 30255.184118132416,
+        "n": 12
+      }
+    }
+  },
+  "learnerVsRoam": {
+    "seeds": 12,
+    "meals": {
+      "arm": 108.33333333333333,
+      "against": 122.33333333333333,
+      "gain": {
+        "mean": -14,
+        "low": -56.5,
+        "high": 30.833333333333332,
+        "n": 12
+      }
+    },
+    "netJ": {
+      "arm": -12.16399090109511,
+      "against": -15.225130058959886,
+      "gain": {
+        "mean": 3.0611391578647775,
+        "low": -4.285571297884972,
+        "high": 12.460150097688855,
+        "n": 12
+      }
+    },
+    "recoveryBouts": {
+      "arm": 30.166666666666668,
+      "against": 32.083333333333336,
+      "gain": {
+        "mean": -1.9166666666666667,
+        "low": -17.916666666666668,
+        "high": 12.416666666666666,
+        "n": 12
+      }
+    },
+    "flownM": {
+      "arm": 45729.388034464464,
+      "against": 65196.87358408825,
+      "gain": {
+        "mean": -19467.48554962378,
+        "low": -25427.796875677555,
+        "high": -14872.775779696016,
+        "n": 12
+      }
+    }
+  },
+  "starved": {
+    "organism": {
+      "flies": 12,
+      "underFiveMeals": 0
+    },
+    "learner": {
+      "flies": 12,
+      "underFiveMeals": 0
+    },
+    "roam": {
+      "flies": 12,
+      "underFiveMeals": 0
+    }
+  },
+  "settledWide": 4,
+  "wideShare": 0.27543859649122804,
+  "clearance": 0.6984742337673236,
+  "perSeedMeals": [
+    {
+      "seed": 181,
+      "organism": 18,
+      "learner": 120,
+      "roam": 12,
+      "settledOn": 1
+    },
+    {
+      "seed": 182,
+      "organism": 28,
+      "learner": 151,
+      "roam": 206,
+      "settledOn": 1
+    },
+    {
+      "seed": 183,
+      "organism": 68,
+      "learner": 151,
+      "roam": 170,
+      "settledOn": 1
+    },
+    {
+      "seed": 184,
+      "organism": 99,
+      "learner": 180,
+      "roam": 84,
+      "settledOn": 1
+    },
+    {
+      "seed": 185,
+      "organism": 39,
+      "learner": 42,
+      "roam": 140,
+      "settledOn": 0
+    },
+    {
+      "seed": 186,
+      "organism": 93,
+      "learner": 103,
+      "roam": 154,
+      "settledOn": 0
+    },
+    {
+      "seed": 187,
+      "organism": 128,
+      "learner": 78,
+      "roam": 117,
+      "settledOn": 0
+    },
+    {
+      "seed": 188,
+      "organism": 99,
+      "learner": 157,
+      "roam": 141,
+      "settledOn": 0
+    },
+    {
+      "seed": 189,
+      "organism": 37,
+      "learner": 31,
+      "roam": 32,
+      "settledOn": 0
+    },
+    {
+      "seed": 190,
+      "organism": 74,
+      "learner": 25,
+      "roam": 177,
+      "settledOn": 0
+    },
+    {
+      "seed": 191,
+      "organism": 138,
+      "learner": 88,
+      "roam": 157,
+      "settledOn": 0
+    },
+    {
+      "seed": 192,
+      "organism": 115,
+      "learner": 174,
+      "roam": 78,
+      "settledOn": 0
+    }
+  ]
+}
