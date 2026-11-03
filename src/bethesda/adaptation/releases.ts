@@ -4,6 +4,7 @@
  * baseline individual is moved onto it.
  */
 import type { LifeKind } from "../life/continuity.js";
+import { EVIDENCE_RELEASE } from "./evidence.js";
 import type { Continue } from "./study.js";
 import {
   BASELINE,
@@ -22,4 +23,5 @@ export interface RegisteredRelease {
 
 export const RELEASES: Readonly<Record<string, RegisteredRelease>> = {
   baseline: { release: BASELINE, kind: BASELINE_KIND },
+  evidence: EVIDENCE_RELEASE,
 };

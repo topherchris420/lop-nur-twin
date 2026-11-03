@@ -37,9 +37,11 @@ import {
   type RecordedResponse,
 } from "./originals.js";
 import { buildReport, publishedCommit, RESULTS_DIR } from "./publish.js";
+import { EVIDENCE, type EvidenceAdapter } from "./evidence.js";
 import { RELEASES } from "./releases.js";
 import { renderReadme } from "./report.js";
 import { genesisOf, liveEpochs } from "./study.js";
+import { continueOnto, projection } from "./update.js";
 
 const est = (low: number, mean = low + 1) => ({
   n: 24,
@@ -265,6 +267,80 @@ describe.each(Object.keys(RELEASES))("a research life on %s", (name) => {
         previous: cp,
       }),
     ).toThrow(/its own individual/);
+  }, 120_000);
+});
+
+// ----------------------------------------------------------------- update
+
+describe("an update onto the evidence release", () => {
+  const base = RELEASES.baseline!.kind;
+  const { kind } = RELEASES.evidence!;
+  const g = genesisOf(DEV);
+  const b0 = birth(base.id, g, DEV.nonces[1]!);
+
+  function atBreak() {
+    const { epochs, journal } = shortLife();
+    const life = base.build(structuredClone(g));
+    const born = checkpointLife(base, life, { genesis: g, birth: b0, previous: null });
+    liveEpochs(life, epochs.slice(0, 1), journal, 0);
+    const cp = checkpointLife(base, life, {
+      genesis: g,
+      birth: b0,
+      previous: born,
+      events: journal.filter((e) => e.tick < life.tick),
+    });
+    return { life, cp, epochs, journal };
+  }
+
+  it("keeps the individual and every byte of what it was", () => {
+    const { cp } = atBreak();
+    const { life, checkpoint } = continueOnto(EVIDENCE, kind, cp);
+    expect(checkpoint.birth).toEqual(cp.birth);
+    expect(checkpoint.genesis).toEqual(cp.genesis);
+    expect(checkpoint.tick).toBe(cp.tick);
+    expect(checkpoint.parent).toBe(cp.digest);
+    expect(projection(EVIDENCE, checkpoint.graph)).toBe(cp.graphDigest);
+    expect(life.nav.places).toEqual(restoreLife(base, cp).nav.places);
+    expect((life.organism as EvidenceAdapter).evidence.misses).toBe(0);
+  }, 120_000);
+
+  it("refuses going back, a repeat and a forged parent", () => {
+    const { cp } = atBreak();
+    const { life, checkpoint } = continueOnto(EVIDENCE, kind, cp);
+    const later = checkpointLife(kind, life, {
+      genesis: g,
+      birth: b0,
+      previous: checkpoint,
+      events: checkpoint.events,
+    });
+    expect(kind.history!.transition(checkpoint, later)).toEqual([
+      "a continuation cannot be repeated",
+    ]);
+    const back = checkpointLife(base, restoreLife(base, cp), {
+      genesis: g,
+      birth: b0,
+      previous: checkpoint,
+    });
+    expect(kind.history!.transition(checkpoint, back)[0]).toMatch(/cannot be taken back/);
+    const forged = structuredClone(checkpoint);
+    forged.events[0]!.data.parent = "f".repeat(64);
+    expect(kind.history!.transition(cp, forged)[0]).toMatch(/does not attest/);
+    expect(() => continueOnto(EVIDENCE, kind, { ...cp, digest: "0".repeat(64) })).toThrow(
+      /refused/,
+    );
+  }, 120_000);
+
+  it("changes nothing until it judges a visit", () => {
+    const { cp } = atBreak();
+    const kept = restoreLife(base, cp);
+    const { life } = continueOnto(EVIDENCE, kind, cp);
+    const ev = (life.organism as EvidenceAdapter).evidence;
+    // Step both one decision at a time while the layer has judged nothing.
+    for (let t = 0; t < 600 && ev.judged === null; t++) {
+      kept.step(1);
+      life.step(1);
+      if (ev.judged === null) expect(life.fly.state).toEqual(kept.fly.state);
+    }
   }, 120_000);
 });
 
