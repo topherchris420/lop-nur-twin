@@ -77,6 +77,9 @@ function forged(c: Checkpoint, edit: (g: Graph) => void): Checkpoint {
   return reseal(copy);
 }
 
+// Each test builds a whole city and fly and restores it at least once.
+vi.setConfig({ testTimeout: 300_000 });
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -93,7 +96,9 @@ describe("the repaired organism's versions", () => {
 
   it("keeps the old checkpoint from being run under the new physics", () => {
     const { checkpoint } = source();
-    expect(() => restoreLife(ORGANISM_LIFE, checkpoint)).toThrow(/versions/);
+    expect(() => restoreLife(ORGANISM_LIFE, checkpoint)).toThrow(
+      /made by fly digital-fly\/8; this is digital-fly\/9/,
+    );
   });
 });
 
@@ -186,7 +191,9 @@ describe("continuing onto the repaired physics", () => {
     expect(() => continueOnRepairedPhysics(compacted, upgraded, stopped)).toThrow();
     const corrupt = structuredClone(from);
     corrupt.stateHash = "0".repeat(64);
-    expect(() => continueOnRepairedPhysics(corrupt, upgraded, stopped)).toThrow(/digest/);
+    expect(() => continueOnRepairedPhysics(corrupt, upgraded, stopped)).toThrow(
+      /seal does not match/,
+    );
     const { checkpoint: done } = continueOnRepairedPhysics(from, upgraded, stopped);
     expect(() => continueOnRepairedPhysics(done, upgraded, stopped)).toThrow(
       /not an organism on digital-fly\/8/,

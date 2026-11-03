@@ -1,0 +1,144 @@
+name: ECHO collision procedure
+# Part of the evidence for docs/ECHO_COLLISION.md, on the VM's platform: the commands the
+# cutover plan names, run on a copy of the newest backup. It runs the one-time script
+# from this commit and the runner from this commit and from the deployed release, and
+# records what each one does, including the times each must refuse. A copy is never the
+# individual and what it does is no part of the individual's history. Nothing here
+# reaches the VM except its public /v1/backup record, and nothing is pushed anywhere.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - fix/fly-collision
+    paths:
+      - ".github/workflows/echo-collision-procedure.yml"
+      - "scripts/bethesda-life-continue-physics.ts"
+      - "scripts/bethesda-life-headless.ts"
+      - "src/bethesda/fly/fly.ts"
+      - "src/bethesda/fly/world.ts"
+      - "src/bethesda/life/organism.ts"
+      - "src/bethesda/life/physicsRepair.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: echo-collision-procedure-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  OBSERVER_URL: https://129-213-139-78.sslip.io
+  INDIVIDUAL: 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
+  # The release that wrote the source: PHYSICS_REPAIR_SOURCE.
+  SOURCE_RELEASE: bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+  NODE_VERSION: "24.22.1"
+
+jobs:
+  procedure:
+    name: The cutover's commands on a copy
+    if: github.repository == 'topherchris420/lop-nur-twin'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install this commit's production dependencies
+        run: PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
+      - name: Check out the source release
+        run: |
+          git worktree add --quiet --detach "$RUNNER_TEMP/release" "$SOURCE_RELEASE"
+          (cd "$RUNNER_TEMP/release" && PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error)
+          printf 'commit %s\n' "$SOURCE_RELEASE" >"$RUNNER_TEMP/release/RELEASE"
+      - name: Download the newest backup
+        env:
+          READ_URL: ${{ secrets.LIVE_FLY_BACKUP_READ_URL }}
+        run: |
+          [ -n "$READ_URL" ] || { echo "::error::LIVE_FLY_BACKUP_READ_URL is not set"; exit 1; }
+          curl --fail --silent --show-error --max-time 30 "$OBSERVER_URL/v1/backup" >"$RUNNER_TEMP/backup.json"
+          node scripts/run-ts.mjs scripts/echo-collision-backup.ts "$RUNNER_TEMP/backup.json" "$INDIVIDUAL" >"$RUNNER_TEMP/plan"
+          read -r archive sha <"$RUNNER_TEMP/plan"
+          curl --fail --silent --show-error --max-time 600 "$READ_URL$archive" -o "$RUNNER_TEMP/backup.tar.gz"
+          echo "$sha  $RUNNER_TEMP/backup.tar.gz" | sha256sum --check --strict --quiet
+          mkdir "$RUNNER_TEMP/backup"
+          tar -xzf "$RUNNER_TEMP/backup.tar.gz" -C "$RUNNER_TEMP/backup"
+          echo "$archive $sha" >"$RUNNER_TEMP/archive.txt"
+      - name: Run the commands
+        run: |
+          out="$RUNNER_TEMP/procedure"
+          mkdir -p "$out"
+          sudo apt-get install -y -qq time >/dev/null
+          heap=--max-old-space-size=4096
+          store="$RUNNER_TEMP/backup/store"
+          aside="$RUNNER_TEMP/aside"
+          cp -a "$store" "$aside"
+          digests() { (cd "$1" && find checkpoints -type f | sort | xargs sha256sum); }
+          step() {
+            local name=$1 want=$2
+            shift 2
+            local got=0
+            /usr/bin/time -v -o "$out/$name.time" "$@" >"$out/$name.out" 2>"$out/$name.err" || got=$?
+            local peak wall
+            peak=$(sed -n 's/.*Maximum resident set size (kbytes): //p' "$out/$name.time")
+            wall=$(sed -n 's/.*Elapsed (wall clock) time (h:mm:ss or m:ss): //p' "$out/$name.time")
+            echo "$name: exit $got, wanted $want; peak $((${peak:-0} / 1024)) MB, wall $wall" | tee -a "$out/steps.txt"
+            if [ "$want" = fails ] && [ "$got" -eq 0 ]; then
+              echo "::error::$name should have refused"
+              exit 1
+            fi
+            if [ "$want" = succeeds ] && [ "$got" -ne 0 ]; then
+              tail -20 "$out/$name.err"
+              echo "::error::$name failed"
+              exit 1
+            fi
+          }
+          digests "$store" >"$out/before.sha256"
+
+          # Before the window: nothing changes, and the deployed release still resumes it.
+          step check succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
+            --store "$store" --from-release "$RUNNER_TEMP/release" --check
+          digests "$store" | cmp - "$out/before.sha256"
+          step wrong-release fails node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
+            --store "$store" --from-release "$PWD" --check
+          step new-runner-refuses-source fails node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$store" --check
+          digests "$store" | cmp - "$out/before.sha256"
+
+          # Abort: stop anywhere before the commit and the old release carries on. On its own copy.
+          (cd "$RUNNER_TEMP/release" && node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$aside" --ticks 100 >"$out/abort.out" 2>"$out/abort.err") ||
+            { echo "::error::the deployed release did not resume its own store"; tail -20 "$out/abort.err"; exit 1; }
+          echo "abort: the deployed release resumed the unrepaired copy for 100 ticks" | tee -a "$out/steps.txt"
+
+          # In the window.
+          step commit succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
+            --store "$store" --from-release "$RUNNER_TEMP/release" --commit
+          digests "$store" | grep -F -f <(cut -d' ' -f1 "$out/before.sha256") | cmp - "$out/before.sha256"
+          step again fails node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
+            --store "$store" --from-release "$RUNNER_TEMP/release" --check
+          (cd "$RUNNER_TEMP/release" && node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$store" --check >"$out/old-after.out" 2>"$out/old-after.err") &&
+            { echo "::error::the deployed release should refuse the repaired store"; exit 1; }
+          echo "old release after the commit: refused: $(grep -m1 -E 'refused|Error' "$out/old-after.err")" | tee -a "$out/steps.txt"
+          step verify-after-commit succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$store" --verify
+          step check-after-commit succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$store" --check
+          step resume-1 succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$store" --ticks 3000
+          step resume-2 succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$store" --ticks 3000
+          step verify-after-life succeeds node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+            --store "$store" --verify
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: procedure
+          retention-days: 90
+          path: |
+            ${{ runner.temp }}/procedure/
+            ${{ runner.temp }}/archive.txt
