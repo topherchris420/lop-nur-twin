@@ -1048,6 +1048,36 @@ verified to be; a copy is always someone else.**
   acts on it. Never present continuity or a distinct history as evidence of a
   self, awareness or consciousness.
 
+### Adaptation and continuity benchmarks (`src/bethesda/adaptation/`)
+
+Thirteen benchmarks for one question: can Eva and ECHO adapt measurably while
+keeping their individual histories across updates and restarts. Read
+`docs/ECHO_ADAPTATION_CONTINUITY.md` first. Outside the folder it adds
+`scripts/echo-adaptation-evaluate.ts` and `docs/benchmarks/echo-adaptation/`.
+
+- **The benchmarks are fixed.** `benchmarks.ts` holds every pass rule, both
+  splits' seeds and the comparison rule, committed before any result. Changing
+  one after a result exists makes that result development: bump
+  `ADAPTATION_SUITE`, say why, use new seeds. Never relax a rule to turn a fail
+  into a pass; a fail is a finding.
+- **Research flies are never the original.** They are born from the suite's seeds
+  in the deployed configuration and never touch a store. An improvement is an
+  added release (`update.ts`): declared additions beside `OrganismAdapter`, a
+  projection that removes them and returns the parent's digest, a recorded
+  continuation. Never change the deployed controller to make a benchmark pass.
+- **The originals are only read.** `originals.ts` judges what their public
+  witnesses and the ledger branch show, recorded with
+  `scripts/first-contact-observe.ts` (GET only). What that cannot decide is
+  `untestable`, never a pass. Nothing may be done to Eva or ECHO for this suite.
+- **The held-out split is spent.** It ran once for the `evidence` release. A later
+  improvement needs new held-out seeds, fixed before it runs.
+- **The report is generated.** Run flies from a clean commit
+  (`run`, then `collect`), commit the records, then `report` from that clean
+  commit and commit what it writes. `adaptation.test.ts` checks in CI that the
+  README and summary still follow from the records byte for byte; never edit the
+  folder by hand. `scope.test.ts` keeps the suite to what its benchmarks need, and
+  `isolation.test.ts` keeps production from importing it.
+
 ### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 
 A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives meet
