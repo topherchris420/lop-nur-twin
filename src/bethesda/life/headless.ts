@@ -229,7 +229,8 @@ export class HeadlessBethesdaLife {
       checkpointing: at.checkpointing,
       fly: {
         position: [s.p[0], s.p[1], s.p[2]],
-        velocity: fly.velocityOverGround(),
+        // In flight it adds the wind, whose query moves lookup caches (issue 162).
+        velocity: untraced(this.cityFly.world, () => fly.velocityOverGround()),
         yaw: s.yaw,
         mode: s.mode,
         energyFraction: s.reserve / fly.params.reserveJ,

@@ -1,0 +1,4 @@
+{
+  "responses": "163 responses recorded read-only by scripts/first-contact-observe.ts (GET only) on 2026-10-31 and 2026-11-03",
+  "ledger": "ledger.jsonl and replays.jsonl from the live-fly-ledger branch at 2f46f7a0b779e7ed6f1664ee8c1f3b47a2da6995"
+}

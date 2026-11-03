@@ -744,6 +744,24 @@ only then a record that does not follow from its past. Re-run it on the same
 platform, and compare `machine` in the verdict. The run fails and opens an issue
 labelled `live-fly-replay`.
 
+**The first sealed replays did not reproduce, and why.** Both replays of
+`bdb7c02`'s chain (from #2,063 and #2,206,
+[issue 162](https://github.com/topherchris420/lop-nur-twin/issues/162)) matched the
+state hash and every recorded event at the next checkpoint, and not the graph
+digest. The observer still left a trace: `observation()` reported the fly's
+velocity over the ground with `velocityOverGround()`, which, while the fly flies or
+lands in wind, adds `world.wind`, whose two rays move a `FootprintGrid`'s `stamp`
+and `seen`. Only those differ. The test that seals a watched life beside an
+unwatched one watched a perched newborn, so the path never ran. Watching a fly in
+flight in wind reproduces the mismatch in 24 simulated seconds, and reading the
+velocity through `untraced` removes it (`replay.test.ts`, "watched flying in
+wind"). The fix changes no state a hash or event covers, so the history replays
+exactly as before at that level. It cannot make `bdb7c02`'s seals reproducible:
+they hold the observer's traces, and a replay of that release will keep failing
+on the graph digest. Seals become reproducible from the first checkpoint a release
+with the fix seals on the VM, and moving the VM to it is a deployment that needs
+the owner's approval.
+
 ### Recovery
 
 | In `journalctl -u bethesda-life`                                          | What it means                                                          | What to do                                                                                                                                                                 |

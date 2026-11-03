@@ -104,7 +104,9 @@
     "verify:bethesda": "node tools/bethesda.mjs",
     "verify:rain-lab": "node tools/rain-lab.mjs",
     "echo:foraging:test": "vitest run src/bethesda/life/foraging --maxWorkers=1",
-    "echo:foraging:evaluate": "node scripts/run-ts.mjs scripts/echo-foraging-evaluate.ts"
+    "echo:foraging:evaluate": "node scripts/run-ts.mjs scripts/echo-foraging-evaluate.ts",
+    "echo:adaptation:test": "vitest run src/bethesda/adaptation src/bethesda/firstContact/isolation.test.ts",
+    "echo:adaptation:check": "node scripts/run-ts.mjs scripts/echo-adaptation-evaluate.ts report --check"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
