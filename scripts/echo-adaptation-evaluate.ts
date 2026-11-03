@@ -22,39 +22,28 @@ import {
   appendFileSync,
   existsSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
   writeFileSync,
 } from "node:fs";
 import { arch, platform } from "node:os";
 import { join } from "node:path";
 import { format, resolveConfig } from "prettier";
+import { checkRecords } from "../src/bethesda/adaptation/analysis.js";
+import { INDIVIDUALS, SPLITS } from "../src/bethesda/adaptation/benchmarks.js";
+import type { RecordedResponse } from "../src/bethesda/adaptation/originals.js";
 import {
-  checkRecords,
-  compare,
-  releaseResult,
-} from "../src/bethesda/adaptation/analysis.js";
-import {
-  ADAPTATION_SUITE,
-  COMPARISON,
-  INDIVIDUALS,
-  SPLITS,
-} from "../src/bethesda/adaptation/benchmarks.js";
-import {
-  judgeOriginals,
-  measureEcho,
-  measureEva,
-  type RecordedResponse,
-} from "../src/bethesda/adaptation/originals.js";
+  buildReport,
+  publishedCommit,
+  readJsonl,
+  RESULTS_DIR,
+  type MadeRecord,
+} from "../src/bethesda/adaptation/publish.js";
 import { RELEASES } from "../src/bethesda/adaptation/releases.js";
-import { renderReadme, type Report } from "../src/bethesda/adaptation/report.js";
-import {
-  runIndividual,
-  type IndividualRecord,
-} from "../src/bethesda/adaptation/study.js";
+import { renderReadme } from "../src/bethesda/adaptation/report.js";
+import { runIndividual } from "../src/bethesda/adaptation/study.js";
 
 const root = process.cwd();
-const DIR = join(root, "docs/benchmarks/echo-adaptation");
+const DIR = join(root, RESULTS_DIR);
 const RECORDS = join(DIR, "records");
 const ORIGINALS = join(DIR, "originals");
 // After this script's own path: `node scripts/run-ts.mjs <this> …` and `bun <this> …` alike.
@@ -88,17 +77,6 @@ const log = (line: string) => console.log(`[echo-adaptation] ${line}`);
 const git = (...a: string[]) =>
   execFileSync("git", a, { cwd: root, encoding: "utf8" }).trim();
 
-/** A made record: what it ran on, beside what it found. */
-type Made = IndividualRecord & {
-  made: { commit: string; node: string; platform: string; arch: string };
-};
-
-const readJsonl = <T>(path: string): T[] =>
-  readFileSync(path, "utf8")
-    .split("\n")
-    .filter((l) => l.trim())
-    .map((l) => JSON.parse(l) as T);
-
 function run(): void {
   const split = SPLITS[value("--split") as keyof typeof SPLITS];
   const reg = RELEASES[value("--release") ?? ""];
@@ -120,7 +98,7 @@ function run(): void {
       kind: reg.kind,
       continueFrom: reg.updates?.continueFrom,
     });
-    const made: Made = {
+    const made: MadeRecord = {
       ...record,
       made: { commit, node: process.version, platform: platform(), arch: arch() },
     };
@@ -135,7 +113,9 @@ function collect(): void {
   const split = value("--split"),
     release = value("--release");
   const parts = positional();
-  const records = parts.flatMap((p) => readJsonl<Made>(p)).sort((a, b) => a.k - b.k);
+  const records = parts
+    .flatMap((p) => readJsonl<MadeRecord>(p))
+    .sort((a, b) => a.k - b.k);
   const errors = checkRecords(records, INDIVIDUALS);
   if (records.some((r) => r.split !== split || r.release !== release))
     errors.push("a part holds another split or release");
@@ -156,10 +136,13 @@ function originals(): void {
   const responses: RecordedResponse[] = [];
   for (const f of files) {
     const text = readFileSync(f, "utf8");
-    // The first-contact fixture is one JSON object; the recorder writes JSON lines.
-    const rows: Record<string, unknown>[] = text.trimStart().startsWith('{"source"')
-      ? (JSON.parse(text) as { responses: Record<string, unknown>[] }).responses
-      : readJsonl<Record<string, unknown>>(f);
+    // The first-contact fixture is one JSON document; the recorder writes JSON lines.
+    let rows: Record<string, unknown>[];
+    try {
+      rows = (JSON.parse(text) as { responses: Record<string, unknown>[] }).responses;
+    } catch {
+      rows = readJsonl<Record<string, unknown>>(f);
+    }
     for (const r of rows)
       responses.push({
         receivedUtc: String(r.receivedUtc),
@@ -220,69 +203,9 @@ async function emit(name: string, text: string, check: boolean): Promise<boolean
 
 async function report(): Promise<void> {
   const check = flag("--check");
-  const sets = existsSync(RECORDS)
-    ? readdirSync(RECORDS)
-        .filter((f) => f.endsWith(".jsonl"))
-        .sort()
-        .map((f) => readJsonl<Made>(join(RECORDS, f)))
-    : [];
-  const find = (split: string, release: string) =>
-    sets.find((s) => s[0]?.split === split && s[0]?.release === release) ?? null;
-  // Baselines first, then their updates; dev before held-out.
-  const order = (s: Made[]) =>
-    `${s[0]!.split === "dev" ? 0 : 1}${s[0]!.release === "baseline" ? 0 : 1}${s[0]!.release}`;
-  sets.sort((a, b) => order(a).localeCompare(order(b)));
-  const releases = sets.map((s) => {
-    const errors = checkRecords(s, INDIVIDUALS);
-    if (errors.length) throw new Error(errors.join("; "));
-    const from = RELEASES[s[0]!.release]?.updates?.from;
-    return releaseResult(s, from ? find(s[0]!.split, from) : null);
-  });
-  const improved = sets.find(
-    (s) => s[0]!.split === COMPARISON.split && s[0]!.release !== "baseline",
-  );
-  const base = improved ? find(COMPARISON.split, "baseline") : null;
-  let originalsResult: Report["originals"] = null;
-  if (existsSync(join(ORIGINALS, "responses.jsonl"))) {
-    const input = {
-      responses: readJsonl<RecordedResponse>(join(ORIGINALS, "responses.jsonl")),
-      ledger: readFileSync(join(ORIGINALS, "ledger.jsonl"), "utf8"),
-      replays: readFileSync(join(ORIGINALS, "replays.jsonl"), "utf8"),
-    };
-    const eva = measureEva(input),
-      echo = measureEcho(input);
-    const provenance = JSON.parse(
-      readFileSync(join(ORIGINALS, "provenance.json"), "utf8"),
-    ) as Record<string, string>;
-    originalsResult = {
-      eva,
-      echo,
-      verdicts: judgeOriginals(eva, echo),
-      provenance: Object.values(provenance),
-    };
-  }
-  const made = [
-    ...new Set(
-      sets.map(
-        (s) =>
-          `The ${s[0]!.split} ${s[0]!.release} flies ran on ${s[0]!.made.commit === "a working tree" ? "a working tree (not a result)" : `\`${s[0]!.made.commit.slice(0, 12)}\``}, ${s[0]!.made.platform} ${s[0]!.made.arch}, Node ${s[0]!.made.node}.`,
-      ),
-    ),
-  ];
-  const r: Report = {
-    suite: ADAPTATION_SUITE,
-    releases,
-    comparison:
-      improved && base ? { ...compare(improved, base), split: COMPARISON.split } : null,
-    originals: originalsResult,
-    made,
-  };
+  const r = buildReport(DIR);
   const commit = check
-    ? (/from (`[0-9a-f]{7,40}`|a working tree)/.exec(
-        existsSync(join(DIR, "README.md"))
-          ? readFileSync(join(DIR, "README.md"), "utf8")
-          : "",
-      )?.[1] ?? "")
+    ? publishedCommit(DIR)
     : git("status", "--porcelain")
       ? "a working tree"
       : `\`${git("rev-parse", "--short", "HEAD")}\``;
