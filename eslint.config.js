@@ -63,6 +63,8 @@ export default tseslint.config(
       "docs/research/echo-replay/**",
       // The organism continuation's rehearsal scripts, as they ran (docs/research/echo-organism-continuation/).
       "docs/research/echo-organism-continuation/**",
+      // The collision repair's measurements, as they ran (docs/research/echo-collision/).
+      "docs/research/echo-collision/**",
     ],
   },
 
