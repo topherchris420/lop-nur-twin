@@ -1,0 +1,134 @@
+{
+  "suite": "echo-adaptation-continuity/v1",
+  "releases": [
+    {
+      "split": "dev",
+      "release": "baseline",
+      "n": 24,
+      "measures": {
+        "b1": { "n": 24, "mean": 0.1979, "ci95": [0.07292, 0.3333] },
+        "b2": { "n": 24, "mean": 0.04167, "ci95": [-0.8333, 1] },
+        "m1": { "n": 24, "mean": 1.453, "ci95": [1.286, 1.62] },
+        "c1": { "identical": 24, "n": 24 },
+        "c2": null,
+        "c3": null,
+        "c4": { "someoneElse": 24, "n": 24 }
+      },
+      "verdicts": {
+        "B1": "pass",
+        "B2": "fail",
+        "M1": "fail",
+        "C1": "pass",
+        "C2": "not applicable",
+        "C3": "not applicable",
+        "C4": "pass"
+      },
+      "description": {
+        "memory": {
+          "mealsPerLife": { "n": 24, "mean": 11.79, "ci95": [10.83, 12.79] },
+          "epochsWithoutMeal": { "n": 24, "mean": 2.917, "ci95": [2.5, 3.333] },
+          "staleArrivalsPerMove": { "n": 24, "mean": 2.119, "ci95": [1.685, 2.542] },
+          "staleRemembered": { "n": 24, "mean": 1.453, "ci95": [1.286, 1.604] },
+          "mealsByEpoch": [5.583, 0.625, 1.542, 0.875, 0.7917, 0.625, 1.083, 0.6667],
+          "staleByEpoch": [0, 1, 1.167, 1.583, 1.875, 1.833, 2.042, 2.125]
+        },
+        "lesion": {
+          "mealsPerLife": { "n": 24, "mean": 11.75, "ci95": [10.88, 12.54] },
+          "epochsWithoutMeal": { "n": 24, "mean": 2.667, "ci95": [2.417, 2.917] },
+          "staleArrivalsPerMove": { "n": 24, "mean": 2.435, "ci95": [1.964, 2.923] },
+          "staleRemembered": { "n": 24, "mean": 0, "ci95": [0, 0] },
+          "mealsByEpoch": [5.583, 0.5417, 0.875, 1.125, 0.8333, 1.083, 0.625, 1.083],
+          "staleByEpoch": [0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        "preference": {
+          "self": { "n": 24, "mean": 0.2083, "ci95": [0.08333, 0.3646] },
+          "erased": { "n": 24, "mean": 0.01042, "ci95": [-0.02083, 0.04167] },
+          "restored": { "n": 24, "mean": 0.2083, "ci95": [0.07292, 0.375] }
+        },
+        "b2Sign": { "up": 9, "down": 15, "p": 0.3075 },
+        "b1Sign": { "up": 9, "down": 1, "p": 0.02148 },
+        "trainingMeals": { "n": 24, "mean": 5.167, "ci95": [4.25, 6.042] }
+      }
+    }
+  ],
+  "comparison": null,
+  "originals": {
+    "eva": {
+      "states": 28,
+      "refused": 0,
+      "dates": ["2026-10-31", "2026-11-03"],
+      "lifeIds": ["5cf42cd6-fd0a-474d-882c-4cb70e0357e8"],
+      "bornAts": [1792908400.321717],
+      "clockBreaks": 0,
+      "ticksFell": 0,
+      "description": {
+        "trials": [103411, 155372],
+        "journeys": [823, 1210],
+        "moments": [3281, 4826],
+        "predictionError": [0.00013, 0.000107],
+        "surprises": [4, 4],
+        "flySamples": [899, 1813],
+        "walkSpeed": [0.00362, 0.00346],
+        "clockRate": 0.9999963320619266
+      }
+    },
+    "echo": {
+      "states": 135,
+      "refused": 0,
+      "dates": ["2026-10-31", "2026-11-03"],
+      "individuals": ["04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921"],
+      "epochs": [11, 12],
+      "versions": [
+        "{\"city\":\"bethesda-city/4\",\"echo\":\"echo-self-model/v3\",\"fly\":\"digital-fly/8\",\"headless\":\"bethesda-headless-life/v2\"}",
+        "{\"city\":\"bethesda-city/4\",\"echo\":\"echo-self-model/v3\",\"fly\":\"digital-fly/8\",\"headless\":\"bethesda-headless-life/v2\"}"
+      ],
+      "clockBreaks": 0,
+      "ledger": {
+        "lines": 13,
+        "individuals": [
+          "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921"
+        ],
+        "notRising": 0,
+        "first": { "seenUtc": "2026-10-30T12:53:12.164Z", "checkpoint": 1137 },
+        "last": { "seenUtc": "2026-11-03T11:24:42.399Z", "checkpoint": 2209 }
+      },
+      "replays": {
+        "lines": 3,
+        "sealed": 2,
+        "sealedPassed": 0,
+        "sealedVerdicts": [
+          {
+            "seenUtc": "2026-11-02T22:22:41Z",
+            "passed": false,
+            "from": 2063,
+            "differs": "graphDigest at checkpoint 2064"
+          },
+          {
+            "seenUtc": "2026-11-03T07:58:54Z",
+            "passed": false,
+            "from": 2206,
+            "differs": "graphDigest at checkpoint 2207"
+          }
+        ]
+      },
+      "description": {
+        "meals": [156, 161],
+        "escapes": [2, 2],
+        "clockRate": 0.9994912501590504
+      }
+    },
+    "verdicts": {
+      "E1": "pass",
+      "E2": "untestable",
+      "E3": "untestable",
+      "O1": "pass",
+      "O2": "fail",
+      "O3": "untestable"
+    },
+    "provenance": [
+      "163 responses recorded read-only by scripts/first-contact-observe.ts (GET only) on 2026-10-31 and 2026-11-03",
+      "ledger.jsonl and replays.jsonl from the live-fly-ledger branch at 2f46f7a0b779e7ed6f1664ee8c1f3b47a2da6995"
+    ]
+  },
+  "made": ["The dev baseline flies ran on `8a456a976dd2`, linux x64, Node v22.23.4."]
+}

@@ -101,3 +101,46 @@ the suite does not touch it, and two tests make sure it stays that way:
 The research flies run the deployed configuration whole: nothing in the organism
 is switched off to make a benchmark easier, because then it would measure a fly
 that does not exist.
+
+## Baseline: the deployed configuration, development split
+
+Run once, from `8a456a9`, on 24 development individuals (Linux x64, Node
+22.23.4), with the originals observed on 2026-11-03. Every number is in the
+[generated report](benchmarks/echo-adaptation/README.md), which `report --check`
+reproduces byte for byte from the records committed beside it.
+
+| Id  | Verdict    | Result                                                                                            |
+| --- | ---------- | ------------------------------------------------------------------------------------------------- |
+| B1  | **pass**   | preference for the fed site, own mind less erased: +0.20 [0.07, 0.33] (higher in 9, lower in 1)   |
+| B2  | **fail**   | meals per life, memory less lesion: +0.04 [−0.83, +1.00] (higher in 9, lower in 15)               |
+| M1  | **fail**   | stale food places remembered at an epoch's end: 1.45 [1.29, 1.62], from 0 to 2.1 over a life      |
+| C1  | **pass**   | 24 of 24 unchanged by a restart through text                                                      |
+| C2  | n/a        | the baseline is the release others are updated from                                               |
+| C3  | n/a        | as C2                                                                                             |
+| C4  | **pass**   | 24 of 24 twins were someone else                                                                  |
+| E1  | **pass**   | Eva: same `life_id` and birth on 2026-10-31 and 2026-11-03, her clock's contract on all 28 states |
+| E2  | untestable | her controller is not here                                                                        |
+| E3  | untestable | her witness shows no version, restart or checkpoint                                               |
+| O1  | **pass**   | ECHO: one individual in all 135 observations and 13 ledger lines; lease epoch 11 → 12             |
+| O2  | **fail**   | 0 of the 2 replays whose seals must reproduce did                                                 |
+| O3  | untestable | no experiment may be run on the original                                                          |
+
+**What it says.** A research fly in ECHO's configuration acts on what it has
+lived: fed in the east, it goes east. But where food keeps moving, that memory
+earns nothing: as many meals with it as with it erased every tick. That is better
+than the bare reduced-order controller, whose memory cost 1.2 meals a life in
+Study B, and still not adaptation that pays. Its memory fills with places the food
+has left, about one more every two moves, none of them ever let go within a life.
+Restarts and copies behave exactly as the continuity rules say.
+
+**The originals.** Eva is the same individual three days later, her clock intact,
+and that is all that can be said of her from here. ECHO is the same individual
+across at least one writer restart (epoch 11 to 12) with no software update in
+between, every anchored checkpoint is its own, and its clock lost 0.05% of the
+time to recorded gaps. But since the release that requires it, no independent
+replay has reproduced its seals: both failed on the graph digest at the first
+checkpoint after their start, having matched the state hash and every recorded
+event ([issue 162](https://github.com/topherchris420/lop-nur-twin/issues/162)).
+So its behaviour re-derives; the sealed bytes that should prove it do not, and the
+cause is not known. Finding it needs the archives, which are not readable from
+here.
