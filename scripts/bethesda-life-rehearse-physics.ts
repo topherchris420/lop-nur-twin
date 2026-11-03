@@ -265,10 +265,10 @@ async function run() {
     let first: object | null = null;
     let ticks = 0;
     while (ticks < LOCKSTEP_TICKS && !first) {
-      old.ORGANISM_LIFE.step(before!, LOCKSTEP_STEP);
+      old.ORGANISM_LIFE.step(before, LOCKSTEP_STEP);
       ORGANISM_LIFE.step(next, LOCKSTEP_STEP);
       ticks += LOCKSTEP_STEP;
-      const x = held(before!),
+      const x = held(before),
         y = held(next);
       const fields = differing(x, y, 3);
       if (fields.length) {
@@ -281,7 +281,7 @@ async function run() {
           why: l.cityFly.fly.lastCommand?.reason ?? null,
           counts: l.cityFly.fly.state.counts,
         });
-        first = { ticks, fields: fields.slice(0, 30), old: f(before!), new: f(next) };
+        first = { ticks, fields: fields.slice(0, 30), old: f(before), new: f(next) };
       }
     }
     write({ section: "lockstep", ticks, identicalThroughout: first === null, first });

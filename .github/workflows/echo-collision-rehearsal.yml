@@ -15,8 +15,6 @@ on:
     branches:
       - fix/fly-collision
     paths:
-      - ".github/workflows/echo-collision-rehearsal.yml"
-      - "scripts/bethesda-life-rehearse-physics.ts"
       - "src/bethesda/fly/fly.ts"
       - "src/bethesda/fly/world.ts"
       - "src/bethesda/life/organism.ts"
