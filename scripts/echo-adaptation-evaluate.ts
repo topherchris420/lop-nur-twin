@@ -18,13 +18,7 @@
  * reproduces anywhere. Never edit docs/benchmarks/echo-adaptation/ by hand.
  */
 import { execFileSync } from "node:child_process";
-import {
-  appendFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { arch, platform } from "node:os";
 import { join } from "node:path";
 import { format, resolveConfig } from "prettier";
@@ -187,7 +181,13 @@ async function emit(name: string, text: string, check: boolean): Promise<boolean
     ...((await resolveConfig(path)) ?? {}),
     filepath: path,
   });
-  const before = existsSync(path) ? readFileSync(path, "utf8") : null;
+  // Read, not check-then-read: nothing can change the file between a check and its use.
+  let before: string | null;
+  try {
+    before = readFileSync(path, "utf8");
+  } catch {
+    before = null;
+  }
   if (check) {
     if (before !== formatted) {
       console.error(`[echo-adaptation] ${name} does not reproduce`);
