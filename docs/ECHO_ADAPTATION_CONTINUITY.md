@@ -3,10 +3,10 @@
 **The question.** Can Eva and ECHO demonstrate measurable behavioural adaptation
 while preserving their individual histories across software updates and restarts?
 
-**Status: benchmarks fixed, nothing measured.** This document is written in the
-order the work is done. This first section was committed before any benchmark
-was run; results are added below it, and nothing above a result is changed after
-that result exists.
+**Status: complete; the answer is [at the end](#the-answer).** This document was
+written in the order the work was done: the benchmarks were committed before any
+benchmark ran, and each later section was added after the one before it. This line
+is the only text above a result that was edited after that result existed.
 
 Functional words only. A fly that remembers where it fed and acts on it is not
 evidence of a self, of awareness or of consciousness, and neither is a history
@@ -197,3 +197,114 @@ remembered unchanged, 1.48 against 1.45.
   pass.
 - Whatever comes out is reported. The held-out split is then spent, and any later
   change needs new seeds and says so.
+
+## Held-out result
+
+Run once, 24 individuals per release, on the held-out genesis: `baseline` from
+`47b6955` and `evidence` from `81ca569`. Between those two commits only `AGENTS.md`
+and `package.json` changed, nothing that lives a fly. Linux x64, Node 22.23.4.
+
+| Id  | `baseline`                    | `evidence`                     |
+| --- | ----------------------------- | ------------------------------ |
+| B1  | **pass**, +0.42 [0.24, 0.60]  | **pass**, +0.39 [0.21, 0.57]   |
+| B2  | **fail**, −0.13 [−1.25, 0.96] | **fail**, −0.58 [−1.67, 0.42]  |
+| M1  | **fail**, 1.29 [1.13, 1.45]   | **fail**, 1.25 [1.10, 1.40]    |
+| C1  | **pass**, 24 of 24            | **pass**, 24 of 24             |
+| C2  | n/a                           | **pass**, 24 of 24             |
+| C3  | n/a                           | **fail**, +0.08 [−0.17, +0.33] |
+| C4  | **pass**, 24 of 24            | **pass**, 24 of 24             |
+
+**The improvement is not shown.** Meals per life with memory, `evidence` less
+`baseline`: **−0.46 [−1.04, +0.04]**, higher in 4 individuals, lower in 7, the same
+in 13. The development gain, +0.67 [−0.04, +1.42], did not replicate, and the point
+estimate went the other way. The guards held: what the flies learned (B1),
+restarts (C1), the update (C2) and copies (C4) were all intact. The layer kept
+everything and helped nothing.
+
+Against the predictions on record: M1 failed on both releases, and C1, C2 and C4
+passed, as predicted. The primary comparison and B2 came out negative. Why the
+layer did not help is not known. Its development interval already included zero,
+and nothing measured here separates a small cost from none.
+
+The held-out split is spent.
+
+## The answer
+
+**Can Eva and ECHO demonstrate measurable behavioural adaptation while preserving
+their individual histories across software updates and restarts? Not both, and
+not for Eva.**
+
+- **ECHO's configuration, in research flies: experience changes behaviour,
+  measurably, and that change survives restarts and updates exactly.** Fed at one
+  site, a fly goes back to it: +0.20 on development and +0.42 held out, both well
+  above an erased mind. Checkpointed, written out as text and restored, every fly
+  went on identically (24 of 24 in every run). Updated mid-life by a recorded
+  continuation, every fly kept every byte of what it was (24 of 24). Every copy was
+  someone else.
+- **That change does not pay where the world keeps changing.** In every run, a
+  fly whose food moves eats no more with its memory than with its memory erased
+  every tick. The one improvement tried did not change that on the sealed test,
+  and updating a fly mid-life to it brought nothing later.
+- **ECHO, the original:** the same individual across at least one writer restart,
+  every anchored checkpoint its own. But its sealed history could not be re-derived
+  by anyone else: 0 of 2 replays. The cause was found and fixed in code (the
+  observer moved lookup caches while the fly flew in wind). It takes effect only
+  once the VM runs a release with the fix, which needs the owner's approval, and
+  the seals already made stay irreproducible.
+- **Eva:** the same individual three days apart, her clock intact. Whether she
+  adapts, and whether her history survives updates and restarts, **cannot be
+  tested from this repository**: her controller is not here, nothing may be done
+  to her, and her witness reports no version, restart or checkpoint.
+
+## Every negative result
+
+1. **B2 failed in all three runs.** Memory does not pay where food moves: +0.04
+   (development), −0.13 (held out), −0.58 (held out, `evidence`).
+2. **M1 failed in all three runs.** Places the food has left accumulate, to about
+   two by the end of a life. M1 counts a place the mushroom body has devalued as
+   stale, because it is still remembered. That was understood only after M1 was
+   fixed, and M1 stays as defined.
+3. **The improvement failed its sealed test**, −0.46 [−1.04, +0.04], after +0.67
+   in development.
+4. **C3 failed.** An update brought no later benefit to a fly with a past,
+   +0.08 [−0.17, +0.33].
+5. **O2 failed.** No sealed replay of the original reproduced, 0 of 2. The cause is
+   fixed in code but not deployed.
+6. **A misleading early look.** Eight development individuals suggested erasing
+   remembered places gains 0.62 meals. All 24 gave +0.04 [−0.88, +0.88].
+7. **E2, E3 and O3 are untestable**, and say so rather than pass.
+
+## Limits
+
+- **One yard, one food rule.** Food odour is detectable in 99% of a life, so an
+  amnesic fly already knows food is near. B2 may be unpassable in this yard for any
+  change to memory. That was learned from the development diagnosis, after the
+  benchmarks were fixed. A later suite should add a yard where odour does not give
+  the food away (wind, a shorter odour, more distant sites), with new seeds and a
+  new suite version.
+- **The held-out split differs only in genesis and draws**: the same yard, sites
+  and timing. It tests whether a result was chance, not whether it generalizes.
+- **Same platform.** Flies reproduce on the platform that lived them (Linux x64,
+  Node 22.23.4 here; two re-lived individuals matched their records byte for
+  byte). The report is arithmetic on the records and reproduces anywhere.
+- **Research flies are not the original.** No continuation for the deployed
+  individual was written or run. `update.ts` moves research flies only, and any
+  step on the live fly needs its own explicit authorization.
+- **The originals were observed briefly**: 15 s on 2026-10-31 and 120 s on
+  2026-11-03, read-only.
+
+## Reproducing it
+
+```bash
+E=scripts/echo-adaptation-evaluate.ts
+# The report, from the committed records (any machine):
+node scripts/run-ts.mjs $E report --check
+# The flies (Linux x64, Node 22.23.4 to match the records), from a clean commit:
+node scripts/run-ts.mjs $E run --split dev --release baseline --from 0 --to 23 --out dev-baseline.jsonl
+node scripts/run-ts.mjs $E collect --split dev --release baseline dev-baseline.jsonl
+# The originals: record, then snapshot with the ledger branch.
+node scripts/run-ts.mjs scripts/first-contact-observe.ts --seconds 120 --out .first-contact/observe
+node scripts/run-ts.mjs $E originals --ledger-ref origin/live-fly-ledger .first-contact/observe/responses.jsonl
+```
+
+A fly takes about 50 s, so a split of 24 takes about 5 minutes on four cores.

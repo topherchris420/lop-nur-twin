@@ -49,9 +49,111 @@
         "b1Sign": { "up": 9, "down": 1, "p": 0.02148 },
         "trainingMeals": { "n": 24, "mean": 5.167, "ci95": [4.25, 6.042] }
       }
+    },
+    {
+      "split": "heldout",
+      "release": "baseline",
+      "n": 24,
+      "measures": {
+        "b1": { "n": 24, "mean": 0.4167, "ci95": [0.2396, 0.6042] },
+        "b2": { "n": 24, "mean": -0.125, "ci95": [-1.25, 0.9583] },
+        "m1": { "n": 24, "mean": 1.286, "ci95": [1.13, 1.453] },
+        "c1": { "identical": 24, "n": 24 },
+        "c2": null,
+        "c3": null,
+        "c4": { "someoneElse": 24, "n": 24 }
+      },
+      "verdicts": {
+        "B1": "pass",
+        "B2": "fail",
+        "M1": "fail",
+        "C1": "pass",
+        "C2": "not applicable",
+        "C3": "not applicable",
+        "C4": "pass"
+      },
+      "description": {
+        "memory": {
+          "mealsPerLife": { "n": 24, "mean": 10, "ci95": [8.75, 11.33] },
+          "epochsWithoutMeal": { "n": 24, "mean": 3.25, "ci95": [2.708, 3.75] },
+          "staleArrivalsPerMove": { "n": 24, "mean": 2.161, "ci95": [1.762, 2.571] },
+          "staleRemembered": { "n": 24, "mean": 1.286, "ci95": [1.13, 1.438] },
+          "mealsByEpoch": [4.583, 0.5417, 0.9167, 0.7917, 0.9583, 0.9583, 0.5833, 0.6667],
+          "staleByEpoch": [0, 1, 0.875, 1.25, 1.458, 1.625, 2, 2.083]
+        },
+        "lesion": {
+          "mealsPerLife": { "n": 24, "mean": 10.13, "ci95": [9, 11.21] },
+          "epochsWithoutMeal": { "n": 24, "mean": 3.292, "ci95": [2.792, 3.708] },
+          "staleArrivalsPerMove": { "n": 24, "mean": 1.976, "ci95": [1.506, 2.464] },
+          "staleRemembered": { "n": 24, "mean": 0, "ci95": [0, 0] },
+          "mealsByEpoch": [4.583, 0.5, 1, 0.75, 0.9583, 0.6667, 0.7083, 0.9583],
+          "staleByEpoch": [0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        "preference": {
+          "self": { "n": 24, "mean": 0.4271, "ci95": [0.2604, 0.5938] },
+          "erased": { "n": 24, "mean": 0.01042, "ci95": [0, 0.03125] },
+          "restored": { "n": 24, "mean": 0.4271, "ci95": [0.2604, 0.6042] }
+        },
+        "b2Sign": { "up": 8, "down": 10, "p": 0.8145 },
+        "b1Sign": { "up": 14, "down": 1, "p": 0.0009766 },
+        "trainingMeals": { "n": 24, "mean": 5.542, "ci95": [4.75, 6.25] }
+      }
+    },
+    {
+      "split": "heldout",
+      "release": "evidence",
+      "n": 24,
+      "measures": {
+        "b1": { "n": 24, "mean": 0.3854, "ci95": [0.2083, 0.5729] },
+        "b2": { "n": 24, "mean": -0.5833, "ci95": [-1.667, 0.4167] },
+        "m1": { "n": 24, "mean": 1.245, "ci95": [1.099, 1.396] },
+        "c1": { "identical": 24, "n": 24 },
+        "c2": { "kept": 24, "n": 24 },
+        "c3": { "n": 24, "mean": 0.08333, "ci95": [-0.1667, 0.3333] },
+        "c4": { "someoneElse": 24, "n": 24 }
+      },
+      "verdicts": {
+        "B1": "pass",
+        "B2": "fail",
+        "M1": "fail",
+        "C1": "pass",
+        "C2": "pass",
+        "C3": "fail",
+        "C4": "pass"
+      },
+      "description": {
+        "memory": {
+          "mealsPerLife": { "n": 24, "mean": 9.542, "ci95": [8.542, 10.5] },
+          "epochsWithoutMeal": { "n": 24, "mean": 3.5, "ci95": [3, 4] },
+          "staleArrivalsPerMove": { "n": 24, "mean": 1.946, "ci95": [1.53, 2.417] },
+          "staleRemembered": { "n": 24, "mean": 1.245, "ci95": [1.099, 1.385] },
+          "mealsByEpoch": [4.583, 0.5, 0.9167, 0.5417, 0.7917, 1.083, 0.5833, 0.5417],
+          "staleByEpoch": [0, 1, 0.875, 1.292, 1.375, 1.542, 1.917, 1.958]
+        },
+        "lesion": {
+          "mealsPerLife": { "n": 24, "mean": 10.13, "ci95": [9, 11.21] },
+          "epochsWithoutMeal": { "n": 24, "mean": 3.292, "ci95": [2.792, 3.708] },
+          "staleArrivalsPerMove": { "n": 24, "mean": 1.976, "ci95": [1.506, 2.464] },
+          "staleRemembered": { "n": 24, "mean": 0, "ci95": [0, 0] },
+          "mealsByEpoch": [4.583, 0.5, 1, 0.75, 0.9583, 0.6667, 0.7083, 0.9583],
+          "staleByEpoch": [0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        "preference": {
+          "self": { "n": 24, "mean": 0.3958, "ci95": [0.2292, 0.5625] },
+          "erased": { "n": 24, "mean": 0.01042, "ci95": [0, 0.03125] },
+          "restored": { "n": 24, "mean": 0.3958, "ci95": [0.2292, 0.5833] }
+        },
+        "b2Sign": { "up": 9, "down": 11, "p": 0.8238 },
+        "b1Sign": { "up": 13, "down": 2, "p": 0.007385 },
+        "trainingMeals": { "n": 24, "mean": 5.542, "ci95": [4.75, 6.25] }
+      }
     }
   ],
-  "comparison": null,
+  "comparison": {
+    "primary": { "n": 24, "mean": -0.4583, "ci95": [-1.042, 0.04167] },
+    "sign": { "up": 4, "down": 7, "p": 0.5488 },
+    "split": "heldout"
+  },
   "originals": {
     "eva": {
       "states": 28,
@@ -130,5 +232,9 @@
       "ledger.jsonl and replays.jsonl from the live-fly-ledger branch at 2f46f7a0b779e7ed6f1664ee8c1f3b47a2da6995"
     ]
   },
-  "made": ["The dev baseline flies ran on `8a456a976dd2`, linux x64, Node v22.23.4."]
+  "made": [
+    "The dev baseline flies ran on `8a456a976dd2`, linux x64, Node v22.23.4.",
+    "The heldout baseline flies ran on `47b69554b5cc`, linux x64, Node v22.23.4.",
+    "The heldout evidence flies ran on `81ca56935e45`, linux x64, Node v22.23.4."
+  ]
 }
