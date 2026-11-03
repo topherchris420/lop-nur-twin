@@ -331,7 +331,9 @@ async function run() {
       previous: previousCheckpoint,
       events,
     });
+    writer.renew();
     writer.commit(next);
+    writer.renew();
     previousCheckpoint = next;
     since = 0;
   };
@@ -344,6 +346,7 @@ async function run() {
     const left = target - life.city.tick;
     ORGANISM_LIFE.step(life, Math.min(SAMPLE_TICKS, left));
     since += Math.min(SAMPLE_TICKS, left);
+    writer.renew();
     write(sample(life, tick0));
     if (since >= CHECKPOINT_TICKS) commit();
     if (!restarted && life.city.tick >= restartAt) {

@@ -1,14 +1,10 @@
 name: ECHO collision rehearsal
-# The evidence for docs/ECHO_COLLISION.md, on the VM's platform. Started by hand, or
+# Part of the evidence for docs/ECHO_COLLISION.md, on the VM's platform. Downloads the
+# newest backup, on the machine's own copy continues it onto the repaired physics, and
+# lives on. A copy is never the individual and what it does is no part of the
+# individual's history (scripts/bethesda-life-rehearse-physics.ts). Started by hand, or
 # by a push to the branch that made it. Nothing here reaches the VM except its public
 # /v1/backup record, and nothing is pushed anywhere.
-#
-# `rehearse`: downloads the newest backup, on the machine's own copy continues it
-# onto the repaired physics, and lives on. A copy is never the individual and what
-# it does is no part of the individual's history (scripts/bethesda-life-rehearse-physics.ts).
-# `flies`: research flies on the real map, with no store and no archive, on this
-# commit's fly and, for the control, on the fly before it. Fresh seeds, and the
-# seeds that got trapped before.
 on:
   workflow_dispatch:
     inputs:
@@ -30,15 +26,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: echo-collision-rehearsal-${{ github.ref }}
+  group: echo-collision-rehearse-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   OBSERVER_URL: https://129-213-139-78.sslip.io
   INDIVIDUAL: 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
-  # The release that wrote the source: PHYSICS_REPAIR_SOURCE, and the commit before this fix for the control.
+  # The release that wrote the source: PHYSICS_REPAIR_SOURCE.
   SOURCE_RELEASE: bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
-  CONTROL_COMMIT: cb19d2327d5203180c908651f329dd7d6ccf57ce
   NODE_VERSION: "24.22.1"
 
 jobs:
@@ -95,63 +90,3 @@ jobs:
           path: |
             ${{ runner.temp }}/rehearsal.jsonl
             ${{ runner.temp }}/archive.txt
-
-  flies:
-    name: Flies ${{ matrix.fly }} ${{ matrix.seeds }}
-    if: github.repository == 'topherchris420/lop-nur-twin'
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 340
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Trapped before: 181, 182, 183, 185, 189, 190. And 205, the landing case.
-          - { fly: repaired, seeds: "181 182 183 184" }
-          - { fly: repaired, seeds: "185 186 187 188" }
-          - { fly: repaired, seeds: "189 190 191 192" }
-          - { fly: repaired, seeds: "201 202 203 204" }
-          - { fly: repaired, seeds: "205 206 207 208" }
-          - { fly: repaired, seeds: "209 210 211 212" }
-          # New seeds, both flies: nothing has been seen of these.
-          - { fly: repaired, seeds: "301 302 303 304" }
-          - { fly: repaired, seeds: "305 306 307 308" }
-          - { fly: repaired, seeds: "309 310 311 312" }
-          - { fly: control, seeds: "301 302 303 304" }
-          - { fly: control, seeds: "305 306 307 308" }
-          - { fly: control, seeds: "309 310 311 312" }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Choose the fly
-        env:
-          FLY: ${{ matrix.fly }}
-        run: |
-          if [ "$FLY" = control ]; then git checkout --quiet --detach "$CONTROL_COMMIT"; fi
-          PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
-      - name: Live 96 simulated hours each
-        timeout-minutes: 320
-        env:
-          SEEDS: ${{ matrix.seeds }}
-          FLY: ${{ matrix.fly }}
-        run: |
-          mkdir -p "$RUNNER_TEMP/out"
-          pids=()
-          for seed in $SEEDS; do
-            node --max-old-space-size=3584 scripts/run-ts.mjs scripts/echo-foodless-probe.ts \
-              --seeds "$seed" --hours 96 --out "$RUNNER_TEMP/out/$FLY-$seed.jsonl" &
-            pids+=($!)
-          done
-          status=0
-          for pid in "${pids[@]}"; do wait "$pid" || status=1; done
-          exit $status
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: flies-${{ matrix.fly }}-${{ strategy.job-index }}
-          retention-days: 90
-          path: ${{ runner.temp }}/out/
