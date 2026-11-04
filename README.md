@@ -408,7 +408,7 @@ What the recorded experiments establish:
   and they went from 83.5 meals to 120.0 in 96 simulated hours. The deployed fly went
   inside a building on November 1, 2026. On November 4 it crossed onto `digital-fly/9` by a
   recorded continuation, the same individual with its history kept, and the repaired
-  physics let it out 36 simulated minutes later. It has not eaten yet.
+  physics let it out 36 simulated minutes later. It first ate about 8 hours after that.
   [Report](docs/ECHO_COLLISION.md#the-cutover-as-it-ran).
 
 The model simplifies chemical signaling to signed synaptic effects and omits

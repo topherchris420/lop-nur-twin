@@ -1,8 +1,8 @@
 # ECHO collision repair: a body cannot enter a solid, and the deployed fly's life is kept
 
-**Status: applied to the deployed fly on 2026-11-04, and it left the building 36 simulated
-minutes later. The first replay with seals required has passed; it has not eaten yet.**
-[The cutover, as it ran](#the-cutover-as-it-ran) has the record, and what is still to be
+**Status: applied to the deployed fly on 2026-11-04. It left the building 36 simulated
+minutes later and first ate about 8 hours after that, and the first replay with seals
+required has passed.** [The cutover, as it ran](#the-cutover-as-it-ran) has the record, and what is still to be
 seen. What follows, up to that section, describes the fly and the plan as they stood
 before it.
 
@@ -471,21 +471,38 @@ The 13:23Z schedule had not started by 14:30Z, so this run was started by hand. 
 next replay of this release should continue from where it ended. Earlier checkpoints stay
 outside this check: `bdb7c02`'s seals cannot be reproduced (issue 162).
 
+### The first meals
+
+The deployed fly first ate at about 19:27Z, about 8 hours after it left the building, and
+its first food since 2026-11-01:
+
+| Reading  | **Before:** 19:27Z, first line with a meal | **After:** 19:34Z, end of that bout |
+| -------- | ------------------------------------------ | ----------------------------------- |
+| Position | (267.2, 4.3, 579.3), feeding               | (267.2, 4.3, 579.3), feeding        |
+| Meals    | 162, from 161                              | 174                                 |
+| Reserve  | 0.085                                      | 0.747                               |
+
+It stood at 175 by 20:33Z. The forecast's copy had its first meal at a different place,
+(193.72, 5.00, 398.12), about 3 hours sooner, as its parting from the fly implied.
+
+**What each part is:** programmed upkeep carried it to that meal, four more times between
+the exit and 19:27Z. Reaching food is not learned: remembered places stand at 0, and
+nothing here shows it was navigation either. The olfactory search's turns stayed at 17
+from 14:30Z to 20:36Z, so that search did not bring it there, and the journal does not
+say whether a long flight or chance did.
+
 ### Still to be seen
 
 Most of step 10 takes real time, and none of these is established yet:
 
-- **Staying out:** no `body-entered-solid` from the exit through checkpoint 2598, about 3
+- **Staying out:** no `body-entered-solid` from the exit through checkpoint 2669, about 9
   real hours.
-- **Eating:** meals still stand at 161, the last on 2026-11-01. The forecast's copy reached
-  food at (193.72, 5.00, 398.12), 5.4 simulated hours after checkpoint 2557, but it had
-  parted from the deployed fly long before, so that says nothing about when the fly will
-  eat.
 - **Self-model and memory under valid physics:** the self-model has resumed inquiring,
-  from 909 to 929 by 14:39Z, its first since 2026-11-01. Its conclusions have named causes
+  from 909 to 962 by 20:36Z, its first since 2026-11-01. Its conclusions have named causes
   again: its own speed (confirmed), then wind (revised, later confirmed). This is its
-  existing loop running on movement it can now make, and it shows nothing learned. Episodes
-  still stand at 24, trials at 7 and remembered places at 0, so it has formed no new memory
-  of food.
+  existing loop running on movement it can now make, and it shows nothing learned. It
+  keeps 24 episodes, its limit, and passes older ones to the archive: 53 since the
+  continuation, episodes 909 to 961. Through 14 more meals, the mushroom body's trials
+  stand at 7 and remembered places at 0, so eating has formed no new memory of food.
 - **The reports AGENTS.md asks for after a fly change:** the demonstrations, the
   individuality report and the ECHO report are still to come.
