@@ -52,6 +52,14 @@ unless marked otherwise.
 | ECHO-04    | **Inconclusive (under-powered by its pilot).** Without the workspace the busy fly concluded 0.69 s sooner on average (18.26 → 17.58 s; 2 seeds slower, 3 faster, 11 tied; p = 0.81), against the host's 30 s minimum effect ([FLY-14084ba1…](benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/report.md))                                                                                                         | Without the workspace: 1.00 s [0.29, 1.79] slower to conclude (8 seeds slower, 1 faster, 15 tied); without the attention schema 0.09 s [0, 0.25]                                                                                                                  |
 | ECHO-05    | **Inconclusive (under-powered by its pilot).** Without the second look the Brier score was 0.132 against 0.099 (+0.032; 11 of 16 seeds; p = 0.105), below the host's 0.2 minimum effect ([FLY-bdfb8327…](benchmarks/fly-behavior/FLY-bdfb8327413f5007cc987738/report.md))                                                                                                                                             | Without it: Brier score +0.088 [0.022, 0.163] (19 of 24 seeds), accuracy −0.097 [−0.175, −0.029], expected calibration error 0.20 against 0.12; on the report's development seeds it did slightly worse ([Failures](#failures-negative-findings-and-uncertainty)) |
 
+On `digital-fly/9`, from `e458f7c`, ECHO-01 and ECHO-02 met their criteria but the
+registry refused both, because git calls failed during the run
+([FLY-1b960a0c…](benchmarks/fly-behavior/FLY-1b960a0c37619b1c2807e19f/report.md),
+[FLY-eda2e216…](benchmarks/fly-behavior/FLY-eda2e21696a957edf381fadf/report.md)), so
+the table's registered results for them stay those above. ECHO-03, ECHO-04 and ECHO-05
+are still inconclusive, and the evaluation report changed no result
+([the collision record](ECHO_COLLISION.md#the-reports-after-a-fly-change)).
+
 The self-model's main measured value is compensation for impairments to
 its own body that it is never told about (ECHO-01). Its causal attribution
 generalizes partly: it is accurate and calibrated on development data, much

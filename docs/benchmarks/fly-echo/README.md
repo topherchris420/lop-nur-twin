@@ -1,11 +1,11 @@
 # Project ECHO evaluation: simulated characterization
 
 > **SIMULATED CHARACTERIZATION: a seeded run of a reduced-order simulator's functional self-model; not preregistered evidence, not evidence about Drosophila, not evidence of awareness or subjective experience.** Written by `node scripts/run-ts.mjs scripts/echo-evaluate.ts`
-> from `bfa6084`; `--check` reproduces it byte for byte. Never edit it by hand.
+> from `3e4ba59`; `--check` reproduces it byte for byte. Never edit it by hand.
 > What the numbers mean, and what they do not, is in
 > [docs/PROJECT_ECHO.md](../../PROJECT_ECHO.md).
 
-Fly digital-fly/8, self-model echo-self-model/v3, fly source `a96a496c4c00`.
+Fly digital-fly/9, self-model echo-self-model/v3, fly source `3a440f60616f`.
 24 evaluation seeds (SHA-256("echo-evaluation/v1|" + counter))
 and 24 development seeds (SHA-256("echo-development/v1|" + counter)),
 each drawing its own hidden schedule; both arms of a comparison share seeds,

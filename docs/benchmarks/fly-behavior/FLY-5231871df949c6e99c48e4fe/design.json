@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] ECHO-04: does holding one content in a workspace and broadcasting it let a fly with urges find out sooner that its body changed?",
+  "hypothesis": "[scripted] Without its workspace, a fly that often takes off and grooms takes longer to conclude that it changed itself after a hidden held-out impairment than with it.",
+  "competing_hypothesis": "[scripted] Its inquiry gets the evidence it needs whenever the fly walks, whatever else the fly does, so a workspace changes nothing.",
+  "parameters": {
+    "seed_count": 16,
+    "treatment": {
+      "kind": "echo_attention",
+      "variant": "no_workspace"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "busy_attribution_latency_s",
+    "expected_direction": "increase",
+    "minimum_effect": 30
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}

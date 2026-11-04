@@ -1,0 +1,1003 @@
+{
+  "schema": "rain-fly-record/v2",
+  "run_id": "FR-1e65186b1f7334ef2a7e3c6b",
+  "plan": {
+    "schema": "rain-fly-plan/v2",
+    "design": {
+      "schema": "rain-fly-design/v3",
+      "question": "[scripted] ECHO-01: does the fly's self-model let it walk where it intends after an impairment it is never told about?",
+      "hypothesis": "[scripted] Without its self-model, the fly's walking strays further from its intended path after a hidden impairment, from held-out conditions, than with it.",
+      "competing_hypothesis": "[scripted] The reduced-order controller's own feedback (turning back from edges, its tether) keeps its path as close to its intentions as a self-model would.",
+      "parameters": {
+        "seed_count": 9,
+        "treatment": {
+          "kind": "echo_impairment",
+          "variant": "reactive"
+        }
+      },
+      "analysis": {
+        "method": "matched_seed_sign_test",
+        "metric": "impaired_path_error",
+        "expected_direction": "increase",
+        "minimum_effect": 0.19
+      },
+      "budget": {
+        "max_simulated_seconds": 16000
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      }
+    },
+    "ir": {
+      "schema": "rain-scientific-experiment/v1",
+      "domain": "fly-behavior-simulation",
+      "backend": "digital-fly",
+      "backend_version": "digital-fly-behavior/v3 (digital-fly/9 reduced-order-fsm/v1)",
+      "question": "In the digital fly simulator, how does the ECHO controller with no self-model (the reduced-order controller alone) change mean path error of steady walking from the hidden impairment's onset to the end of the run, against the full ECHO self-model under the same hidden conditions on matched seeds?",
+      "hypothesis": "The ECHO controller with no self-model (the reduced-order controller alone) will increase impaired_path_error by at least 0.19 fraction on average over 9 matched seeds drawn after preregistration, compared with the full ECHO self-model under the same hidden conditions, and an exact one-sided sign test on the seeds that differ will find the increase at alpha 0.05.",
+      "observables": [
+        {
+          "id": "impaired_path_error",
+          "unit": "fraction",
+          "description": "mean path error of steady walking from the hidden impairment's onset to the end of the run"
+        },
+        {
+          "id": "late_path_error",
+          "unit": "fraction",
+          "description": "mean path error of steady walking over the run's last 40 s"
+        },
+        {
+          "id": "baseline_path_error",
+          "unit": "fraction",
+          "description": "mean path error of steady walking before the hidden impairment"
+        },
+        {
+          "id": "detection_latency_s",
+          "unit": "s",
+          "description": "time from the hidden impairment's onset to the fly's first noticing that its predictions fail (undefined without a self-model or if never noticed)"
+        },
+        {
+          "id": "attribution_latency_s",
+          "unit": "s",
+          "description": "time from the onset to the fly's first concluding that it changed itself (undefined without one)"
+        },
+        {
+          "id": "identification_error",
+          "unit": "fraction",
+          "description": "relative error of the fly's final beliefs about the impaired gains and biases against the hidden values (undefined without a self-model)"
+        },
+        {
+          "id": "false_alarms_per_min",
+          "unit": "1/min",
+          "description": "conclusions other than 'nothing changed' before the onset, per minute"
+        },
+        {
+          "id": "impaired_walked_m",
+          "unit": "m",
+          "description": "distance walked after the onset"
+        },
+        {
+          "id": "coverage_90",
+          "unit": "fraction",
+          "description": "share of observed self-motion components inside the fly's own predicted central 90% interval (0.9 is calibrated)"
+        },
+        {
+          "id": "mean_paired_delta",
+          "unit": "fraction",
+          "description": "treatment minus control impaired_path_error, averaged over the seeds where both are defined"
+        },
+        {
+          "id": "sign_test_p_expected",
+          "unit": "probability",
+          "description": "exact one-sided sign test p-value for a increase, over untied seeds"
+        },
+        {
+          "id": "sign_test_p_opposite",
+          "unit": "probability",
+          "description": "the same test in the opposite direction"
+        }
+      ],
+      "independent_variables": [
+        "the ECHO controller with no self-model (the reduced-order controller alone)"
+      ],
+      "dependent_variables": [
+        "impaired_path_error"
+      ],
+      "controls": [
+        "baseline arm: the full ECHO self-model under the same hidden conditions",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "fixed apparatus settings, both arms — impairment block: groomHz = 0, takeoffHz = 0, walkStartHz = 1, walkStopHz = 0.1",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "parameter_constraints": [
+        "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+        "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+        "the integration settings (physics, sensing and decision periods) are never varied",
+        "at most 16000 simulated fly-seconds per experiment",
+        "8-16 seeds, drawn by the host after preregistration",
+        "a minimum effect at or above the host's 0.09 fraction for impaired_path_error"
+      ],
+      "resource_budget": {
+        "execution_steps": 432000,
+        "replay_steps": 432000,
+        "max_samples": 18
+      },
+      "statistical_analysis": {
+        "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+        "independent_replicates": 9,
+        "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+      },
+      "falsification": {
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "unit": "probability"
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      },
+      "limitations": [
+        "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+        "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+        "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+        "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+        "Compensation is of abstract movement gains in the reduced-order simulator, not validated motor control; a strong impairment cannot be fully compensated within the body's 4 cm/s. Identification (the identification error) is measured apart from compensation (the path errors).",
+        "The ECHO self-model is a computational model of the fly's own sensorimotor gains, built over the reduced-order body. Its compensation acts on abstract movement gains of that body; it is not validated biological motor control, and FlyBody's physics does not run.",
+        "The perturbations are the experimenter's models of an impairment, a push, a turning surface, a sensor fault and an obstacle, applied by the simulator. The fly is never given their labels, causes or schedule; it meets only their consequences through its self-motion sense, its touch and its legs' stepping.",
+        "The conditions are the held-out evaluation set, in an arena the self-model was not developed in; its constants were chosen on the development set alone and frozen before evaluation.",
+        "A measurement of prediction, attribution or retention describes a functional self-model in a simulator. It is not evidence of awareness or subjective experience.",
+        "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+        "A result characterizes the simulator and is never empirical evidence about Drosophila."
+      ]
+    },
+    "fly": "digital-fly/9 reduced-order-fsm/v1",
+    "fly_sha256": "5d8d3589513b67c3b784c7fcc76029b36d3478bb885568e6c79666e2bac6ec7b",
+    "fly_source_sha256": "3a440f60616f2e78515dcf03a3cc689b54316140fb08d659c5310f63a4a83500",
+    "experiment": {
+      "schema": "digital-fly-experiment/v3",
+      "protocol": "echo_impairment",
+      "seed_count": 9,
+      "blocks": [
+        {
+          "id": "impairment",
+          "arena": {
+            "size": [
+              3,
+              2.5,
+              3
+            ],
+            "ambient": 0.6,
+            "pillars": [
+              {
+                "x": -0.75,
+                "z": -0.75,
+                "r": 0.05
+              },
+              {
+                "x": -0.75,
+                "z": 0.75,
+                "r": 0.05
+              },
+              {
+                "x": 0.75,
+                "z": -0.75,
+                "r": 0.05
+              },
+              {
+                "x": 0.75,
+                "z": 0.75,
+                "r": 0.05
+              }
+            ]
+          },
+          "fixed_config": {
+            "takeoffHz": 0,
+            "groomHz": 0,
+            "walkStartHz": 1,
+            "walkStopHz": 0.1
+          },
+          "start_half_width_m": 0.4,
+          "tick_s": 0.05,
+          "duration_s": 120,
+          "trials": 1,
+          "light_at": null,
+          "near_miss_m": null,
+          "stimulus": null,
+          "echo": {
+            "schedule": "impairment",
+            "conditions": "evaluation",
+            "condition_set": [
+              {
+                "id": "speed_gain",
+                "cause": "self",
+                "effects": [
+                  {
+                    "field": "speedGain",
+                    "bands": [
+                      [
+                        0.35,
+                        0.45
+                      ],
+                      [
+                        0.65,
+                        0.75
+                      ]
+                    ],
+                    "signed": false
+                  }
+                ]
+              },
+              {
+                "id": "turn_gain",
+                "cause": "self",
+                "effects": [
+                  {
+                    "field": "turnGain",
+                    "bands": [
+                      [
+                        0.35,
+                        0.5
+                      ],
+                      [
+                        0.7,
+                        0.8
+                      ]
+                    ],
+                    "signed": false
+                  }
+                ]
+              },
+              {
+                "id": "turn_bias",
+                "cause": "self",
+                "effects": [
+                  {
+                    "field": "turnBias",
+                    "bands": [
+                      [
+                        0.4,
+                        0.6
+                      ],
+                      [
+                        1,
+                        1.4
+                      ]
+                    ],
+                    "signed": true
+                  }
+                ]
+              },
+              {
+                "id": "speed_and_turn_gain",
+                "cause": "self",
+                "effects": [
+                  {
+                    "field": "speedGain",
+                    "bands": [
+                      [
+                        0.45,
+                        0.7
+                      ]
+                    ],
+                    "signed": false
+                  },
+                  {
+                    "field": "turnGain",
+                    "bands": [
+                      [
+                        0.5,
+                        0.8
+                      ]
+                    ],
+                    "signed": false
+                  }
+                ]
+              },
+              {
+                "id": "speed_gain_and_turn_bias",
+                "cause": "self",
+                "effects": [
+                  {
+                    "field": "speedGain",
+                    "bands": [
+                      [
+                        0.45,
+                        0.7
+                      ]
+                    ],
+                    "signed": false
+                  },
+                  {
+                    "field": "turnBias",
+                    "bands": [
+                      [
+                        0.5,
+                        1.2
+                      ]
+                    ],
+                    "signed": true
+                  }
+                ]
+              }
+            ],
+            "onset_s": [
+              30,
+              40
+            ],
+            "onsets_s": [
+              20,
+              55,
+              90,
+              125
+            ],
+            "jitter_s": 3,
+            "episode_s": [
+              15,
+              22
+            ],
+            "persistent_last": 0.5,
+            "phases_s": [
+              25,
+              65,
+              90,
+              125,
+              150,
+              185,
+              210
+            ],
+            "window_s": 1,
+            "reexposure_s": 10
+          }
+        }
+      ],
+      "arms": [
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "full",
+            "reset_s": null
+          },
+          "id": "control"
+        },
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "reactive",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      ]
+    },
+    "simulated_seconds": 2160,
+    "criteria": {
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 18,
+          "note": "Every matched run completes"
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "note": "An independent re-simulation reproduces every state hash and measurement"
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "note": "Enough seeds differ between the arms for the sign test"
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "note": "The fly's gate refused no command in any run"
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": ">=",
+          "value": 0.19,
+          "note": "Mean paired difference beyond the minimum effect"
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test in the expected direction"
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test finds the opposite direction"
+        }
+      ]
+    },
+    "definition_sha256": "1b960a0c37619b1c2807e19f8c7b12b3f176421079be1c4bfd3db18ccdee987b",
+    "experiment_id": "FLY-1b960a0c37619b1c2807e19f"
+  },
+  "preregistration": {
+    "experiment_id": "V3D-EXP-0007",
+    "registry_definition_sha256": "dcc05ab3c687b3c9fb2741b32a487a4bb36c433c9aa3858c1b19568b344af896",
+    "plan_sha256": "1b960a0c37619b1c2807e19f8c7b12b3f176421079be1c4bfd3db18ccdee987b",
+    "created_at": "2026-11-04T14:55:31.430Z"
+  },
+  "authorization": {
+    "schema": "rain-fly-authorization/v2",
+    "experiment_id": "FLY-1b960a0c37619b1c2807e19f",
+    "definition_sha256": "1b960a0c37619b1c2807e19f8c7b12b3f176421079be1c4bfd3db18ccdee987b",
+    "registry_experiment_id": "V3D-EXP-0007",
+    "preregistration_sha256": "5acc2fb481becf97213d5a3dac12d416bafda895b26564ca80c3b859710e697e",
+    "registered_at": "2026-11-04T14:55:31.430Z",
+    "nonce": "26172d9fe9d38d5a47bf082c931a9be90cb95efbaac5d639f8d56144927f2247",
+    "channel": "script",
+    "operator": "Scripted.DemoOperator",
+    "attestation": "demonstration-script",
+    "identity_verified": false,
+    "human_design_attested": false,
+    "scope": "fly-behavior-simulation",
+    "confirmed_prefix": "1b960a0c",
+    "authorized_at": "2026-11-04T14:55:31.555Z",
+    "expires_at": "2026-11-04T15:55:31.555Z",
+    "authorization_sha256": "57ccb6192f247010eed966ed13601d02fc68d674a896be74bda89beef5d6eeaf"
+  },
+  "seeds": [
+    1639256781,
+    2993303505,
+    1172057280,
+    3083891712,
+    1586130615,
+    3744538762,
+    829849416,
+    3846242583,
+    3513805656
+  ],
+  "engine": {
+    "runtime": "node",
+    "version": "24.19.0",
+    "js": "V8 13.6.233.17-node.51"
+  },
+  "code": {
+    "commit": "e458f7cb34904d85127779a3700c26b376ab4a80",
+    "dirty": false
+  },
+  "development": false,
+  "started_at": "2026-11-04T14:55:31.557Z",
+  "finished_at": "2026-11-04T14:55:51.723Z",
+  "result": {
+    "runs": [
+      {
+        "arm": "control",
+        "seed": 1639256781,
+        "block": "impairment",
+        "final_hashes": [
+          "bf2172bb06d031c5"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.2840960623778902,
+          "late_path_error": 0.36642936296062767,
+          "baseline_path_error": 0.014389470381945631,
+          "detection_latency_s": 0.25,
+          "attribution_latency_s": 3.1999999999999993,
+          "identification_error": 0.007224593220984044,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.118722726855285,
+          "coverage_90": 0.9079737466834241
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1639256781,
+        "block": "impairment",
+        "final_hashes": [
+          "c5fdab1cfc0649d7"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.6079602560268241,
+          "late_path_error": 0.6089691765270566,
+          "baseline_path_error": 0.00008779701399630405,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 0.6576182146401004,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2993303505,
+        "block": "impairment",
+        "final_hashes": [
+          "007729af45565394"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.2673911264512668,
+          "late_path_error": 0.31551856965730546,
+          "baseline_path_error": 0.011066762420059807,
+          "detection_latency_s": 1.0499999999999972,
+          "attribution_latency_s": 4.049999999999997,
+          "identification_error": 0.018805899304224216,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1266205022784013,
+          "coverage_90": 0.9016324822101298
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2993303505,
+        "block": "impairment",
+        "final_hashes": [
+          "ddb3fee6303bd64e"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.5775203540746691,
+          "late_path_error": 0.5766580652362492,
+          "baseline_path_error": 0.0016289941714637873,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 0.7143288777547038,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 1172057280,
+        "block": "impairment",
+        "final_hashes": [
+          "aba68790b0946a84"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.025821800564332087,
+          "late_path_error": 0.008013690200157672,
+          "baseline_path_error": 0.029996740744744305,
+          "detection_latency_s": 0.19999999999999574,
+          "attribution_latency_s": 3.1999999999999957,
+          "identification_error": 0.011448830282407643,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.3290798083626822,
+          "coverage_90": 0.905041195363776
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1172057280,
+        "block": "impairment",
+        "final_hashes": [
+          "7011c55346f7575a"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.4407492416170248,
+          "late_path_error": 0.4399677871423127,
+          "baseline_path_error": 0.0025748085868683127,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 0.7951091335781117,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3083891712,
+        "block": "impairment",
+        "final_hashes": [
+          "89545601c750f198"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.01631280338122743,
+          "late_path_error": 0.015497291347629033,
+          "baseline_path_error": 0.019045858750073225,
+          "detection_latency_s": 0.29999999999999716,
+          "attribution_latency_s": 3.25,
+          "identification_error": 0.005306362086185206,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.0732713292435183,
+          "coverage_90": 0.9094839609483961
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3083891712,
+        "block": "impairment",
+        "final_hashes": [
+          "29101fe34f9d8ef1"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.254168717173007,
+          "late_path_error": 0.25357721469535055,
+          "baseline_path_error": 0.0004403300440995615,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 0.8397677839055648,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 1586130615,
+        "block": "impairment",
+        "final_hashes": [
+          "64c99aa4b4cef904"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.01392551996688826,
+          "late_path_error": 0.0051216258109393975,
+          "baseline_path_error": 0.008977394951488851,
+          "detection_latency_s": 0.05000000000000426,
+          "attribution_latency_s": 4.5,
+          "identification_error": 0.02592604679225249,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2655243378877408,
+          "coverage_90": 0.9016324822101298
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1586130615,
+        "block": "impairment",
+        "final_hashes": [
+          "05addf883835c265"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.5814716413405769,
+          "late_path_error": 0.581131571004826,
+          "baseline_path_error": 0.00017998902932553769,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 1.6587123460612474,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3744538762,
+        "block": "impairment",
+        "final_hashes": [
+          "02f455177e60056c"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.05048992418007968,
+          "late_path_error": 0.0208816088191945,
+          "baseline_path_error": 0.01230775435129704,
+          "detection_latency_s": 0.10000000000000142,
+          "attribution_latency_s": 3.1499999999999986,
+          "identification_error": 0.02804943862597898,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.3921105570743235,
+          "coverage_90": 0.905169951442445
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3744538762,
+        "block": "impairment",
+        "final_hashes": [
+          "822e681a799b5e78"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.46858345553770825,
+          "late_path_error": 0.4683060983502764,
+          "baseline_path_error": 0.00041020715472923035,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 1.0271978386494183,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 829849416,
+        "block": "impairment",
+        "final_hashes": [
+          "fd32607431b5daa7"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.010095401495231367,
+          "late_path_error": 0.009425057777890853,
+          "baseline_path_error": 0.01341938530314802,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 3.1499999999999986,
+          "identification_error": 0.025523744706989936,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.1272486700197843,
+          "coverage_90": 0.9077568134171907
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 829849416,
+        "block": "impairment",
+        "final_hashes": [
+          "2eed94ade660a8c7"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.648280897922758,
+          "late_path_error": 0.6459756772059418,
+          "baseline_path_error": 0.0001099667183378252,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 1.1931361784105563,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3846242583,
+        "block": "impairment",
+        "final_hashes": [
+          "946ef2edd19f2db8"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.0068017532884380085,
+          "late_path_error": 0.004299734981507781,
+          "baseline_path_error": 0.009382177829947169,
+          "detection_latency_s": 2.599999999999998,
+          "attribution_latency_s": 5.349999999999998,
+          "identification_error": 0.006031708745312615,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.7500696461972798,
+          "coverage_90": 0.9070323488045007
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3846242583,
+        "block": "impairment",
+        "final_hashes": [
+          "c5ea260a1d62cc87"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.07505856737634946,
+          "late_path_error": 0.07113699106173084,
+          "baseline_path_error": 0.0020783930259523666,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 1.702840194767708,
+          "coverage_90": null
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3513805656,
+        "block": "impairment",
+        "final_hashes": [
+          "d823c02ecd69e57f"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.10196914125154105,
+          "late_path_error": 0.11833764591599259,
+          "baseline_path_error": 0.00887657670430756,
+          "detection_latency_s": 0.04999999999999716,
+          "attribution_latency_s": 3.25,
+          "identification_error": 0.008529600396326211,
+          "false_alarms_per_min": 0,
+          "impaired_walked_m": 1.2150337838179681,
+          "coverage_90": 0.9087734003911707
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3513805656,
+        "block": "impairment",
+        "final_hashes": [
+          "edf86a057ab11133"
+        ],
+        "simulated_s": 120,
+        "gate_refusals": 0,
+        "metrics": {
+          "impaired_path_error": 0.6089617468614084,
+          "late_path_error": 0.6118645183962076,
+          "baseline_path_error": 0.0006638319225687168,
+          "detection_latency_s": null,
+          "attribution_latency_s": null,
+          "identification_error": null,
+          "false_alarms_per_min": null,
+          "impaired_walked_m": 0.7296696546536362,
+          "coverage_90": null
+        }
+      }
+    ],
+    "completed": true,
+    "measurements": {
+      "runs_completed": 18,
+      "determinism_check": 1,
+      "seeds": 9,
+      "simulated_seconds": 2160,
+      "gate_refusals": 0,
+      "control_gate_refusals": 0,
+      "treatment_gate_refusals": 0,
+      "control_mean": 0.08632261477298833,
+      "treatment_mean": 0.47363943088114735,
+      "mean_paired_delta": 0.38731681610815893,
+      "seeds_expected_direction": 9,
+      "seeds_opposite": 0,
+      "seeds_unchanged": 0,
+      "seeds_undefined": 0,
+      "untied_pairs": 9,
+      "sign_test_p_expected": 0.001953125,
+      "sign_test_p_opposite": 1,
+      "control_informative": 1,
+      "control_impaired_path_error": 0.08632261477298833,
+      "treatment_impaired_path_error": 0.47363943088114735,
+      "control_late_path_error": 0.09594717638569389,
+      "treatment_late_path_error": 0.47306523329110584,
+      "control_baseline_path_error": 0.014162457937445734,
+      "treatment_baseline_path_error": 0.0009082575185935158,
+      "control_detection_latency_s": 0.5166666666666653,
+      "treatment_detection_latency_s": null,
+      "control_attribution_latency_s": 3.6777777777777763,
+      "treatment_attribution_latency_s": null,
+      "control_identification_error": 0.015205136017851263,
+      "treatment_identification_error": null,
+      "control_false_alarms_per_min": 0,
+      "treatment_false_alarms_per_min": null,
+      "control_impaired_walked_m": 1.2664090401929982,
+      "treatment_impaired_walked_m": 1.0353755802690054,
+      "control_coverage_90": 0.9060551534967958,
+      "treatment_coverage_90": null
+    },
+    "status": "passed",
+    "verdict": "supported",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 18,
+          "observed": 18,
+          "holds": true
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "observed": 9,
+          "holds": true
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "observed": 0,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": ">=",
+          "value": 0.19,
+          "observed": 0.38731681610815893,
+          "holds": true
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 0.001953125,
+          "holds": true
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 1,
+          "holds": false
+        }
+      ],
+      "summary": "All 2 success criteria held and no failure criterion triggered."
+    },
+    "error": null
+  },
+  "evidence_class": "simulated",
+  "sha256": "c17f976e8aa52dc144d5ba0d09dd3792ecdd29bb576dc9c9872b94308f4acfac"
+}

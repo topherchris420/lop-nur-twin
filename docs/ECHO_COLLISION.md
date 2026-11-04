@@ -468,8 +468,11 @@ It passed, on the backup `bethesda-life-20261104T121554Z-e458f7cb3490.tar.gz`, i
 
 The 13:23Z schedule had not started by 14:30Z, so this run was started by hand. It covers
 15 simulated minutes after the fly left, and neither the continuation nor the exit. The
-next replay of this release should continue from where it ended. Earlier checkpoints stay
-outside this check: `bdb7c02`'s seals cannot be reproduced (issue 162).
+next scheduled replay continued from where it ended
+([run 41906800876](https://github.com/topherchris420/lop-nur-twin/actions/runs/41906800876)):
+checkpoints 2569 to 2639, 210,002 ticks, 70 of 70 seals, ending before the first meal.
+Earlier checkpoints stay outside this check: `bdb7c02`'s seals cannot be reproduced
+(issue 162).
 
 ### The first meals
 
@@ -491,6 +494,31 @@ nothing here shows it was navigation either. The olfactory search's turns stayed
 from 14:30Z to 20:36Z, so that search did not bring it there, and the journal does not
 say whether a long flight or chance did.
 
+### The reports after a fly change
+
+These ran on `digital-fly/9` from clean commits, on Windows on ARM64 with Node 24.19.0.
+The ECHO, individuality and Study C reports changed no result: only version labels, the
+hashes that include them, and checkpoint sizes by a byte or two.
+
+The demonstrations are in [the archive](benchmarks/fly-behavior/README.md), and `--verify`
+re-simulated all 11 exactly:
+
+| Outcome                         | Demonstrations                                                  |
+| ------------------------------- | --------------------------------------------------------------- |
+| Passed, admitted                | Visual threat, noisy sensing, adaptation, controller comparison |
+| Inconclusive, admitted          | Obstacle avoidance, light preference, ECHO-03, ECHO-04, ECHO-05 |
+| Passed, refused by the registry | ECHO-01, ECHO-02                                                |
+
+- **The two refusals are the run's, not the fly's.** Git calls failed during the run: one
+  could not read the commit, one could not read the tree's state. The run sat idle for
+  5 h 40 min between them, with the laptop's battery at 3% when it resumed. Git works now,
+  and the cause was not isolated. A plan never runs again over its record, so both stay
+  not admitted until the fly's code changes.
+- **Obstacle avoidance is new.** It passed 3 of 3 on `digital-fly/8` and here fell just
+  short of its minimum effect (−0.116 against −0.12, p = 0.002). The pilots on the two
+  versions were the same bytes, so the seeds drawn are the likely reason. One run does not
+  establish that.
+
 ### Still to be seen
 
 Most of step 10 takes real time, and none of these is established yet:
@@ -504,5 +532,3 @@ Most of step 10 takes real time, and none of these is established yet:
   keeps 24 episodes, its limit, and passes older ones to the archive: 53 since the
   continuation, episodes 909 to 961. Through 14 more meals, the mushroom body's trials
   stand at 7 and remembered places at 0, so eating has formed no new memory of food.
-- **The reports AGENTS.md asks for after a fly change:** the demonstrations, the
-  individuality report and the ECHO report are still to come.

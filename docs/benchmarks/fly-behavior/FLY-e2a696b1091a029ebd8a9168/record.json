@@ -1,0 +1,833 @@
+{
+  "schema": "rain-fly-record/v2",
+  "run_id": "FR-7cdba8e851ed7ab4fe95c15f",
+  "plan": {
+    "schema": "rain-fly-plan/v2",
+    "design": {
+      "schema": "rain-fly-design/v3",
+      "question": "[scripted] Does a faster looming approach (smaller l/v) make the simulated fly escape later, closer to collision?",
+      "hypothesis": "[scripted] At l/v = 40 ms the fly escapes with less time to collision than at l/v = 160 ms, as an angular-size threshold predicts.",
+      "competing_hypothesis": "[scripted] The escape proxy fires at a fixed time before collision whatever the approach speed.",
+      "parameters": {
+        "seed_count": 9,
+        "treatment": {
+          "kind": "visual_threat",
+          "control_l_over_v_ms": 160,
+          "treatment_l_over_v_ms": 40
+        }
+      },
+      "analysis": {
+        "method": "matched_seed_sign_test",
+        "metric": "escape_ttc_s",
+        "expected_direction": "decrease",
+        "minimum_effect": 0.28
+      },
+      "budget": {
+        "max_simulated_seconds": 16000
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      }
+    },
+    "ir": {
+      "schema": "rain-scientific-experiment/v1",
+      "domain": "fly-behavior-simulation",
+      "backend": "digital-fly",
+      "backend_version": "digital-fly-behavior/v3 (digital-fly/9 reduced-order-fsm/v1)",
+      "question": "In the digital fly simulator, how does a sphere of 4 cm radius approaching the standing fly at l/v = 40 ms (1.00 m/s) change mean time to collision at the escape decision, over escapes: how long the sphere's centre would still have taken to reach the fly at its approach speed (negative once it would have passed), against the same sphere on the same lines approaching at l/v = 160 ms (0.25 m/s) on matched seeds?",
+      "hypothesis": "A sphere of 4 cm radius approaching the standing fly at l/v = 40 ms (1.00 m/s) will decrease escape_ttc_s by at least 0.28 s on average over 9 matched seeds drawn after preregistration, compared with the same sphere on the same lines approaching at l/v = 160 ms (0.25 m/s), and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+      "observables": [
+        {
+          "id": "escape_probability",
+          "unit": "fraction",
+          "description": "fraction of single-stimulus trials answered by an escape takeoff"
+        },
+        {
+          "id": "escape_ttc_s",
+          "unit": "s",
+          "description": "mean time to collision at the escape decision, over escapes: how long the sphere's centre would still have taken to reach the fly at its approach speed (negative once it would have passed)"
+        },
+        {
+          "id": "escape_latency_s",
+          "unit": "s",
+          "description": "mean time from stimulus onset to the escape decision, over escapes"
+        },
+        {
+          "id": "size_at_escape_deg",
+          "unit": "deg",
+          "description": "mean angular size of the stimulus at the escape decision"
+        },
+        {
+          "id": "short_mode_fraction",
+          "unit": "fraction",
+          "description": "fraction of escapes that took the short (fast) takeoff"
+        },
+        {
+          "id": "mean_paired_delta",
+          "unit": "s",
+          "description": "treatment minus control escape_ttc_s, averaged over the seeds where both are defined"
+        },
+        {
+          "id": "sign_test_p_expected",
+          "unit": "probability",
+          "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+        },
+        {
+          "id": "sign_test_p_opposite",
+          "unit": "probability",
+          "description": "the same test in the opposite direction"
+        }
+      ],
+      "independent_variables": [
+        "a sphere of 4 cm radius approaching the standing fly at l/v = 40 ms (1.00 m/s)"
+      ],
+      "dependent_variables": [
+        "escape_ttc_s"
+      ],
+      "controls": [
+        "baseline arm: the same sphere on the same lines approaching at l/v = 160 ms (0.25 m/s)",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "fixed apparatus settings, both arms — escape block: groomHz = 0, takeoffHz = 0, walkStartHz = 0",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "parameter_constraints": [
+        "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+        "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+        "the integration settings (physics, sensing and decision periods) are never varied",
+        "at most 16000 simulated fly-seconds per experiment",
+        "8-16 seeds, drawn by the host after preregistration",
+        "a minimum effect at or above the host's 0.02 s for escape_ttc_s"
+      ],
+      "resource_budget": {
+        "execution_steps": 79200,
+        "replay_steps": 79200,
+        "max_samples": 18
+      },
+      "statistical_analysis": {
+        "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+        "independent_replicates": 9,
+        "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+      },
+      "falsification": {
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "unit": "probability"
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      },
+      "limitations": [
+        "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+        "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+        "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+        "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+        "Escape probability cannot carry the dose-response here: the proxy's size term alone reaches the threshold before the sphere stops, so the fly escapes from nearly every looming stimulus, and a control at an l/v of 40 ms or more sits at its ceiling. The timing (escape_ttc_s) carries it.",
+        "Looming stimuli are visual objects only: the fly sees them but cannot touch them, and escape is a giant-fiber proxy, not a modelled neuron.",
+        "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+        "A result characterizes the simulator and is never empirical evidence about Drosophila."
+      ]
+    },
+    "fly": "digital-fly/9 reduced-order-fsm/v1",
+    "fly_sha256": "5d8d3589513b67c3b784c7fcc76029b36d3478bb885568e6c79666e2bac6ec7b",
+    "fly_source_sha256": "3a440f60616f2e78515dcf03a3cc689b54316140fb08d659c5310f63a4a83500",
+    "experiment": {
+      "schema": "digital-fly-experiment/v3",
+      "protocol": "visual_threat",
+      "seed_count": 9,
+      "blocks": [
+        {
+          "id": "escape",
+          "arena": {
+            "size": [
+              4,
+              2.5,
+              4
+            ],
+            "ambient": 0.6,
+            "pillars": []
+          },
+          "fixed_config": {
+            "takeoffHz": 0,
+            "walkStartHz": 0,
+            "groomHz": 0
+          },
+          "start_half_width_m": 0.8,
+          "tick_s": 0.005,
+          "duration_s": 0.3,
+          "trials": 6,
+          "light_at": null,
+          "near_miss_m": null,
+          "stimulus": {
+            "radius_m": 0.04,
+            "start_distance_m": 1,
+            "final_size_deg": [
+              90,
+              90
+            ],
+            "elevation_deg": [
+              10,
+              40
+            ],
+            "azimuth_deg": [
+              -180,
+              180
+            ],
+            "onset_s": 1,
+            "l_over_v_ms": 40
+          }
+        }
+      ],
+      "arms": [
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 160,
+          "isi_s": 90,
+          "id": "control"
+        },
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "id": "treatment"
+        }
+      ]
+    },
+    "simulated_seconds": 396,
+    "criteria": {
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 18,
+          "note": "Every matched run completes"
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "note": "An independent re-simulation reproduces every state hash and measurement"
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "note": "Enough seeds differ between the arms for the sign test"
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "note": "The fly's gate refused no command in any run"
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.28,
+          "note": "Mean paired difference beyond the minimum effect"
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test in the expected direction"
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test finds the opposite direction"
+        }
+      ]
+    },
+    "definition_sha256": "e2a696b1091a029ebd8a916811762b45f288ae79a37ccd871c845015e50980e7",
+    "experiment_id": "FLY-e2a696b1091a029ebd8a9168"
+  },
+  "preregistration": {
+    "experiment_id": "V3D-EXP-0003",
+    "registry_definition_sha256": "0e6e2292bdb89767aea0a55354b78b716abf72c5a3a3fd459fd12e74ebe237f8",
+    "plan_sha256": "e2a696b1091a029ebd8a916811762b45f288ae79a37ccd871c845015e50980e7",
+    "created_at": "2026-11-04T14:47:53.533Z"
+  },
+  "authorization": {
+    "schema": "rain-fly-authorization/v2",
+    "experiment_id": "FLY-e2a696b1091a029ebd8a9168",
+    "definition_sha256": "e2a696b1091a029ebd8a916811762b45f288ae79a37ccd871c845015e50980e7",
+    "registry_experiment_id": "V3D-EXP-0003",
+    "preregistration_sha256": "520c097332eeb817b864ee243ab820393cff1bc6038fcb225829fba95bf0e96f",
+    "registered_at": "2026-11-04T14:47:53.533Z",
+    "nonce": "af67e632319fbe15262197c59a9187bc5fcccad7361ae54416a9c33e9f88b0a3",
+    "channel": "script",
+    "operator": "Scripted.DemoOperator",
+    "attestation": "demonstration-script",
+    "identity_verified": false,
+    "human_design_attested": false,
+    "scope": "fly-behavior-simulation",
+    "confirmed_prefix": "e2a696b1",
+    "authorized_at": "2026-11-04T14:47:53.659Z",
+    "expires_at": "2026-11-04T15:47:53.659Z",
+    "authorization_sha256": "1d661dda1930459009a11f48ca8806faed52bd022defa03a254a2cf62fa78fda"
+  },
+  "seeds": [
+    1255216349,
+    2191044148,
+    475990075,
+    1531547111,
+    1906174764,
+    3423457033,
+    3033580031,
+    3581934214,
+    117827806
+  ],
+  "engine": {
+    "runtime": "node",
+    "version": "24.19.0",
+    "js": "V8 13.6.233.17-node.51"
+  },
+  "code": {
+    "commit": "e458f7cb34904d85127779a3700c26b376ab4a80",
+    "dirty": false
+  },
+  "development": false,
+  "started_at": "2026-11-04T14:47:53.662Z",
+  "finished_at": "2026-11-04T14:47:56.964Z",
+  "result": {
+    "runs": [
+      {
+        "arm": "control",
+        "seed": 1255216349,
+        "block": "escape",
+        "final_hashes": [
+          "8a9e6f85f48c09c9",
+          "f2c14b2b228f5f16",
+          "6e7f671ef7f38377",
+          "8579e1c1b6d3672e",
+          "3e548dec4d9b764c",
+          "b7aa2e4a275ddc80"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1255216349,
+        "block": "escape",
+        "final_hashes": [
+          "a2bd54c9ccc6b585",
+          "eed8b2c6bdf08774",
+          "3ad3db0134511b94",
+          "3c317852d3d41087",
+          "213961c1f8e60f73",
+          "71c608e0b3c559ed"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09333333333333331,
+          "escape_latency_s": 0.9066666666666667,
+          "size_at_escape_deg": 50.85926626256259,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2191044148,
+        "block": "escape",
+        "final_hashes": [
+          "eb283da2dbce3ebd",
+          "09c99253f68f43d1",
+          "fecb4c757c32ff16",
+          "4a7c5d0ecde9d20a",
+          "13f07e9d5b5ea79a",
+          "bfaf8d7d64d7c43d"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3499999999999998,
+          "escape_latency_s": 3.65,
+          "size_at_escape_deg": 56.07015348987421,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2191044148,
+        "block": "escape",
+        "final_hashes": [
+          "d5aa7baf60980ac2",
+          "89acba19e0a11b2e",
+          "a6a54d3ba7e1f508",
+          "28f1766e39ab0d71",
+          "81a95f6140586a1f",
+          "f1ad6cabd81c919b"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.07333333333333329,
+          "escape_latency_s": 0.9266666666666667,
+          "size_at_escape_deg": 63.20141649382261,
+          "short_mode_fraction": 0.3333333333333333
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 475990075,
+        "block": "escape",
+        "final_hashes": [
+          "b1a7910e690efce7",
+          "676be437a34d0db4",
+          "285e24250d5a3d1b",
+          "6a87020c0ffe48b9",
+          "62bd93a769fa1ff3",
+          "8448eff8026d54b1"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3533333333333332,
+          "escape_latency_s": 3.646666666666667,
+          "size_at_escape_deg": 55.52639459162699,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 475990075,
+        "block": "escape",
+        "final_hashes": [
+          "1975cbd9f855e298",
+          "c6b8052a93b33605",
+          "548e8448526b2cb1",
+          "ae450c3c000f16da",
+          "0f5dcbb06585f368",
+          "6159afc5eba54929"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.07499999999999996,
+          "escape_latency_s": 0.9250000000000002,
+          "size_at_escape_deg": 63.2014164938226,
+          "short_mode_fraction": 0.3333333333333333
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 1531547111,
+        "block": "escape",
+        "final_hashes": [
+          "54cfb614c39e6f17",
+          "51267611eb656701",
+          "c58908dfcd510da0",
+          "d283106d6e950198",
+          "c7e354977b671e3a",
+          "58c2045e458dea0a"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342562,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1531547111,
+        "block": "escape",
+        "final_hashes": [
+          "4dc912d0fbc0cd27",
+          "9e659fb5afd1583a",
+          "9c612e528dd7ef86",
+          "48a1ffe1943fe0ee",
+          "a76e26700b01a08f",
+          "5a465dc4d2bf6ab4"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08999999999999997,
+          "escape_latency_s": 0.9100000000000001,
+          "size_at_escape_deg": 54.16172809889563,
+          "short_mode_fraction": 0.16666666666666666
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 1906174764,
+        "block": "escape",
+        "final_hashes": [
+          "375bfbfa9203c784",
+          "9a0e4e0b694f7982",
+          "7d8750f306015e43",
+          "f0ded2cb9ed72967",
+          "0483a85e111d5825",
+          "59bed09d98760378"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3616666666666665,
+          "escape_latency_s": 3.638333333333333,
+          "size_at_escape_deg": 54.51781040920233,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1906174764,
+        "block": "escape",
+        "final_hashes": [
+          "b78d6b173817fc07",
+          "ffa361d3df860a92",
+          "9b06397311c628d0",
+          "f1315d17acf9b4cd",
+          "d95e5de7fd6b6f10",
+          "8eba9f830bc83862"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.0833333333333333,
+          "escape_latency_s": 0.9166666666666669,
+          "size_at_escape_deg": 56.50177061727829,
+          "short_mode_fraction": 0.16666666666666666
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3423457033,
+        "block": "escape",
+        "final_hashes": [
+          "a40fb8cd29b0efd0",
+          "01afbfaa60df66b9",
+          "64d7149b13762ae3",
+          "cc02198ce3a617fd",
+          "d071d9230673d93c",
+          "a30d9c06e42571da"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3423457033,
+        "block": "escape",
+        "final_hashes": [
+          "9ecd8681d02db427",
+          "fefd219c872e4e70",
+          "22f9afbfd80ec55d",
+          "a545d65f9348c9be",
+          "d59ffc7218bc1be9",
+          "a8b8acc3bd50126d"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09166666666666663,
+          "escape_latency_s": 0.9083333333333335,
+          "size_at_escape_deg": 52.245421495779,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3033580031,
+        "block": "escape",
+        "final_hashes": [
+          "fd44e2e9c557a300",
+          "1b2021e4bb60c0e4",
+          "51e6755f1617e97e",
+          "ae4e8edc70ce9ef3",
+          "13fee9b11b3e2d73",
+          "96a5047087bbc87f"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3033580031,
+        "block": "escape",
+        "final_hashes": [
+          "b234baa62a88c54d",
+          "385e31690186ec04",
+          "91851f2ab2d7df80",
+          "ca05cf7109ed7ede",
+          "1ad9f39c1389b37a",
+          "dd1ec6722c21a1b4"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.08999999999999997,
+          "escape_latency_s": 0.91,
+          "size_at_escape_deg": 53.30256301760764,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3581934214,
+        "block": "escape",
+        "final_hashes": [
+          "2214cb36c91862fa",
+          "7bc342018395c9f5",
+          "11a4a9d31b255316",
+          "4b674494669ba54e",
+          "379d8988ff16b001",
+          "8e51ab0129358083"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3581934214,
+        "block": "escape",
+        "final_hashes": [
+          "30d291304a03448f",
+          "31c06c882623a44c",
+          "0517edc9d552ed8e",
+          "dbd3d5bc8dd1088a",
+          "d075483c886a14f1",
+          "f9ef052a8a518d2e"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.80212474073394,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 117827806,
+        "block": "escape",
+        "final_hashes": [
+          "757a569dfdc7a003",
+          "5d292f839a4f8960",
+          "a6097cbe34435a8a",
+          "3d446a62e73e20e5",
+          "33ac137694539ef3",
+          "0d3367902f71b890"
+        ],
+        "simulated_s": 30.45,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.3849999999999998,
+          "escape_latency_s": 3.6150000000000007,
+          "size_at_escape_deg": 49.11225061342561,
+          "short_mode_fraction": 0
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 117827806,
+        "block": "escape",
+        "final_hashes": [
+          "7057125563c3e5f5",
+          "c25ed87815d14515",
+          "8128141ec33a92a7",
+          "d9e8a6ec4e894167",
+          "223a7ed8567fcea7",
+          "5cfcbc7cc8c8d196"
+        ],
+        "simulated_s": 13.470000000000002,
+        "gate_refusals": 0,
+        "metrics": {
+          "escape_probability": 1,
+          "escape_ttc_s": 0.09499999999999997,
+          "escape_latency_s": 0.9050000000000001,
+          "size_at_escape_deg": 49.802124740733916,
+          "short_mode_fraction": 0
+        }
+      }
+    ],
+    "completed": true,
+    "measurements": {
+      "runs_completed": 18,
+      "determinism_check": 1,
+      "seeds": 9,
+      "simulated_seconds": 395.28,
+      "gate_refusals": 0,
+      "control_gate_refusals": 0,
+      "treatment_gate_refusals": 0,
+      "control_mean": 0.3749999999999998,
+      "treatment_mean": 0.08740740740740738,
+      "mean_paired_delta": -0.28759259259259246,
+      "seeds_expected_direction": 9,
+      "seeds_opposite": 0,
+      "seeds_unchanged": 0,
+      "seeds_undefined": 0,
+      "untied_pairs": 9,
+      "sign_test_p_expected": 0.001953125,
+      "sign_test_p_opposite": 1,
+      "control_informative": 1,
+      "control_escape_probability": 1,
+      "treatment_escape_probability": 1,
+      "control_escape_ttc_s": 0.3749999999999998,
+      "treatment_escape_ttc_s": 0.08740740740740738,
+      "control_escape_latency_s": 3.625000000000001,
+      "treatment_escape_latency_s": 0.9125925925925927,
+      "control_size_at_escape_deg": 51.19865135236191,
+      "treatment_size_at_escape_deg": 54.78642577347068,
+      "control_short_mode_fraction": 0,
+      "treatment_short_mode_fraction": 0.1111111111111111
+    },
+    "status": "passed",
+    "verdict": "supported",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 18,
+          "observed": 18,
+          "holds": true
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "observed": 9,
+          "holds": true
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "observed": 0,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.28,
+          "observed": -0.28759259259259246,
+          "holds": true
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 0.001953125,
+          "holds": true
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 1,
+          "holds": false
+        }
+      ],
+      "summary": "All 2 success criteria held and no failure criterion triggered."
+    },
+    "error": null
+  },
+  "evidence_class": "simulated",
+  "sha256": "2ed4097da57d2422d6089adee158a21595e1f5e321806f8b2575ee49cae740a4"
+}

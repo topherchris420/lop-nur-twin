@@ -1,0 +1,28 @@
+{
+  "schema": "rain-fly-design/v3",
+  "question": "[scripted] ECHO-03: does what the fly learned about an earlier impairment let it recognize the same impairment sooner when it returns?",
+  "hypothesis": "[scripted] A self-model reset to an innate one before a remembered held-out impairment returns takes longer to conclude that it changed itself than one with its memory intact.",
+  "competing_hypothesis": "[scripted] Learning an impairment from scratch is as fast as recognizing it, so memory does not shorten the time to conclude.",
+  "parameters": {
+    "seed_count": 16,
+    "treatment": {
+      "kind": "echo_retention",
+      "variant": "memory_reset"
+    }
+  },
+  "analysis": {
+    "method": "matched_seed_sign_test",
+    "metric": "reexposure_latency_s",
+    "expected_direction": "increase",
+    "minimum_effect": 3
+  },
+  "budget": {
+    "max_simulated_seconds": 16000
+  },
+  "provenance": {
+    "generation": "scripted",
+    "decision_sha256": null,
+    "source_ids": [],
+    "parent_record_sha256": null
+  }
+}
