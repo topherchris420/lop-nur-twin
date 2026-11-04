@@ -414,10 +414,10 @@ reproduce the source graph's SHA-256, or nothing is committed. The body is not
 moved. The `physics-repair` event records the source release, the exact parent,
 the old state and graph hashes, the preserved-graph digest, the two versions,
 where the body was, what was kept and the pause, and says this was an environmental
-repair and nothing the fly did. **This has not been applied to the deployed
-individual,** and doing so needs the owner's approval, step by step
-([the cutover plan](ECHO_COLLISION.md#cutover-plan)). Afterwards the release before
-it can no longer resume the store, and the store's history holds five engines.
+repair and nothing the fly did. The release before it can no longer resume the
+store, and the store's history holds five engines. The deployed individual was
+continued this way on November 4, 2026
+([as it ran](ECHO_COLLISION.md#the-cutover-as-it-ran)).
 
 ### Backup
 
@@ -776,8 +776,7 @@ wind"). The fix changes no state a hash or event covers, so the history replays
 exactly as before at that level. It cannot make `bdb7c02`'s seals reproducible:
 they hold the observer's traces, and a replay of that release will keep failing
 on the graph digest. Seals become reproducible from the first checkpoint a release
-with the fix seals on the VM, and moving the VM to it is a deployment that needs
-the owner's approval.
+with the fix seals on the VM, and the VM moved to one on November 4, 2026.
 
 ### Recovery
 

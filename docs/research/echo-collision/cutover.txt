@@ -1,0 +1,223 @@
+platform: the VM, Linux 7.0.0-1013-oracle aarch64, node v24.22.1; the off-VM check, win32 arm64, node v24.22.1
+times: UTC, November 4, 2026. The owner approved the merge and every step in advance, stopping at the first failure.
+Steps 1, 2, 4, 5, 6, 7 and 9 changed the VM; nothing else here changed anything.
+Lines are as the commands printed them. The session they passed through dropped non-ASCII characters in the witness's text.
+
+== step 1: prepare 2026-11-04T10:51:40Z
+e458f7cb34904d85127779a3700c26b376ab4a80
+From https://github.com/topherchris420/lop-nur-twin
+ * branch            main       -> FETCH_HEAD
+ + bdb7c02...e458f7c main       -> origin/main  (forced update)
+Warning: you are leaving 1 commit behind, not connected to
+any of your branches:
+  bdb7c02 Merge pull request #155 from topherchris420/feat/twin-first-seconds
+If you want to keep it by creating a new branch, this may be a good time
+to do so with:
+ git branch <new-branch-name> bdb7c02
+HEAD is now at e458f7c Update
+memory: 7913 MB (the life needs 7000 MB; heap 2560 MB)
+release: e458f7cb34904d85127779a3700c26b376ab4a80 (installing its production dependencies)
+
+added 96 packages in 11s
+prepared /opt/bethesda-life/releases/e458f7cb34904d85127779a3700c26b376ab4a80; the running release and individual were not changed
+exit 0
+2026-11-04T10:51:52Z
+3db627bc125415093d6507988a2d8f61949f5240
+62bd12502c17379b92e89c74d17b3e1240ddd243
+bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592
+e458f7cb34904d85127779a3700c26b376ab4a80
+/opt/bethesda-life/releases/bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+active
+MainPID=85882
+NRestarts=0
+ssh exit: 0
+== step 2: backup 2026-11-04T10:52:17Z
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 2553, tick 7639846, digest c040db00ce69d9f8a35f48c1483f9ae90e211fa28bf8bd5c4d60d69412f22ca4
+kept /var/backups/bethesda-life/bethesda-life-20261104T105217Z-bdb7c02a5cf0.tar.gz (23M), written by release bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+off-site copy: uploaded
+exit 0
+2026-11-04T10:53:15Z
+total 205036
+-rw-r--r-- 1 root root      117 Nov  4 10:53 bethesda-life-20261104T105217Z-bdb7c02a5cf0.tar.gz.sha256
+-rw-r--r-- 1 root root 23381287 Nov  4 10:52 bethesda-life-20261104T105217Z-bdb7c02a5cf0.tar.gz
+-rw-r--r-- 1 root root      117 Nov  4 06:06 bethesda-life-20261104T060533Z-bdb7c02a5cf0.tar.gz.sha256
+newest: /var/backups/bethesda-life/bethesda-life-20261104T105217Z-bdb7c02a5cf0.tar.gz
+c1e53965ec864d0b64a7c730d4a5e4cd137c680624975f9c4a8f54c8786b9982  /var/backups/bethesda-life/bethesda-life-20261104T105217Z-bdb7c02a5cf0.tar.gz
+active
+MainPID=85882
+NRestarts=0
+Mem:            7913        2480        2878           5        2768        5433
+ssh exit: 0
+local sha256: c1e53965ec864d0b64a7c730d4a5e4cd137c680624975f9c4a8f54c8786b9982
+checksum matches
+== step 3: check 2026-11-04T10:53:39Z
+service: active, pid 85882, restarts 0; resident 1279 MB, high-water 2907 MB
+vm-physics-check.sh: too little memory beside the service: skip this step; the commit runs the same checks in the window
+memory: 5821 MB available, 6040 MB needed
+check exit 1
+2026-11-04T10:53:39Z
+active
+MainPID=85882
+NRestarts=0
+Mem:            7913        2092        3266           5        2768        5821
+ssh exit: 0
+== step 4: stop 2026-11-04T10:54:05Z
+stopped 2026-11-04T10:54:56Z
+inactive
+MainPID=0
+Result=success
+NRestarts=0
+ExecMainStatus=0
+no process of the service user
+== step 5: final backup 2026-11-04T10:54:57Z
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 2554, tick 7642634, digest 0263cc6ee2654134477836a6dd24c3b50dfd9290a676506f38e928e4f3b39c0e
+kept /var/backups/bethesda-life/bethesda-life-20261104T105457Z-bdb7c02a5cf0.tar.gz (23M), written by release bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+off-site copy: uploaded
+exit 0
+2026-11-04T10:55:49Z
+newest: bethesda-life-20261104T105457Z-bdb7c02a5cf0.tar.gz
+5da275fad886e3be15bafdbfa4a9d5b26b3263e9128069853e43d67565d832ad  /var/backups/bethesda-life/bethesda-life-20261104T105457Z-bdb7c02a5cf0.tar.gz
+5da275fad886e3be15bafdbfa4a9d5b26b3263e9128069853e43d67565d832ad  bethesda-life-20261104T105457Z-bdb7c02a5cf0.tar.gz
+ssh exit: 0
+local sha256: 5da275fad886e3be15bafdbfa4a9d5b26b3263e9128069853e43d67565d832ad
+checksum matches, kept off the VM
+== step 6: commit 2026-11-04T10:56:11Z
+service: inactive, pid 0
+head before: 000000002554.json
+output: /var/tmp/physics-commit.j9VP32
+commit start 2026-11-04T10:56:11Z
+commit end 2026-11-04T10:59:57Z
+status: 0
+Checking the source checkpoint on its original engine
+Checking the preserved graph and the new checkpoint
+Checking deterministic continuation after restore
+{"mode":"--commit","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","tick":7642634,"previousSequence":2554,"sequence":2555,"parent":"0263cc6ee2654134477836a6dd24c3b50dfd9290a676506f38e928e4f3b39c0e","genesisDigest":"e42d5e2cad81af6689136ae78f1ba366a420a850620f3710e499913f9ac50d4a","sourceGraphDigest":"6b74e595c664d0b548e94f1c38cc4b7387b5fc7ecfa724abe663c8f8e69fdd2a","preservedGraphDigest":"6b74e595c664d0b548e94f1c38cc4b7387b5fc7ecfa724abe663c8f8e69fdd2a","physics":{"from":"digital-fly/8","to":"digital-fly/9"},"changed":{"leaf":"cityFly.fly.adapter.model.state.fly"},"body":{"p":[466.58739755314065,13.368873739640202,631.884195291843],"mode":"flight"},"kept":{"rememberedPlaces":0,"mushroomBodyTrials":7,"inquiries":909,"episodesKept":24,"archivePending":0},"versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/9","echo":"echo-self-model/v3","upgrade":"bethesda-echo-upgrade/v1","organism":"bethesda-echo-organism/v1","mushroomBody":"mushroom-body/v1","olfaction":"echo-olfactory-navigation/v1","physiology":"echo-maintenance/v1","physicsRepair":"bethesda-physics-repair/v1","graph":"life-graph/v1"},"recoveryTicks":611,"pausedFromUtc":"2026-11-04T10:54:48.377Z","upgradedUtc":"2026-11-04T10:56:55.075Z","committedUtc":"2026-11-04T10:59:03.973Z"}
+head now: 000000002555.json
+continuation: checkpoint 2555 at tick 7642634, parent 0263cc6ee2654134477836a6dd24c3b50dfd9290a676506f38e928e4f3b39c0e
+graph kept: 6b74e595c664d0b548e94f1c38cc4b7387b5fc7ecfa724abe663c8f8e69fdd2a
+commit exit 0
+2026-11-04T10:59:57Z
+inactive
+/opt/bethesda-life/releases/bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+ssh exit: 0
+== step 7: install 2026-11-04T11:00:13Z
+memory: 7913 MB (the life needs 7000 MB; heap 2560 MB)
+release: e458f7cb34904d85127779a3700c26b376ab4a80 (already built)
+check: can e458f7cb34904d85127779a3700c26b376ab4a80 resume this individual? (every seal and link, then the head restored)
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/9","tick":7642634,"simulatedSeconds":764263.4,"cityHash":"233fa73a842e4573","flyHash":"88c4eb26386aeaae:a502d818f3e334ac","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":909,"episodes":24,"legGain":0.9979643897816116,"trustInSense":0.9416015558256609,"attending":{"source":"hazard","what":"avoiding a surface","since":764263.35,"shielded":false,"expectsNext":"touch"},"lastConclusion":{"t":527832.95,"explanation":"none","candidate":"none","confidence":0.4964137606022007,"resolved":false,"checked":null},"openInquiry":null},"fly":{"position":[466.58739755314065,13.368873739640202,631.884195291843],"mode":"flight","energyFraction":0.2591943404779939,"meals":161,"escapes":2},"organism":{"version":"bethesda-echo-organism/v1","physiology":{"atp":0.7500000000000056,"water":0.9812524991709873,"fatigue":0.22915204230232167,"sleepPressure":0.06825908249744095,"stress":7.558954868618214e-9,"protective":false,"sleeping":false,"recoveryBouts":79,"maintenanceJ":30.768399999981646},"mushroomBody":{"trials":7,"fruitless":0,"inheritedPlaces":0},"olfaction":{"on":1.8e-322,"off":1.042e-321,"modulatedDecisions":1612602,"searchTurns":17},"archivePending":0,"classification":"model variables of a simulated fly: not measured biology, and not evidence of awareness"},"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","checkpoint":2555,"restored":true}
+kept release 3db627bc125415093d6507988a2d8f61949f5240: pinned for historical replay
+kept release d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592: pinned for historical replay
+started bethesda-life on /opt/bethesda-life/releases/e458f7cb34904d85127779a3700c26b376ab4a80; watching it for 90 s
+bethesda-life is living. Follow it with: journalctl -u bethesda-life -f
+Starting bethesda-life.service - Bethesda headless life (one city, one digital fly)...
+Started bethesda-life.service - Bethesda headless life (one city, one digital fly).
+bethesda-life-observer: live
+install exit 0
+2026-11-04T11:02:51Z
+active
+MainPID=107122
+Result=success
+NRestarts=0
+ActiveEnterTimestamp=Wed 2026-11-04 11:01:18 UTC
+/opt/bethesda-life/releases/e458f7cb34904d85127779a3700c26b376ab4a80
+ssh exit: 0
+== step 8a: first look 2026-11-04T11:03:20Z
+active
+MainPID=107122
+NRestarts=0
+live
+
+{"error":"not found","paths":["/v1/now","/v1/stream","/v1/health"]}
+2026-11-04T11:01:18+00:00 bethesda-life systemd[1]: Starting bethesda-life.service - Bethesda headless life (one city, one digital fly)...
+2026-11-04T11:01:18+00:00 bethesda-life systemd[1]: Started bethesda-life.service - Bethesda headless life (one city, one digital fly).
+Mem:            7913        3180        2317           5        2628        4732
+== step 8b: witness 2026-11-04T11:03:38Z
+{"schema":"bethesda-life-witness/v1","status":"live","servedUtc":"2026-11-04T11:03:38.577Z","ageS":0.3,"reason":null,"observation":{"schema":"bethesda-life-observation/v1","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","epoch":14,"versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/9","echo":"echo-self-model/v3"},"flyController":"echo","tick":7643274,"simulatedSeconds":764327.4,"observedUtc":"2026-11-04T11:03:38.250Z","checkpoint":{"sequence":2555,"tick":7642634,"committedUtc":"2026-11-04T10:59:03.973Z"},"checkpointing":false,"fly":{"position":[466.7167419338493,12.86620986831818,645.6531214322429],"velocity":[0.06469849580383634,0.006226946505351832,0.3995823857892523],"yaw":-1.546193358021265,"mode":"flight","energyFraction":0.25029788657743196,"meals":161,"escapes":2,"recent":[{"t":764304.95,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.41 s < 0.45 s: saccade left, away from the nearer side","kind":"decision"},{"t":764308.9,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.43 s < 0.45 s: saccade left, away from the nearer side","kind":"decision"},{"t":764310.1,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.42 s < 0.45 s: saccade left, away from the nearer side","kind":"decision"},{"t":764316.15,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.43 s < 0.45 s: saccade left, away from the nearer side","kind":"decision"},{"t":764318.55,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.42 s < 0.45 s: saccade left, away from the nearer side","kind":"decision"},{"t":764325.25,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.40 s < 0.45 s: saccade left, away from the nearer side","kind":"decision"}]},"nearby":[],"selfModel":{"echoVersion":"echo-self-model/v3","inquiries":909,"episodes":24,"legGain":0.9979643897816116,"trustInSense":0.9416015558256609,"attending":{"source":"touch","what":"an edge or a solid","since":764325.3,"shielded":false,"expectsNext":"hazard"},"lastConclusion":{"t":527832.95,"explanation":"none","candidate":"none","confidence":0.4964137606022007,"resolved":false,"checked":null},"openInquiry":null},"weather":{"regime":"calm","speedMS":0.502562781946302,"fromDeg":261.7938268371802,"gusting":false,"atFlyMS":0.05554907294737663}}}
+{"schema":"bethesda-life-witness/v1","status":"live","servedUtc":"2026-11-04T11:03:58.599Z","ageS":0.3,"reason":null,"observation":{"schema":"bethesda-life-observation/v1","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","epoch":14,"versions":{"headless":"bethesda-headless-life/v2","city":"bethesda-city/4","fly":"digital-fly/9","echo":"echo-self-model/v3"},"flyController":"echo","tick":7643474,"simulatedSeconds":764347.4,"observedUtc":"2026-11-04T11:03:58.252Z","checkpoint":{"sequence":2555,"tick":7642634,"committedUtc":"2026-11-04T10:59:03.973Z"},"checkpointing":false,"fly":{"position":[468.20170761538816,12.93515651751204,644.9589163946746],"velocity":[-0.6680302156938649,-0.028651417517783752,-0.749276618526868],"yaw":2.3541997425311703,"mode":"flight","energyFraction":0.24751774473350638,"meals":161,"escapes":2,"recent":[{"t":764328.75,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.40 s < 0.45 s: saccade left, away from the nearer side","kind":"decision"},{"t":764333.4,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.42 s < 0.45 s: saccade right, away from the nearer side","kind":"decision"},{"t":764337.5,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.42 s < 0.45 s: saccade right, away from the nearer side","kind":"decision"},{"t":764339.2,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.43 s < 0.45 s: saccade right, away from the nearer side","kind":"decision"},{"t":764345.65,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.44 s < 0.45 s: saccade right, away from the nearer side","kind":"decision"},{"t":764345.9,"from":"flight/cruise","to":"flight/saccade","reason":"surface ahead, time to contact 0.33 s < 0.45 s: saccade right, away from the nearer side","kind":"decision"}]},"nearby":[],"selfModel":{"echoVersion":"echo-self-model/v3","inquiries":909,"episodes":24,"legGain":0.9979643897816116,"trustInSense":0.9416015558256609,"attending":{"source":"touch","what":"an edge or a solid","since":764345.95,"shielded":false,"expectsNext":"hazard"},"lastConclusion":{"t":527832.95,"explanation":"none","candidate":"none","confidence":0.4964137606022007,"resolved":false,"checked":null},"openInquiry":null},"weather":{"regime":"calm","speedMS":0.4967313542534756,"fromDeg":260.66471950395544,"gusting":false,"atFlyMS":0.0671821842402875}}}
+2026-11-04T11:01:18+00:00 bethesda-life systemd[1]: Starting bethesda-life.service - Bethesda headless life (one city, one digital fly)...
+2026-11-04T11:01:18+00:00 bethesda-life systemd[1]: Started bethesda-life.service - Bethesda headless life (one city, one digital fly).
+2026-11-04T11:03:34+00:00 bethesda-life bethesda-life[107122]: {"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/9","tick":7643234,"simulatedSeconds":764323.4,"cityHash":"7afdb7cb42c3f73d","flyHash":"0f1f55b05ac84d49:0f363435653be257","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":909,"episodes":24,"legGain":0.9979643897816116,"trustInSense":0.9416015558256609,"attending":{"source":"touch","what":"an edge or a solid","since":764318.6,"shielded":false,"expectsNext":"hazard"},"lastConclusion":{"t":527832.95,"explanation":"none","candidate":"none","confidence":0.4964137606022007,"resolved":false,"checked":null},"openInquiry":null},"fly":{"position":[467.817926017167,12.91502231498491,644.3714130087475],"mode":"flight","energyFraction":0.25085391494621706,"meals":161,"escapes":2},"organism":{"version":"bethesda
+MainPID=107122
+NRestarts=0
+MemoryCurrent=2699464704
+== step 8c: verify 2026-11-04T11:15:50Z
+active
+MainPID=107122
+NRestarts=0
+["live","04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",14,"digital-fly/9",7650583,[474.1457477784951,13.221326198476682,628.9693860989623],"land",161,{"sequence":2557,"tick":7648634,"committedUtc":"2026-11-04T11:13:17.014Z"}]
+000000002554.json
+000000002555.json
+000000002556.json
+000000002557.json
+{"checkpoints":2558,"head":2557,"events":945}
+verify exit 0
+2026-11-04T11:17:21Z
+active
+MainPID=107122
+NRestarts=0
+0
+2026-11-04T11:02:48+00:00 bethesda-life systemd[1]: bethesda-life-observer.service: Consumed 40.300s CPU time, 42.0M memory peak, 0B memory swap peak.
+2026-11-04T11:02:48+00:00 bethesda-life systemd[1]: Starting bethesda-life-observer.service - Bethesda life observer (read-only witness of the one life)...
+2026-11-04T11:02:48+00:00 bethesda-life systemd[1]: Started bethesda-life-observer.service - Bethesda life observer (read-only witness of the one life).
+2026-11-04T11:02:48+00:00 bethesda-life bethesda-life-observer[107560]: observer: serving the witness of /run/bethesda-life/observation.json on http://127.0.0.1:8790/v1/now (live)
+Mem:            7913        2102        3395           5        2629        5811
+ssh exit: 0
+== step 9: backup on the new release 2026-11-04T11:17:55Z
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 2557, tick 7648634, digest 29fabba91eb9c4a3ed05fb3c0345f0c8764fa3abfb0b003421845b8aaf7fae5d
+kept /var/backups/bethesda-life/bethesda-life-20261104T111755Z-e458f7cb3490.tar.gz (23M), written by release e458f7cb34904d85127779a3700c26b376ab4a80
+off-site copy: uploaded
+exit 0
+2026-11-04T11:19:45Z
+newest: bethesda-life-20261104T111755Z-e458f7cb3490.tar.gz
+5598f0af4084a7a0dd32ce66f335ef9d97d1b26b7f741d43f6f8a66238077aa0  /var/backups/bethesda-life/bethesda-life-20261104T111755Z-e458f7cb3490.tar.gz
+active
+MainPID=107122
+NRestarts=0
+[7652946,[474.1717574133785,13.201795025813281,629.3622954650066],"flight",0.11585022700344974,161,"saccade back inside its extent"]
+ssh exit: 0
+== step 9b: --check on a copy of bethesda-life-20261104T111755Z-e458f7cb3490.tar.gz, on the laptop (Windows ARM64, Node 24.22.1), 2026-11-04T11:25Z
+local sha256 5598f0af4084a7a0dd32ce66f335ef9d97d1b26b7f741d43f6f8a66238077aa0 matches the VM's
+check exit 0, tick 7648634, flyVersion digital-fly/9, restored from checkpoint 2557, same individual
+== step 10a: the record of the exit 2026-11-04T11:43:29Z
+[2563,7666634,"2026-11-04T11:43:17.116Z"]
+[["body-left-solid",1]]
+[{"tick":7664060,"kind":"body-left-solid","data":{"p":[476.33630658593233,12.56094889608258,642.0264792554034],"mode":"flight","physics":"digital-fly/9"}}]
+active
+MainPID=107122
+NRestarts=0
+["live","04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",7667292,[471.8476188425599,12.173126913620179,647.2014539622311],"rest",0.3332436596236331,161,2563]
+== step 10b: the continuation and the gap in the record 2026-11-04T11:45:01Z
+[12,"2026-11-04T10:54:48.377Z",2554,7642634,"c040db00ce69d9f8a35f48c1483f9ae90e211fa28bf8bd5c4d60d69412f22ca4",[]]
+[13,"2026-11-04T10:59:03.973Z",2555,7642634,"0263cc6ee2654134477836a6dd24c3b50dfd9290a676506f38e928e4f3b39c0e",[["physics-repair",1]]]
+[14,"2026-11-04T11:08:08.010Z",2556,7645634,"eb5a6dd6ac5bc476f285170084544f911e27cecca0e710c9546733f916268e70",[["gap",1]]]
+{"tick":7642634,"kind":"physics-repair","data":{"migration":"bethesda-physics-repair/v1","sourceRelease":"bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1","parent":"0263cc6ee2654134477836a6dd24c3b50dfd9290a676506f38e928e4f3b39c0e","sourceStateHash":"233fa73a842e4573|400b898200716d6e:a502d818f3e334ac|4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945","sourceGraphDigest":"6b74e595c664d0b548e94f1c38cc4b7387b5fc7ecfa724abe663c8f8e69fdd2a","preservedGraphDigest":"6b74e595c664d0b548e94f1c38cc4b7387b5fc7ecfa724abe663c8f8e69fdd2a","upgradedUtc":"2026-11-04T10:56:55.075Z","pausedFromUtc":"2026-11-04T10:54:48.377Z","physics":{"from":"digital-fly/8","to":"digital-fly/9"},"changed":{"leaf":"cityFly.fly.adapter.model.state.fly"},"body":{"p":[466.58739755314065,13.368873739640202,631.884195291843],"mode":"flight"},"preserved":"the whole organism graph, byte for byte but that one label: body an
+{"tick":7642634,"kind":"gap","data":{"stoppedUtc":"2026-11-04T10:54:48.377Z","resumedUtc":"2026-11-04T11:02:34.236Z","policy":"paused"}}
+["birth","digest","events","genesis","genesisDigest","graph","graphDigest","kind","parent","schema","sequence","stateHash","tick","versions"]
+0
+[7668092,14,909,24,527832.95]
+[7667778,{"position":[471.27149942615705,12.15860249638561,647.704734207304],"mode":"rest","energyFraction":0.33159837948181253,"meals":161,"escapes":2},909,{"atp":0.9383146368380226,"water":0.9779463542440516,"fatigue":0.1426849340865272,"sleepPressure":0.1595855868489674,"stress":7.561335992269138E-10,"protective":false,"sleeping":false,"recoveryBouts":80,"maintenanceJ":31.314399999980374},{"trials":7,"fruitless":0,"inheritedPlaces":0},0]
+Wed 2026-11-04 12:15:46 UTC        30min Wed 2026-11-04 06:05:33 UTC  5h 39min ago bethesda-life-backup.timer                       bethesda-life-backup.service
+== step 10c: the first scheduled backup on the new release, and the fly 2026-11-04T12:19:17Z
+active
+MainPID=107122
+NRestarts=0
+Result=success
+ExecMainExitTimestamp=Wed 2026-11-04 12:16:53 UTC
+ExecMainStatus=0
+pam_unix(runuser:session): session closed for user bethesda-life
+off-site copy: uploaded
+bethesda-life-backup.service: Deactivated successfully.
+Finished bethesda-life-backup.service - Back up the Bethesda life (copies proven to resume, then off the machine).
+bethesda-life-backup.service: Consumed 52.640s CPU time.
+newest: bethesda-life-20261104T121554Z-e458f7cb3490.tar.gz
+22a26da2ab6ca15086d2b464a3b811ad6e9959b4912a83a4ab509fd03b930932  /var/backups/bethesda-life/bethesda-life-20261104T121554Z-e458f7cb3490.tar.gz
+["live","04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",7688660,[475.04631545351737,12.44050094974551,658.3822546872335],"rest",0.24304791849063417,161,911,2570]
+[2563,["body-left-solid"]]
+[2564,[]]
+[2565,[]]
+[2566,[]]
+[2567,[]]
+[2568,[]]
+[2569,[]]
+[2570,[]]

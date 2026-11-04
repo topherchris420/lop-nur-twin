@@ -13,6 +13,16 @@ store. Only this README is written by hand.
 | `read-head.ts` | Where the body is in one checkpoint                                                                                     | An unpacked store                    |
 | `timeline.ts`  | The body in the newest checkpoint of each backup (it calls Windows' `tar.exe`, so it runs as it stands only on Windows) | Backup archives                      |
 
+Two more, from the cutover, also read only. Each runs as `journal.ts` does, and neither
+holds a lease or commits:
+
+| Script               | What it measured                                                     | Input                 |
+| -------------------- | -------------------------------------------------------------------- | --------------------- |
+| `forecast.ts`        | A copy's head stepped forward in memory, one line a simulated minute | An unpacked store     |
+| `witness-samples.ts` | The deployed fly's witness samples against the map                   | Saved witness samples |
+
+[`cutover.txt`](cutover.txt) holds each command's output from the cutover itself.
+
 Two scripts here are not read-only. They are steps of
 [the cutover plan](../../ECHO_COLLISION.md#cutover-plan), run as root on the VM, and each
 needs the owner's approval for that cutover:
