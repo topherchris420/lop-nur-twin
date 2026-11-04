@@ -72,7 +72,7 @@ jobs:
               systemctl show bethesda-life -p ActiveState -p NRestarts -p MainPID
               echo "current $(readlink -f /opt/bethesda-life/current) previous $(readlink -f /opt/bethesda-life/previous || true)"
               sudo sh -c 'ls /var/lib/bethesda-life/store/checkpoints | tail -n 1'
-              curl --silent --max-time 10 http://127.0.0.1:8790/v1/now | head -c 1500
+              curl --silent --max-time 10 http://127.0.0.1:8790/v1/now
               echo
             } >>"$out/state.txt" 2>&1
           }
@@ -131,7 +131,12 @@ jobs:
           mkdir "$RUNNER_TEMP/after"
           sudo tar -xzf "$(newest)" -C "$RUNNER_TEMP/after" --no-same-owner
           sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/after"
-          step 9b-replay succeeds sh -c "cd /opt/bethesda-life/releases/$NEW && /opt/bethesda-life/node/bin/node scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store $RUNNER_TEMP/after/store --individual $INDIVIDUAL --ledger $RUNNER_TEMP/ledger.jsonl --out $out/replay.json"
+          # A release holds only what its runner imports, so the replay runs from this checkout,
+          # the same commit under the same Node build, as replay-release.sh arranges for main.
+          PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
+          step 9b-replay succeeds node scripts/run-ts.mjs scripts/bethesda-life-replay.ts \
+            --store "$RUNNER_TEMP/after/store" --individual "$INDIVIDUAL" \
+            --ledger "$RUNNER_TEMP/ledger.jsonl" --out "$out/replay.json"
           node scripts/run-ts.mjs scripts/echo-collision-seals.ts "$RUNNER_TEMP/after/store" | tail -n 14 >"$out/seals.txt"
 
           # The limit the plan states: after the commit, the old release cannot come back.
@@ -140,6 +145,11 @@ jobs:
           [ "$(readlink -f /opt/bethesda-life/current)" = "/opt/bethesda-life/releases/$NEW" ] ||
             { echo "::error::the refused rollback switched releases"; exit 1; }
           systemctl is-active --quiet bethesda-life || { echo "::error::the refused rollback left it stopped"; exit 1; }
+          # And it lost nothing: the next checkpoint commits on the same chain.
+          sleep 330
+          state "one checkpoint after the refused rollback"
+          step after-rollback-verify succeeds sudo runuser -u bethesda-life -- sh -c \
+            "cd /opt/bethesda-life/releases/$NEW && /opt/bethesda-life/node/bin/node --max-old-space-size=2560 scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /var/lib/bethesda-life/store --verify"
           sudo journalctl -u bethesda-life -u bethesda-life-observer --no-pager -o short-iso | cut -c1-400 | tail -n 400 >"$out/journal.txt"
           free -m >"$out/free.txt"
       - uses: actions/upload-artifact@v4
