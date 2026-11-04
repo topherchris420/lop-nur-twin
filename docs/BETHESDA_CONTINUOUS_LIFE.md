@@ -778,6 +778,12 @@ they hold the observer's traces, and a replay of that release will keep failing
 on the graph digest. Seals become reproducible from the first checkpoint a release
 with the fix seals on the VM, and the VM moved to one on November 4, 2026.
 
+**The first sealed replay to pass** ran that day
+([run 41848867504](https://github.com/topherchris420/lop-nur-twin/actions/runs/41848867504)):
+the backup `bethesda-life-20261104T121554Z-e458f7cb3490`, from #2,566 to #2,569, 9,000
+ticks, 3 of 3 seals, with none of the 16 ledger anchors it checked contradicted, on a
+GitHub Linux arm64 machine with Node 24.22.1.
+
 ### Recovery
 
 | In `journalctl -u bethesda-life`                                          | What it means                                                          | What to do                                                                                                                                                                 |
@@ -837,7 +843,7 @@ restore it as above.
   checkpoint per kept backup, so it fixes the history up to about 6 hours
   ago, and nothing from before it began except through the chain.
 - **A replay is only as far back as the first replay** ([above](#replaying-it)),
-  and only comparable on the VM's platform, and the seals up to checkpoint #2,026
+  and only comparable on the VM's platform, and the seals up to checkpoint #2,554
   cannot be reproduced at all (`Replaying it` says why, and how much can). Replays of
   real archives began on 2026-11-02, from #1,990, so nothing before that has been
   re-derived.

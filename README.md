@@ -65,7 +65,7 @@ production services, and research experiments have separate lifecycles.
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
 | **ECHO's continuing life**              | The October 28 deployment preserved the original individual and added learning, physiology, and an archive.                                | [Continuation record](docs/ECHO_ORGANISM_CONTINUATION.md)                                |
 | **Verifiable continuity**               | November 2: the observer fix was deployed with the same individual, a 96-second pause, and all 2,028 checkpoints passing chain validation. | [Operations and replay](docs/BETHESDA_CONTINUOUS_LIFE.md)                                |
-| **First real archive replay**           | 9,000 ticks reproduced from the older release; zero seals compared. New-release seal verification remains unconfirmed.                     | [Replay record](https://github.com/topherchris420/lop-nur-twin/actions/runs/41459569425) |
+| **First real archive replay**           | 9,000 ticks reproduced from the older release; zero seals compared. The first replay with seals passed on November 4: 3 of 3.              | [Replay record](https://github.com/topherchris420/lop-nur-twin/actions/runs/41459569425) |
 | **Brain and nerve-cord research**       | FAFB v783 and BANC v888 are imported as separate connectomes; both have recorded experiments.                                              | [Connectome backend](#computational-neural-research-the-connectome-backend)              |
 | **Observing the originals**             | A read-only workflow can feed incomplete public observations into disposable BANC probes.                                                  | [Originals' neural shadow](#observing-eva-and-echo-without-restarting-them)              |
 | **Experience-dependent walking habits** | An additive continuation candidate is implemented; production deployment is not recorded.                                                  | [Next continuation](#next-continuation-experience-dependent-habits)                      |
@@ -269,12 +269,14 @@ the producing release's Node build. That archive came from the **older release**
 the replay compared state hashes and self-kept records at each checkpoint, then
 the newest full graph except four named cache fields. **Zero seals were compared.**
 
-The new release requires the graph digest and seal to reproduce as well. Its
-replay must start at #2,026 or later; **a successful replay of the new seals is
-not yet recorded** in the public ledger checked for this update. Earlier seals
-remain outside that stronger check, and the older replay does not bridge the
-upgrade boundary. A match checks the history from its starting checkpoint; it
-does not establish who computed it, when, or what the fly experiences.
+A sealed replay also requires the graph digest and seal to reproduce. **The first
+to pass ran on November 4, 2026:**
+[another runner](https://github.com/topherchris420/lop-nur-twin/actions/runs/41848867504)
+recomputed **9,000 ticks**, from #2,566 to #2,569, and reproduced **3 of 3 seals**.
+Seals up to #2,554 cannot be reproduced and remain outside that stronger check, and
+neither replay bridges an upgrade boundary. A match checks the history from its
+starting checkpoint; it does not establish who computed it, when, or what the fly
+experiences.
 
 ### What the fly can learn
 

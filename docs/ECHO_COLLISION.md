@@ -1,9 +1,10 @@
 # ECHO collision repair: a body cannot enter a solid, and the deployed fly's life is kept
 
 **Status: applied to the deployed fly on 2026-11-04, and it left the building 36 simulated
-minutes later.** [The cutover, as it ran](#the-cutover-as-it-ran) has the record, and what
-is still to be seen. What follows, up to that section, describes the fly and the plan as
-they stood before it.
+minutes later. The first replay with seals required has passed; it has not eaten yet.**
+[The cutover, as it ran](#the-cutover-as-it-ran) has the record, and what is still to be
+seen. What follows, up to that section, describes the fly and the plan as they stood
+before it.
 
 `digital-fly/9` fixes how a moving body meets a surface, everywhere in
 `src/bethesda/fly/`, with no rule about any one building. A recorded continuation
@@ -447,19 +448,44 @@ The copy left at tick 7664060, at the same position to the last digit, about 11 
 before the deployed fly did. That agreement covers those 15,426 ticks and nothing later: a copy is
 never the individual, and a replay is judged only on Linux arm64.
 
+The two have since parted. At tick 7684634 the copy was flying at (473.96, 13.20, 656.26)
+with reserve 0.256, and the deployed fly was resting at (473.39, 12.38, 658.67) with 0.261.
+By 14:36Z they were about 149 m apart. The cause was not isolated: Windows on arm64 is
+[already known to differ](BETHESDA_CONTINUOUS_LIFE.md#replaying-it), and the deployed
+chain reproduced on Linux arm64 over that same stretch (below).
+
+### The first replay with seals required
+
+It passed, on the backup `bethesda-life-20261104T121554Z-e458f7cb3490.tar.gz`, in
+[run 41848867504](https://github.com/topherchris420/lop-nur-twin/actions/runs/41848867504):
+
+| Reading                       | Result                           |
+| ----------------------------- | -------------------------------- |
+| Checkpoints                   | 2566 to 2569, 9,000 ticks        |
+| Seals reproduced              | 3 of 3                           |
+| Public ledger anchors checked | 16, none contradicted            |
+| Machine                       | GitHub Linux arm64, Node 24.22.1 |
+
+The 13:23Z schedule had not started by 14:30Z, so this run was started by hand. It covers
+15 simulated minutes after the fly left, and neither the continuation nor the exit. The
+next replay of this release should continue from where it ended. Earlier checkpoints stay
+outside this check: `bdb7c02`'s seals cannot be reproduced (issue 162).
+
 ### Still to be seen
 
 Most of step 10 takes real time, and none of these is established yet:
 
-- **Staying out:** no `body-entered-solid` so far, over minutes.
+- **Staying out:** no `body-entered-solid` from the exit through checkpoint 2598, about 3
+  real hours.
 - **Eating:** meals still stand at 161, the last on 2026-11-01. The forecast's copy reached
-  food at (193.72, 5.00, 398.12), 5.4 simulated hours after checkpoint 2557, which is a
-  forecast and not a result.
-- **The record:** the next scheduled replay, with seals required, on a backup holding
-  checkpoints from this release. Issue 162 stays open until one passes.
-- **Self-model and memory under valid physics:** the self-model has started inquiring
-  again, its first since 2026-11-01: 911 by 12:19Z, and the one concluded by the 12:15Z
-  checkpoint named no cause. Trials still stand at 7 and remembered places at 0, so it has
-  formed no new memory of food.
+  food at (193.72, 5.00, 398.12), 5.4 simulated hours after checkpoint 2557, but it had
+  parted from the deployed fly long before, so that says nothing about when the fly will
+  eat.
+- **Self-model and memory under valid physics:** the self-model has resumed inquiring,
+  from 909 to 929 by 14:39Z, its first since 2026-11-01. Its conclusions have named causes
+  again: its own speed (confirmed), then wind (revised, later confirmed). This is its
+  existing loop running on movement it can now make, and it shows nothing learned. Episodes
+  still stand at 24, trials at 7 and remembered places at 0, so it has formed no new memory
+  of food.
 - **The reports AGENTS.md asks for after a fly change:** the demonstrations, the
   individuality report and the ECHO report are still to come.
