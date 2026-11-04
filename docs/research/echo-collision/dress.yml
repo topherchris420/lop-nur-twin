@@ -1,0 +1,162 @@
+name: ECHO collision dress rehearsal
+# Every command of the cutover plan in order, as root, on a disposable machine of the
+# VM's platform: the deployed release installed by install.sh with a copy of the newest
+# backup in place, living as the service lives, then taken across with the same scripts.
+# A copy is never the individual and what it does is no part of the individual's history.
+# Nothing here reaches the VM except its public /v1/backup record, nothing is pushed
+# anywhere, and no store or archive is uploaded.
+on:
+  push:
+    branches:
+      - fix/fly-collision-dress
+
+permissions:
+  contents: read
+
+concurrency:
+  group: echo-collision-dress-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  OBSERVER_URL: https://129-213-139-78.sslip.io
+  LEDGER_RAW: https://raw.githubusercontent.com/topherchris420/lop-nur-twin/live-fly-ledger
+  INDIVIDUAL: 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
+  OLD: bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+
+jobs:
+  dress:
+    name: Run the cutover on a copy
+    if: github.repository == 'topherchris420/lop-nur-twin'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.22.1"
+      - name: Download the newest backup
+        env:
+          READ_URL: ${{ secrets.LIVE_FLY_BACKUP_READ_URL }}
+        run: |
+          [ -n "$READ_URL" ] || { echo "::error::LIVE_FLY_BACKUP_READ_URL is not set"; exit 1; }
+          curl --fail --silent --show-error --max-time 30 "$OBSERVER_URL/v1/backup" >"$RUNNER_TEMP/backup.json"
+          node scripts/run-ts.mjs scripts/echo-collision-backup.ts "$RUNNER_TEMP/backup.json" "$INDIVIDUAL" >"$RUNNER_TEMP/plan"
+          read -r archive sha <"$RUNNER_TEMP/plan"
+          curl --fail --silent --show-error --max-time 600 "$READ_URL$archive" -o "$RUNNER_TEMP/backup.tar.gz"
+          echo "$sha  $RUNNER_TEMP/backup.tar.gz" | sha256sum --check --strict --quiet
+          echo "$archive $sha" >"$RUNNER_TEMP/archive.txt"
+          curl --fail --silent --show-error --max-time 30 "$LEDGER_RAW/ledger.jsonl" >"$RUNNER_TEMP/ledger.jsonl"
+      - name: The cutover
+        run: |
+          out="$RUNNER_TEMP/dress"
+          mkdir -p "$out"
+          NEW=$GITHUB_SHA
+          cp docs/research/echo-collision/vm-physics-check.sh docs/research/echo-collision/vm-physics-commit.sh "$RUNNER_TEMP/"
+          step() {
+            local name=$1 want=$2 got=0 started=$SECONDS
+            shift 2
+            "$@" >"$out/$name.log" 2>&1 || got=$?
+            echo "$(date -u +%H:%M:%SZ) $name: exit $got, wanted $want, $((SECONDS - started)) s" | tee -a "$out/steps.txt"
+            if { [ "$want" = fails ] && [ "$got" -eq 0 ]; } || { [ "$want" = succeeds ] && [ "$got" -ne 0 ]; }; then
+              tail -30 "$out/$name.log"
+              echo "::error::$name did not do what the plan says"
+              exit 1
+            fi
+          }
+          state() {
+            {
+              echo "== $1 $(date -u +%H:%M:%SZ)"
+              systemctl show bethesda-life -p ActiveState -p NRestarts -p MainPID
+              echo "current $(readlink -f /opt/bethesda-life/current) previous $(readlink -f /opt/bethesda-life/previous || true)"
+              sudo sh -c 'ls /var/lib/bethesda-life/store/checkpoints | tail -n 1'
+              curl --silent --max-time 10 http://127.0.0.1:8790/v1/now
+              echo
+            } >>"$out/state.txt" 2>&1
+          }
+          newest() { sudo sh -c 'ls -t /var/backups/bethesda-life/*.tar.gz | head -n 1'; }
+
+          # The machine as it stands: the deployed release, with the backup's store in place.
+          sudo useradd --system --user-group --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin bethesda-life
+          sudo install -d -o bethesda-life -g bethesda-life -m 0750 /var/lib/bethesda-life
+          sudo tar -xzf "$RUNNER_TEMP/backup.tar.gz" -C /var/lib/bethesda-life --no-same-owner
+          sudo chown -R bethesda-life:bethesda-life /var/lib/bethesda-life/store
+          git checkout --quiet --detach "$OLD"
+          step install-deployed succeeds sudo deploy/bethesda-life/install.sh
+          sleep 330
+          state "the deployed release, living"
+
+          # 1. Prepare: the fly keeps living.
+          git checkout --quiet --detach "$NEW"
+          step 1-prepare succeeds sudo deploy/bethesda-life/install.sh --prepare
+          state "after prepare"
+
+          # Not in the plan: what an ordinary upgrade does without the continuation.
+          step ordinary-upgrade-refused fails sudo deploy/bethesda-life/install.sh
+          state "after the refused upgrade"
+          [ "$(readlink -f /opt/bethesda-life/current)" = "/opt/bethesda-life/releases/$OLD" ] ||
+            { echo "::error::the refused upgrade switched releases"; exit 1; }
+          systemctl is-active --quiet bethesda-life || { echo "::error::the refused upgrade left it stopped"; exit 1; }
+          sleep 330
+
+          # 2. Backup. 3. The check, beside the service.
+          step 2-backup succeeds sudo deploy/bethesda-life/backup.sh
+          step 3-check succeeds sudo bash "$RUNNER_TEMP/vm-physics-check.sh" "$(newest)" "/opt/bethesda-life/releases/$NEW"
+          state "after the check"
+
+          # 4. Stop. 5. The final backup. 6. Commit. 7. Switch and start.
+          step 4-stop succeeds sudo systemctl stop bethesda-life
+          step 5-final-backup succeeds sudo deploy/bethesda-life/backup.sh
+          step 6-commit succeeds sudo bash "$RUNNER_TEMP/vm-physics-commit.sh" "/opt/bethesda-life/releases/$NEW"
+          # The commit's own checks must refuse a second time, and the old release too.
+          step 6b-again-refused fails sudo bash "$RUNNER_TEMP/vm-physics-commit.sh" "/opt/bethesda-life/releases/$NEW"
+          step 7-switch succeeds sudo deploy/bethesda-life/install.sh
+          state "just started"
+          [ "$(readlink -f /opt/bethesda-life/current)" = "/opt/bethesda-life/releases/$NEW" ] ||
+            { echo "::error::the switch did not happen"; exit 1; }
+          sudo ls /opt/bethesda-life/releases >"$out/releases.txt"
+
+          # 8. Verify, with the service's own heap, the observer watching: two commits later.
+          sleep 330
+          state "one checkpoint on"
+          sleep 330
+          state "two checkpoints on"
+          step 8-verify succeeds sudo runuser -u bethesda-life -- sh -c \
+            "cd /opt/bethesda-life/releases/$NEW && /opt/bethesda-life/node/bin/node --max-old-space-size=2560 scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /var/lib/bethesda-life/store --verify"
+
+          # 9. Backup on the new release, and what the scheduled replay does with it.
+          step 9-backup succeeds sudo deploy/bethesda-life/backup.sh
+          mkdir "$RUNNER_TEMP/after"
+          sudo tar -xzf "$(newest)" -C "$RUNNER_TEMP/after" --no-same-owner
+          sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/after"
+          # A release holds only what its runner imports, so the replay runs from this checkout,
+          # the same commit under the same Node build, as replay-release.sh arranges for main.
+          PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
+          step 9b-replay succeeds node scripts/run-ts.mjs scripts/bethesda-life-replay.ts \
+            --store "$RUNNER_TEMP/after/store" --individual "$INDIVIDUAL" \
+            --ledger "$RUNNER_TEMP/ledger.jsonl" --out "$out/replay.json"
+          node scripts/run-ts.mjs scripts/echo-collision-seals.ts "$RUNNER_TEMP/after/store" | tail -n 14 >"$out/seals.txt"
+
+          # The limit the plan states: after the commit, the old release cannot come back.
+          step rollback-refused fails sudo deploy/bethesda-life/install.sh --rollback
+          state "after the refused rollback"
+          [ "$(readlink -f /opt/bethesda-life/current)" = "/opt/bethesda-life/releases/$NEW" ] ||
+            { echo "::error::the refused rollback switched releases"; exit 1; }
+          systemctl is-active --quiet bethesda-life || { echo "::error::the refused rollback left it stopped"; exit 1; }
+          # And it lost nothing: the next checkpoint commits on the same chain.
+          sleep 330
+          state "one checkpoint after the refused rollback"
+          step after-rollback-verify succeeds sudo runuser -u bethesda-life -- sh -c \
+            "cd /opt/bethesda-life/releases/$NEW && /opt/bethesda-life/node/bin/node --max-old-space-size=2560 scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store /var/lib/bethesda-life/store --verify"
+          sudo journalctl -u bethesda-life -u bethesda-life-observer --no-pager -o short-iso | cut -c1-400 | tail -n 400 >"$out/journal.txt"
+          free -m >"$out/free.txt"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: dress
+          retention-days: 90
+          path: |
+            ${{ runner.temp }}/dress/
+            ${{ runner.temp }}/archive.txt

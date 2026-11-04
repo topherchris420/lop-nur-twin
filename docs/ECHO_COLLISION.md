@@ -167,26 +167,36 @@ else.
 
 ### The rehearsal
 
-Run [41740016434](https://github.com/topherchris420/lop-nur-twin/actions/runs/41740016434),
-`scripts/bethesda-life-rehearse-physics.ts` on a copy of backup
-`bethesda-life-20261103T180906Z-bdb7c02a5cf0.tar.gz`, head 2352, 12 simulated hours.
+Run [41729219898](https://github.com/topherchris420/lop-nur-twin/actions/runs/41729219898),
+`scripts/bethesda-life-rehearse-physics.ts` at `4481891` (later commits to the script only
+satisfy the linter) on a copy of backup
+`bethesda-life-20261103T180906Z-bdb7c02a5cf0.tar.gz`, head 2352, 72 simulated hours, with
+a stop and start at the halfway mark. Its samples are in
+[`rehearsal/`](benchmarks/echo-collision/2026-11-03/rehearsal/).
 
-**At the boundary:** the same individual, birth, genesis and tick, the graph kept, no
-field different but the one leaf, and a stop and start that changed nothing. The old and
-new physics ran identically for 2,200 ticks from the head and then parted.
+**At the boundary:** the same individual, birth, genesis and tick, the graph kept, and no
+field different but the one leaf. The old and new physics ran identically for 2,200 ticks
+from the head and then parted.
 
 **After it:** the body left the solid 214 simulated seconds after the repair, in flight,
-at (464.68, 13.53, 632.19), and did not go back into one.
+at (464.68, 13.53, 632.19), and did not go back into one in the 72 hours. The stop and
+start changed nothing, the service's runner then ran on it, and the chain verified
+at 3,220 checkpoints.
 
-| Reading              | At the repair | After 12 hours |
-| -------------------- | ------------- | -------------- |
-| Meals                | 161           | 169            |
-| Reserve              | 0.21          | 0.54           |
-| Lowest and highest   |               | 0.08 and 0.98  |
-| Recovery bouts       | 67            | 72             |
-| Self-model inquiries | 909           | 987            |
-| Mushroom-body trials | 7             | 11             |
-| Commands rejected    | 0             | 0              |
+| Reading                | At the repair | After 72 hours |
+| ---------------------- | ------------- | -------------- |
+| Meals                  | 161           | 234            |
+| Reserve                | 0.21          | 0.44           |
+| Distance flown (m)     | 81,326        | 113,622        |
+| Recovery bouts         | 67            | 84             |
+| Energy from food (J)   | 19.8          | 31.2           |
+| Energy from upkeep (J) | 26.1          | 32.7           |
+| Self-model inquiries   | 909           | 1,403          |
+| Mushroom-body trials   | 7             | 20             |
+| Commands rejected      | 0             | 0              |
+
+The meals came 19, 26 and 28 to a day, and the longest gap between them was 12 hours. Its
+reserve kept to 0.08 to 0.98, and it ranged across the city, x from -21.6 to 483.5.
 
 **Its first meal came 8.4 hours after the repair.** For about 8 hours it stayed at the
 city's east end, as flies there do, resting and recovering. Then it made long flights to
@@ -198,11 +208,16 @@ on the way and "cruise in food odour" as the odour rose from 0.02 to 0.28.
 - **Leaving the building is the repaired physics.** Nothing the fly learned or found out
   got it out.
 - **The recovery bouts are programmed maintenance,** the deliberately artificial supply
-  the organism already had. They are not food.
-- **Finding the food is its existing search and odour-following.** That is autonomous
-  navigation, with nothing added, and it is not newly learned.
-- **Learning is not shown.** The 4 new mushroom-body trials followed the meals. Nothing
-  here shows they changed what the fly does, and it remembers no place (`places` stays 0).
+  the organism already had, and they are not food. It still needs them: over the 72
+  hours they supplied 6.6 J against food's 11.4 J.
+- **Finding its first food is its existing search and odour-following.** That is
+  autonomous navigation, with nothing added, and it is not newly learned.
+- **Going back to food is memory from its own meals, by a rule it already had.** Its
+  first meal stored a place. From 9.1 hours it flew back to remembered food at least 17
+  separate times, as far as 284 m, and held a place in 46% of the samples, up to 4 at
+  once. So where it flew depended on where it had eaten. Nothing here shows it eats more
+  because of that: the meals rose day by day, but the first day lost 8.4 hours and there
+  is no control.
 
 ### Replay
 

@@ -1,0 +1,113 @@
+name: ECHO collision replay
+# Will the replay anyone can run still hold after the continuation? On the VM's platform,
+# on a copy of the newest backup: commit the continuation, live 18,000 ticks observed as
+# the service observes, then replay, both from the store's whole window and from the
+# continuation itself. A copy is never the individual and what it does is no part of the
+# individual's history. Nothing here reaches the VM except its public /v1/backup record,
+# and nothing is pushed anywhere.
+on:
+  push:
+    branches:
+      - fix/fly-collision-replay
+
+permissions:
+  contents: read
+
+concurrency:
+  group: echo-collision-replay-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  OBSERVER_URL: https://129-213-139-78.sslip.io
+  LEDGER_RAW: https://raw.githubusercontent.com/topherchris420/lop-nur-twin/live-fly-ledger
+  INDIVIDUAL: 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921
+  # The release that wrote the source: PHYSICS_REPAIR_SOURCE.
+  SOURCE_RELEASE: bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1
+  NODE_VERSION: "24.22.1"
+
+jobs:
+  replay:
+    name: Replay a continued copy
+    if: github.repository == 'topherchris420/lop-nur-twin'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install this commit's production dependencies
+        run: PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
+      - name: Check out the source release
+        run: |
+          git worktree add --quiet --detach "$RUNNER_TEMP/release" "$SOURCE_RELEASE"
+          (cd "$RUNNER_TEMP/release" && PUPPETEER_SKIP_DOWNLOAD=1 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error)
+          printf 'commit %s\n' "$SOURCE_RELEASE" >"$RUNNER_TEMP/release/RELEASE"
+      - name: Download the newest backup
+        env:
+          READ_URL: ${{ secrets.LIVE_FLY_BACKUP_READ_URL }}
+        run: |
+          [ -n "$READ_URL" ] || { echo "::error::LIVE_FLY_BACKUP_READ_URL is not set"; exit 1; }
+          curl --fail --silent --show-error --max-time 30 "$OBSERVER_URL/v1/backup" >"$RUNNER_TEMP/backup.json"
+          node scripts/run-ts.mjs scripts/echo-collision-backup.ts "$RUNNER_TEMP/backup.json" "$INDIVIDUAL" >"$RUNNER_TEMP/plan"
+          read -r archive sha <"$RUNNER_TEMP/plan"
+          curl --fail --silent --show-error --max-time 600 "$READ_URL$archive" -o "$RUNNER_TEMP/backup.tar.gz"
+          echo "$sha  $RUNNER_TEMP/backup.tar.gz" | sha256sum --check --strict --quiet
+          mkdir "$RUNNER_TEMP/backup"
+          tar -xzf "$RUNNER_TEMP/backup.tar.gz" -C "$RUNNER_TEMP/backup"
+          echo "$archive $sha" >"$RUNNER_TEMP/archive.txt"
+      - name: Continue, live, replay
+        run: |
+          out="$RUNNER_TEMP/replay"
+          mkdir -p "$out"
+          heap=--max-old-space-size=4096
+          store="$RUNNER_TEMP/backup/store"
+          ledger="$RUNNER_TEMP/ledger.jsonl"
+          curl --fail --silent --show-error --max-time 30 "$LEDGER_RAW/ledger.jsonl" >"$ledger"
+
+          node "$heap" scripts/run-ts.mjs scripts/bethesda-life-continue-physics.ts \
+            --store "$store" --from-release "$RUNNER_TEMP/release" --commit >"$out/commit.out" 2>"$out/commit.err"
+          cp -a "$store" "$RUNNER_TEMP/continued"
+
+          replay() {
+            local name=$1
+            shift
+            local got=0
+            node scripts/run-ts.mjs scripts/bethesda-life-replay.ts --store "$store" "$@" \
+              --individual "$INDIVIDUAL" --ledger "$ledger" --out "$out/$name.json" \
+              >"$out/$name.out" 2>"$out/$name.err" || got=$?
+            echo "$name: exit $got" | tee -a "$out/steps.txt"
+          }
+
+          # Straight after the commit no checkpoint on this engine follows: exit 75, no record.
+          replay at-commit
+
+          # As the service runs it: the observation file written every simulated second.
+          export BETHESDA_LIFE_OBSERVE="$RUNNER_TEMP/observation.json"
+          for run in 1 2; do
+            node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts \
+              --store "$store" --ticks 9000 >"$out/live-$run.out" 2>"$out/live-$run.err"
+            echo "live-$run: exit 0" | tee -a "$out/steps.txt"
+          done
+          unset BETHESDA_LIFE_OBSERVE
+
+          # What the scheduled replay will do: from the oldest checkpoint the store holds whole.
+          replay window
+          # And across the boundary: from the continuation, every checkpoint since.
+          replay from-continuation --from-store "$RUNNER_TEMP/continued"
+
+          node "$heap" scripts/run-ts.mjs scripts/bethesda-life-headless.ts --store "$store" --verify \
+            >"$out/verify.out" 2>"$out/verify.err"
+          echo "verify: exit 0" | tee -a "$out/steps.txt"
+          node scripts/run-ts.mjs scripts/echo-collision-seals.ts "$store" | tail -n 12 >"$out/seals.txt"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: replay
+          retention-days: 90
+          path: |
+            ${{ runner.temp }}/replay/
+            ${{ runner.temp }}/archive.txt
