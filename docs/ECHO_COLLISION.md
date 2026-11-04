@@ -129,3 +129,226 @@ physics. The transition is `scripts/bethesda-life-continue-physics.ts`
 - **Every older checkpoint keeps its seals,** and stays checked by the rules of its own
   era: `ORGANISM_V1_LIFE` freezes the organism on `digital-fly/8`. As at every commit, the
   store's compaction drops the graph of the checkpoint that leaves its window of four.
+
+## The evidence
+
+All of it is on copies and research flies. A copy is never the individual, and what it
+does is no part of the individual's history. Linux arm64 on Node 24.22.1 is the VM's
+platform; a fly's arithmetic is only comparable there.
+
+### Research flies
+
+Run [41727492979](https://github.com/topherchris420/lop-nur-twin/actions/runs/41727492979)
+at `d24c23d`, 96 simulated hours each, records in
+[`benchmarks/echo-collision/2026-11-03/flies/`](benchmarks/echo-collision/2026-11-03/flies/).
+
+| Physics         | Seeds   | Trapped | Seconds in a solid | Mean meals | Fewest | Mean meals by day      |
+| --------------- | ------- | ------- | ------------------ | ---------- | ------ | ---------------------- |
+| `digital-fly/8` | 301–312 | 9 of 12 | 1,347,336          | 83.5       | 17     | 36.5, 21.8, 16.7, 8.6  |
+| `digital-fly/9` | 301–312 | 0 of 12 | 0                  | 120.0      | 83     | 37.9, 25.2, 27.9, 28.9 |
+| `digital-fly/9` | 181–192 | 0 of 12 | 0                  | 118.7      | 97     |                        |
+| `digital-fly/9` | 201–212 | 0 of 12 | 0                  | 133.1      | 95     |                        |
+
+- **Seven buildings trapped the old flies,** among them 1011267786, where seeds 302 and
+  310 ended up.
+- **Physics, not the controller.** The defect never reached seeds 301, 306 and 312, and
+  they ate the same meals and flew the same distance under both (113 and 34,958 m, 117
+  and 37,800 m, 111 and 34,791 m).
+- **Going hungry is still possible.** 3 of the 144 repaired fly-days held no meal. Across
+  the 36 lives, a fly's longest stretch without one had a median of 15 hours and a
+  maximum of 30.
+
+### Pilots and calibration
+
+All nine pilots were re-recorded on Node 24.19.0, Windows ARM64. Every output is the same
+bytes, and only labels and the hashes that name them moved, so no demonstration needed
+re-sizing. The calibration's refit and report changed the version they name and nothing
+else.
+
+### The rehearsal
+
+Run [41740016434](https://github.com/topherchris420/lop-nur-twin/actions/runs/41740016434),
+`scripts/bethesda-life-rehearse-physics.ts` on a copy of backup
+`bethesda-life-20261103T180906Z-bdb7c02a5cf0.tar.gz`, head 2352, 12 simulated hours.
+
+**At the boundary:** the same individual, birth, genesis and tick, the graph kept, no
+field different but the one leaf, and a stop and start that changed nothing. The old and
+new physics ran identically for 2,200 ticks from the head and then parted.
+
+**After it:** the body left the solid 214 simulated seconds after the repair, in flight,
+at (464.68, 13.53, 632.19), and did not go back into one.
+
+| Reading              | At the repair | After 12 hours |
+| -------------------- | ------------- | -------------- |
+| Meals                | 161           | 169            |
+| Reserve              | 0.21          | 0.54           |
+| Lowest and highest   |               | 0.08 and 0.98  |
+| Recovery bouts       | 67            | 72             |
+| Self-model inquiries | 909           | 987            |
+| Mushroom-body trials | 7             | 11             |
+| Commands rejected    | 0             | 0              |
+
+**Its first meal came 8.4 hours after the repair.** For about 8 hours it stayed at the
+city's east end, as flies there do, resting and recovering. Then it made long flights to
+a patch about 295 m from where it had been resting, its log reading "round an obstacle"
+on the way and "cruise in food odour" as the odour rose from 0.02 to 0.28.
+
+**What each part is, and is not:**
+
+- **Leaving the building is the repaired physics.** Nothing the fly learned or found out
+  got it out.
+- **The recovery bouts are programmed maintenance,** the deliberately artificial supply
+  the organism already had. They are not food.
+- **Finding the food is its existing search and odour-following.** That is autonomous
+  navigation, with nothing added, and it is not newly learned.
+- **Learning is not shown.** The 4 new mushroom-body trials followed the meals. Nothing
+  here shows they changed what the fly does, and it remembers no place (`places` stays 0).
+
+### Replay
+
+Run [41747963788](https://github.com/topherchris420/lop-nur-twin/actions/runs/41747963788),
+on a copy of a newer backup, head 2423: the continuation, then 18,000 ticks observed as
+the service observes. The scheduled replay's path reproduced 3 of 3 seals, and a replay
+from the continuation itself 6 of 6, with all 14 public ledger anchors in the chain.
+Straight after the commit there is nothing to judge, and it says so (exit 75).
+
+The release on the VM cannot pass this. Its observer left traces in sealed lookup caches
+while the fly flew, so its seals cannot be reproduced (issue 162). This release has that
+fix (`9c029f7`), so the same check should pass on the VM after the cutover. Only a real
+replay there can show it.
+
+### The commands, in order
+
+Run [41752780859](https://github.com/topherchris420/lop-nur-twin/actions/runs/41752780859):
+every step of [the plan](#cutover-plan) in order, as root, on a disposable Linux arm64
+machine with 4 cores. `install.sh` installed the deployed release with a copy of the newest
+backup in place, and the copy lived as the service lives, at its real 2,560 MB heap with
+the observer watching. An earlier run,
+[41748526687](https://github.com/topherchris420/lop-nur-twin/actions/runs/41748526687), did
+the same as far as step 9 and then stopped on a mistake in the test, which looked for the
+replay script in the release's folder.
+
+| Step                 | Seconds | Result                                                                   |
+| -------------------- | ------- | ------------------------------------------------------------------------ |
+| 1. Prepare           | 5       | Built beside the running release, which ran on                           |
+| 2. Backup            | 28      | Kept, and it resumed                                                     |
+| 3. Check             | 83      | Passed beside the service, at 3,886 MB, and changed nothing              |
+| 4. Stop              | 20      | A last checkpoint, and the lease released                                |
+| 5. Final backup      | 28      | Kept, and it resumed                                                     |
+| 6. Commit            | 117     | Checkpoint 2428 at the unchanged tick, with the graph kept               |
+| 7. Switch and start  | 126     | The new release living, including 90 s of watching it                    |
+| 8. Verify            | 45      | 2,431 checkpoints, and the witness live on `digital-fly/9`               |
+| 9. Backup            | 39      | Kept, on the new release                                                 |
+| The scheduled replay | 63      | 2 of 2 seals, from the service's own chain, with the ledger's 14 anchors |
+
+Three refusals ran as well, and each left the fly living on the release it was on:
+
+- **An ordinary upgrade before the commit:** "checkpoint refused: made by fly
+  digital-fly/8; this is digital-fly/9". The old release was running again in 36 s.
+- **A second commit:** "this individual is already on the repaired physics; nothing was
+  changed".
+- **`install.sh --rollback` after the commit:** "checkpoint 2428 is corrupt: made by fly
+  digital-fly/9; this is digital-fly/8". The new release was running again in 26 s, and its
+  next checkpoint followed on the same chain, which then verified at 2,433 checkpoints.
+
+### What this does not show
+
+- **Nothing about the deployed fly.** The deployed fly's head has moved on since these
+  backups, so its timing will differ from any copy's.
+- **Why flies linger at the east end.** They find less food there (2.24 meals per 3 hours
+  east of x = 359, against 4.90 west of it), and the cause is still unexplained.
+
+## Cutover plan
+
+**Each step that changes the VM needs the owner's explicit approval, given for this
+cutover. This document is not that approval.** It is the procedure the
+[organism's continuation](ECHO_ORGANISM_CONTINUATION.md#cutover-plan) used, with this
+script.
+
+**Maintenance window:** one pause, from the service's stop to its start on the new
+release, budgeted at 15 minutes. Nothing is computed during it. The runner records it as
+one gap from the deployed release's last commit, and no experience is attributed to it.
+
+**Before the window (the fly keeps living):**
+
+1. Merge this branch after review. On the VM:
+
+   ```sh
+   cd ~/lop-nur-twin && git fetch --depth 1 origin main && git checkout --detach FETCH_HEAD
+   sudo deploy/bethesda-life/install.sh --prepare
+   ```
+
+   It builds the release beside the running one and stops nothing. Record its commit.
+
+2. `sudo deploy/bethesda-life/backup.sh`. Copy the archive off the VM and check its
+   SHA-256 there.
+3. `sudo bash docs/research/echo-collision/vm-physics-check.sh BACKUP RELEASE`, with the
+   archive from step 2 and `/opt/bethesda-life/releases/COMMIT`. It runs the
+   continuation's `--check` on a copy that is read-only to the service's user, beside the
+   service, under a memory cap, as the kernel's first out-of-memory victim. It starts
+   only if memory holds the check and the service at their peaks. If it does not, it
+   stops and changes nothing, and step 6's identical checks are then the first to run on
+   this machine. Expect the same individual, the head's tick, `preservedGraphDigest`
+   equal to `sourceGraphDigest`, and the same-engine and restore checks passing. Any
+   difference stops the cutover.
+
+**Approval.** The owner reads step 3's output, or the reason it did not run, and approves
+the window, or not. Nothing below happens without that.
+
+**In the window:**
+
+4. `sudo systemctl stop bethesda-life`. Wait for the final checkpoint and the lease's
+   release, and confirm the process is gone. Record the time.
+5. `sudo deploy/bethesda-life/backup.sh` again: the last backup on the old physics. Copy
+   it off the VM, check its SHA-256 and keep it with release `bdb7c02`.
+6. `sudo bash docs/research/echo-collision/vm-physics-commit.sh RELEASE`. It repeats every
+   `--check` step, takes the lease only after all of them pass, refuses if the head
+   changed, and publishes one checkpoint through `LifeStore`. It runs as its own transient
+   unit, so a dropped connection cannot stop it halfway. Keep its output.
+7. Straight after it, `sudo deploy/bethesda-life/install.sh`, an ordinary upgrade: it
+   checks that the release resumes the store, switches to it, keeps `bdb7c02` and the
+   older pinned releases for replay, and starts the service.
+
+**After the window:**
+
+8. Verify: the service is active with no restarts, `--verify` passes, the witness shows
+   the same individual with a tick that keeps rising from the continuation's, the next
+   checkpoints commit with one gap recorded, and no command is rejected.
+9. Take a backup on the new release and check that it passes `--check`. Only then may
+   anyone say the deployed fly continues on the repaired physics.
+10. Watch it. The VM runs one simulated hour per real hour, so most of what matters takes
+    real time:
+    - **Out of the solid:** a `body-left-solid` event, then the position against the map
+      minute by minute. Not until the deployed fly has been seen outside may anyone say
+      it left, and then only as what the repaired physics allowed.
+    - **Staying out:** no `body-entered-solid` event, ever.
+    - **Eating:** `meals` rising above its count at the continuation.
+    - **The record:** the next scheduled replay passes with seals required, on an archive
+      that holds checkpoints from this release.
+
+**To abort at any point before step 6 commits:** `sudo systemctl start bethesda-life`. It
+is still `bdb7c02`, and nothing has changed (`--prepare` switches nothing). The pause is
+recorded as a gap like any other.
+
+## Rollback limits after the commit
+
+Once the continuation is committed, `bdb7c02` refuses the store and fails closed, and no
+engine converts it back. `install.sh --rollback` refuses too. Until step 7 switches
+releases, a start of the old service, by hand or by systemd after a reboot, fails the same
+way and writes nothing, so steps 6 and 7 run back to back.
+
+- **If the new release fails before it commits any tick,** the store's head is the
+  continuation itself, at the old head's tick, with nothing lived after it. Restoring the
+  step 5 backup then loses no experience, but it does discard a committed checkpoint. It
+  needs its own approval, the failed store kept aside and never run, and the discarded
+  continuation recorded.
+- **Once the fly has lived on the new physics,** restoring an older backup would erase
+  that life and fork the individual. It is never reported as uninterrupted continuity.
+  Prefer a new, recorded continuation that keeps the history. If a restore is
+  unavoidable, stop every other writer, keep the failed store, record the lost interval
+  and its parentage, and get approval for that specific recovery. The public ledger shows
+  a rewind for what it is.
+
+## The cutover, as it ran
+
+It has not run. Nothing in this document has been done to the deployed fly.
