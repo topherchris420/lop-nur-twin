@@ -1,0 +1,1116 @@
+{
+  "schema": "rain-fly-record/v2",
+  "run_id": "FR-968534c27ac4269c002b31e4",
+  "plan": {
+    "schema": "rain-fly-plan/v2",
+    "design": {
+      "schema": "rain-fly-design/v3",
+      "question": "[scripted] ECHO-02: does weighing explanations against its own predictions tell the fly's own changes from outside ones better than a simpler sensorimotor rule?",
+      "hypothesis": "[scripted] A motion-gated rule (a change met while moving is its own, one met standing is the world's) explains fewer hidden held-out changes correctly than the full self-model.",
+      "competing_hypothesis": "[scripted] Whether the fly was moving when a change began is all the evidence there is, so the rule does as well as the self-model.",
+      "parameters": {
+        "seed_count": 12,
+        "treatment": {
+          "kind": "echo_attribution",
+          "variant": "motion_gated"
+        }
+      },
+      "analysis": {
+        "method": "matched_seed_sign_test",
+        "metric": "attribution_accuracy",
+        "expected_direction": "decrease",
+        "minimum_effect": 0.36
+      },
+      "budget": {
+        "max_simulated_seconds": 16000
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      }
+    },
+    "ir": {
+      "schema": "rain-scientific-experiment/v1",
+      "domain": "fly-behavior-simulation",
+      "backend": "digital-fly",
+      "backend_version": "digital-fly-behavior/v3 (digital-fly/9 reduced-order-fsm/v1)",
+      "question": "In the digital fly simulator, how does the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) change fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out, against the full ECHO self-model under the same hidden conditions on matched seeds?",
+      "hypothesis": "The ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's) will decrease attribution_accuracy by at least 0.36 fraction on average over 12 matched seeds drawn after preregistration, compared with the full ECHO self-model under the same hidden conditions, and an exact one-sided sign test on the seeds that differ will find the decrease at alpha 0.05.",
+      "observables": [
+        {
+          "id": "attribution_accuracy",
+          "unit": "fraction",
+          "description": "fraction of hidden changes (onsets, and the ends of changes to the body or the surroundings) the fly explained with the right cause; a temporary obstacle is answered right by any explanation but its own body; a misleading sense is left out"
+        },
+        {
+          "id": "false_self_attribution",
+          "unit": "fraction",
+          "description": "fraction of external changes (a push, a turning surface) the fly blamed on its own body"
+        },
+        {
+          "id": "attribution_brier",
+          "unit": "score",
+          "description": "mean Brier score of the fly's confidence in each explanation it concluded (0 is perfect)"
+        },
+        {
+          "id": "attribution_path_error",
+          "unit": "fraction",
+          "description": "mean path error of steady walking over the whole run"
+        },
+        {
+          "id": "missed_changes",
+          "unit": "count",
+          "description": "hidden changes the fly never asked about within 6 s"
+        },
+        {
+          "id": "misleading_sense_blamed_self",
+          "unit": "fraction",
+          "description": "fraction of misleading-sense onsets (a motion read that is not there, which no sense here can tell from a push) the fly blamed on its body"
+        },
+        {
+          "id": "attribution_coverage_90",
+          "unit": "fraction",
+          "description": "share of observed self-motion components inside the fly's predicted central 90% interval"
+        },
+        {
+          "id": "mean_paired_delta",
+          "unit": "fraction",
+          "description": "treatment minus control attribution_accuracy, averaged over the seeds where both are defined"
+        },
+        {
+          "id": "sign_test_p_expected",
+          "unit": "probability",
+          "description": "exact one-sided sign test p-value for a decrease, over untied seeds"
+        },
+        {
+          "id": "sign_test_p_opposite",
+          "unit": "probability",
+          "description": "the same test in the opposite direction"
+        }
+      ],
+      "independent_variables": [
+        "the ECHO controller with a motion-gated baseline (a change met while moving is its own, one met standing is the world's)"
+      ],
+      "dependent_variables": [
+        "attribution_accuracy"
+      ],
+      "controls": [
+        "baseline arm: the full ECHO self-model under the same hidden conditions",
+        "matched seeds: each seed places the fly, draws its stimuli and seeds its random streams identically in both arms",
+        "the seeds are drawn by the host after preregistration from SHA-256 of the registry receipt and a random nonce in the authorization, so neither the design nor the operator chooses them",
+        "fixed apparatus settings, both arms — attribution block: groomHz = 0, takeoffHz = 0, walkStartHz = 1, walkStopHz = 0.1",
+        "the fly's version, controller, full parameter table and source digest are bound into the plan digest"
+      ],
+      "parameter_constraints": [
+        "11 closed protocols with host-built arenas, stimuli and hidden perturbation schedules",
+        "controller configurations override model parameters only, within their ranges; FlyBody and published values are fixed",
+        "the integration settings (physics, sensing and decision periods) are never varied",
+        "at most 16000 simulated fly-seconds per experiment",
+        "8-16 seeds, drawn by the host after preregistration",
+        "a minimum effect at or above the host's 0.2 fraction for attribution_accuracy"
+      ],
+      "resource_budget": {
+        "execution_steps": 768000,
+        "replay_steps": 768000,
+        "max_samples": 24
+      },
+      "statistical_analysis": {
+        "method": "Exact one-sided sign test on the untied matched seeds at alpha 0.05, with at least 6 untied seeds, and a mean paired difference beyond the minimum effect; frozen rain-criteria/v1",
+        "independent_replicates": 12,
+        "uncertainty": "The p-values are exact binomial tail probabilities over seeds of one deterministic model: they say how consistently the two arms differ across this simulator's seeds, not how uncertain anything is about a population, and nothing about real flies."
+      },
+      "falsification": {
+        "metric": "sign_test_p_opposite",
+        "op": "<=",
+        "value": 0.05,
+        "unit": "probability"
+      },
+      "provenance": {
+        "generation": "scripted",
+        "decision_sha256": null,
+        "source_ids": [],
+        "parent_record_sha256": null
+      },
+      "limitations": [
+        "The digital fly's controller is a reduced-order state machine. It simulates no neurons; its links to Virtual Fly Brain terms are labels, not mechanisms.",
+        "Model parameters were chosen for this simulator, not measured or fitted; a result describes the simulator with these values.",
+        "Flight is kinematic: no aerodynamics and no MuJoCo physics run in these experiments.",
+        "The arena is a box with primitive obstacles and a relative light proxy (not lux); odour, temperature, humidity, airflow and food are not simulated.",
+        "A sense that reads a motion that is not there cannot be told from a push by any sense this fly has; it is measured apart and left out of the accuracy.",
+        "The ECHO self-model is a computational model of the fly's own sensorimotor gains, built over the reduced-order body. Its compensation acts on abstract movement gains of that body; it is not validated biological motor control, and FlyBody's physics does not run.",
+        "The perturbations are the experimenter's models of an impairment, a push, a turning surface, a sensor fault and an obstacle, applied by the simulator. The fly is never given their labels, causes or schedule; it meets only their consequences through its self-motion sense, its touch and its legs' stepping.",
+        "The conditions are the held-out evaluation set, in an arena the self-model was not developed in; its constants were chosen on the development set alone and frozen before evaluation.",
+        "A measurement of prediction, attribution or retention describes a functional self-model in a simulator. It is not evidence of awareness or subjective experience.",
+        "Re-simulation is exact on the JavaScript engine that made a record; Math functions differ in their last bits between engines, so on another engine a record is reported as not re-simulable rather than checked.",
+        "A result characterizes the simulator and is never empirical evidence about Drosophila."
+      ]
+    },
+    "fly": "digital-fly/9 reduced-order-fsm/v1",
+    "fly_sha256": "5d8d3589513b67c3b784c7fcc76029b36d3478bb885568e6c79666e2bac6ec7b",
+    "fly_source_sha256": "3a440f60616f2e78515dcf03a3cc689b54316140fb08d659c5310f63a4a83500",
+    "experiment": {
+      "schema": "digital-fly-experiment/v3",
+      "protocol": "echo_attribution",
+      "seed_count": 12,
+      "blocks": [
+        {
+          "id": "attribution",
+          "arena": {
+            "size": [
+              3,
+              2.5,
+              3
+            ],
+            "ambient": 0.6,
+            "pillars": [
+              {
+                "x": -0.75,
+                "z": -0.75,
+                "r": 0.05
+              },
+              {
+                "x": -0.75,
+                "z": 0.75,
+                "r": 0.05
+              },
+              {
+                "x": 0.75,
+                "z": -0.75,
+                "r": 0.05
+              },
+              {
+                "x": 0.75,
+                "z": 0.75,
+                "r": 0.05
+              }
+            ]
+          },
+          "fixed_config": {
+            "takeoffHz": 0,
+            "groomHz": 0,
+            "walkStartHz": 1,
+            "walkStopHz": 0.1
+          },
+          "start_half_width_m": 0.4,
+          "tick_s": 0.05,
+          "duration_s": 160,
+          "trials": 1,
+          "light_at": null,
+          "near_miss_m": null,
+          "stimulus": null,
+          "echo": {
+            "schedule": "attribution",
+            "conditions": "evaluation",
+            "condition_set": [
+              {
+                "id": "speed_gain",
+                "cause": "self",
+                "effects": [
+                  {
+                    "field": "speedGain",
+                    "bands": [
+                      [
+                        0.35,
+                        0.45
+                      ],
+                      [
+                        0.65,
+                        0.75
+                      ]
+                    ],
+                    "signed": false
+                  }
+                ]
+              },
+              {
+                "id": "turn_bias",
+                "cause": "self",
+                "effects": [
+                  {
+                    "field": "turnBias",
+                    "bands": [
+                      [
+                        0.4,
+                        0.6
+                      ],
+                      [
+                        1,
+                        1.4
+                      ]
+                    ],
+                    "signed": true
+                  }
+                ]
+              },
+              {
+                "id": "push",
+                "cause": "external",
+                "effects": [
+                  {
+                    "field": "drift",
+                    "bands": [
+                      [
+                        0.005,
+                        0.007
+                      ],
+                      [
+                        0.011,
+                        0.014
+                      ]
+                    ],
+                    "signed": true
+                  }
+                ]
+              },
+              {
+                "id": "spin",
+                "cause": "external",
+                "effects": [
+                  {
+                    "field": "spin",
+                    "bands": [
+                      [
+                        0.3,
+                        0.45
+                      ],
+                      [
+                        0.75,
+                        1
+                      ]
+                    ],
+                    "signed": true
+                  }
+                ]
+              },
+              {
+                "id": "sensor_noise",
+                "cause": "sensor",
+                "effects": [
+                  {
+                    "field": "flowNoise",
+                    "bands": [
+                      [
+                        2.5,
+                        3.5
+                      ],
+                      [
+                        5,
+                        7
+                      ]
+                    ],
+                    "signed": false
+                  }
+                ]
+              },
+              {
+                "id": "speed_gain_and_push",
+                "cause": "self+external",
+                "effects": [
+                  {
+                    "field": "speedGain",
+                    "bands": [
+                      [
+                        0.45,
+                        0.7
+                      ]
+                    ],
+                    "signed": false
+                  },
+                  {
+                    "field": "drift",
+                    "bands": [
+                      [
+                        0.006,
+                        0.012
+                      ]
+                    ],
+                    "signed": true
+                  }
+                ]
+              },
+              {
+                "id": "obstacle",
+                "cause": "environment",
+                "effects": [
+                  {
+                    "field": "obstacle",
+                    "bands": [
+                      [
+                        1,
+                        1
+                      ]
+                    ],
+                    "signed": false
+                  }
+                ]
+              },
+              {
+                "id": "misleading_sense",
+                "cause": "sensor",
+                "effects": [
+                  {
+                    "field": "flowBias",
+                    "bands": [
+                      [
+                        0.005,
+                        0.01
+                      ]
+                    ],
+                    "signed": true
+                  }
+                ]
+              }
+            ],
+            "onset_s": [
+              30,
+              40
+            ],
+            "onsets_s": [
+              20,
+              55,
+              90,
+              125
+            ],
+            "jitter_s": 3,
+            "episode_s": [
+              15,
+              22
+            ],
+            "persistent_last": 0.5,
+            "phases_s": [
+              25,
+              65,
+              90,
+              125,
+              150,
+              185,
+              210
+            ],
+            "window_s": 1,
+            "reexposure_s": 10
+          }
+        }
+      ],
+      "arms": [
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "full",
+            "reset_s": null
+          },
+          "id": "control"
+        },
+        {
+          "config": {},
+          "noise": 0,
+          "light_intensity": 2,
+          "l_over_v_ms": 40,
+          "isi_s": 90,
+          "echo": {
+            "variant": "motion_gated",
+            "reset_s": null
+          },
+          "id": "treatment"
+        }
+      ]
+    },
+    "simulated_seconds": 3840,
+    "criteria": {
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 24,
+          "note": "Every matched run completes"
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "note": "An independent re-simulation reproduces every state hash and measurement"
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "note": "The control arm is not pinned at the metric's floor or ceiling in every seed, so the comparison can move both ways"
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "note": "Enough seeds differ between the arms for the sign test"
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "note": "The fly's gate refused no command in any run"
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.36,
+          "note": "Mean paired difference beyond the minimum effect"
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test in the expected direction"
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "note": "Exact one-sided sign test finds the opposite direction"
+        }
+      ]
+    },
+    "definition_sha256": "eda2e21696a957edf381fadfb6e3ba088b817ea1a4e83e519ac5d17e5b1f937a",
+    "experiment_id": "FLY-eda2e21696a957edf381fadf"
+  },
+  "preregistration": {
+    "experiment_id": "V3D-EXP-0008",
+    "registry_definition_sha256": "20fed5d6c03f439899a06e3becc13ba7a9f7d673ccf85d848a824b00a5e674e5",
+    "plan_sha256": "eda2e21696a957edf381fadfb6e3ba088b817ea1a4e83e519ac5d17e5b1f937a",
+    "created_at": "2026-11-04T20:35:09.617Z"
+  },
+  "authorization": {
+    "schema": "rain-fly-authorization/v2",
+    "experiment_id": "FLY-eda2e21696a957edf381fadf",
+    "definition_sha256": "eda2e21696a957edf381fadfb6e3ba088b817ea1a4e83e519ac5d17e5b1f937a",
+    "registry_experiment_id": "V3D-EXP-0008",
+    "preregistration_sha256": "12f6f60c6ce0be019057aa5e329a93e04d18a8448abed0705d1e2d5cc09c0041",
+    "registered_at": "2026-11-04T20:35:09.617Z",
+    "nonce": "19da682058e000a5a47d899726ca45e1348b2aa7fd849d6f1b2c26df0fd8d903",
+    "channel": "script",
+    "operator": "Scripted.DemoOperator",
+    "attestation": "demonstration-script",
+    "identity_verified": false,
+    "human_design_attested": false,
+    "scope": "fly-behavior-simulation",
+    "confirmed_prefix": "eda2e216",
+    "authorized_at": "2026-11-04T20:35:09.870Z",
+    "expires_at": "2026-11-04T21:35:09.870Z",
+    "authorization_sha256": "6caf2707ff7e6ccb01ea673a18472c99161006aeec1b78cace7138a476e72cef"
+  },
+  "seeds": [
+    617850007,
+    205272566,
+    3630933296,
+    3606223602,
+    2143278674,
+    3255710369,
+    4294389576,
+    1067578388,
+    3365170108,
+    3815703598,
+    266118565,
+    2282720937
+  ],
+  "engine": {
+    "runtime": "node",
+    "version": "24.19.0",
+    "js": "V8 13.6.233.17-node.51"
+  },
+  "code": {
+    "commit": null,
+    "dirty": null
+  },
+  "development": true,
+  "started_at": "2026-11-04T20:35:09.877Z",
+  "finished_at": "2026-11-04T20:35:57.824Z",
+  "result": {
+    "runs": [
+      {
+        "arm": "control",
+        "seed": 617850007,
+        "block": "attribution",
+        "final_hashes": [
+          "0c30c57fe4f51501"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 0.00003736313889432316,
+          "attribution_path_error": 0.06093850940771049,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8864422774457377
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 617850007,
+        "block": "attribution",
+        "final_hashes": [
+          "b47006e8a20324c4"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.5714285714285714,
+          "false_self_attribution": 1,
+          "attribution_brier": 0.42857142857142855,
+          "attribution_path_error": 0.15731920757127946,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.7611565053425519
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 205272566,
+        "block": "attribution",
+        "final_hashes": [
+          "9c64be2e6bc04715"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 0.0000047168260468082305,
+          "attribution_path_error": 0.026078617288061597,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": 0,
+          "attribution_coverage_90": 0.9053783812230292
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 205272566,
+        "block": "attribution",
+        "final_hashes": [
+          "64cc5c76c2d64bde"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 0,
+          "attribution_path_error": 0.03617080587847255,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": 0,
+          "attribution_coverage_90": 0.908118313404657
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3630933296,
+        "block": "attribution",
+        "final_hashes": [
+          "420c914ff81e5213"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": null,
+          "attribution_brier": 9.185151495020737e-12,
+          "attribution_path_error": 0.05866274788069408,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": 0,
+          "attribution_coverage_90": 0.8957731407169609
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3630933296,
+        "block": "attribution",
+        "final_hashes": [
+          "21827230906ffba0"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.6666666666666666,
+          "false_self_attribution": null,
+          "attribution_brier": 0.5,
+          "attribution_path_error": 0.09825463700714229,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": 0,
+          "attribution_coverage_90": 0.8320185126748711
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3606223602,
+        "block": "attribution",
+        "final_hashes": [
+          "cf9ae34c06157d87"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 0.0011298633551458921,
+          "attribution_path_error": 0.258377468798474,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": 0,
+          "attribution_coverage_90": 0.899002624671916
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3606223602,
+        "block": "attribution",
+        "final_hashes": [
+          "a3a1410fe8aa69dd"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.3333333333333333,
+          "false_self_attribution": 0.6666666666666666,
+          "attribution_brier": 0.6666666666666666,
+          "attribution_path_error": 0.287987269858228,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": 1,
+          "attribution_coverage_90": 0.8827102314378469
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2143278674,
+        "block": "attribution",
+        "final_hashes": [
+          "df19348e95b353cc"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": null,
+          "attribution_brier": 0.001085078714284677,
+          "attribution_path_error": 0.0486399115102883,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": 0,
+          "attribution_coverage_90": 0.9035916824196597
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2143278674,
+        "block": "attribution",
+        "final_hashes": [
+          "abde84bc59107839"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.3333333333333333,
+          "false_self_attribution": null,
+          "attribution_brier": 1,
+          "attribution_path_error": 0.11603264585074194,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": 1,
+          "attribution_coverage_90": 0.8915878023133543
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3255710369,
+        "block": "attribution",
+        "final_hashes": [
+          "69341baaac065f59"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 0.000007248893071725727,
+          "attribution_path_error": 0.06796975100423845,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.9019053601340034
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3255710369,
+        "block": "attribution",
+        "final_hashes": [
+          "5b0968be00d32963"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.42857142857142855,
+          "false_self_attribution": 0.5,
+          "attribution_brier": 0.5714285714285714,
+          "attribution_path_error": 0.11069387065338226,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8349017147636972
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 4294389576,
+        "block": "attribution",
+        "final_hashes": [
+          "1c58154c7cbe1b9a"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.5714285714285714,
+          "false_self_attribution": 0.5,
+          "attribution_brier": 0.3968384309568633,
+          "attribution_path_error": 0.2662234282557705,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8918523167032737
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 4294389576,
+        "block": "attribution",
+        "final_hashes": [
+          "7540c3cbe6c3a0d4"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0,
+          "false_self_attribution": 1,
+          "attribution_brier": 1,
+          "attribution_path_error": 0.3118342026207447,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.831555834378921
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 1067578388,
+        "block": "attribution",
+        "final_hashes": [
+          "d47bd92dd6a7cf82"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 0.00009724811885806068,
+          "attribution_path_error": 0.11098156155919661,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8928010059729645
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 1067578388,
+        "block": "attribution",
+        "final_hashes": [
+          "d97e59009798c8d1"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.6666666666666666,
+          "false_self_attribution": 0.5,
+          "attribution_brier": 0.3333333333333333,
+          "attribution_path_error": 0.15007518727158495,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8267258695422349
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3365170108,
+        "block": "attribution",
+        "final_hashes": [
+          "b7d764a70ae4e204"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.7142857142857143,
+          "false_self_attribution": 0.5,
+          "attribution_brier": 0.2688348286612188,
+          "attribution_path_error": 0.12236244137309982,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8718029350104822
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3365170108,
+        "block": "attribution",
+        "final_hashes": [
+          "822ac0c9cdab116d"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.2857142857142857,
+          "false_self_attribution": 1,
+          "attribution_brier": 0.7142857142857143,
+          "attribution_path_error": 0.15213226551914957,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8139899623588457
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 3815703598,
+        "block": "attribution",
+        "final_hashes": [
+          "7902acd8328920c3"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 1.3513871708547018e-9,
+          "attribution_path_error": 0.01456470762697145,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8987381703470032
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 3815703598,
+        "block": "attribution",
+        "final_hashes": [
+          "de865194dd09a944"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.16666666666666666,
+          "false_self_attribution": 1,
+          "attribution_brier": 1,
+          "attribution_path_error": 0.05318957744071456,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8520971302428256
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 266118565,
+        "block": "attribution",
+        "final_hashes": [
+          "0e79f9b570651ec8"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": 0,
+          "attribution_brier": 0.0000017947575364317292,
+          "attribution_path_error": 0.09496463391152703,
+          "missed_changes": 0,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8943063856558666
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 266118565,
+        "block": "attribution",
+        "final_hashes": [
+          "2e7a3c64de44bf86"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.7142857142857143,
+          "false_self_attribution": 1,
+          "attribution_brier": 0.16666666666666666,
+          "attribution_path_error": 0.09126568204452506,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.9035527690700105
+        }
+      },
+      {
+        "arm": "control",
+        "seed": 2282720937,
+        "block": "attribution",
+        "final_hashes": [
+          "fe29c2efbf4ab8a5"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 1,
+          "false_self_attribution": null,
+          "attribution_brier": 2.156221516018869e-11,
+          "attribution_path_error": 0.013824399724307192,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.8864711447492905
+        }
+      },
+      {
+        "arm": "treatment",
+        "seed": 2282720937,
+        "block": "attribution",
+        "final_hashes": [
+          "fc6978c90f91c82a"
+        ],
+        "simulated_s": 160,
+        "gate_refusals": 0,
+        "metrics": {
+          "attribution_accuracy": 0.8333333333333334,
+          "false_self_attribution": null,
+          "attribution_brier": 0.2,
+          "attribution_path_error": 0.06814372627332395,
+          "missed_changes": 1,
+          "misleading_sense_blamed_self": null,
+          "attribution_coverage_90": 0.819672131147541
+        }
+      }
+    ],
+    "completed": true,
+    "measurements": {
+      "runs_completed": 24,
+      "determinism_check": 1,
+      "seeds": 12,
+      "simulated_seconds": 3840,
+      "gate_refusals": 0,
+      "control_gate_refusals": 0,
+      "treatment_gate_refusals": 0,
+      "control_mean": 0.9404761904761904,
+      "treatment_mean": 0.5,
+      "mean_paired_delta": -0.44047619047619047,
+      "seeds_expected_direction": 11,
+      "seeds_opposite": 0,
+      "seeds_unchanged": 1,
+      "seeds_undefined": 0,
+      "untied_pairs": 11,
+      "sign_test_p_expected": 0.00048828125,
+      "sign_test_p_opposite": 1,
+      "control_informative": 1,
+      "control_attribution_accuracy": 0.9404761904761904,
+      "treatment_attribution_accuracy": 0.5,
+      "control_false_self_attribution": 0.1111111111111111,
+      "treatment_false_self_attribution": 0.7407407407407407,
+      "control_attribution_brier": 0.055669714567004557,
+      "treatment_attribution_brier": 0.5484126984126985,
+      "control_attribution_path_error": 0.09529901486169497,
+      "treatment_attribution_path_error": 0.13609158983244074,
+      "control_missed_changes": 0.4166666666666667,
+      "treatment_missed_changes": 0.5,
+      "control_misleading_sense_blamed_self": 0,
+      "treatment_misleading_sense_blamed_self": 0.5,
+      "control_attribution_coverage_90": 0.8940054520875158,
+      "treatment_attribution_coverage_90": 0.8465072313897798
+    },
+    "status": "passed",
+    "verdict": "supported",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "runs_completed",
+          "op": ">=",
+          "value": 24,
+          "observed": 24,
+          "holds": true
+        },
+        {
+          "id": "G2",
+          "metric": "determinism_check",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G3",
+          "metric": "control_informative",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        },
+        {
+          "id": "G4",
+          "metric": "untied_pairs",
+          "op": ">=",
+          "value": 6,
+          "observed": 11,
+          "holds": true
+        },
+        {
+          "id": "G5",
+          "metric": "gate_refusals",
+          "op": "<=",
+          "value": 0,
+          "observed": 0,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "mean_paired_delta",
+          "op": "<=",
+          "value": -0.36,
+          "observed": -0.44047619047619047,
+          "holds": true
+        },
+        {
+          "id": "S2",
+          "metric": "sign_test_p_expected",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 0.00048828125,
+          "holds": true
+        }
+      ],
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "sign_test_p_opposite",
+          "op": "<=",
+          "value": 0.05,
+          "observed": 1,
+          "holds": false
+        }
+      ],
+      "summary": "All 2 success criteria held and no failure criterion triggered."
+    },
+    "error": null
+  },
+  "evidence_class": "simulated",
+  "sha256": "af0624ace88d8cea77d9bd3e7fb56fe47dc830b37f354a88607186bd6a9feeb2"
+}
