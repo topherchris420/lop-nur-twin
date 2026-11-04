@@ -109,25 +109,25 @@ function trapPoint(): V3 {
   throw new Error("no point on this wall where a ray misses it");
 }
 
+// Since digital-fly/9 the fly keeps itself out (collision.test.ts), so the guard, made
+// to stand in for that, has nothing left to refuse. It stays for what was run with it.
 describe("the wall guard", () => {
-  it("is needed: the plain fly goes through from the line", () => {
+  it("is not needed: the plain fly stays out, from the line", () => {
     const fly = flyAt(trapPoint());
-    let inside = false;
     for (let i = 0; i < 400; i++) {
       fly.advance(0.005);
-      inside ||= world.solid(fly.state.p);
+      expect(world.solid(fly.state.p)).toBe(false);
     }
-    expect(inside).toBe(true);
   });
 
-  it("keeps the fly out, from the same place, and reports that it had to", () => {
+  it("has nothing to refuse, from the same place", () => {
     const fly = flyAt(trapPoint());
     const guard = guardWalls(fly);
     for (let i = 0; i < 400; i++) {
       fly.advance(0.005);
       expect(world.solid(fly.state.p)).toBe(false);
     }
-    expect(guard.refused).toBeGreaterThan(0);
+    expect(guard.refused).toBe(0);
     expect(guard.unnamed).toBe(0);
   });
 
@@ -180,8 +180,7 @@ describe("the wall guard", () => {
       fly.advance(0.005);
       expect(low.solid(fly.state.p)).toBe(false);
     }
-    expect(guard.touchedDown).toBeGreaterThan(0);
-    expect(guard.events[0]!.insideAfter).toBe(false);
+    expect(guard.touchedDown).toBe(0);
     expect(fly.state.counts.landings).toBe(0);
     expect(fly.state.perch).toBeNull();
   });

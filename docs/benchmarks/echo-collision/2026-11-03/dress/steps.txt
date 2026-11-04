@@ -1,0 +1,15 @@
+01:17:47Z install-deployed: exit 0, wanted succeeds, 123 s
+01:23:22Z 1-prepare: exit 0, wanted succeeds, 5 s
+01:23:58Z ordinary-upgrade-refused: exit 1, wanted fails, 36 s
+01:29:56Z 2-backup: exit 0, wanted succeeds, 28 s
+01:31:19Z 3-check: exit 0, wanted succeeds, 83 s
+01:31:39Z 4-stop: exit 0, wanted succeeds, 20 s
+01:32:07Z 5-final-backup: exit 0, wanted succeeds, 28 s
+01:34:04Z 6-commit: exit 0, wanted succeeds, 117 s
+01:34:28Z 6b-again-refused: exit 1, wanted fails, 24 s
+01:36:34Z 7-switch: exit 0, wanted succeeds, 126 s
+01:48:19Z 8-verify: exit 0, wanted succeeds, 45 s
+01:48:58Z 9-backup: exit 0, wanted succeeds, 39 s
+01:50:07Z 9b-replay: exit 0, wanted succeeds, 63 s
+01:50:37Z rollback-refused: exit 1, wanted fails, 26 s
+01:56:40Z after-rollback-verify: exit 0, wanted succeeds, 33 s

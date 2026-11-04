@@ -1,4 +1,8 @@
 /**
+ * Since digital-fly/9 the fly keeps itself out of solids (`sweep` in fly/world.ts), so
+ * this has nothing left to do. It stays for the runs that were made with it. What it
+ * was for:
+ *
  * A research fly that cannot fly into a solid. Without this, a fly that walks up
  * to a wall can come to rest exactly on its line, where a point counts as outside
  * but a ray that starts there no longer sees that wall. Its next jump goes through,

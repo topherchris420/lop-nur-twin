@@ -120,7 +120,8 @@ export const HABIT_LIFE: LifeKind<HeadlessGenesis, HabitOrganismLife> = {
           e.kind === HABIT_EVENT ||
           e.kind === "engine-upgrade" ||
           e.kind === "self-model-upgrade" ||
-          e.kind === "organism-continuation",
+          e.kind === "organism-continuation" ||
+          e.kind === "physics-repair",
       );
       const e = events[0];
       if (

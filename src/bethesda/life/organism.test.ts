@@ -1,5 +1,6 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import {
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -10,7 +11,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { streamPosition } from "../../lib/noise";
 import { sha256, sha256Json } from "../../rain/sha256";
@@ -46,12 +47,18 @@ import {
   LifelongPlaceValuation,
   ORGANISM_CONTINUATION_SOURCE,
   ORGANISM_EVENT,
-  ORGANISM_LIFE,
+  // These tests are of the era the organism began: `ORGANISM_LIFE` here is its
+  // digital-fly/8 versions. The runner takes what came after, `REPAIRED_LIFE`.
+  ORGANISM_V1_LIFE as ORGANISM_LIFE,
+  ORGANISM_LIFE as REPAIRED_LIFE,
   OrganismAdapter,
   organismProjection,
+  PHYSICS_REPAIR_EVENT,
+  PHYSICS_REPAIR_SOURCE,
   type OrganismLife,
 } from "./organism";
 import { continueAsOrganism, valuationOf } from "./organismContinuation";
+import { continueOnRepairedPhysics } from "./physicsRepair";
 import { indexGraph, restoreGraph, snapshotGraph, type GraphSnapshot } from "./snapshot";
 import { LifeStore } from "./store";
 
@@ -197,6 +204,22 @@ function continued(dir: string): Checkpoint {
   const s = LifeStore.open(dir, ORGANISM_LIFE);
   const { checkpoint: head, committedUtc } = s.headRecord();
   const { checkpoint } = continueAsOrganism(head, new Date().toISOString(), committedUtc);
+  s.acquire();
+  s.commit(checkpoint);
+  s.release();
+  return checkpoint;
+}
+
+/** The store as the runner takes it today: the organism continuation, then the physics repair. */
+function repaired(dir: string): Checkpoint {
+  continued(dir);
+  const s = LifeStore.open(dir, REPAIRED_LIFE);
+  const { checkpoint: head, committedUtc } = s.headRecord();
+  const { checkpoint } = continueOnRepairedPhysics(
+    head,
+    new Date().toISOString(),
+    committedUtc,
+  );
   s.acquire();
   s.commit(checkpoint);
   s.release();
@@ -593,7 +616,7 @@ describe("the organism's store", () => {
     later.release();
     expect(later.verify()).toMatchObject({ checkpoints: 6, head: 5 });
     expect(readFileSync(join(dir, "individual.json"), "utf8")).toBe(identity);
-    expect(bethesdaStoreKind(dir)).toBe(ORGANISM_LIFE);
+    expect(bethesdaStoreKind(dir)).toBe(REPAIRED_LIFE);
     const events = LifeStore.open(dir, ORGANISM_LIFE).events();
     expect(events.filter((e) => e.kind === ORGANISM_EVENT)).toHaveLength(1);
     expect(LifeStore.open(dir, ORGANISM_LIFE).head().tick).toBe(v3.tick + 200);
@@ -628,7 +651,7 @@ describe("the runner with an organism", () => {
   it("resumes the same individual across restarts, records each pause, and verifies the whole chain", () => {
     const dir = scratch("organism-runner");
     historyStore(dir);
-    const organism = continued(dir);
+    const organism = repaired(dir);
     const identity = readFileSync(join(dir, "individual.json"), "utf8");
     const check = runner(["--store", dir, "--check"]);
     expect(check.status, check.stderr).toBe(0);
@@ -648,7 +671,7 @@ describe("the runner with an organism", () => {
       checkpoints: organism.sequence + 3,
       head: organism.sequence + 2,
     });
-    const s = LifeStore.open(dir, ORGANISM_LIFE);
+    const s = LifeStore.open(dir, REPAIRED_LIFE);
     expect(s.head().tick).toBe(organism.tick + 600);
     const gaps = s.events().filter((e) => e.kind === "gap");
     expect(gaps.length).toBeGreaterThanOrEqual(2);
@@ -662,7 +685,7 @@ describe("the runner with an organism", () => {
     // The deployed kind, from the deployed history, through the two real programs in separate processes.
     const dir = scratch("organism-replay");
     historyStore(dir);
-    const organism = continued(dir);
+    const organism = repaired(dir);
     // Watched, as the VM's service is: its observer writes a file about every 10 ticks. Without
     // the observer leaving no trace, this fails at the first checkpoint's graph digest.
     const watching = join(scratch("organism-replay-observed"), "observation.json");
@@ -712,12 +735,12 @@ describe("the runner with an organism", () => {
 
     // A test intervention, sealed as its own checkpoint: the reserve nearly empty, so
     // the fly soon records a recovery, and the seals depend on what it recorded.
-    const store = LifeStore.open(dir, ORGANISM_LIFE);
+    const store = LifeStore.open(dir, REPAIRED_LIFE);
     const head = store.head();
-    const life = restoreLife(ORGANISM_LIFE, head);
+    const life = restoreLife(REPAIRED_LIFE, head);
     const fly = life.cityFly.fly;
     fly.state.reserve = 0.02 * fly.params.reserveJ;
-    const depleted = checkpointLife(ORGANISM_LIFE, life, {
+    const depleted = checkpointLife(REPAIRED_LIFE, life, {
       genesis: head.genesis,
       birth: head.birth,
       previous: head,
@@ -726,7 +749,7 @@ describe("the runner with an organism", () => {
     store.commit(depleted);
     store.release();
     live(1000, 3);
-    const after = LifeStore.open(dir, ORGANISM_LIFE)
+    const after = LifeStore.open(dir, REPAIRED_LIFE)
       .events()
       .filter((e) => e.tick > depleted.tick);
     expect(after.map((e) => e.kind)).toContain("recovery-enter");
@@ -745,7 +768,7 @@ describe("the runner with an organism", () => {
   it("after a hard kill: refuses a second writer, resumes only what was committed, and starts no one new", async () => {
     const dir = scratch("organism-kill");
     historyStore(dir);
-    const organism = continued(dir);
+    const organism = repaired(dir);
     const epoch = latestLease(dir).epoch;
     const child: ChildProcess = spawn(
       process.execPath,
@@ -780,7 +803,7 @@ describe("the runner with an organism", () => {
     );
     const resumed = runner(["--store", dir, "--ticks", "100"]);
     expect(resumed.status, resumed.stderr).toBe(0);
-    const s = LifeStore.open(dir, ORGANISM_LIFE);
+    const s = LifeStore.open(dir, REPAIRED_LIFE);
     // What the killed process computed was never committed, so it is not claimed.
     expect(s.head().tick).toBe(organism.tick + 100);
     expect(s.head().birth.individual).toBe(born.individual);
@@ -795,7 +818,7 @@ describe("the runner with an organism", () => {
     expect(readdirSync(empty)).toEqual([]);
     const dir = scratch("organism-corrupt");
     historyStore(dir);
-    const organism = continued(dir);
+    const organism = repaired(dir);
     const head = join(
       dir,
       "checkpoints",
@@ -843,7 +866,7 @@ describe("the runner with an organism", () => {
     expect(files()).toEqual(before);
     const commit = runTs(script, ["--store", dir, "--from-release", release, "--commit"]);
     expect(commit.status, commit.stderr).toBe(0);
-    expect(bethesdaStoreKind(dir)).toBe(ORGANISM_LIFE);
+    expect(bethesdaStoreKind(dir)).toBe(REPAIRED_LIFE);
     const again = runTs(script, ["--store", dir, "--from-release", release, "--check"]);
     expect(again.status).toBe(1);
     expect(again.stderr).toMatch(/already continued/);
@@ -909,22 +932,123 @@ describe("the runner with an organism", () => {
     expect(waiting.status).toBe(1);
     expect(waiting.stderr).toMatch(/lease is held/);
     store.release();
+    // This release does not run that era under its own physics: it says so.
+    const refused = runner(["--store", late, "--check"]);
+    expect(refused.status).toBe(1);
+    expect(refused.stderr).toMatch(/made by fly digital-fly\/8/);
+    const fixed = LifeStore.open(late, REPAIRED_LIFE);
+    const organism = fixed.headRecord();
+    fixed.acquire();
+    fixed.commit(
+      continueOnRepairedPhysics(
+        organism.checkpoint,
+        new Date().toISOString(),
+        organism.committedUtc,
+      ).checkpoint,
+    );
+    fixed.release();
     const resumed = runner(["--store", late, "--ticks", "100"]);
     expect(resumed.status, resumed.stderr).toBe(0);
-    const t = LifeStore.open(late, ORGANISM_LIFE);
+    const t = LifeStore.open(late, REPAIRED_LIFE);
     expect(t.head().tick).toBe(head.tick + 100);
     expect(t.head().birth.individual).toBe(born.individual);
     expect(t.events().filter((e) => e.kind === ORGANISM_EVENT)).toHaveLength(1);
   }, 600_000);
 
+  it("continues a digital-fly/8 store once by the one-time script, only from the exact deployed release", () => {
+    const dir = scratch("repair-script");
+    historyStore(dir);
+    const organism = continued(dir);
+    const script = "scripts/bethesda-life-continue-physics.ts";
+    const wrong = scratch("repair-wrong-release");
+    writeFileSync(join(wrong, "RELEASE"), "commit 0000000\n");
+    const refused = runTs(script, ["--store", dir, "--from-release", wrong, "--check"]);
+    expect(refused.status).toBe(1);
+    expect(refused.stderr).toMatch(/exact deployed bdb7c02/);
+    // The deployed release, as far as this script reads it: that era's kind, and its restore.
+    const release = scratch("repair-release");
+    mkdirSync(join(release, "src", "bethesda", "life"), { recursive: true });
+    const here = (file: string) =>
+      pathToFileURL(join(repo, "src", "bethesda", "life", file)).href;
+    writeFileSync(
+      join(release, "src", "bethesda", "life", "organism.ts"),
+      `export { ORGANISM_V1_LIFE as ORGANISM_LIFE } from "${here("organism.ts")}";\n`,
+    );
+    writeFileSync(
+      join(release, "src", "bethesda", "life", "continuity.ts"),
+      `export { restoreLife } from "${here("continuity.ts")}";\n`,
+    );
+    writeFileSync(join(release, "RELEASE"), `commit ${PHYSICS_REPAIR_SOURCE}\n`);
+    const files = () =>
+      readdirSync(join(dir, "checkpoints")).map((f) =>
+        sha256(readFileSync(join(dir, "checkpoints", f), "utf8")),
+      );
+    const seals = () =>
+      readdirSync(join(dir, "checkpoints")).map((f) => {
+        const { checkpoint } = JSON.parse(
+          readFileSync(join(dir, "checkpoints", f), "utf8"),
+        ) as { checkpoint: Checkpoint };
+        return [checkpoint.digest, checkpoint.stateHash, checkpoint.graphDigest];
+      });
+    const before = files();
+    const sealed = seals();
+    const check = runTs(script, ["--store", dir, "--from-release", release, "--check"]);
+    expect(check.status, check.stderr).toBe(0);
+    expect(lastJson(check.stdout)).toMatchObject({
+      mode: "--check",
+      individual: born.individual,
+      tick: organism.tick,
+      sequence: organism.sequence + 1,
+      parent: organism.digest,
+      sourceGraphDigest: organism.graphDigest,
+      preservedGraphDigest: organism.graphDigest,
+      committedUtc: null,
+    });
+    expect(files()).toEqual(before);
+    // A writer holds the store: nothing is committed past it.
+    const held = LifeStore.open(dir, REPAIRED_LIFE);
+    held.acquire();
+    const blocked = runTs(script, [
+      "--store",
+      dir,
+      "--from-release",
+      release,
+      "--commit",
+    ]);
+    expect(blocked.status).toBe(1);
+    expect(blocked.stderr).toMatch(/lease is held/);
+    expect(files()).toEqual(before);
+    held.release();
+    const commit = runTs(script, ["--store", dir, "--from-release", release, "--commit"]);
+    expect(commit.status, commit.stderr).toBe(0);
+    const again = runTs(script, ["--store", dir, "--from-release", release, "--check"]);
+    expect(again.status).toBe(1);
+    expect(again.stderr).toMatch(/already on the repaired physics/);
+    // Every checkpoint before it keeps its seals; compaction drops a graph, as at any commit.
+    expect(seals().slice(0, sealed.length)).toEqual(sealed);
+    const run = runner(["--store", dir, "--ticks", "100"]);
+    expect(run.status, run.stderr).toBe(0);
+    const s = LifeStore.open(dir, REPAIRED_LIFE);
+    s.verify();
+    expect(s.head().tick).toBe(organism.tick + 100);
+    expect(s.head().birth).toEqual(organism.birth);
+    const events = s.events();
+    const repair = events.filter((e) => e.kind === PHYSICS_REPAIR_EVENT);
+    expect(repair).toHaveLength(1);
+    expect(events.filter((e) => e.kind === ORGANISM_EVENT)).toHaveLength(1);
+    // The pause is recorded from when the source stopped, and is not lived.
+    const gap = events.find((e) => e.kind === "gap" && e.tick === organism.tick);
+    expect(gap?.data.stoppedUtc).toBe(repair[0]!.data.pausedFromUtc);
+  }, 600_000);
+
   it("commits one habit continuation onto the full legacy → ECHO → organism chain and resumes that individual", () => {
     const dir = scratch("echo-habit-history");
     historyStore(dir);
-    const organism = continued(dir);
+    const organism = repaired(dir);
     const s = LifeStore.open(dir, HABIT_LIFE);
     const { checkpoint: source, committedUtc } = s.headRecord();
     expect(source.digest).toBe(organism.digest);
-    const before = restoreLife(ORGANISM_LIFE, source);
+    const before = restoreLife(REPAIRED_LIFE, source);
     const keptState = before.organism.state;
     const next = continueWithHabits(source, new Date().toISOString(), committedUtc);
     expect(next.checkpoint.birth).toEqual(source.birth);

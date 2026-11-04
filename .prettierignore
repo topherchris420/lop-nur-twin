@@ -88,6 +88,11 @@ docs/research/echo-replay/windows/
 docs/research/echo-organism-continuation/*.ts
 docs/research/echo-organism-continuation/*.js
 docs/research/echo-organism-continuation/*.mjs
+
+# The collision repair's measurements of the deployed fly and the map: the scripts as
+# they ran, paths aside. Only the README there is written by hand.
+docs/research/echo-collision/*.ts
+docs/research/echo-collision/*.yml
 docs/research/echo-organism-continuation/*.sh
 docs/research/echo-organism-continuation/*.json
 docs/research/echo-organism-continuation/*.txt

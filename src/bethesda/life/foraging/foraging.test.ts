@@ -206,9 +206,11 @@ describe("embodied integration and individual continuity", () => {
     const g = researchGenesis(1201),
       a = IMMORTAL_RESEARCH_LIFE.build(g);
     a.advanceTicks(50);
-    // Captured from the unchanged v1 implementation at published tree f5a57e67.
+    // Captured from the unchanged v1 implementation at published tree f5a57e67. The graph
+    // is the same bytes it was then. The hash is of digital-fly/9: a fly's hash names its
+    // version, and on digital-fly/8 this one was dbdc57e76c64cfb3fc81….
     expect(IMMORTAL_RESEARCH_LIFE.hash(a)).toBe(
-      "dbdc57e76c64cfb3fc818988e05ccb7c2e365399b967d059ec98d8b7840f50a4",
+      "4980f967b72bb3919ae39eee4f887b8e69eb19b1ffa33987a796a80ed77ef3af",
     );
     expect(sha256Json(snapshotGraph(a))).toBe(
       "f1d4a65bea4f05c87b579856f3371fc5d5e53fa1553a1850ee3ea120b340a6d1",

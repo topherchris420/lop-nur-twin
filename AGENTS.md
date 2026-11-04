@@ -1027,6 +1027,16 @@ verified to be; a copy is always someone else.**
   additions, a projection that removes them, a recorded continuation, and
   the old release kept for replay (`install.sh` keeps every `*_SOURCE`
   release and any commit in `/opt/bethesda-life/pinned`).
+- **A new fly version reaches a deployed individual only by a recorded
+  continuation** (`physicsRepair.ts`). A fly's hash names its version, so an
+  older checkpoint is refused rather than run under new physics.
+  `ORGANISM_LIFE` is the current era and `ORGANISM_V1_LIFE` freezes the organism
+  on `digital-fly/8`; a frozen era's versions never follow `FLY_VERSION`. The
+  repair changes one leaf and moves nothing: a body moved under its name is a
+  refused checkpoint, never a quiet fix. A surface stops a body going in, never
+  one coming out (`sweep` in `fly/world.ts`), so a restored body that is inside
+  a solid can leave. Report that as the repaired physics, not as the fly
+  learning or finding its way ([`docs/ECHO_COLLISION.md`](docs/ECHO_COLLISION.md)).
 - **The individuality report is generated.** After a change to the fly, the
   controller or `individuality.ts`, bump `INDIVIDUALITY_VERSION` if the
   study's design changed, then run

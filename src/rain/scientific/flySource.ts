@@ -10,7 +10,7 @@ export const FLY_SOURCE: {
   readonly sha256: string;
   readonly files: Readonly<Record<string, string>>;
 } = {
-  sha256: "a96a496c4c00acead32e208158faf7889c31027b8dccde781059a4eb4481f70b",
+  sha256: "3a440f60616f2e78515dcf03a3cc689b54316140fb08d659c5310f63a4a83500",
   files: {
     "src/bethesda/fly/arena.ts":
       "b89bba26c9d984ffd69d7718af2728c3efe0a34af9652d6c609086464f74d786",
@@ -45,7 +45,7 @@ export const FLY_SOURCE: {
     "src/bethesda/fly/echo/workspace.ts":
       "2dbd887031e4d2d23abe2bc97cd3bcb46e6557fa06028083a06aecfc208d8ce7",
     "src/bethesda/fly/fly.ts":
-      "fef0a925cc2d1ce065b825cb25ccb26fa5a5811918891005ce291ff61b240f78",
+      "32ee2f31bea146b30f22804559975c9d830518e4bcb34e67b10a4dc7c142a87b",
     "src/bethesda/fly/gait.ts":
       "c3876855201f3995843e6b2c98827150259b83e80ba76fc9ef7caec5e2449c4c",
     "src/bethesda/fly/kinematics.ts":
@@ -67,7 +67,7 @@ export const FLY_SOURCE: {
     "src/bethesda/fly/units.ts":
       "3a36a0929fe380d878ec494bfb35044cfd45185151fbc2d2baf5a3254d97268a",
     "src/bethesda/fly/world.ts":
-      "2795a7da9919d79f28905e601934764d90eea02780cd1e429e9bffd3cd917c51",
+      "6554d7c18ca30e5ee6ca17f11452dfc63e449e2435c9fb6e863f4daa35acb96a",
     "src/bethesda/rain/scientificProtocol.ts#digital-fly":
       "9a1b505b1a54711707f41e2becf98f1de9f4ea5191decac3ed19d23e2c0a3be5",
     "src/game/pilot/hash.ts":

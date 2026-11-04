@@ -1,0 +1,13 @@
+check: exit 0, wanted succeeds; peak 3879 MB, wall 1:16.85
+wrong-release: exit 1, wanted fails; peak 133 MB, wall 0:01.11
+new-runner-refuses-source: exit 1, wanted fails; peak 2124 MB, wall 0:13.46
+abort: the deployed release resumed the unrepaired copy for 100 ticks
+commit: exit 0, wanted succeeds; peak 3879 MB, wall 1:54.69
+every one of the 2353 earlier checkpoints keeps its seals
+again: exit 1, wanted fails; peak 2767 MB, wall 0:22.67
+old release after the commit: refused: 
+verify-after-commit: exit 0, wanted succeeds; peak 3078 MB, wall 0:40.08
+check-after-commit: exit 0, wanted succeeds; peak 3251 MB, wall 0:30.98
+resume-1: exit 0, wanted succeeds; peak 3327 MB, wall 0:54.10
+resume-2: exit 0, wanted succeeds; peak 3321 MB, wall 0:56.04
+verify-after-life: exit 0, wanted succeeds; peak 3101 MB, wall 0:41.92

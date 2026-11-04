@@ -1,0 +1,56 @@
+{
+  "schema": "bethesda-life-replay/v1",
+  "passed": true,
+  "reason": null,
+  "individual": "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921",
+  "versions": {
+    "headless": "bethesda-headless-life/v2",
+    "city": "bethesda-city/4",
+    "fly": "digital-fly/9",
+    "echo": "echo-self-model/v3",
+    "upgrade": "bethesda-echo-upgrade/v1",
+    "organism": "bethesda-echo-organism/v1",
+    "mushroomBody": "mushroom-body/v1",
+    "olfaction": "echo-olfactory-navigation/v1",
+    "physiology": "echo-maintenance/v1",
+    "physicsRepair": "bethesda-physics-repair/v1",
+    "graph": "life-graph/v1"
+  },
+  "machine": {
+    "node": "v24.22.1",
+    "v8": "13.6.233.17-node.58",
+    "platform": "linux",
+    "arch": "arm64"
+  },
+  "from": {
+    "sequence": 2427,
+    "tick": 7258845,
+    "digest": "f0ee2f67fd585bc5291e9ea62bed9bcf6f6fabaf1a1af40242fd6000ee569f40"
+  },
+  "to": {
+    "sequence": 2430,
+    "tick": 7267845,
+    "digest": "db2888d5da93cbe37a529f2868316b9f6bc763cb5bc1ec544a4a9364d1970af1"
+  },
+  "head": {
+    "sequence": 2430,
+    "tick": 7267845,
+    "digest": "db2888d5da93cbe37a529f2868316b9f6bc763cb5bc1ec544a4a9364d1970af1"
+  },
+  "reproduced": 3,
+  "ticks": 9000,
+  "seals": {
+    "required": true,
+    "reproduced": 3
+  },
+  "graphs": 1,
+  "ledger": {
+    "checked": 14,
+    "rewound": 0,
+    "contradicted": []
+  },
+  "difference": null,
+  "stopped": null,
+  "wallSeconds": 61,
+  "peakMB": 3606
+}

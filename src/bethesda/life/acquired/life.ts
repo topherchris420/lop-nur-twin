@@ -93,7 +93,8 @@ export const ACQUIRED_LIFE: LifeKind<HeadlessGenesis, AcquiredLife> = {
           e.kind === ACQUIRED_EVENT ||
           e.kind === "engine-upgrade" ||
           e.kind === "self-model-upgrade" ||
-          e.kind === "organism-continuation",
+          e.kind === "organism-continuation" ||
+          e.kind === "physics-repair",
       );
       const e = marks[0];
       if (
