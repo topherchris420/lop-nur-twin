@@ -782,7 +782,9 @@ with the fix seals on the VM, and the VM moved to one on November 4, 2026.
 ([run 41848867504](https://github.com/topherchris420/lop-nur-twin/actions/runs/41848867504)):
 the backup `bethesda-life-20261104T121554Z-e458f7cb3490`, from #2,566 to #2,569, 9,000
 ticks, 3 of 3 seals, with none of the 16 ledger anchors it checked contradicted, on a
-GitHub Linux arm64 machine with Node 24.22.1.
+GitHub Linux arm64 machine with Node 24.22.1. The next scheduled replay continued it to
+#2,639 ([run 41906800876](https://github.com/topherchris420/lop-nur-twin/actions/runs/41906800876)):
+210,002 ticks, 70 of 70 seals.
 
 ### Recovery
 
