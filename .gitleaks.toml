@@ -65,6 +65,7 @@ regexes = ['''^bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1$''']
 paths = [
   '''(^|/)src/bethesda/life/organism\.ts$''',
   '''(^|/)docs/ECHO_COLLISION\.md$''',
+  '''(^|/)docs/research/echo-collision/vm-physics-commit\.sh$''',
 ]
 
 [[rules.allowlists]]

@@ -256,7 +256,7 @@ replay script in the release's folder.
 | 9. Backup            | 39      | Kept, on the new release                                                 |
 | The scheduled replay | 63      | 2 of 2 seals, from the service's own chain, with the ledger's 14 anchors |
 
-Three refusals ran as well, and each left the fly living on the release it was on:
+Three refusals ran as well, and none changed anything:
 
 - **An ordinary upgrade before the commit:** "checkpoint refused: made by fly
   digital-fly/8; this is digital-fly/9". The old release was running again in 36 s.
