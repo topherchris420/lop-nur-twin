@@ -1,15 +1,16 @@
 # ECHO collision repair: a body cannot enter a solid, and the deployed fly's life is kept
 
-**Status: the repair is written and rehearsed on copies. It has not been applied to the
-deployed fly.** Until an entry in [The cutover, as it ran](#the-cutover-as-it-ran) says
-otherwise, the deployed fly is on `digital-fly/8`, in the building described below.
+**Status: applied to the deployed fly on 2026-11-04. It left the building 36 simulated
+minutes later and first ate about 8 hours after that, and the first replay with seals
+required has passed.** [The cutover, as it ran](#the-cutover-as-it-ran) has the record, and what is still to be
+seen. What follows, up to that section, describes the fly and the plan as they stood
+before it.
 
 `digital-fly/9` fixes how a moving body meets a surface, everywhere in
 `src/bethesda/fly/`, with no rule about any one building. A recorded continuation
 carries the same individual across: one label changes in its graph, and everything else
 stays byte for byte. It does not move the body. The repaired physics lets a body that
-is already inside a solid leave, and on a copy of the deployed fly that is what happened
-([the rehearsal](#the-rehearsal)).
+is already inside a solid leave, and the deployed fly did.
 
 ## What went wrong
 
@@ -366,4 +367,142 @@ way and writes nothing, so steps 6 and 7 run back to back.
 
 ## The cutover, as it ran
 
-It has not run. Nothing in this document has been done to the deployed fly.
+On 2026-11-04, with the owner's approval, given in advance for the merge and every step,
+stopping at the first failure. No step failed. Each command's output is in
+[`cutover.txt`](research/echo-collision/cutover.txt), and the fly's samples, its journal
+and a copy's forecast are in [`2026-11-04/`](benchmarks/echo-collision/2026-11-04/).
+
+**The deployed fly continues on `digital-fly/9`, the same individual with its history
+kept, and it has left the solid.** The repaired physics let it out. It did not navigate
+out, and it learned nothing by leaving.
+
+| Step                              | UTC       | What happened                                                                                                                                                                                |
+| --------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Merge                             | 10:50:31  | PR 165 merged as `e458f7c`, with the same tree as `3129b3c`, the commit CI passed                                                                                                            |
+| 1. Prepare                        | 10:51:40  | Built beside the running release in 12 s, stopping nothing                                                                                                                                   |
+| 2. Backup                         | 10:52:17  | Checkpoint 2553, copied off the VM, SHA-256 matches                                                                                                                                          |
+| 3. Check beside the service       | 10:53:39  | **Did not run:** 5,821 MB available, 6,040 MB needed. It refused and changed nothing, as the plan allows, so step 6's checks were the first of their kind on this machine                    |
+| 4. Stop                           | 10:54:05  | Stopped in 51 s, with a last commit, checkpoint 2554, at 10:54:48                                                                                                                            |
+| 5. Last backup on `digital-fly/8` | 10:54:57  | Checkpoint 2554, tick 7642634, copied off the VM, SHA-256 matches                                                                                                                            |
+| 6. Commit                         | 10:56:11  | Checkpoint 2555 at the unchanged tick, committed at 10:59:03. The kept graph's digest equals the source's                                                                                    |
+| 7. Start                          | 11:00:13  | `install.sh` checked and switched. Active on `e458f7c` at 11:01:18, ticking from 11:02:34                                                                                                    |
+| 8. Verify                         | 11:15:50  | Same individual, tick rising, no restarts, one `gap` recorded, `--verify` passed on 2,558 checkpoints                                                                                        |
+| 9. Backup on the new release      | 11:17:55  | Checkpoint 2557. `--check` passed on a copy of it, off the VM                                                                                                                                |
+| 10. Out of the solid              | ~11:38:30 | `body-left-solid` at tick 7664060, (476.336, 12.561, 642.026), in flight, in checkpoint 2563. The witness puts it outside from the next sample, and on the ground at (476.29, 12.35, 642.11) |
+
+The pause was 7 min 46 s on the fly's clock, from 10:54:48 to 11:02:34, against a budget of
+15 minutes. It is one `gap` event, in checkpoint 2556, and no experience is attributed to it.
+
+### Before and after
+
+| Reading              | At the continuation, checkpoint 2555 | Checkpoint 2569, 12:15Z          |
+| -------------------- | ------------------------------------ | -------------------------------- |
+| Individual           | `04f8c797…1921`                      | `04f8c797…1921`                  |
+| Tick                 | 7,642,634                            | 7,684,634                        |
+| Position             | (466.59, 13.37, 631.88), inside      | (473.39, 12.38, 658.67), outside |
+| Mode                 | Flight                               | Rest                             |
+| Meals                | 161                                  | 161                              |
+| Reserve              | 0.26                                 | 0.26                             |
+| Recovery bouts       | 79                                   | 80                               |
+| Upkeep (J)           | 30.768                               | 31.314                           |
+| Walked (m)           | 2,224                                | 2,239                            |
+| Self-model inquiries | 909                                  | 910                              |
+| Self-model episodes  | 24                                   | 24                               |
+| Mushroom-body trials | 7                                    | 7                                |
+| Remembered places    | 0                                    | 0                                |
+| Commands rejected    | 0                                    | 0                                |
+
+The kept graph is byte for byte the old one but for the label: that is what the equal
+digests mean, so its memories, episodes and counts crossed unchanged. The service's own
+backup at 12:15Z, the first scheduled one on this release, passed, and its copy resumes.
+
+### How it got out
+
+The rehearsal's copy left 214 simulated seconds after its repair. The deployed fly took
+2,143. The copy was on the ground when it crossed, and took off on a long flight. The
+deployed fly was in the air, and the repaired physics refuses a stand whose point is
+solid, so it could not land. The rehearsal had covered one starting state, and this was
+not it.
+
+1. **It flew.** For about 8 simulated minutes it flew up and down the building, turning at
+   surfaces.
+2. **It tried to land, over and over.** From about tick 7647200 its flight bout was over,
+   so it tried to land on the ground below, was refused ("no room to stand on the ground
+   here"), and tried again. For about 22 simulated minutes it stayed within about 2 m of
+   one corner, near (474, 629).
+3. **Its reserve ran down.** It fell from 0.26 to 0.08 in flight, where programmed upkeep
+   began: recovery bout 80, 0.546 J, and a reserve of 0.45 when that ended.
+4. **It drifted out.** From about tick 7661200 it moved along the wall between attempts,
+   z from 629 to 642, and crossed at tick 7664060. It was on the ground within 13 simulated
+   seconds, and then rested, walked and groomed.
+
+**What each part is:** leaving is what the repaired physics allowed. No long-flight goal
+was held: the copy below shows none at any minute from checkpoint 2557 to the exit, and
+no reason in the live samples names one. Recovery bout 80 is programmed upkeep. None of it
+is navigation, and none of it was learned.
+
+**The forecast.** While the fly was in that loop, nothing yet said whether it would end. So
+a copy of step 9's backup was run forward off the VM
+([`forecast.ts`](research/echo-collision/forecast.ts), on Windows on ARM64, Node 24.22.1).
+The copy left at tick 7664060, at the same position to the last digit, about 11 minutes
+before the deployed fly did. That agreement covers those 15,426 ticks and nothing later: a copy is
+never the individual, and a replay is judged only on Linux arm64.
+
+The two have since parted. At tick 7684634 the copy was flying at (473.96, 13.20, 656.26)
+with reserve 0.256, and the deployed fly was resting at (473.39, 12.38, 658.67) with 0.261.
+By 14:36Z they were about 149 m apart. The cause was not isolated: Windows on arm64 is
+[already known to differ](BETHESDA_CONTINUOUS_LIFE.md#replaying-it), and the deployed
+chain reproduced on Linux arm64 over that same stretch (below).
+
+### The first replay with seals required
+
+It passed, on the backup `bethesda-life-20261104T121554Z-e458f7cb3490.tar.gz`, in
+[run 41848867504](https://github.com/topherchris420/lop-nur-twin/actions/runs/41848867504):
+
+| Reading                       | Result                           |
+| ----------------------------- | -------------------------------- |
+| Checkpoints                   | 2566 to 2569, 9,000 ticks        |
+| Seals reproduced              | 3 of 3                           |
+| Public ledger anchors checked | 16, none contradicted            |
+| Machine                       | GitHub Linux arm64, Node 24.22.1 |
+
+The 13:23Z schedule had not started by 14:30Z, so this run was started by hand. It covers
+15 simulated minutes after the fly left, and neither the continuation nor the exit. The
+next replay of this release should continue from where it ended. Earlier checkpoints stay
+outside this check: `bdb7c02`'s seals cannot be reproduced (issue 162).
+
+### The first meals
+
+The deployed fly first ate at about 19:27Z, about 8 hours after it left the building, and
+its first food since 2026-11-01:
+
+| Reading  | **Before:** 19:27Z, first line with a meal | **After:** 19:34Z, end of that bout |
+| -------- | ------------------------------------------ | ----------------------------------- |
+| Position | (267.2, 4.3, 579.3), feeding               | (267.2, 4.3, 579.3), feeding        |
+| Meals    | 162, from 161                              | 174                                 |
+| Reserve  | 0.085                                      | 0.747                               |
+
+It stood at 175 by 20:33Z. The forecast's copy had its first meal at a different place,
+(193.72, 5.00, 398.12), about 3 hours sooner, as its parting from the fly implied.
+
+**What each part is:** programmed upkeep carried it to that meal, four more times between
+the exit and 19:27Z. Reaching food is not learned: remembered places stand at 0, and
+nothing here shows it was navigation either. The olfactory search's turns stayed at 17
+from 14:30Z to 20:36Z, so that search did not bring it there, and the journal does not
+say whether a long flight or chance did.
+
+### Still to be seen
+
+Most of step 10 takes real time, and none of these is established yet:
+
+- **Staying out:** no `body-entered-solid` from the exit through checkpoint 2669, about 9
+  real hours.
+- **Self-model and memory under valid physics:** the self-model has resumed inquiring,
+  from 909 to 962 by 20:36Z, its first since 2026-11-01. Its conclusions have named causes
+  again: its own speed (confirmed), then wind (revised, later confirmed). This is its
+  existing loop running on movement it can now make, and it shows nothing learned. It
+  keeps 24 episodes, its limit, and passes older ones to the archive: 53 since the
+  continuation, episodes 909 to 961. Through 14 more meals, the mushroom body's trials
+  stand at 7 and remembered places at 0, so eating has formed no new memory of food.
+- **The reports AGENTS.md asks for after a fly change:** the demonstrations, the
+  individuality report and the ECHO report are still to come.

@@ -98,3 +98,18 @@ regexes = [
   '''^3db627bc125415093d6507988a2d8f61949f5240$''',
 ]
 paths = ['''(^|/)docs/research/echo-organism-continuation/cutover\.txt$''']
+
+# The physics repair's cutover record names the releases on the VM in full, beside
+# `sourceGraphDigest`. Again only these exact public SHAs, in this exact file.
+[[rules.allowlists]]
+description = "Public release commits on the VM, named by the physics repair's cutover record, not credentials."
+condition = "AND"
+regexTarget = "secret"
+regexes = [
+  '''^e458f7cb34904d85127779a3700c26b376ab4a80$''',
+  '''^bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1$''',
+  '''^62bd12502c17379b92e89c74d17b3e1240ddd243$''',
+  '''^d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592$''',
+  '''^3db627bc125415093d6507988a2d8f61949f5240$''',
+]
+paths = ['''(^|/)docs/research/echo-collision/cutover\.txt$''']
