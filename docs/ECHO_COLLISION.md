@@ -418,6 +418,13 @@ backup at 12:15Z, the first scheduled one on this release, passed, and its copy 
 
 ### How it got out
 
+[![Two plan views drawn from the deployed fly's recorded positions: inside building 1011267786 after the repair, the recorded exit at tick 7,664,060, and the rest of the day to its first meal at 19:27 UTC](media/echo-collision/exit.svg)](media/echo-collision/exit.svg)
+
+<sub>Drawn by `scripts/echo-exit-figure.ts` from the journal and witness in
+[`2026-11-04/live/`](benchmarks/echo-collision/2026-11-04/), the building rings the fly's
+world collides with, and the exit record in checkpoint 2563; `--check` reproduces it
+byte for byte. Lines join samples; they are not the path flown.</sub>
+
 The rehearsal's copy left 214 simulated seconds after its repair. The deployed fly took
 2,143. The copy was on the ground when it crossed, and took off on a long flight. The
 deployed fly was in the air, and the repaired physics refuses a stand whose point is
