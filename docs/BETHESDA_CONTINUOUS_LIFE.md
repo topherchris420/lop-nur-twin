@@ -823,10 +823,17 @@ restore it as above.
 
 - **Upgrades pause the life**, and a version bump ends it on this machine
   (above). Blue-green deployment is untested.
-- **Starting and committing take longer as the life ages.** Opening the
-  store reads every checkpoint from birth, and each commit re-reads every
-  older header to drop graphs: 288 more files for every simulated day. Not
-  yet measured on a long chain.
+- **Starting takes longer as the life ages; committing, since 2026-11-05,
+  barely does.** Opening the store reads and checks every checkpoint from
+  birth: 288 more files for every simulated day. Until then, each commit also
+  re-read every older header to drop graphs, which on a synthetic chain came
+  to about 1 s a commit at 100,000 checkpoints, about a year of life
+  ([measured](research/life-store/README.md) on an x86_64 container, not the
+  VM). Now a writer's first commit under a lease does that once, and each later
+  commit reads only the checkpoint leaving the window: 172 ms at 100,000, most
+  of it listing the directory. The deployed release, `e458f7c`, predates the
+  change; it reaches the VM only by an ordinary upgrade, with the owner's
+  approval.
 - **Oracle may reclaim an Always Free VM it deems idle**: 95th-percentile
   CPU and network use under 20% for 7 days, and on A1 shapes memory use
   too. The life uses little CPU and no network; the off-site copies are
