@@ -786,6 +786,23 @@ GitHub Linux arm64 machine with Node 24.22.1. The next scheduled replay continue
 #2,639 ([run 41906800876](https://github.com/topherchris420/lop-nur-twin/actions/runs/41906800876)):
 210,002 ticks, 70 of 70 seals.
 
+**Since then, each replay has continued the one before.** As `replays.jsonl` on the
+ledger branch records them, each restored from the previous replay's archive, on the
+same release and machine type:
+
+| Checkpoints         | Ticks         | Seals reproduced | Ledger anchors checked, contradicted | Recorded (UTC)   | Run                                                                                    |
+| ------------------- | ------------- | ---------------- | ------------------------------------ | ---------------- | -------------------------------------------------------------------------------------- |
+| #2,566 → #2,569     | 9,000         | 3 of 3           | 16, none                             | 2026-11-04 14:35 | [41848867504](https://github.com/topherchris420/lop-nur-twin/actions/runs/41848867504) |
+| #2,569 → #2,639     | 210,002       | 70 of 70         | 17, none                             | 2026-11-04 20:40 | [41906800876](https://github.com/topherchris420/lop-nur-twin/actions/runs/41906800876) |
+| #2,639 → #2,784     | 435,001       | 145 of 145       | 18, none                             | 2026-11-05 08:22 | [41990768807](https://github.com/topherchris420/lop-nur-twin/actions/runs/41990768807) |
+| #2,784 → #2,927     | 429,000       | 143 of 143       | 19, none                             | 2026-11-05 21:06 | [42105731954](https://github.com/topherchris420/lop-nur-twin/actions/runs/42105731954) |
+| **#2,566 → #2,927** | **1,083,003** | **361 of 361**   |                                      |                  |                                                                                        |
+
+That is about 30 simulated hours re-derived seal for seal on another machine. It
+starts at #2,566 and takes that checkpoint as given; the continuation (#2,555) and
+the exit (#2,563) lie before it, and nothing before #2,566 has been re-derived seal
+for seal.
+
 ### Recovery
 
 | In `journalctl -u bethesda-life`                                          | What it means                                                          | What to do                                                                                                                                                                 |
@@ -855,7 +872,9 @@ restore it as above.
   and only comparable on the VM's platform, and the seals up to checkpoint #2,554
   cannot be reproduced at all (`Replaying it` says why, and how much can). Replays of
   real archives began on 2026-11-02, from #1,990, so nothing before that has been
-  re-derived.
+  re-derived. The unbroken run of sealed replays starts at #2,566; between #1,993
+  and #2,566 no replay passed (the four tried on `bdb7c02`'s chain each stopped at
+  its first seal).
 - **One observer, on the life's machine.** Viewers reach Caddy and the
   observer on the VM itself, which shares its one core with the life. Not
   load-tested.
