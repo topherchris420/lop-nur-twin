@@ -1,5 +1,21 @@
 # The R.A.I.N. Lab in Bethesda
 
+<p align="center">
+  <a href="https://rainlabteam.vercel.app/"><img src="rain-lab.webp" width="420" alt="R.A.I.N. Lab — Recursive Architecture of Intelligent Nexus: a cartoon octopus in a white suit striding with a tuning fork inside a ring of lightning"></a>
+</p>
+
+<details>
+<summary>Watch the 15-second R.A.I.N. Lab introduction</summary>
+
+![R.A.I.N. Lab introduction showing the evidence ledger and research panel](media/rain-lab-ad.webp)
+
+[Watch with sound (MP4)](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/rain-lab-ad.mp4).
+Music: “Supernova” by Scott Buckley,
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+[scottbuckley.com.au](https://www.scottbuckley.com.au).
+
+</details>
+
 Behind an unmarked door in the Bethesda anomaly is a research lab where the four
 perspectives of R.A.I.N. — James, Jasmine, Luca and Elena — investigate
 questions about the city, and where their hypotheses become experiments that

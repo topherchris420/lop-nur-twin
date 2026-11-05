@@ -184,6 +184,28 @@ are downstream of the ledger, and the ledger does not know `/play` exists.
 `AGENTS.md` carries the recipes: adding a structure, a camera mode, a dynamic
 element, or changing the terrain or the look.
 
+**Where things live:**
+
+| Path                             | Responsibility                                                                               |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `src/lib/`                       | Site layout, sources, evidence, uncertainty, and temporal/spatial rules.                     |
+| `src/components/`, `src/routes/` | 3D presentation, controls, and application routes.                                           |
+| `src/bethesda/`                  | City, fly controllers, durable life, live observer view, and lab interface.                  |
+| `src/garden/`                    | The separate live garden's read-only clay exhibit.                                           |
+| `src/rain/`                      | Research corpus, meetings, autonomy, experiment backends, and registry.                      |
+| `src/game/`                      | Blacksite, player controls, model seats, and evaluation.                                     |
+| `src/noeterra/`, `noeterra/`     | Civilization interface, Rust engine, scenarios, and workbench.                               |
+| `fly-physics/`                   | Separate MuJoCo locomotion evaluation; does not drive the browser fly.                       |
+| `fly-neural/`                    | FAFB and BANC neural research; separate subjects and probes, never an original's controller. |
+| `server/`, `api/`                | Server-side research and decision endpoints.                                                 |
+| `scripts/`, `tools/`             | Importers, validators, research commands, and browser checks.                                |
+| `model-history/`, `docs/`        | Release records, guides, source investigations, and experiments.                             |
+| `deploy/`, `Dockerfile`          | Self-hosting, persistent-life service, and garden deployment tools.                          |
+
+The [documentation and research archive](docs/README.md) indexes the guides and
+the generated records; [keeping ECHO](docs/ECHO_STEWARDSHIP.md) is required
+reading before touching `src/bethesda/life/` or `deploy/bethesda-life/`.
+
 ## Accessibility
 
 **`/analysis` and `/compare` are not optional.** They are the routes that work

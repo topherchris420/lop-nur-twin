@@ -5,6 +5,8 @@ the dates the temporal ledger holds — a source becoming public, a feature firs
 seen in imagery — and at each of which the scene draws what someone reading
 public sources that day could have drawn.
 
+[![The evidence lens paints the compound by classification; the timeline then rewinds to 2021 and steps forward to today as structures become established](media/readme/evidence-timeline.gif)](https://lop-nur-twin.vercel.app/?lens=1)
+
 It replaced a year slider labelled "construction timeline", which was wrong in
 two ways. Its dates were when things were first _seen_, never when they were
 built. And it drew twenty-three buildings in 2021 that no cited evidence placed
