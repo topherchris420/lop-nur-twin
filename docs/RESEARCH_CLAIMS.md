@@ -75,7 +75,9 @@ Three boundaries hold for every entry:
   come out the same.
 - **Control.** None is possible for an original. The check is falsifiable: four
   replays of release `bdb7c02`'s chain failed at their first seal, and the cause
-  was found (issue 162) and fixed.
+  was found (issue 162) and fixed. The adaptation suite's benchmark O2 (0 of 2
+  sealed replays) was measured on that chain, before the fix was deployed; it
+  stands as recorded for that era, and the suite has not been rerun.
 - **Result.** Four consecutive replays, each continuing the last: #2,566 to
   #2,927, 1,083,003 ticks (about 30 simulated hours), 361 of 361 seals, 19 public
   ledger anchors checked and none contradicted.
