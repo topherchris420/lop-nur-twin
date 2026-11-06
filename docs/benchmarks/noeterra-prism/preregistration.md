@@ -173,8 +173,9 @@ in India.
   SHA-256 of every stand-in request). The saves and chronicles are not kept,
   because the dry run re-runs identically: a second run reproduced every final
   hash and every request byte for byte. `dry-run.json` records the commit it
-  ran on, which was `main` with this plan's changes not yet committed
-  (`"dirty": true`), and the fingerprint of that code.
+  ran on with `"dirty": true`, because the runner's last change was committed
+  after the run. What ties the dry run to the code is its fingerprint, not the
+  commit, and the paid stages check it.
 - `results/`: `check.json`, `study.json`, `spend.jsonl`, `scores.jsonl` and the
   Prism saves, since Sarvam's answers cannot be regenerated. The other arms'
   saves re-run from their seeds.
