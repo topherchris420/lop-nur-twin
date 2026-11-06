@@ -108,14 +108,19 @@ export function studySeeds(commit) {
 
 const FIELDS = new Set(["type", "instructions", "criteria"]);
 
+/** The ids Noeterra's Prism seat gives its questions (brain/prism.rs). */
+const QUESTION_ID = /^(army|power|action|proposal)-[A-Za-z0-9_-]+$/;
+
 /** Refuses a request Sarvam's API would refuse, as far as its docs say. */
-function invalid(req) {
+export function invalid(req) {
   if (typeof req?.model !== "string" || typeof req.state !== "string" || !req.state)
     return "model and state are required";
   const qs = req.questions;
   if (!qs || typeof qs !== "object" || Object.keys(qs).length === 0)
     return "questions are required";
   for (const [id, q] of Object.entries(qs)) {
+    if (!QUESTION_ID.test(id))
+      return `question id ${JSON.stringify(id)} is not one Noeterra asks`;
     if (Object.keys(q).some((k) => !FIELDS.has(k)))
       return `question ${id} has a field the API does not accept`;
     if (q.type === "choice") {
@@ -126,9 +131,13 @@ function invalid(req) {
   return null;
 }
 
-/** Mechanical answers, not decisions: a test double with three temperaments. */
-function answers(mode, req) {
-  const out = {};
+/**
+ * Mechanical answers, not decisions: a test double with three temperaments.
+ * Question ids come from the request, so answers are collected in a Map and
+ * turned into own properties, never assigned onto an object by name.
+ */
+export function answers(mode, req) {
+  const out = new Map();
   for (const [id, q] of Object.entries(req.questions)) {
     if (q.type === "choice") {
       const options = Object.keys(q.criteria);
@@ -145,7 +154,7 @@ function answers(mode, req) {
       const probabilities = Object.fromEntries(
         options.map((o) => [o, o === chosen ? 0.6 : rest]),
       );
-      out[id] = { type: "choice", choice: chosen, confidence: 0.3, probabilities };
+      out.set(id, { type: "choice", choice: chosen, confidence: 0.3, probabilities });
     } else {
       const text = q.instructions;
       const p =
@@ -156,10 +165,10 @@ function answers(mode, req) {
             : id.startsWith("proposal-")
               ? 0.7
               : 0.3;
-      out[id] = { type: "noul", noul: p };
+      out.set(id, { type: "noul", noul: p });
     }
   }
-  return out;
+  return Object.fromEntries(out);
 }
 
 /** A loopback stand-in for POST /v2/systemone. `context` labels its log lines. */
