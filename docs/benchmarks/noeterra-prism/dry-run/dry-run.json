@@ -1,0 +1,20 @@
+{
+  "stage": "dry-run",
+  "commit": "6394320b67808a655648b09ccf47e52e6e506b96",
+  "dirty": true,
+  "fingerprint": "0387f88396d34b28ab4184baef77267692f3fbdcbd05364eab2bf10ae66ebd35",
+  "seeds": [
+    101,
+    102,
+    103
+  ],
+  "turns": 40,
+  "requests": 360,
+  "wrong_key": 0,
+  "prism_request_bytes": {
+    "n": 120,
+    "mean": 13422,
+    "min": 8959,
+    "max": 15823
+  }
+}

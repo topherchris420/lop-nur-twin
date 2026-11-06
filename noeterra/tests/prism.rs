@@ -373,6 +373,40 @@ fn a_prism_seat_plays_full_turns_and_the_history_replays_without_it() {
     );
     let (report, _) = noeterra::sim::Simulation::replay(&save);
     assert!(report.ok, "replay needs no model: {report:?}");
+
+    // The score re-simulates without the model and agrees with the live world.
+    let score = noeterra::experiment::score(&save);
+    assert_eq!(score["replay"]["ok"], true);
+    assert_eq!(score["metrics"], json!(noeterra::experiment::metrics(&s)));
+    let third = &s.world.civs[2];
+    assert_eq!(
+        score["civs"][&third.key]["provinces"],
+        s.world.provinces_of(third.id).count()
+    );
+    let prism = &score["seats"][2];
+    assert_eq!(prism["labels"], json!({ "live": 3 }));
+    assert_eq!(prism["models_reported"], json!(["sarvam-prism"]));
+    assert_eq!(
+        prism["tokens_in"],
+        3 * 2345,
+        "the stand-in reports 2345 input tokens a call"
+    );
+    assert_eq!(prism["decisions_reporting_tokens"], 3);
+    assert!(prism["latency_ms"]["max"].as_u64().is_some());
+    assert_eq!(score["seats"][0]["labels"], json!({ "rules": 3 }));
+    assert_eq!(score["seats"][0]["tokens_in"], 0);
+
+    // A save whose history was altered scores no world at all, only the reason.
+    let mut forged = save.clone();
+    forged.turns[1].hash = "0".repeat(64);
+    let score = noeterra::experiment::score(&forged);
+    assert_eq!(score["replay"]["ok"], false);
+    assert!(score["metrics"].is_null() && score["civs"].is_null());
+    assert_eq!(
+        score["seats"][2]["labels"],
+        json!({ "live": 3 }),
+        "the record is still counted"
+    );
 }
 
 #[test]
