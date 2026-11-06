@@ -40,12 +40,30 @@ function markdownFiles(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+/**
+ * A heading's text without its inline tags (`<sub>`, `</sub>`, `<a id>`,
+ * `<!-- -->`), as GitHub renders it. As in CommonMark, a `<` opens a tag only
+ * before a letter, a `/` and a letter, or a `!`, and the tag runs to the next
+ * `>`; any other `<` is text. The result is compared with link fragments and
+ * never rendered.
+ */
+function withoutTags(heading: string): string {
+  let text = "";
+  for (let i = 0; i < heading.length; i++) {
+    const opens =
+      heading[i] === "<" && /^(?:[A-Za-z]|\/[A-Za-z]|!)/.test(heading.slice(i + 1));
+    const close = opens ? heading.indexOf(">", i + 1) : -1;
+    if (close < 0) text += heading[i];
+    else i = close;
+  }
+  return text;
+}
+
 /** GitHub's heading anchor: rendered text, lowercased, punctuation dropped, spaces to hyphens. */
 function headingSlug(heading: string): string {
-  return heading
-    .replace(/`([^`]*)`/g, "$1")
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/<[^>]+>/g, "")
+  return withoutTags(
+    heading.replace(/`([^`]*)`/g, "$1").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1"),
+  )
     .trim()
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\p{M} _-]/gu, "")
@@ -103,6 +121,10 @@ describe("documentation links", () => {
     expect(headingSlug("Rehearsal on the deployed individual's backup")).toBe(
       "rehearsal-on-the-deployed-individuals-backup",
     );
+    // Inline tags are not text; a `<` that opens no tag is, and goes as punctuation.
+    expect(headingSlug("Studies <sub>A to C</sub>")).toBe("studies-a-to-c");
+    expect(headingSlug('<a id="x"></a>Keeping ECHO')).toBe("keeping-echo");
+    expect(headingSlug("a < b, and c <> d")).toBe("a--b-and-c--d");
   });
 
   it("all resolve, to a file and to a heading", () => {
