@@ -54,23 +54,24 @@ pub fn decision_schema() -> Value {
     })
 }
 
+/// A model's answer as the schema shapes it, before the menu check.
 #[derive(Deserialize)]
-struct Answer {
-    assessment: String,
-    actions: Vec<i64>,
-    responses: Vec<AnswerResponse>,
-    messages: Vec<AnswerMessage>,
-    memory_note: String,
+pub(crate) struct Answer {
+    pub(crate) assessment: String,
+    pub(crate) actions: Vec<i64>,
+    pub(crate) responses: Vec<AnswerResponse>,
+    pub(crate) messages: Vec<AnswerMessage>,
+    pub(crate) memory_note: String,
 }
 
 #[derive(Deserialize)]
-struct AnswerResponse {
-    proposal: i64,
-    accept: bool,
+pub(crate) struct AnswerResponse {
+    pub(crate) proposal: i64,
+    pub(crate) accept: bool,
 }
 
 #[derive(Deserialize)]
-struct AnswerMessage {
+pub(crate) struct AnswerMessage {
     to: String,
     text: String,
 }
@@ -349,6 +350,15 @@ fn action_cost(obs: &Observation, a: &Action) -> f64 {
 pub fn interpret_answer(obs: &Observation, text: &str, seed: u64) -> Result<(Decision, String, Vec<String>), String> {
     let body = extract_json(text).ok_or("the answer contains no JSON object")?;
     let a: Answer = serde_json::from_str(body).map_err(|e| format!("the answer does not match the schema: {e}"))?;
+    let (d, discarded) = keep_to_menu(obs, &a, seed);
+    Ok((d, a.assessment.chars().take(600).collect(), discarded))
+}
+
+/// Keeps only what the menu allows: offered actions in the order named, at most
+/// `MAX_ACTIONS`, one move per army, within the treasury; answers to proposals
+/// that exist (the rules answer any left open); letters to powers in contact.
+/// Every part left out is listed with its reason.
+pub(crate) fn keep_to_menu(obs: &Observation, a: &Answer, seed: u64) -> (Decision, Vec<String>) {
     let mut discarded = Vec::new();
     let mut d = Decision::default();
     let mut armies = Vec::new();
@@ -432,7 +442,7 @@ pub fn interpret_answer(obs: &Observation, text: &str, seed: u64) -> Result<(Dec
     if !note.is_empty() {
         d.note = Some(note.chars().take(NOTE_CHARS).collect());
     }
-    Ok((d, a.assessment.chars().take(600).collect(), discarded))
+    (d, discarded)
 }
 
 pub struct LlmBrain {
@@ -477,6 +487,7 @@ impl Brain for LlmBrain {
                 },
                 prompt_sha256: Some(prompt_sha256),
                 discarded,
+                scores: Vec::new(),
             },
             Err(e) => {
                 let mut o = BrainOutput::plain(utility::decide(obs, false, seed), Label::Fallback);

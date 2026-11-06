@@ -14,6 +14,8 @@ pub mod utility;
 #[cfg(feature = "native")]
 pub mod llm;
 #[cfg(feature = "native")]
+pub mod prism;
+#[cfg(feature = "native")]
 pub mod provider;
 
 /// What produced the decision that was applied. Shown to people as-is.
@@ -44,6 +46,23 @@ pub struct Usage {
     pub latency_ms: Option<u64>,
 }
 
+/// What a decision model returned for one of the host's questions, exactly as
+/// it returned it. Never filled in for a brain that states no probabilities.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct Score {
+    /// The host's question id, e.g. `army-3`, `power-carthage`, `action-12`.
+    pub question: String,
+    /// `choice` (one of several options) or `noul` (yes or no), as the
+    /// provider names its question types.
+    #[serde(rename = "type")]
+    pub kind: String,
+    /// The option the provider chose (`choice` questions only).
+    pub choice: Option<String>,
+    /// For `choice`, the provider's probability of `choice`; for `noul`, its
+    /// probability of yes.
+    pub p: f64,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct BrainOutput {
     pub decision: Decision,
@@ -56,6 +75,9 @@ pub struct BrainOutput {
     pub prompt_sha256: Option<String>,
     /// Indices of offered actions the model named that were refused, and why.
     pub discarded: Vec<String>,
+    /// Probabilities a decision model returned (Sarvam-Prism); empty otherwise.
+    #[serde(default)]
+    pub scores: Vec<Score>,
 }
 
 impl BrainOutput {
@@ -69,6 +91,7 @@ impl BrainOutput {
             usage: Usage::default(),
             prompt_sha256: None,
             discarded: Vec::new(),
+            scores: Vec::new(),
         }
     }
 }

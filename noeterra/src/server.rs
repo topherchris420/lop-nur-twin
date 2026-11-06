@@ -14,6 +14,7 @@ use tiny_http::{Header, Method, Response, Server};
 
 use crate::action::{describe, Decision, Outgoing, Response as Answer};
 use crate::brain::llm::{interpret_orders, reply_in_character, LlmBrain};
+use crate::brain::prism::{PrismBrain, SarvamPrism, PRISM_DEFAULT_MODEL};
 use crate::brain::provider::{Anthropic, ChatProvider, LmStudio};
 use crate::brain::Brain;
 use crate::experiment::{self, Plan, METRICS};
@@ -35,6 +36,7 @@ pub struct Config {
     pub lmstudio_url: String,
     pub lmstudio_model: Option<String>,
     pub anthropic_model: Option<String>,
+    pub prism_model: Option<String>,
     pub timeout: Duration,
     pub max_tokens: u32,
 }
@@ -49,6 +51,7 @@ impl Config {
                 .or_else(|| var("RAIN_MODEL"))
                 .or_else(|| var("RAIN_LLM_MODEL")),
             anthropic_model: var("NOETERRA_ANTHROPIC_MODEL"),
+            prism_model: var("NOETERRA_PRISM_MODEL"),
             timeout: Duration::from_secs(
                 var("NOETERRA_MODEL_TIMEOUT")
                     .and_then(|v| v.parse().ok())
@@ -73,6 +76,10 @@ impl Config {
                 model.or(self.anthropic_model.clone()),
                 self.timeout,
             )?)),
+            "prism" => Err(
+                "Sarvam-Prism chooses among fixed options and writes no text: it cannot read orders or answer letters"
+                    .into(),
+            ),
             other => Err(format!("unknown provider `{other}`")),
         }
     }
@@ -83,10 +90,16 @@ impl Config {
         let mut out = offline_brains(seats);
         for (i, s) in seats.iter().enumerate() {
             if let Seat::Model { provider, model } = s {
-                out[i] = Box::new(LlmBrain {
-                    provider: self.provider(provider, model.clone())?,
-                    max_tokens: self.max_tokens,
-                });
+                out[i] = if provider == "prism" {
+                    Box::new(PrismBrain {
+                        client: SarvamPrism::connect(model.clone().or(self.prism_model.clone()), self.timeout)?,
+                    })
+                } else {
+                    Box::new(LlmBrain {
+                        provider: self.provider(provider, model.clone())?,
+                        max_tokens: self.max_tokens,
+                    })
+                };
             }
         }
         Ok(out)
@@ -303,7 +316,9 @@ fn api(shared: &Shared, method: Method, path: &str, url: &str, body: &str) -> Re
                     "lmstudio": { "url": app.cfg.lmstudio_url, "available": lm.is_ok(),
                         "models": lm.unwrap_or_default(), "default_model": app.cfg.lmstudio_model },
                     "anthropic": { "key_present": Anthropic::key_present(),
-                        "model": app.cfg.anthropic_model.clone().unwrap_or_else(|| crate::brain::provider::ANTHROPIC_DEFAULT_MODEL.into()) }
+                        "model": app.cfg.anthropic_model.clone().unwrap_or_else(|| crate::brain::provider::ANTHROPIC_DEFAULT_MODEL.into()) },
+                    "prism": { "key_present": SarvamPrism::key_present(),
+                        "model": app.cfg.prism_model.clone().unwrap_or_else(|| PRISM_DEFAULT_MODEL.into()) }
                 }
             }))
         }

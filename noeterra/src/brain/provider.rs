@@ -6,7 +6,8 @@
 //! - Anthropic is reached through the system `curl`, because this crate keeps a
 //!   pure-Rust dependency tree and TLS would need a C toolchain. The key is read
 //!   from `ANTHROPIC_API_KEY` by curl itself (`--variable`), so it never appears
-//!   in a command line, a log, a record or the browser.
+//!   in a command line, a log, a record or the browser. Sarvam-Prism
+//!   (`brain/prism.rs`) is reached the same way, with `SARVAM_API_KEY`.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -192,6 +193,65 @@ impl ChatProvider for LmStudio {
     }
 }
 
+/// One JSON POST through the system `curl`. The key is read from the
+/// environment variable `key_var` by curl itself (`--variable`) and sent only
+/// in the header `key_header`, so it never appears in a command line, a log or
+/// a record. Returns the HTTP status, the response body and the latency.
+pub(crate) fn curl_post(
+    url: &str,
+    key_var: &str,
+    key_header: &str,
+    headers: &[&str],
+    body: &str,
+    timeout_s: u64,
+) -> Result<(String, String, u64), String> {
+    let mut args: Vec<String> = vec![
+        "-sS".into(),
+        "--max-time".into(),
+        timeout_s.to_string(),
+        "--variable".into(),
+        format!("%{key_var}"),
+        "--expand-header".into(),
+        format!("{key_header}: {{{{{key_var}}}}}"),
+    ];
+    for h in headers {
+        args.push("-H".into());
+        args.push((*h).into());
+    }
+    args.extend([
+        "--data-binary".into(),
+        "@-".into(),
+        "-w".into(),
+        "\n%{http_code}".into(),
+        url.into(),
+    ]);
+    let t = Instant::now();
+    let mut child = Command::new("curl")
+        .args(&args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("could not start curl: {e}"))?;
+    child
+        .stdin
+        .take()
+        .ok_or("curl has no stdin")?
+        .write_all(body.as_bytes())
+        .map_err(|e| format!("could not send the request: {e}"))?;
+    let out = child.wait_with_output().map_err(|e| format!("curl failed: {e}"))?;
+    let latency_ms = t.elapsed().as_millis() as u64;
+    if !out.status.success() {
+        return Err(format!(
+            "transport error: {}",
+            String::from_utf8_lossy(&out.stderr).trim()
+        ));
+    }
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let (payload, code) = stdout.rsplit_once('\n').ok_or("curl gave no status")?;
+    Ok((code.trim().to_string(), payload.to_string(), latency_ms))
+}
+
 pub const ANTHROPIC_URL: &str = "https://api.anthropic.com/v1/messages";
 pub const ANTHROPIC_DEFAULT_MODEL: &str = "claude-opus-5-5";
 
@@ -247,53 +307,22 @@ impl ChatProvider for Anthropic {
     }
     fn complete(&self, r: &ChatRequest) -> Result<ChatResponse, String> {
         let body = self.body(r).to_string();
-        let t = Instant::now();
-        let mut child = Command::new("curl")
-            .args([
-                "-sS",
-                "--max-time",
-                &self.timeout_s.to_string(),
-                "--variable",
-                "%ANTHROPIC_API_KEY",
-                "--expand-header",
-                "x-api-key: {{ANTHROPIC_API_KEY}}",
-                "-H",
+        let (code, payload, latency_ms) = curl_post(
+            &self.url,
+            "ANTHROPIC_API_KEY",
+            "x-api-key",
+            &[
                 "anthropic-version: 2023-06-01",
-                "-H",
                 "anthropic-beta: server-side-fallback-2026-07-01",
-                "-H",
                 "content-type: application/json",
-                "--data-binary",
-                "@-",
-                "-w",
-                "\n%{http_code}",
-                &self.url,
-            ])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| format!("could not start curl: {e}"))?;
-        child
-            .stdin
-            .take()
-            .ok_or("curl has no stdin")?
-            .write_all(body.as_bytes())
-            .map_err(|e| format!("could not send the request: {e}"))?;
-        let out = child.wait_with_output().map_err(|e| format!("curl failed: {e}"))?;
-        let latency_ms = t.elapsed().as_millis() as u64;
-        if !out.status.success() {
-            return Err(format!(
-                "transport error: {}",
-                String::from_utf8_lossy(&out.stderr).trim()
-            ));
-        }
-        let stdout = String::from_utf8_lossy(&out.stdout);
-        let (payload, code) = stdout.rsplit_once('\n').ok_or("curl gave no status")?;
-        let v: Value = serde_json::from_str(payload).map_err(|_| format!("HTTP {code}: unreadable answer"))?;
-        if code.trim() != "200" {
+            ],
+            &body,
+            self.timeout_s,
+        )?;
+        let v: Value = serde_json::from_str(&payload).map_err(|_| format!("HTTP {code}: unreadable answer"))?;
+        if code != "200" {
             let msg = v["error"]["message"].as_str().unwrap_or("no detail");
-            return Err(format!("Anthropic answered {}: {msg}", code.trim()));
+            return Err(format!("Anthropic answered {code}: {msg}"));
         }
         match v["stop_reason"].as_str() {
             Some("refusal") => return Err("the model declined to answer".into()),

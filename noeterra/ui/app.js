@@ -423,6 +423,30 @@ function renderDecisions() {
             )
           : null,
         d.error ? el("p", { class: "error" }, `Model failure: ${d.error}`) : null,
+        d.scores?.length
+          ? el(
+              "details",
+              { class: "small" },
+              el(
+                "summary",
+                {},
+                `Probabilities as returned by ${d.usage?.model ?? "the model"}`,
+              ),
+              el(
+                "ul",
+                { class: "plain" },
+                d.scores.map((s) =>
+                  el(
+                    "li",
+                    {},
+                    s.type === "choice"
+                      ? `${s.question}: chose ${s.choice}, p ${s.p}`
+                      : `${s.question}: p(yes) ${s.p}`,
+                  ),
+                ),
+              ),
+            )
+          : null,
         d.discarded?.length
           ? el(
               "p",
@@ -1144,6 +1168,7 @@ const SEATS = [
   ["human", "You"],
   ["lmstudio", "LM Studio model"],
   ["anthropic", "Anthropic model"],
+  ["prism", "Sarvam-Prism (decision model)"],
 ];
 
 function seatOptions(selected) {
@@ -1151,6 +1176,7 @@ function seatOptions(selected) {
     ([v]) => v !== "lmstudio" || state.meta?.providers.lmstudio.available,
   )
     .filter(([v]) => v !== "anthropic" || state.meta?.providers.anthropic.key_present)
+    .filter(([v]) => v !== "prism" || state.meta?.providers.prism?.key_present)
     .map(([v, t]) => el("option", { value: v, selected: v === selected }, t));
 }
 
@@ -1207,9 +1233,11 @@ function renderSetup() {
   );
   const lm = state.meta.providers.lmstudio;
   const an = state.meta.providers.anthropic;
+  const pr = state.meta.providers.prism;
   $("providerhint").textContent =
     `LM Studio: ${lm.available ? `available (${lm.models.filter((m) => !m.includes("embed")).join(", ")})` : `not reachable at ${lm.url}`}. ` +
-    `Anthropic: ${an.key_present ? `key present on the server, model ${an.model}; every model seat calls the API each season and spends credit` : "no ANTHROPIC_API_KEY in the server's environment"}.`;
+    `Anthropic: ${an.key_present ? `key present on the server, model ${an.model}; every model seat calls the API each season and spends credit` : "no ANTHROPIC_API_KEY in the server's environment"}. ` +
+    `Sarvam-Prism: ${pr?.key_present ? `key present on the server, model ${pr.model}; it chooses among the offered actions, writes no letters and spends credit each season` : "no SARVAM_API_KEY in the server's environment"}.`;
 }
 
 async function startGame() {

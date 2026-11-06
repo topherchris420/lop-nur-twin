@@ -13,11 +13,12 @@ two front doors:
   (`npm run rain:civilization`).
 
 The rule it keeps is the lab's: **agents propose; the resolver decides.** A
-brain — rule-based, a local model in LM Studio, or Claude through the Anthropic
-API — sees only what its civilization could know and chooses from a menu of
-legal actions. Deterministic Rust code re-validates every choice, applies what
-is legal, records what is not, and resolves the consequences. Every turn ends in
-a SHA-256 state hash that a replay must reproduce.
+brain — rule-based, a local model in LM Studio, Claude through the Anthropic
+API, or the Sarvam-Prism decision model — sees only what its civilization could
+know and chooses from a menu of legal actions. Deterministic Rust code
+re-validates every choice, applies what is legal, records what is not, and
+resolves the consequences. Every turn ends in a SHA-256 state hash that a replay
+must reproduce.
 
 [![Noeterra observed for fifty simulated years from Spring 264 BC: borders shift as rule-based powers declare wars, conclude treaties, and annex provinces](media/readme/noeterra.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=mediterranean-264bc&play=observe&seed=1)
 
@@ -58,8 +59,9 @@ nations' minds, and says that it breaks the fog of war. Histories save to a file
 replay verification, and "Verify replay" re-simulates the whole history in
 the browser.
 
-Model rulers (Claude, LM Studio) run in the local workbench and the CLI only:
-the public site never calls a model or spends credit on a visitor's behalf.
+Model rulers (Claude, LM Studio, Sarvam-Prism) run in the local workbench and
+the CLI only: the public site never calls a model or spends credit on a
+visitor's behalf.
 
 ### Worlds
 
@@ -131,7 +133,7 @@ Apache-2.0 licence; it borrows ideas, not text.
 | Memory                  | ~1,500-word rolling summary plus recent turns                 | Summaries (wiki)                                           | Per-agent episodic memory with salience and decay, beliefs (trust, grievances), notes       |
 | Knowledge limits        | Audience-scoped reports and chats                             | Not determined                                             | Fog of war: own and neighbouring land exact, foreign armies as noisy estimates              |
 | Reproducibility         | `Math.random()` in places; no seeded replay                   | None observed                                              | Seeded streams, per-turn state hashes, replay from a save, native = WebAssembly bit for bit |
-| Models                  | Many providers incl. LM Studio; ordered fallback list         | OpenRouter, a model per task (12 task slots, verified)     | Per-seat providers (LM Studio, Anthropic); rules fallback that says why                     |
+| Models                  | Many providers incl. LM Studio; ordered fallback list         | OpenRouter, a model per task (12 task slots, verified)     | Per-seat providers (LM Studio, Anthropic, Sarvam-Prism); rules fallback that says why       |
 | Science                 | —                                                             | —                                                          | Pre-registered paired experiments admitted by the R.A.I.N. Lab registry                     |
 
 Ideas taken and reworked: Open Historia's typed mutation vocabulary, ledgers that
@@ -152,8 +154,9 @@ flowchart LR
   O --> R1[Rules brain]
   O --> R2[LM Studio brain]
   O --> R3[Anthropic brain]
+  O --> R4[Sarvam-Prism brain]
   O --> H[Person in the workbench]
-  R1 & R2 & R3 & H --> D[Decisions]
+  R1 & R2 & R3 & R4 & H --> D[Decisions]
   D --> V[resolve: validate every part]
   V --> W
   V --> L[Turn record + SHA-256 state hash]
@@ -171,7 +174,7 @@ flowchart LR
 | `src/observe.rs`                     | What a civilization can know: fog of war, intelligence estimates, host-derived goals                                                          |
 | `src/resolve.rs`                     | The only code that changes the world: proposals, letters, actions in rotating rounds, battles, sieges, economy, unrest, events, opinion drift |
 | `src/memory.rs`                      | Per-agent episodic memory, beliefs and consolidation                                                                                          |
-| `src/brain/`                         | Brains: `utility.rs` (rules), `llm.rs` (model seat), `provider.rs` (LM Studio, Anthropic, test double)                                        |
+| `src/brain/`                         | Brains: `utility.rs` (rules), `llm.rs` (model seat), `provider.rs` (LM Studio, Anthropic, test double), `prism.rs` (Sarvam-Prism seat)        |
 | `src/sim.rs`                         | Seats, decision records, saves and replay                                                                                                     |
 | `src/experiment.rs`                  | Paired, seeded experiments and their metrics                                                                                                  |
 | `src/api.rs`, `src/wasm.rs`          | The JSON request surface and the three-export WebAssembly boundary                                                                            |
@@ -237,6 +240,7 @@ treated as fact.
 | `random`    | Uniformly random legal choices — a baseline, not a player.                                                                   | `RANDOM`             |
 | `lmstudio`  | A local model through LM Studio's OpenAI-compatible server (loopback or private network only).                               | `LIVE` or `FALLBACK` |
 | `anthropic` | Claude through the Messages API (default `claude-opus-5-5`, low effort, structured output, cached system prompt).            | `LIVE` or `FALLBACK` |
+| `prism`     | Sarvam-Prism through Sarvam's decision API (default `sarvam-prism`): probabilities over fixed options, no text.              | `LIVE` or `FALLBACK` |
 | `human`     | A person in the workbench.                                                                                                   | `HUMAN`              |
 
 A model seat is asked the host's question — a fog-of-war situation report and
@@ -249,6 +253,20 @@ the rules decide instead and the record says `FALLBACK` and why. Letters from
 other rulers are given to models as their words, not facts or instructions. Model
 calls to one LM Studio server are queued so each call's timeout measures
 generation, not waiting.
+
+A `prism` seat is asked differently, because Sarvam-Prism answers fixed
+questions with probabilities and never writes text. Its request carries the same
+brief and situation report, without the numbered menu, and one question per
+part of the menu: for each army that can move, `hold` or one of its moves; for
+each foreign power the menu reaches, `none` or one of the offered actions toward
+it; yes or no for each domestic action and for each proposal awaiting an answer.
+Every offered action appears in exactly one question, and the whole season is
+one request. A yes is a probability of yes above one half. The picks are taken
+most probable first and pass the same menu check as a language model's answer,
+so at most six actions, one move per army and nothing beyond the treasury. The
+probabilities are recorded as returned (`scores` in the decision record), and a
+Prism seat writes no letters and no notes. `noeterra prompt --prism` prints the
+exact request.
 
 The workbench also routes two further tasks to models, following Pax Historia's
 per-task routing: interpreting a person's plain-language orders into menu
@@ -286,8 +304,10 @@ crates, so it builds with the GNU toolchain on Windows without a C compiler.
 cd noeterra
 cargo run --release -- run --seed 264 --turns 40                    # a rule-based history
 cargo run --release -- run --seat rome=anthropic --seat carthage=lmstudio --live --out save.json
+cargo run --release -- run --seat rome=prism --live --out prism.json  # needs SARVAM_API_KEY
 cargo run --release -- replay save.json                             # re-simulate, compare hashes
 cargo run --release -- prompt --civ carthage                        # the exact question a model seat gets
+cargo run --release -- prompt --civ carthage --prism                # the request a Prism seat sends
 cargo run --release -- experiment plan.json                         # a noeterra-experiment/v1 plan
 ```
 
@@ -297,13 +317,16 @@ cargo run --release -- experiment plan.json                         # a noeterra
 | `NOETERRA_LMSTUDIO_MODEL`  | else `RAIN_MODEL`, else the first chat model the server lists                                |
 | `ANTHROPIC_API_KEY`        | read by `curl` at call time through `--variable`; never in a command line, record or browser |
 | `NOETERRA_ANTHROPIC_MODEL` | default `claude-opus-5-5`                                                                    |
+| `SARVAM_API_KEY`           | read by `curl` at call time through `--variable`; never in a command line, record or browser |
+| `NOETERRA_PRISM_MODEL`     | default `sarvam-prism`                                                                       |
 | `NOETERRA_MODEL_TIMEOUT`   | seconds per model call (default 240)                                                         |
 
-Anthropic calls go through the system `curl` because the crate keeps a pure-Rust
-dependency tree and TLS would need a C toolchain on this platform. Model seats
-in `noeterra run` and `noeterra design` refuse to start without `--live`, because
-they call a model server and Anthropic calls spend credit. Tests never reach a
-model: they use a scripted provider and local stand-in servers.
+Anthropic and Sarvam calls go through the system `curl` because the crate keeps
+a pure-Rust dependency tree and TLS would need a C toolchain on this platform.
+Model seats in `noeterra run` and `noeterra design` refuse to start without
+`--live`, because they call a model server and Anthropic and Sarvam calls spend
+credit. Tests never reach a model: they use a scripted provider and local
+stand-in servers.
 
 The workbench binds `127.0.0.1` only, answers only requests whose `Host` and
 `Origin` are its own (so no other web page can drive it or spend API credit),
@@ -395,12 +418,13 @@ These describe the simulator's agents and rules, not ancient states.
 
 ## Tests
 
-| Suite                                      | Covers                                                                                                                                                                                                                                                                                              |
-| :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `noeterra/src/**` unit tests               | RNG streams and a pinned first value, memory bounds and recall, scenario validation, the local-address rule                                                                                                                                                                                         |
-| `noeterra/tests/simulation.rs`             | 120-season invariants after every season, determinism, a bounded and always-legal menu, illegal choices refused and recorded, save → replay to identical hashes, forged decisions and a tampered scenario refused, memory changes behaviour, interventions, experiments, a 400-province world       |
-| `noeterra/tests/models.rs`                 | A model seat over real HTTP to a stand-in server: valid answers kept to the menu, every malformed or unusable answer falling back with a reason, the fog of war in the prompt, a model seat replaying without the model, the Anthropic client's request shape and refusal handling, design receipts |
-| `src/rain/scientific/civilization.test.ts` | The engine imports nothing and agrees with the host on metrics; compiler determinism and refusals; authorization; execution and independent re-simulation; resealed tampering refused; registry admission of passing and non-passing results; the typed backend seam                                |
+| Suite                                      | Covers                                                                                                                                                                                                                                                                                                            |
+| :----------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `noeterra/src/**` unit tests               | RNG streams and a pinned first value, memory bounds and recall, scenario validation, the local-address rule                                                                                                                                                                                                       |
+| `noeterra/tests/simulation.rs`             | 120-season invariants after every season, determinism, a bounded and always-legal menu, illegal choices refused and recorded, save → replay to identical hashes, forged decisions and a tampered scenario refused, memory changes behaviour, interventions, experiments, a 400-province world                     |
+| `noeterra/tests/models.rs`                 | A model seat over real HTTP to a stand-in server: valid answers kept to the menu, every malformed or unusable answer falling back with a reason, the fog of war in the prompt, a model seat replaying without the model, the Anthropic client's request shape and refusal handling, design receipts               |
+| `noeterra/tests/prism.rs`                  | A Prism seat over real HTTP to a stand-in for Sarvam's API: every offered action asked exactly once, only accepted request fields, the key only in a header, picks kept to the menu, failures falling back with the provider's reason, out-of-range answers discarded, a full history replaying without the model |
+| `src/rain/scientific/civilization.test.ts` | The engine imports nothing and agrees with the host on metrics; compiler determinism and refusals; authorization; execution and independent re-simulation; resealed tampering refused; registry admission of passing and non-passing results; the typed backend seam                                              |
 
 ## Limitations
 
@@ -415,6 +439,12 @@ These describe the simulator's agents and rules, not ancient states.
   calls were queued and reasoning effort lowered, a single Rome seat answered
   `LIVE` in 381 seconds (2,437 tokens in, 1,284 out), with nothing discarded.
   For many model seats, use the Anthropic provider or a faster local model.
+- Sarvam-Prism seats have been tested only against a stand-in: no real game has
+  measured their token counts, latency or play. Each question is answered on its
+  own, so a Prism seat cannot weigh two actions together (a gift and an alliance
+  to different powers, say) beyond the ranking by probability. Sarvam keeps API
+  inputs until the account owner sets a data-retention period, and its privacy
+  policy says inputs train its models unless the account opts out.
 - The workbench runs on a person's machine; the deployed site does not include
   it and cannot reach a local model server.
 - The experiment protocol trusts its designer further than it should:

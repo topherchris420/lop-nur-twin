@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::action::{describe, Decision};
 use crate::brain::utility::UtilityBrain;
-use crate::brain::{Brain, BrainOutput, Label, RandomBrain, Usage};
+use crate::brain::{Brain, BrainOutput, Label, RandomBrain, Score, Usage};
 use crate::hash::world_hash;
 use crate::model::*;
 use crate::observe::observe;
@@ -122,7 +122,8 @@ pub enum Seat {
     Amnesic,
     Random,
     Human,
-    /// A language model behind `provider` (`lmstudio` or `anthropic`).
+    /// A model behind `provider`: a language model (`lmstudio`, `anthropic`)
+    /// or the Sarvam-Prism decision model (`prism`).
     Model {
         provider: String,
         model: Option<String>,
@@ -136,12 +137,12 @@ impl Seat {
             "amnesic" => Ok(Seat::Amnesic),
             "random" => Ok(Seat::Random),
             "human" => Ok(Seat::Human),
-            "lmstudio" | "anthropic" => Ok(Seat::Model {
+            "lmstudio" | "anthropic" | "prism" => Ok(Seat::Model {
                 provider: s.into(),
                 model: None,
             }),
             _ => match s.split_once(':') {
-                Some((p @ ("lmstudio" | "anthropic"), m)) if !m.is_empty() => Ok(Seat::Model {
+                Some((p @ ("lmstudio" | "anthropic" | "prism"), m)) if !m.is_empty() => Ok(Seat::Model {
                     provider: p.into(),
                     model: Some(m.into()),
                 }),
@@ -165,6 +166,10 @@ pub struct DecisionRecord {
     pub usage: Usage,
     pub prompt_sha256: Option<String>,
     pub discarded: Vec<String>,
+    /// Probabilities a decision model returned, as returned (Sarvam-Prism
+    /// seats only). Absent from records of every other seat.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub scores: Vec<Score>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -318,6 +323,7 @@ impl Simulation {
                 usage: o.usage,
                 prompt_sha256: o.prompt_sha256,
                 discarded: o.discarded,
+                scores: o.scores,
             })
             .collect();
         self.apply(decisions)
