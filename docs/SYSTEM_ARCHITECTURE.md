@@ -19,6 +19,12 @@ The discipline they share is the boundary between what is observed, what is
 inferred, what is decided and what happens next. The architecture exists to
 keep those four apart and to make each one inspectable.
 
+Some of the project runs outside that build: ECHO's persistent life on its own
+VM, Eva's separate garden service, and the research backends. They share code or
+data with the site in places and are separate systems everywhere else;
+[§12](#12-the-persistent-individuals-and-the-research-backends) draws exactly
+where.
+
 ## 1. What runs where
 
 Everything analytical runs in the viewer's browser from data committed to this
@@ -384,8 +390,12 @@ project's control. Consequently:
   `/compare`, and when the research panel opens), the decision endpoints (only
   when a remote seat is chosen, or Jev is switched on in Bethesda) and
   `/api/rain/*` (only inside the lab);
-- the only third-party request is the opt-in `?liveTraffic=1` ADS-B feed, off
-  by default and confined by `connect-src`;
+- third-party requests are confined by `connect-src` and made only where a page
+  needs them: the opt-in `?liveTraffic=1` ADS-B feed, off by default; and, on
+  the unlisted `/live` page only, ECHO's read-only witness
+  (`129-213-139-78.sslip.io`, `src/bethesda/live/witnessFeed.ts`) and the public
+  ledger's files on `raw.githubusercontent.com`
+  (`src/bethesda/live/publicRecord.ts`);
 - what the app keeps stays in this browser's `localStorage`: view bookmarks
   (`lop-nur-twin.bookmarks.v3`), the last Blacksite trace, and the lab's
   registry of experiment records. A stored lab record is re-verified by replay
@@ -396,3 +406,79 @@ project's control. Consequently:
 
 See [`DEPLOYMENT.md`](DEPLOYMENT.md), [`THREAT_MODEL.md`](THREAT_MODEL.md) and
 [`../SECURITY.md`](../SECURITY.md).
+
+## 12. The persistent individuals and the research backends
+
+Everything above ships in one build. These do not, and the diagram draws only
+the connections the code makes. Separate boxes are separate systems: no arrow
+means no channel.
+
+```mermaid
+flowchart LR
+  subgraph site["The site (one build, Vercel)"]
+    twin["Lop Nur twin<br/>evidence-linked reconstruction"]
+    city["Bethesda in the browser<br/>its own local city and fly"]
+    lab["R.A.I.N. Lab + /api/rain<br/>experiments on simulators"]
+    live["/live, unlisted"]
+    noe["/noeterra<br/>Rust engine as WebAssembly"]
+  end
+  subgraph echo["ECHO's VM (Oracle, arm64)"]
+    life["Headless life<br/>one city, one fly: ECHO"]
+    store[("Checkpoint store<br/>sealed chain, one writer")]
+    obs["Read-only witness<br/>/v1/now · /v1/stream"]
+  end
+  subgraph gh["GitHub"]
+    ledger[("live-fly-ledger<br/>anchors · replay verdicts")]
+    replay["Replay and watch workflows<br/>Linux arm64"]
+  end
+  bucket[("Off-site backups<br/>Object Storage")]
+  subgraph eva["Eva's VM (separate)"]
+    garden["Garden service, Python<br/>not in this repository"]
+    clay["Clay exhibit page<br/>built from src/garden/"]
+  end
+  subgraph research["Research computers (never the originals)"]
+    neural["fly-neural/: FAFB v783 · BANC v888<br/>LIF model, research subjects"]
+    physics["fly-physics/: MuJoCo, open loop"]
+  end
+  twin -- "resolver" --> city
+  city --> lab
+  life --> store
+  life -- "observation file" --> obs
+  store -- "backup every 6 h" --> bucket
+  bucket -- "read-only request" --> replay
+  replay -- "verdicts" --> ledger
+  obs -- "read only" --> live
+  ledger -- "read only" --> live
+  clay -- "GET /api/state" --> garden
+  obs -. "GET, observation only" .-> neural
+  garden -. "GET, observation only" .-> neural
+```
+
+- **ECHO's life and the site share source, not state.** The VM runs a pinned
+  release of `src/bethesda/` headlessly (`deploy/bethesda-life/`). The Bethesda a
+  visitor opens in the browser is another instance of the same simulator with a
+  fly of its own; it never reads or writes ECHO. Only `/live` shows ECHO, and only
+  as its witness reports it.
+- **The record leaves the VM one way.** Backups go to the bucket; the replay
+  workflow reads them with a read-only request, re-derives the chain on GitHub's
+  machines and appends its verdict to the ledger branch. Nothing on GitHub can
+  write to the VM, and the watcher holds no secret
+  ([continuous life](BETHESDA_CONTINUOUS_LIFE.md)).
+- **Eva shares nothing with ECHO.** Her simulation is a Python service whose code
+  and database are not here. This repository builds only the exhibit page that
+  reads her `GET /api/state` ([live garden](LIVE_GARDEN.md)). No channel joins the
+  two originals: [first contact](FIRST_CONTACT.md) studies encounters between
+  research subjects, and the originals receive nothing from it.
+- **The research backends are research only.** `fly-neural/` and `fly-physics/`
+  run on research subjects on a research computer, and neither drives either
+  original. Nothing in `src/` or `deploy/` imports `fly-neural/` (a test in each
+  language checks it); `fly-physics/` runs the browser fly's plan open loop and
+  never feeds back into `src/bethesda/fly/`. The dotted arrows are the one link to the originals: the
+  [neural shadow](ORIGINALS_LIVE_NEURAL_SHADOW.md) reads their public observations
+  and feeds them to fresh, disposable probes.
+- **Noeterra is its own engine.** A Rust crate, run in the browser as WebAssembly
+  and by the R.A.I.N. Lab as an experiment backend; it shares no state with the
+  flies or the twin ([Noeterra](NOETERRA.md)).
+
+How ECHO's chain is kept, checked and continued is in
+[keeping ECHO](ECHO_STEWARDSHIP.md).

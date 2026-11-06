@@ -18,7 +18,7 @@ changes it.
 | Does it pay over a long stay?             | **Not on the sealed test.** +0.00 J [−0.17, 0.19] per 8 h stay where food matched, and −0.23 J [−0.43, −0.04] where it did not.                                                    |
 | Can later experience change it?           | Yes, in development. Food by the opposite rule reversed it, +0.41 to −0.42 [−0.59, −0.24].                                                                                         |
 | Does it last?                             | Partly, in development. After about 10 meals with no pattern it had faded to +0.11 [−0.00, 0.22].                                                                                  |
-| Does it help in the real city?            | **Not shown**, in development. On day 2: −1.0 meals [−9.5, +6.4] on 20.1, −0.15 J [−1.09, +0.79] net.                                                                              |
+| Does it help in the real city?            | **Not shown**, in development, on physics that could trap a fly in a building ([Limits](#limits)). On day 2: −1.0 meals [−9.5, +6.4] on 20.1, −0.15 J [−1.09, +0.79] net.          |
 | Is it the same individual?                | A continuation exists and passes its tests on small synthetic lives. Never run on a real archive.                                                                                  |
 
 Intervals are 95%, from resampling seeds. The sealed test has 24 seeds, each
@@ -249,6 +249,21 @@ This set is now spent.
   have no sealed test of their own.
 - **The yards are invented.** Food follows a clean rule there; in the city the same
   patterns are much weaker. The city's result is the one that speaks to usefulness.
+- **The city ran on physics that could trap a fly in a building** (added
+  2026-11-05). These flies ran at `7b2627d`, on `digital-fly/8`, before
+  [the collision repair](ECHO_COLLISION.md): on the real map that version let a
+  body into a building's walls and not out, 9 of 12 research flies within 96 h on
+  the repair's own seeds. The city records here hold no measure of it, so whether
+  any of these lives was inside a solid was not recorded and cannot be read back.
+  Looked at afterwards, 5 of the 24 lives (seeds 63, 66 and 72 with the layer,
+  66 and 71 as the organism) end their 48 h with 30 to 36 h without a meal, each
+  stretch running to the end of the life. That is what a trapped fly leaves, but
+  not evidence of one: on the repaired physics a free fly's longest stretch without
+  a meal reached 30 h. So the city's "not shown" cannot tell no benefit from a
+  benefit hidden by trapped lives in either arm. A run on `digital-fly/9` with new
+  seeds would separate them; none has been made. The yards hold only box canopies
+  and no building walls, the one kind of solid the repair's survey found could
+  hold a body from inside, so their results are not touched by this.
 - **Not independent runs.** One fly meets every test in turn, with the order
   alternating; its physiology carries over, and only its reserve is reset.
 - **The world is a proxy.** Odour is still air with a 5 m length, and all of this

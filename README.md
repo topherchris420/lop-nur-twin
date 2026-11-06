@@ -2,194 +2,157 @@
 
 # R.A.I.N. Lab
 
-**A world to observe. A question to test. A record to inspect.**
-
-An open-source laboratory for **persistent simulated life**, **source-linked worlds**,
-and **reproducible research**.
+**Persistent artificial life. Reproducible experiments. Worlds built to be questioned.**
 
 Created by **Christopher Woodyard** at **[Vers3Dynamics](https://vers3dynamics.com)**.
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-22.18%2B-417E38)](package.json)
 
-[![One orbit of the Lop Nur reconstruction while night falls over the compound and lifts again](docs/media/readme/lop-nur-orbit.gif)](https://lop-nur-twin.vercel.app/)
+[![ECHO on its live page: walking, grooming and resting, then a takeoff toward remembered food six meters away, each decision listed with its reason](docs/media/readme/live-fly.gif)](https://lop-nur-twin.vercel.app/live)
 
-<sub>The Lop Nur twin: one orbit of the reconstructed compound while night falls and lifts (press <code>N</code> in the twin).</sub>
+<sub>ECHO on <a href="https://lop-nur-twin.vercel.app/live"><code>/live</code></a>, recorded on 28 October 2026 (UTC), at twice real speed. Every change of behavior arrives with the reason its controller logged.</sub>
 
 **[Watch ECHO](https://lop-nur-twin.vercel.app/live)** ·
 **[Visit Eva's garden](https://150-136-49-49.sslip.io/)** ·
 **[Explore the twin](https://lop-nur-twin.vercel.app/)** ·
-**[Inspect the evidence](https://lop-nur-twin.vercel.app/analysis)** ·
-**[Run locally](#run-locally)**
+**[Read the evidence](docs/RESEARCH_CLAIMS.md)** ·
+**[Run it locally](#reproduce-it-or-build-on-it)**
 
 </div>
 
-A three-millimeter digital fly moves through a simulated Bethesda. Its world
-can keep advancing when nobody is watching, and its verified history can survive
-a restart. **ECHO** is that shared individual. **Eva** lives in a separate garden,
-seen through a clay exhibit. Each has a separate history; opening a viewer creates
-neither of them.
+## In one minute
 
-The question is what can change through experience while the same individual
-continues. ECHO's recorded continuation preserves its identity and learned state
-while adding associative learning, odor-guided walking, recoverable physiology,
-and an archive. Separate research subjects let us test new mechanisms against
-declared baselines before considering them for an original.
+**What is R.A.I.N. Lab?** An open-source laboratory for simulated organisms and
+the simulated worlds they live in, built so that every result can be traced to
+the code, data and records that produced it. It began as an evidence-linked
+reconstruction of a desert airfield at Lop Nur, which is why the repository
+keeps that name. Its ambition is a small, open digital Bell Labs: build worlds in
+which questions can be tested, keep the attempts that fail, and leave the
+reasoning and results for someone else to examine.
 
-**R.A.I.N. Lab brings the world, the experiment, and the evidence into one open
-research environment.** It connects the Lop Nur airfield reconstruction, a
-walkable Bethesda and its research laboratory, numerical physics experiments,
-and Noeterra's simulated civilizations. `lop-nur-twin` keeps the name of the
-reconstruction where the project began.
+**What makes it unusual?** One of its simulated flies, **ECHO**, has lived as the
+same individual since 26 October 2026: a three-millimeter fruit fly in a
+simulated Bethesda, with FlyBody-derived anatomy, a reduced-order behavioral
+controller, a computational model of its own sensorimotor abilities and a
+mushroom-body rate model that learns from its meals. Its whole state is sealed
+into a checkpoint every five simulated minutes, anchored to a public ledger, and
+recomputed independently on other machines. A change to the engines it runs on
+reaches it only by a recorded continuation that keeps its earlier state byte for
+byte. A second fly, **Eva**, lives in a separate garden service.
 
-The ambition is a small, open digital Bell Labs: build worlds in which questions
-can be tested, preserve the attempts that fail, and make the reasoning and results
-available for someone else to examine.
+**What can you explore?** ECHO live; Eva's garden as a clay stop-motion exhibit;
+a 3D reconstruction in which every building carries its evidence; a hidden
+simulated Bethesda with a research laboratory inside it; rule-based
+civilizations; and a first-person simulation. All in the browser, with no
+account.
 
-> **Models propose. Host code validates. People authorize. Simulations run.
-> Results remain open to inspection.**
+**What has been shown?** That ECHO's history since 4 November recomputes seal
+for seal (361 of 361 checkpoints); that the ECHO self-model compensates for an
+impairment it is never told about, in registered tests on research flies; and
+that memory gives identically built flies distinct, persistent preferences. Just as plainly: memory
+did not help where food keeps moving, three self-model tests are inconclusive,
+and connectome-level odor learning failed its test.
+[Every claim, with its evidence class](docs/RESEARCH_CLAIMS.md).
 
-[Current work](#current-work) · [Quick start](#run-locally) · [Explore](#start-exploring) ·
-[Evidence](#every-claim-carries-its-evidence) · [Digital life](#the-digital-fly) ·
-[Research method](#how-the-research-loop-works) · [Results](#recorded-results) ·
-[Optional capabilities](#optional-capabilities) · [Validation](#validation) ·
-[Documentation](#documentation)
+**How can you check it or build on it?** Generated archives name the commit they
+ran from and the command that wrote them, and most have a `--check` that
+reproduces them byte for byte on the platform they were recorded on.
+[Reproduce it](#reproduce-it-or-build-on-it), or start from
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Current work
+## 4 November 2026: the collision repair reached the original ECHO
 
-**Status from repository records · November 2, 2026.** The public viewers,
-production services, and research experiments have separate lifecycles.
+The deployed ECHO spent nearly three days inside the walls of a building it could
+not leave. The defect was in the simulator, not the fly, and the repair reached the
+original individual without replacing it.
 
-| Work                                    | Recorded status                                                                                                                            | Read more                                                                                |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| **ECHO's continuing life**              | The October 28 deployment preserved the original individual and added learning, physiology, and an archive.                                | [Continuation record](docs/ECHO_ORGANISM_CONTINUATION.md)                                |
-| **Verifiable continuity**               | November 2: the observer fix was deployed with the same individual, a 96-second pause, and all 2,028 checkpoints passing chain validation. | [Operations and replay](docs/BETHESDA_CONTINUOUS_LIFE.md)                                |
-| **First real archive replay**           | 9,000 ticks reproduced from the older release; zero seals compared. The first replay with seals passed on November 4: 3 of 3.              | [Replay record](https://github.com/topherchris420/lop-nur-twin/actions/runs/41459569425) |
-| **Brain and nerve-cord research**       | FAFB v783 and BANC v888 are imported as separate connectomes; both have recorded experiments.                                              | [Connectome backend](#computational-neural-research-the-connectome-backend)              |
-| **Observing the originals**             | A read-only workflow can feed incomplete public observations into disposable BANC probes.                                                  | [Originals' neural shadow](#observing-eva-and-echo-without-restarting-them)              |
-| **Experience-dependent walking habits** | An additive continuation candidate is implemented; production deployment is not recorded.                                                  | [Next continuation](#next-continuation-experience-dependent-habits)                      |
+| When (UTC)         | What the records show                                                                                                                                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 Nov, 17:12–17:13 | ECHO passes into the walls of building 1011267786, the only time in its life it has been inside a solid. It does not eat again while inside.                                                                                                                       |
+| 1–3 Nov            | The cause is found: on a wall's line a point counted as outside while a ray from it missed the wall, and motion trusted the ray. 2,774 of 17,999 test rays missed prism walls across the map. From inside, every wall held.                                        |
+| 3 Nov              | `digital-fly/9` fixes how any moving body meets any surface: a surface stops a body going in, never one coming out. On the same new seeds, 9 of 12 research flies were trapped on the old physics and none on the new; mean meals in 96 h rose from 83.5 to 120.0. |
+| 4 Nov, 10:54–11:02 | With the owner's approval: a last checkpoint on the old physics (#2,554), then a recorded continuation (#2,555) at the same tick, keeping every byte of its history but one label. The 7 min 46 s pause is recorded as a gap.                                      |
+| 4 Nov, about 11:38 | ECHO crosses out of the solid, 36 simulated minutes after the repair (tick 7,664,060).                                                                                                                                                                             |
+| 4 Nov, about 19:27 | Its first meal since 1 November.                                                                                                                                                                                                                                   |
+| 4–5 Nov            | Four independent replays reproduce every seal from #2,566 to #2,927: 1,083,003 ticks, 361 of 361.                                                                                                                                                                  |
 
-**A merged feature is not a migrated life.** Continuing an original requires its
-verified state, a compatible release, and a recorded transition. Research results
-below identify which subjects and models produced them.
+[![Two plan views drawn from ECHO's recorded positions: inside building 1011267786 after the repair, the recorded exit, and the rest of the day to its first meal](docs/media/echo-collision/exit.svg)](docs/ECHO_COLLISION.md#how-it-got-out)
 
-## Run locally
+<sub>Drawn by <code>scripts/echo-exit-figure.ts</code> from ECHO's recorded journal and witness, the building rings its world collides with, and the exit record in checkpoint 2563.</sub>
 
-Use **Node.js 22.18+** and **Bun 1.3+**. CI installs from `bun.lock`.
+**The simulator became more correct; the fly did not become more intelligent.**
+No controller, learning rule or goal changed. ECHO did not learn or navigate its
+way out: it was in the air, refused a landing inside again and again, drifted
+along a wall and crossed it. Programmed maintenance, an artificial energy
+supply, carried it to its first meal, and it remembered no food places then, so
+that meal was not memory-guided either.
 
-```sh
-git clone https://github.com/topherchris420/lop-nur-twin.git
-cd lop-nur-twin
-bun install --frozen-lockfile
-bun run dev
-```
+**A merged feature is not a migrated life.** The repair was merged on GitHub
+first; it reached ECHO only through the recorded continuation, rehearsed on
+copies, with the owner's approval for each step on its machine.
 
-Open **[localhost:5173](http://localhost:5173)**. No environment file or model server is needed
-for the base app. Running the app starts a local experience; it does not start
-or replace either hosted fly service.
+[The full record](docs/ECHO_COLLISION.md) ·
+[every command as it ran](docs/research/echo-collision/cutover.txt) ·
+[replay verdicts](https://github.com/topherchris420/lop-nur-twin/blob/live-fly-ledger/replays.jsonl) ·
+[how ECHO is kept](docs/ECHO_STEWARDSHIP.md)
 
-<details>
-<summary>Use npm instead</summary>
+## Explore
 
-After cloning and entering the repository:
-
-```sh
-npm ci
-npm run dev
-```
-
-Individual scripts, including `npm run build`, work with Node. The aggregate
-`check` script invokes Bun internally, so it still requires Bun.
-
-</details>
-
-**Run your first recorded experiment — no model required:**
-
-```sh
-npm run rain:scientific:demo -- --dir .rain-research/readme-demo
-```
-
-This fixture uses a **scripted designer and scripted operator**, runs a numerical
-simulation, and retains its artifacts in `.rain-research/readme-demo`. Use a fresh
-directory for each run. Fixture authorization covers this demonstration only.
-
-For a production build and local preview:
-
-```sh
-bun run build
-bun run preview
-```
-
-Open **[localhost:4173](http://localhost:4173)**. Add
-[Noeterra, local models, or a persistent service](#optional-capabilities) when
-needed; the base app needs none of them.
-
-## Start exploring
-
-The public reconstruction and scripted experiences need **no account or model API
-key**. The 3D scenes require WebGL; `/analysis` and `/compare` work without it.
+The public pages need **no account or model API key**. The 3D scenes need WebGL;
+`/analysis` and `/compare` work without it.
 
 <table>
   <tr>
     <td width="33%" valign="top">
-      <a href="https://lop-nur-twin.vercel.app/"><img src="docs/media/readme/gallery/twin.jpg" width="100%" alt="The Lop Nur compound painted by evidence status, with the evidence timeline below"></a>
-      <br><b><a href="https://lop-nur-twin.vercel.app/">Lop Nur twin</a></b>
-      <br><sub>Explore the airfield, open structure dossiers, measure modeled distances, and move through the evidence timeline.</sub>
-    </td>
-    <td width="33%" valign="top">
       <a href="https://lop-nur-twin.vercel.app/live"><img src="docs/media/readme/gallery/live-fly.jpg" width="100%" alt="The live page: the fly on a map of Bethesda beside its current behavior and recent decisions"></a>
       <br><b><a href="https://lop-nur-twin.vercel.app/live">ECHO in Bethesda</a></b>
-      <br><sub>Observe the shared server-side individual, its activity, recent decision reasons, and nearby city activity.</sub>
+      <br><sub>The one shared, persistent individual, as its read-only witness reports it, with its recent decisions and the public record.</sub>
     </td>
     <td width="33%" valign="top">
       <a href="https://150-136-49-49.sslip.io/"><img src="docs/media/readme/gallery/garden.jpg" width="100%" alt="Macro view of the garden's clay fly on its cedar fence"></a>
       <br><b><a href="https://150-136-49-49.sslip.io/">Eva's clay garden</a></b>
-      <br><sub>Watch a separate server-side fly through a stop-motion clay exhibit. <a href="docs/LIVE_GARDEN.md">About this garden</a>.</sub>
+      <br><sub>A different fly in a separate service, watched through a stop-motion clay exhibit. <a href="docs/LIVE_GARDEN.md">About the garden</a>.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/"><img src="docs/media/readme/gallery/twin.jpg" width="100%" alt="The Lop Nur compound painted by evidence status, with the evidence timeline below"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/">Lop Nur twin</a></b>
+      <br><sub>Every building is observed, reported, interpreted or illustrative. Open its dossier, paint the scene by evidence (<code>L</code>), and move through what was knowable when.</sub>
     </td>
   </tr>
   <tr>
     <td width="33%" valign="top">
       <a href="docs/BETHESDA_ANOMALY.md"><img src="docs/media/readme/gallery/rain-lab.jpg" width="100%" alt="The R.A.I.N. Lab's Research Panel: the meeting table, R.A.I.N.'s plate, and a scripted meeting transcript"></a>
-      <br><b><a href="docs/BETHESDA_ANOMALY.md">Bethesda and R.A.I.N. Lab</a></b>
-      <br><sub>Discover the hidden city and enter its research laboratory.</sub>
+      <br><b><a href="docs/BETHESDA_ANOMALY.md">Bethesda and the R.A.I.N. Lab</a></b>
+      <br><sub>A hidden city on mapped geography, and the laboratory behind a door in it.</sub>
     </td>
     <td width="33%" valign="top">
       <a href="https://lop-nur-twin.vercel.app/noeterra"><img src="docs/media/readme/gallery/noeterra.jpg" width="100%" alt="Noeterra's Mediterranean map with the event log and the Roman Republic's realm panel"></a>
       <br><b><a href="https://lop-nur-twin.vercel.app/noeterra">Noeterra</a></b>
-      <br><sub>Explore rule-based civilizations in the Mediterranean (264 BC) or Tarim Basin (77 BC).</sub>
+      <br><sub>Rule-based civilizations in the Mediterranean (264 BC) or the Tarim Basin (77 BC).</sub>
     </td>
     <td width="33%" valign="top">
       <a href="https://lop-nur-twin.vercel.app/play"><img src="docs/media/readme/gallery/blacksite.jpg" width="100%" alt="Blacksite: a first-person view across open ground between two buildings"></a>
       <br><b><a href="https://lop-nur-twin.vercel.app/play">Blacksite</a></b>
-      <br><sub>Enter the illustrative first-person simulation with human, scripted, or optionally configured model-controlled seats.</sub>
+      <br><sub>An illustrative first-person simulation with human, scripted or model-controlled seats.</sub>
     </td>
   </tr>
 </table>
 
-| Analytical page                                                    | What you can do                                                                         |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| **[Evidence inspector](https://lop-nur-twin.vercel.app/analysis)** | Trace claims to sources, classifications, dates, and stated uncertainty.                |
-| **[Revision comparison](https://lop-nur-twin.vercel.app/compare)** | Inspect changes in geometry, sourcing, and uncertainty between recorded model releases. |
-| **[Evaluation](https://lop-nur-twin.vercel.app/evaluation)**       | Inspect recorded decisions, experiment outcomes, and comparisons.                       |
-
-**Your first five minutes:**
-
-1. Open the twin and select a structure to read its dossier.
-2. Press `L` for the evidence lens; move the timeline to see what was knowable then.
-3. Open the [evidence inspector](https://lop-nur-twin.vercel.app/analysis) and follow a claim to its sources.
-4. Visit the [shared fly](https://lop-nur-twin.vercel.app/live) and inspect its recorded decisions.
-
-Press `H` for help or `1` / `2` / `3` to change camera mode.
-[Full controls](docs/CONTROLS.md).
+**In your first five minutes:** open the twin and select a structure; press `L`
+and move the timeline back (an outline marks absence of evidence, never evidence
+of absence); follow a claim to its sources in the
+[evidence inspector](https://lop-nur-twin.vercel.app/analysis); then
+[watch ECHO](https://lop-nur-twin.vercel.app/live) and open "Check it yourself".
+Press `H` for help. [Full controls](docs/CONTROLS.md).
 
 <details>
-<summary>Find Bethesda and the hidden laboratory — spoiler</summary>
+<summary>Find Bethesda and the hidden laboratory (spoiler)</summary>
 
 In the twin, press **backtick** (usually below Escape) and submit
-`38.9847,-77.0947` or `resolve bethesda`. You can also press `I` to open the
-Site Index and search for those coordinates. Bethesda loads on demand; the
-laboratory is inside a building, behind a door.
+`38.9847,-77.0947` or `resolve bethesda`, or press `I` and search the Site Index
+for those coordinates. Bethesda loads on demand; the laboratory is inside a
+building, behind a door.
 
 [![The twin's telemetry resolver takes the coordinates, the location resolves from Lop Nur to Bethesda, and the camera surveys the modeled city](docs/media/readme/bethesda-reveal.gif)](docs/BETHESDA_ANOMALY.md)
 
@@ -197,576 +160,167 @@ laboratory is inside a building, behind a door.
 
 </details>
 
-## Every claim carries its evidence
+**A Life Three Millimeters Long** is a 58-second illustrated film about the
+project ([watch](https://lop-nur-twin.vercel.app/film/),
+[credits](docs/media/fly-film/README.md)): an interpretation, not a recording of
+the simulator.
 
-The Lop Nur twin is a public-source analytical reconstruction. Every building
-and pavement carries a classification that tells you what supports it:
+## How the pieces fit
 
-| Classification   | What it means                                      |
-| ---------------- | -------------------------------------------------- |
-| **Observed**     | The feature is visible in cited imagery.           |
-| **Reported**     | A cited publication reports the feature.           |
-| **Interpreted**  | The model assigns an identity or explanation.      |
-| **Illustrative** | The feature supplies context or simulation detail. |
+Separate boxes are separate systems. An arrow is a connection the code makes;
+no arrow means no channel.
 
-Press `L` to color the scene by evidence status. Move the timeline back and the
-twin draws solid only what public sources had established by that date; the rest
-becomes an outline. **An outline marks absence of evidence, never evidence of
-absence.**
+```mermaid
+flowchart TB
+  subgraph site["The website, one build"]
+    direction LR
+    twin["Lop Nur twin<br/>evidence-linked reconstruction"]
+    city["Bethesda<br/>simulated city, in the browser"]
+    lab["R.A.I.N. Lab<br/>experiments · registry · replay"]
+    noe["Noeterra<br/>civilizations, Rust → WebAssembly"]
+    live["/live viewer"]
+  end
+  subgraph echo["ECHO's own VM"]
+    life["Persistent life<br/>one city, one fly"] --> store[("Sealed checkpoint chain")]
+  end
+  ledger[("Public ledger and<br/>independent replays, GitHub")]
+  subgraph eva["Eva's separate VM"]
+    clay["Clay exhibit"] -- "GET /api/state" --> garden["Garden service, Python<br/>not in this repository"]
+  end
+  subgraph research["Research computers"]
+    neural["Connectome models<br/>FAFB v783 · BANC v888<br/>research subjects only"]
+  end
+  twin -- "hidden resolver" --> city --> lab
+  lab -- "experiment backend" --> noe
+  store -- "backups, re-derived" --> ledger
+  life -- "read-only witness" --> live
+  ledger --> live
+  life -. "public observations" .-> neural
+  garden -. "public observations" .-> neural
+```
 
-[![The evidence lens paints the compound by classification; the timeline then rewinds to 2021 and steps forward to today as structures become established](docs/media/readme/evidence-timeline.gif)](https://lop-nur-twin.vercel.app/?lens=1)
+The Bethesda you open in the browser runs the same city simulator as ECHO's, with
+a fly of its own: it never reads or writes ECHO. Eva's simulation shares nothing with
+ECHO's. The connectome models run on research subjects; the dotted lines are a
+read-only probe fed with the originals' public observations, whose output is a
+counterfactual model response, not either fly's neural activity.
+[System architecture](docs/SYSTEM_ARCHITECTURE.md#12-the-persistent-individuals-and-the-research-backends).
 
-Select any structure for its dossier: what the evidence establishes, what the
-model infers, what remains unknown, and three separate dates for when it existed
-at the site, when the evidence became public, and when it entered this model.
-The [evidence inspector](https://lop-nur-twin.vercel.app/analysis) presents the
-same records without WebGL, and the
-[revision comparison](https://lop-nur-twin.vercel.app/compare) shows how geometry,
-sourcing, and uncertainty changed between recorded model releases.
+## What has been shown, and how strongly
 
-[Site model](docs/SITE_MODEL.md) · [Provenance](docs/DATA_PROVENANCE.md) ·
-[Temporal model](docs/TEMPORAL_MODEL.md) · [Uncertainty](docs/UNCERTAINTY_MODEL.md)
+A result belongs to one simulator, one design and one producing commit. None is
+a claim about a living organism, a real society or awareness. The
+[claims register](docs/RESEARCH_CLAIMS.md) gives each one's hypothesis, baseline,
+protocol, uncertainty and limits.
 
-## The digital fly
+| Result                                                               | Evidence                               | Outcome                                               |
+| -------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------- |
+| ECHO's history since #2,566 recomputes on other machines             | Observation of the original            | **361 of 361** seals reproduced                       |
+| Four engine changes reached ECHO with its state kept byte for byte   | Observation of the original            | **4** recorded continuations                          |
+| The old physics trapped flies in buildings; `digital-fly/9` fixes it | Seeded comparison, 12 new seeds        | **9 of 12 → 0 of 12** trapped                         |
+| A self-model compensates for a hidden impairment (ECHO-01)           | Registered, held-out conditions        | **Supported**: path error 0.073 vs 0.370              |
+| It attributes hidden changes better than simpler rules (ECHO-02)     | Registered, held-out conditions        | **Supported**: 0.919 vs 0.537; overconfident held out |
+| Memory, workspace and a second look help it (ECHO-03–05)             | Registered                             | **Inconclusive**                                      |
+| Flies of one genesis acquire distinct, persistent place preferences  | Seeded study                           | **Supported**: 0.28 vs −0.01 with memory erased       |
+| Memory helps where food keeps moving                                 | Seeded study; held-out benchmark       | **Negative**: 1.2 fewer meals per life                |
+| A learned search preference transfers and pays                       | Held-out (sealed)                      | **Transfers**, +0.42; benefit **not shown**           |
+| The fly agrees with published recordings of real flies               | Held-out observations from nine papers | **Narrow pass**: one paper, one mechanism             |
+| Published connectome predictions reproduce on FlyWire v783           | Registered, dev and held-out seeds     | **10 of 12** criteria                                 |
+| Connectome odor learning and threat discrimination                   | Registered                             | **Negative**                                          |
+| Flies in separate worlds recognize one another                       | Frozen protocol, held-out seeds        | **Negative**                                          |
 
-[![The shared Bethesda fly on its live page: walking, grooming, and resting bouts, then a takeoff back toward remembered food six meters away, each decision listed with its reason](docs/media/readme/live-fly.gif)](https://lop-nur-twin.vercel.app/live)
+**Research boundary.** Simulated behavior, continuity and self-modeling do not
+establish consciousness, subjective experience, biological equivalence or
+open-ended learning. ECHO's maintenance supply is an artificial model choice, not
+biology. The connectome research is separate from both original flies.
 
-<sub>The shared fly on <a href="https://lop-nur-twin.vercel.app/live"><code>/live</code></a>, recorded on 28 October 2026 (UTC) and shown at twice real speed. Every change of behavior arrives with the reason its controller logged.</sub>
+## How an experiment runs
 
-### A history that survives the window closing
+James, Jasmine, Luca and Elena are R.A.I.N.'s four computational research
+perspectives. Their proposals pass through the laboratory's validation,
+authorization, execution and replay before anything counts as evidence.
 
-The headless Bethesda service advances one city and one fly at **ten city ticks
-per second** while it is running. Visitors to `/live` observe that shared state;
-opening or closing a viewer does not create, reset, or end the individual.
-The [operation record](docs/BETHESDA_CONTINUOUS_LIFE.md) documents the service on
-one VM beginning October 26, 2026.
-
-Three experiences have deliberately separate histories:
-
-| Experience                                                                | Where its state lives                         | What you are observing                                       |
-| ------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
-| **[Shared Bethesda fly · `/live`](https://lop-nur-twin.vercel.app/live)** | Headless city service with a durable store.   | One shared individual, resumed from verified checkpoints.    |
-| **[Eva · clay garden](https://150-136-49-49.sslip.io/)**                  | Separate Python garden service on its own VM. | A different fly, presented through a read-only clay exhibit. |
-| **Local Bethesda and research runs**                                      | Browser session or controlled experiment.     | Separate instances for exploration and comparison.           |
-
-**You do not have to take its word for it.** Checkpoints are sealed and linked;
-GitHub holds a [public ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger),
-and a [replay](docs/BETHESDA_CONTINUOUS_LIFE.md#replaying-it) recomputes a recorded
-stretch on another machine using the producing release. `/live` reports how far
-replay has reached and exactly what it compared.
-
-**Recorded deployment — November 2, 2026.** ECHO moved from release `62bd125`
-to `bdb7c02`, retaining the same individual, engine versions, and state-graph
-shape. The pause was recorded as **96 seconds without simulated ticks**; the
-subsequent chain check passed for all **2,028 checkpoints**. Checkpoint #2,026
-is the last sealed by the old release; #2,027 is the first from the observer
-that leaves no trace in the checkpoint state.
-
-**The first real archive replay passed:** a
-[separate GitHub runner](https://github.com/topherchris420/lop-nur-twin/actions/runs/41459569425)
-recomputed **9,000 ticks**, from checkpoint #1,990 to #1,993, on Linux arm64 with
-the producing release's Node build. That archive came from the **older release**:
-the replay compared state hashes and self-kept records at each checkpoint, then
-the newest full graph except four named cache fields. **Zero seals were compared.**
-
-A sealed replay also requires the graph digest and seal to reproduce. **The first
-to pass ran on November 4, 2026:**
-[another runner](https://github.com/topherchris420/lop-nur-twin/actions/runs/41848867504)
-recomputed **9,000 ticks**, from #2,566 to #2,569, and reproduced **3 of 3 seals**.
-Seals up to #2,554 cannot be reproduced and remain outside that stronger check, and
-neither replay bridges an upgrade boundary. A match checks the history from its
-starting checkpoint; it does not establish who computed it, when, or what the fly
-experiences.
-
-### What the fly can learn
-
-The fly uses **FlyBody-derived anatomy** and a reduced-order behavioral
-controller: it senses, walks, flies, feeds, grooms, avoids threats, and remembers
-feeding places. **Project ECHO** adds a functional self-model that compares
-expected movement with sensed movement, estimates whether a mismatch comes from
-its body, surroundings, or sensing, and adjusts its behavior. It receives sensory
-inputs, never the experimenter's hidden perturbation labels or true body state.
-
-**Recorded milestone — October 28, 2026:** the shared Bethesda individual was
-[continued as the ECHO organism](docs/ECHO_ORGANISM_CONTINUATION.md), preserving
-its birth, checkpoint lineage, body, controller, memories, and ECHO v3 self-model.
-The continuation added:
-
-| Component                  | What it contributes                                                                                             |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Associative learning**   | A mushroom-body rate model learns from meals and fruitless returns to remembered places.                        |
-| **Odor-guided walking**    | Sensory-history filters adjust upwind movement and local search while walking.                                  |
-| **Recoverable physiology** | Energy, hydration, fatigue, sleep, and stress proxies, with a separately metered artificial maintenance supply. |
-| **An archive**             | Records recovery, learning updates, and episodes released from bounded ECHO memory.                             |
-
-The mushroom-body model implements 2,000 Kenyon-cell rate units, two output
-units, two dopaminergic units, and plastic synapses. It models one learning
-circuit, not a complete nervous system. The default and circuit-informed
-controllers simulate no neurons or synapses; Virtual Fly Brain provides
-anatomical reference material, not an integrated neural controller.
-
-**Research boundary:** simulated behavior, continuity, and self-modeling do not
-establish consciousness, subjective experience, biological equivalence, or
-open-ended learning. The maintenance supply is an explicit artificial model
-choice, not a biological claim or a guarantee of indefinite operation.
-
-[Digital fly and sources](docs/DIGITAL_FLY.md) · [ECHO design](docs/PROJECT_ECHO.md) ·
-[Continuation evidence](docs/ECHO_ORGANISM_CONTINUATION.md) ·
-[Next milestones](docs/FLY_PRIORITIES.md)
-
-<details>
-<summary>Continuity, checkpoints, and operating limits</summary>
-
-Continuity includes the body, controller, memories, city, and random-stream
-positions. A single writer commits sealed checkpoints every **five simulated
-minutes**, with restore verification. A restart resumes the last committed state
-and records the outage as a pause; a crash can lose uncommitted ticks.
-Incompatible simulator versions are refused. Explicit engine continuations need
-their own verified migration and retained source releases.
-
-**The roughly 41-hour figure is a recording limit, not a lifespan.** In the
-measured run, the city's decision log reached its 60,000-entry cap at about that
-age. The continued organism has a separate archive: if it fills, the runner
-stops rather than dropping records. Sustained continuity depends on the service,
-compatible software, storage, and recoverable backups.
-
-The garden's viewer reads only `GET /api/state`; cameras and clay rendering change
-presentation alone. Switching controllers in local Bethesda, or restoring only
-an ECHO self-model, does not continue the shared individual.
-
-The garden viewer source also offers **Save observation**: a portable JSON record
-of the displayed state, identity, reported weather and timestamps. The **This moment**
-panel makes the delayed or paused view explicit, while connection status remains
-visible. This is an observation, not a life backup. See the
-[viewer release notes](docs/LIVE_GARDEN.md#keeping-an-observation); the garden VM
-is deployed separately from this repository.
-
-[Service, backup, and recovery](docs/BETHESDA_CONTINUOUS_LIFE.md) ·
-[Identity and history studies](docs/INDIVIDUAL_CONTINUITY.md) ·
-[Clay garden and HTTPS operation](docs/LIVE_GARDEN.md)
-
-</details>
-
-### Next continuation: experience-dependent habits
-
-**Implementation candidate; no production migration is recorded.** The
-[experiential continuation](docs/ECHO_EXPERIENTIAL_CONTINUATION.md) adds a bounded
-walking habit beside ECHO's existing organism controller. After the controller
-chooses to walk, the candidate compares two conservative paces: **85% and 100%**
-of that command. Evidence comes from its own subsequent displacement and reserve
-consumption in two local wind contexts.
-
-The candidate can adjust walking pace after sufficient experience. It cannot
-increase the original speed, change movement mode, override escape, or intervene
-near a looming threat, food, or an edge. Feeding, flight, landing, navigation,
-and existing learning remain under the original controller.
-
-The continuation must preserve birth, identity, memories, mushroom-body weights,
-physiology, and random-stream positions. Removing the one added habit object
-must recover the prior graph digest exactly. A rehearsal against the original's
-verified backup and producing release is required before a production migration.
-Eva's separate Python service needs its own continuation procedure.
-
-### Computational Neural Research: the connectome backend
-
-[`fly-neural/`](fly-neural/README.md) runs a leaky integrate-and-fire model
-based on Shiu et al. 2024. Explicit research scripts can use its readouts to
-control separately created subjects. **Neither original fly runs this backend.**
-
-| Imported dataset        | Anatomical coverage          | Neurons | Synapses in the imported graph |
-| ----------------------- | ---------------------------- | ------: | -----------------------------: |
-| **FAFB / FlyWire v783** | Adult central brain          | 139,255 |                     54,492,922 |
-| **BANC v888**           | Brain and ventral nerve cord | 158,262 |                     23,556,214 |
-
-These are **different animals, kept in separate graphs**. BANC's reviewed Codex
-tables were pinned on October 31, 2026 and compiled for `brain-and-cord/v3`.
-Its export includes connected pairs with at least three synapses; the counts
-describe the imported data, not equivalent coverage of the two animals.
-
-What the recorded experiments establish:
-
-- **FAFB reproduction:** **10 of 12** preregistered criteria pass on development
-  and held-out seeds. Water input and the sign-shuffle control fail on both.
-- **BANC brain and cord:** **4 of 10** criteria pass at the published synaptic
-  weight, and **9 of 10** after scaling that weight to BANC's synapse density,
-  on both seed sets. The scaled network has broad excitation and fails the
-  weight-shuffle control; those limits accompany the passes. Research subjects
-  use the published weight; the scaled weight belongs to this experiment only.
-- **Adaptive intelligence:** closed-loop neural control has run on research
-  subjects. Odor-specific learning and held-out threat discrimination remain
-  negative findings. [Protocols and results](docs/ECHO_ADAPTIVE_INTELLIGENCE.md).
-- **Acquired behavior:** research flies come to prefer what their own meals favored
-  and carry that to unseen yards, on a sealed test. It did not help them find food
-  sooner or pay for itself there, and in the real city it brought no detectable
-  benefit. Nothing is deployed. [Study and results](docs/ECHO_ACQUIRED_BEHAVIOR.md).
-- **Ranging:** in development runs, research flies on the real map were getting trapped
-  inside solid buildings, and a guard for research flies stops it. With that gone, a
-  fixed wider search beats learning when to search widely. No sealed test has been run,
-  and the deployed fly is unchanged. [Study and results](docs/ECHO_RANGING.md).
-- **Collision repair:** `digital-fly/9` fixes that trap in the fly's physics. On the same
-  new seeds, 9 of 12 research flies got trapped on the old physics and none on the new,
-  and they went from 83.5 meals to 120.0 in 96 simulated hours. The deployed fly went
-  inside a building on November 1, 2026. On November 4 it crossed onto `digital-fly/9` by a
-  recorded continuation, the same individual with its history kept, and the repaired
-  physics let it out 36 simulated minutes later. It first ate about 8 hours after that.
-  [Report](docs/ECHO_COLLISION.md#the-cutover-as-it-ran).
-
-The model simplifies chemical signaling to signed synaptic effects and omits
-gap junctions, morphology, and neuromodulation. BANC adds the cord's chemical
-connectivity, not a complete physiological nervous system. More neurons in a
-research model do not establish a more capable original fly.
-
-[Methods and limits](docs/ECHO_CONNECTOME.md) ·
-[FAFB results](docs/benchmarks/fly-neural/README.md) ·
-[BANC results](docs/benchmarks/fly-neural/banc/README.md) ·
-[Adaptive intelligence](docs/ECHO_ADAPTIVE_INTELLIGENCE.md)
-
-### First contact: Eva and ECHO, research only
-
-[First Contact](docs/FIRST_CONTACT.md) studies an eventual encounter between
-the two persistent flies. A passive observer reads the originals; experiments
-use independently seeded research subjects in separate worlds. A bridge passes
-only what another fly could see, and the originals receive nothing from it.
-
-| Study                     | Recorded finding                                                                                                                                       |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Passive observation**   | Both clocks are checked against their own contracts and UTC. Observed, interpolated, held, and unavailable states stay distinct.                       |
-| **Controlled encounters** | Research flies evoked escapes in one another across the bridge. A recording evoked the same response as a live partner; contingency was not supported. |
-| **Repeated encounters**   | Held-out studies found no partner recognition, no persistence beyond 300 seconds, and habituation below its criterion.                                 |
-| **Neural augmentation**   | Observe and advise modes preserve the underlying controller and its commands. Separate whole-brain and BANC demonstrations remain research-only.       |
-
-[Encounter and recognition results](docs/benchmarks/first-contact/README.md) ·
-[Advisor study](docs/benchmarks/fly-augmentation/README.md) ·
-[Requirements for the originals](docs/FIRST_CONTACT.md#stage-4-a-proposal-for-the-originals-not-implemented)
-
-### Observing Eva and ECHO without restarting them
-
-The [originals' neural-shadow workflow](docs/ORIGINALS_LIVE_NEURAL_SHADOW.md)
-reads their existing public observations and can run **fresh, disposable BANC
-probes on a separate research computer**. It preserves response hashes,
-timestamps, identity checks, and the distinction between observed and missing
-inputs. It does not copy a life, reset a memory, or send either fly a command.
-
-The available input is an **environmental wind proxy**. Looming, small-object
-vision, food odor, and tarsal sugar contact are unavailable and explicitly
-zero-filled for the probe. Each sample initializes a new neural model.
-Its response is therefore a counterfactual model output, not recorded neural
-activity or evidence of either original's recognition, learning, or perception.
-
-The next useful step is a validated, read-only sensory tap exposing the actual
-inputs available to each fly. That requires its own continuity-preserving
-deployment; a public-state probe does not supply those missing senses.
-
-### A Life Three Millimeters Long
-
-<details>
-<summary>Watch the 58-second illustrated film</summary>
-
-[![A Life Three Millimeters Long — watch the 58-second illustrated fly film](docs/media/fly-film/poster.jpg)](https://lop-nur-twin.vercel.app/film/)
-
-**[Watch with sound](https://lop-nur-twin.vercel.app/film/)** ·
-[Download the MP4](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long.mp4) ·
-[Vertical edition](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/fly-film/a-life-three-millimeters-long-vertical.mp4)
-
-An illustrated interpretation of the project. The garden inset uses a recorded
-observation; the film is not a continuous recording of the Bethesda simulator.
-[Credits and production notes](docs/media/fly-film/README.md).
-
-</details>
-
-## How the research loop works
-
-<p align="center">
-  <a href="https://rainlabteam.vercel.app/"><img src="docs/rain-lab.webp" width="520" alt="R.A.I.N. Lab — Recursive Architecture of Intelligent Nexus: a cartoon octopus in a white suit striding with a tuning fork inside a ring of lightning"></a>
-</p>
-
-James, Jasmine, Luca, and Elena are four computational research perspectives.
-They work with a shared paper corpus, mathematical context, protocol definitions,
-and retained results. Their proposals pass through the laboratory's validation,
-authorization, execution, and replay machinery.
+> **Models propose. Host code validates. People authorize. Simulations run.
+> Results remain open to inspection.**
 
 ```mermaid
 flowchart TD
-  Q["Question and source context"] --> D["Proposed experiment"]
+  Q["Question and sources"] --> D["Proposed experiment"]
   D --> V{"Host validation"}
-  V -->|Rejected| J["Retained refusal"]
+  V -->|Rejected| J["Refusal, kept"]
   V -->|Accepted| P["Preregistered plan"]
-  P --> A["Operator authorizes scope"]
+  P --> A["Operator authorizes"]
   A --> X["Bounded simulation"]
   X --> R["Replay and registry evaluation"]
   R --> E["Evidence and limitations"]
-  E --> Q
 ```
 
-The host binds execution to a reviewed plan or bounded charter. Models cannot
-authorize themselves or rewrite the evaluation criteria after seeing outcomes.
-Source material, model suggestions, and simulation measurements keep separate
-labels. Replay checks reproducibility; the registry evaluates the declared
-criteria. An inconclusive result remains an inconclusive result.
+Models cannot authorize themselves or change criteria after seeing outcomes, and
+an inconclusive result stays inconclusive. The backends are the Bethesda city,
+numerical physics, Noeterra and the digital fly.
+[Lab guide](docs/RAIN_LAB_BETHESDA.md) ·
+[scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md) ·
+[evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)
 
-| Experiment backend    | Questions it supports                                                                    |
-| --------------------- | ---------------------------------------------------------------------------------------- |
-| **Bethesda**          | How do specified interventions affect programmed city behavior?                          |
-| **Numerical physics** | Does a driven, damped oscillator match its analytic reference?                           |
-| **Noeterra**          | How do memory, diplomacy, and rule changes affect simulated civilizations?               |
-| **Digital fly**       | How do sensing, adaptation, and self-model variants respond to controlled perturbations? |
+## Reproduce it, or build on it
 
-<details>
-<summary>Watch fifty simulated years in each Noeterra world</summary>
-
-[![Noeterra observed for fifty simulated years from Spring 264 BC: borders shift as rule-based powers declare wars, conclude treaties, and annex provinces](docs/media/readme/noeterra.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=mediterranean-264bc&play=observe&seed=1)
-
-<sub>Noeterra's Mediterranean scenario in observer mode (seed 1), one frame per five simulated years. Every power is a rule-based agent; the outcome is an illustrative simulation, not historical evidence.</sub>
-
-[![Loulan and the Tarim Basin observed for fifty simulated years from Spring 77 BC: Western Han declares war on Jushi, Loulan allies with the Xiongnu, Dayuan annexes Yarkand, and Wusun joins Han's war before cancelling the alliance](docs/media/readme/noeterra-tarim.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=tarim-77bc&play=observe&seed=1)
-
-<sub>Noeterra's Tarim Basin scenario, Loulan and its neighbors from Spring 77 BC, in observer mode (seed 1), one frame per five simulated years. The cyan ring beside Loulan's capital marks the twin's airfield today, about 60 km away. Every power is a rule-based agent; the outcome is an illustrative simulation, not historical evidence.</sub>
-
-</details>
-
-The learning engine evaluates proposed procedural guidance on frozen held-out
-tasks; activation still requires operator approval. Project Inception adds
-experimental researcher profiles and reviewed follow-up investigations. These
-are tools for studying research workflows; broad autonomous discovery and
-recursive scientific improvement remain unestablished.
-
-[Scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md) ·
-[Research learning](docs/RAIN_RESEARCH_LEARNING.md) ·
-[Project Inception](docs/RAIN_INCEPTION.md) ·
-[Meet R.A.I.N.](https://rainlabteam.vercel.app/)
-
-<details>
-<summary>Watch the 15-second R.A.I.N. Lab introduction</summary>
-
-![R.A.I.N. Lab introduction showing the evidence ledger and research panel](docs/media/rain-lab-ad.webp)
-
-[Watch with sound (MP4)](https://raw.githubusercontent.com/topherchris420/lop-nur-twin/main/docs/media/rain-lab-ad.mp4).
-Music: “Supernova” by Scott Buckley,
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
-[scottbuckley.com.au](https://www.scottbuckley.com.au).
-
-</details>
-
-## Recorded results
-
-A result belongs to a **specific simulator, design, and producing revision**.
-The linked records retain methods, authorship, baselines, criteria, and limitations.
-Registered demonstrations, exploratory seeded studies, and model-assisted runs
-are distinguished below; none establishes a claim about a living organism or
-historical society.
-
-| Study and design                                                                                                                                                   | Recorded finding                                                                                                                                                                                                | Interpretation                                                                                                                  |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **[ECHO-01](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstration                                                                                    | Path error after a hidden impairment: **0.073 with the self-model vs. 0.370 without**, across nine paired seeds.                                                                                                | **Supported** under frozen criteria; compensation within a reduced-order simulator.                                             |
-| **[ECHO-02](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstration                                                                                    | Hidden-change attribution accuracy: **0.919 vs. 0.537** for a simpler rule.                                                                                                                                     | **Supported**; held-out calibration remains imperfect.                                                                          |
-| **[ECHO-03–05](docs/PROJECT_ECHO.md#results-in-brief)** · registered demonstrations                                                                                | Memory, workspace, and second-look effects did not clear their prespecified thresholds.                                                                                                                         | **Inconclusive**; the archive preserves the under-powered designs and negative findings.                                        |
-| **[Individual history](docs/benchmarks/fly-individuality/README.md)** · seeded study                                                                               | Restored and replayed controller states matched the originals byte for byte in **24/24** individuals.                                                                                                           | Recorded events reproduced learned place preferences in this simulator.                                                         |
-| **[Changing food locations](docs/INDIVIDUAL_CONTINUITY.md#study-b-open-ended-adaptation)** · seeded study                                                          | Memory-bearing flies ate **1.2 fewer meals per life** than matched memory-lesioned runs.                                                                                                                        | Memory hindered adaptation here; accumulating improvement was not demonstrated.                                                 |
-| **[Mushroom-body learning](docs/benchmarks/fly-mushroom-body/README.md)** · study designed after a pilot                                                           | Prior feeding changed return flights to an emptied site; the moving-food condition showed no change.                                                                                                            | The learning circuit affected behavior where the fly encountered the omitted reward.                                            |
-| **[Shiu et al. 2024 on FlyWire v783](docs/ECHO_CONNECTOME.md#reproducing-shiu-et-al-2024-on-v783)** · registered reproduction, dev and held-out seeds              | **10 of 12** criteria pass on both seed sets; water drives MN9 to 30.3 Hz (the paper: 40), and permuting signs causes runaway excitation.                                                                       | Most of the published predictions hold in this model of the connectome; the two failures are recorded.                          |
-| **[BANC v888 brain and cord](docs/ECHO_CONNECTOME.md#brain-and-cord-banc-v888)** · two registered protocols, dev and held-out seeds                                | **4/10** criteria pass at the published weight; **9/10** at the density-scaled weight, on both splits. The scaled run's weight-shuffle control fails.                                                           | Pathways carry activity under the chosen model; broad excitation limits the interpretation. Neither original uses this backend. |
-| **[Connectome plasticity](docs/ECHO_CONNECTOME.md#plasticity-a-dopamine-gated-rule-on-the-connectome-against-controls)** · registered comparison                   | A dopamine-gated rule depresses KC-to-MBON synapses for the paired and unpaired odour alike; learning index near 0.                                                                                             | **Negative**: no odour-specific learning under this rule and model.                                                             |
-| **[Odour-specific learning](docs/ECHO_ADAPTIVE_INTELLIGENCE.md#odour-specific-learning-plasticity-v2)** · registered, two held-out odour pairs, 8 subjects per arm | A three-factor rule (v2) on a sparse Kenyon-cell code learned nothing on one pair (3 of 8 subjects) and, on the other, an asymmetry that survives shuffled rewards; it extinguished and reversed in **8 of 8**. | **Negative**: 12 of 22 criteria fail; none of the trace, threshold, sparse code or antennal-lobe change is shown to matter.     |
-| **[Threat discrimination](docs/ECHO_ADAPTIVE_INTELLIGENCE.md#3-threat-discrimination-limitation-b)** · registered, dev and held-out batteries                      | A looming-selective giant-fiber readout cut development false alarms by 64%; on the held-out battery its recall fell to **0.625** and false alarms fell only **11%**.                                           | **Negative**: 4 of 6 criteria fail; worse than a time-to-collision rule and than ECHO.                                          |
-| **[Adaptive life](docs/ECHO_ADAPTIVE_INTELLIGENCE.md#adaptive-life-experiments-a-c-d-e)** · registered, 30 held-out subjects per arm                               | A connectome forager relocated food in **4.5 visits** (no learning: never), reversed 3 of 3 times and persisted exactly through 12 restores; **11 of 14** criteria pass.                                        | The gain is traced to dopamine; the sparse code made no difference, and ECHO's own mushroom body adapts faster.                 |
-| **[Closed-loop control](docs/ECHO_ADAPTIVE_INTELLIGENCE.md#6-closed-loop-neural-control-with-a-safety-layer-phase-8-limitation-c)** · registered, 3 held-out seeds | Giant-fiber and MN9 commands became escapes and feeding (**7/7, 368/368**), with one fallback in 3,000 samples; the selected readout escaped no harmless object but only **6 of 10** threats.                   | **5 of 6** criteria pass; research subjects only, 25–45× slower than real time.                                                 |
-| **[First contact, encounters](docs/FIRST_CONTACT.md#stage-2-controlled-encounters-between-research-subjects)** · seeded study, frozen protocol                     | Through the bridge, live research flies escaped from each other in **43–45%** of sessions against **0%** alone; a recording evoked the same as a live partner.                                                  | Perception across separate worlds works; contingency added nothing measurable.                                                  |
-| **[First contact, recognition](docs/FIRST_CONTACT.md#stage-3-repeated-encounters-and-recognition)** · seeded study, frozen protocol, held-out seeds                | No arm showed a partner-specific response, a change outlasting 300 s, or habituation clearing its criterion.                                                                                                    | **Negative**: no recognition; this fly has no channel or memory that could support it.                                          |
-| **[Live Gemma experiment](docs/rea-research/evaluations/gemma-live/README.md)** · operator-approved model-assisted run                                             | A two-arm oscillator experiment replayed and entered the registry as **inconclusive**.                                                                                                                          | Reproducibility did not overcome failed analytic accuracy guards.                                                               |
-| **[Noeterra memory](docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/report.md)** · scripted design and authorization                             | Withholding memory of past treatment reduced mean wars declared from **6.50 to 2.83**, over 40 seasons and six matched seeds.                                                                                   | A result about rule-based simulator agents, not historical societies.                                                           |
-
-Start with a report, inspect its producing revision and comparison, then use the
-[verification commands](#validation) appropriate to that archive. Replay checks
-reproducibility under compatible engines and runtimes; it does not turn a
-simulator outcome into a real-world measurement.
-
-More records: [compiler comparison and research attempts](docs/rea-research/evaluations/README.md) ·
-[Bethesda discovery](docs/benchmarks/rain-discovery-validation/README.md) ·
-[Fly experiment archive](docs/benchmarks/fly-behavior/README.md) ·
-[24-seed ECHO characterization](docs/benchmarks/fly-echo/README.md).
-
-## Optional capabilities
-
-| Capability                       | Additional requirement                                                 |
-| -------------------------------- | ---------------------------------------------------------------------- |
-| Noeterra in the browser          | Rust stable and a local WebAssembly build.                             |
-| Model-assisted research          | A configured local model server and reviewed experiment authorization. |
-| Model-controlled Blacksite seats | The selected provider's server-side configuration.                     |
-| A persistent Bethesda individual | A separately operated headless service, durable storage, and backups.  |
-
-Optional settings live in [`.env.example`](.env.example). For local development,
-copy it to the git-ignored `.env.local` and set only what you need. Provider keys
-stay server-side; never prefix them with `VITE_`. Optional
-`/play?brain=jev|glide|llm` seats require their own provider configuration and
-show `UNAVAILABLE` when it is missing.
-
-To host a persistent Bethesda individual, follow the separate
-[service, backup, and recovery guide](docs/BETHESDA_CONTINUOUS_LIFE.md).
-
-<details>
-<summary>Build Noeterra's optional civilization engine</summary>
-
-Install [Rust stable](https://rustup.rs), then build the engine **before starting
-or restarting the dev server**:
+Use **Node.js 22.18+** and **Bun 1.3+**:
 
 ```sh
-rustup target add wasm32-unknown-unknown
-bun run noeterra:wasm
-bun run dev
+git clone https://github.com/topherchris420/lop-nur-twin.git
+cd lop-nur-twin
+bun install --frozen-lockfile
+bun run dev        # http://localhost:5173
 ```
 
-Open **[localhost:5173/noeterra](http://localhost:5173/noeterra)**. Without the build, the rest of the
-site works and Noeterra reports its engine as unavailable. Its browser core
-runs in Rust/WebAssembly; public seats use human, rule-based, or random control.
+Running it locally starts local instances only; it never touches ECHO or Eva.
 
-The separate local workbench supports optional model rulers:
-`bun run noeterra:serve`, then **[127.0.0.1:7878](http://127.0.0.1:7878)**.
-[Noeterra guide](docs/NOETERRA.md).
+| Command                                                             | What it re-derives                                                                                                 |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `bun run check`                                                     | Formatting, lint, unit tests, the evidence rules' own tests and the build                                          |
+| `node scripts/run-ts.mjs scripts/individuality-evaluate.ts --check` | Studies A and B, byte for byte (about 8 minutes)                                                                   |
+| `node scripts/run-ts.mjs scripts/echo-exit-figure.ts --check`       | The figure above, from its records                                                                                 |
+| `bun run rain:fly:verify`                                           | Every archived fly record this engine can re-simulate; exit 3 means the rest were recorded on another Node version |
 
-</details>
+ECHO's backups are private, but the replays of them are public: read
+`replays.jsonl` on the
+[`live-fly-ledger`](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger)
+branch and the GitHub runs each line links to.
+[Getting started](docs/GETTING_STARTED.md) covers npm, Noeterra and local models;
+[VALIDATION.md](docs/VALIDATION.md) covers every suite.
 
-<details>
-<summary>Connect LM Studio for model-assisted research</summary>
+**To contribute,** bring a sourced correction, a reproducible experiment, a
+clearer way to inspect evidence, an accessibility fix or a documented failure.
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md), or
+[open an issue](https://github.com/topherchris420/lop-nur-twin/issues).
+Contributions keep four promises:
 
-Start LM Studio's server at `http://127.0.0.1:1234` and load a model. Replace
-`your-loaded-model-id` with its exact identifier from `/v1/models`. Stop the
-existing dev server before restarting it with these settings.
+- **Trace claims to sources**, keeping observed, reported, interpreted and illustrative apart.
+- **Keep authorship visible**: label scripted and model-generated work.
+- **Preserve the record**: keep unsuccessful results; never hand-edit a generated archive.
+- **Never touch the originals**: research runs on research subjects, and ECHO changes only by an approved, recorded continuation.
 
-**macOS / Linux**
-
-```sh
-export RAIN_AUTONOMY_ENABLED=true
-export RAIN_MODEL_PROVIDER=lmstudio
-export RAIN_MODEL=your-loaded-model-id
-npm run dev
-```
-
-**Windows PowerShell**
-
-```powershell
-$env:RAIN_AUTONOMY_ENABLED = "true"
-$env:RAIN_MODEL_PROVIDER = "lmstudio"
-$env:RAIN_MODEL = "your-loaded-model-id"
-npm run dev
-```
-
-Enter Bethesda and open the discovery workbench. Enabling the service does not
-authorize an experiment: review its plan or bounded charter before execution.
-The hosted site's server-side runtime cannot reach a model on your computer.
-
-[Model-generated meetings](docs/RAIN_LAB_BETHESDA.md#model-meetings-qwen-or-another-local-model)
-have separate settings. The [autonomous research CLI](docs/RAIN_LAB_BETHESDA.md#autonomous-research)
-also supports Ollama. Failed calls remain in the journal; there is no silent
-switch to a remote model.
-
-</details>
-
-## Validation
-
-For this repository, verification is part of the research method: source claims,
-experiment records, and presentation are checked at different boundaries.
-
-`bun run build` is the integration gate: it validates data and Bethesda/lab
-artifacts, generates and checks the release manifest, bundles the app, runs
-strict TypeScript checks, and scans `dist/` for credentials.
-
-```sh
-bun run check  # formatting, lint, unit tests, evidence tests, and build
-```
-
-| Command                                               | Purpose                                                                        |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `bun run rain:conformance`                            | Exercise lab drafts and submissions through the research registry.             |
-| `bun run rain:scientific:verify`                      | Recheck archived journals, numerical replay, graphs, and learning evaluations. |
-| `bun run rain:fly:verify`                             | Check archived fly records and replay compatible runs.                         |
-| `bun run bethesda:life:smoke`                         | Exercise a short headless city-and-fly run.                                    |
-| `bun run rain:civilization:verify`                    | Recheck the civilization archive; build Noeterra first.                        |
-| `bun run noeterra:test`                               | Run the Rust engine's tests.                                                   |
-| `bun run a11y` / `bun run routes`                     | Check accessibility, security headers, deep links, and URL handling.           |
-| `bun run verify:bethesda` / `bun run verify:rain-lab` | Exercise the hidden city and lab end to end.                                   |
-
-Browser checks have server prerequisites; see [CONTRIBUTING.md](CONTRIBUTING.md).
-Noeterra backend tests skip when its engine is absent. Fly archive verification
-reports older-engine records separately and exits with code `3` if incompatible
-records remain unchecked. [Validation guide](docs/VALIDATION.md) ·
-[Evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md).
+Never invent a source, date, measurement or confidence value. Report
+vulnerabilities through [SECURITY.md](SECURITY.md).
 
 ## Documentation
 
-The browser uses **React 19, TypeScript, Three.js / React Three Fiber, and
-TanStack Router**, built with **Vite**. The research runtime and decision
-endpoints run server-side. Noeterra's core is **Rust / WebAssembly**; persistent
-Bethesda life runs headlessly, while Eva's garden uses its separate Python
-service. [System architecture](docs/SYSTEM_ARCHITECTURE.md).
+Everything else, arranged by purpose, is in the
+[documentation and research archive](docs/README.md). The most used:
 
-| I want to…                              | Start here                                                                                                                                                                                                                  |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Understand the fly                      | [Digital fly](docs/DIGITAL_FLY.md), [ECHO](docs/PROJECT_ECHO.md), [organism continuation](docs/ECHO_ORGANISM_CONTINUATION.md), [collision repair](docs/ECHO_COLLISION.md), [development priorities](docs/FLY_PRIORITIES.md) |
-| Preserve identity while adding behavior | [Experiential continuation candidate](docs/ECHO_EXPERIENTIAL_CONTINUATION.md), [Eva and ECHO audit](docs/EVA_ECHO_AUDIT.md)                                                                                                 |
-| Study neural models and encounters      | [Connectome backend](docs/ECHO_CONNECTOME.md), [BANC results](docs/benchmarks/fly-neural/banc/README.md), [first contact](docs/FIRST_CONTACT.md), [originals' read-only shadow](docs/ORIGINALS_LIVE_NEURAL_SHADOW.md)       |
-| Operate or observe a persistent life    | [Continuous Bethesda](docs/BETHESDA_CONTINUOUS_LIFE.md), [clay garden](docs/LIVE_GARDEN.md)                                                                                                                                 |
-| Assess the reconstruction               | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [uncertainty](docs/UNCERTAINTY_MODEL.md), [white paper](docs/WHITE_PAPER.md)                                                                       |
-| Inspect time, space, or revisions       | [Temporal model](docs/TEMPORAL_MODEL.md), [spatial analysis](docs/SPATIAL_ANALYSIS.md), [model comparison](docs/MODEL_COMPARISON.md)                                                                                        |
-| Navigate the worlds                     | [Controls](docs/CONTROLS.md), [accessibility](docs/ACCESSIBILITY.md), [Bethesda](docs/BETHESDA_ANOMALY.md), [Blacksite](docs/BLACKSITE.md), [model seats](docs/JEV_BLACKSITE.md), [Noeterra](docs/NOETERRA.md)              |
-| Run research                            | [Lab guide](docs/RAIN_LAB_BETHESDA.md), [scientific workflow](docs/RAIN_SCIENTIFIC_INTELLIGENCE.md), [authorization and recovery](docs/RAIN_EXPERIMENTAL_DISCOVERY.md)                                                      |
-| Study research across runs              | [Learning](docs/RAIN_RESEARCH_LEARNING.md), [programs](docs/RAIN_RESEARCH_PROGRAM.md), [lineage](docs/RAIN_RESEARCH_LINEAGE.md), [Inception](docs/RAIN_INCEPTION.md)                                                        |
-| Evaluate a deployment                   | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md), [government evaluation](docs/GOVERNMENT_EVALUATION.md)               |
+| I want to…                  | Start here                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Weigh the evidence          | [Claims register](docs/RESEARCH_CLAIMS.md), [evaluation philosophy](docs/EVALUATION_PHILOSOPHY.md)                   |
+| Understand ECHO             | [Digital fly](docs/DIGITAL_FLY.md), [Project ECHO](docs/PROJECT_ECHO.md), [collision repair](docs/ECHO_COLLISION.md) |
+| Look after ECHO             | [Keeping ECHO](docs/ECHO_STEWARDSHIP.md), [continuous life](docs/BETHESDA_CONTINUOUS_LIFE.md)                        |
+| Assess the reconstruction   | [Site model](docs/SITE_MODEL.md), [provenance](docs/DATA_PROVENANCE.md), [uncertainty](docs/UNCERTAINTY_MODEL.md)    |
+| Study the connectome models | [Connectome backend](docs/ECHO_CONNECTOME.md), [adaptive intelligence](docs/ECHO_ADAPTIVE_INTELLIGENCE.md)           |
+| Change the code             | [Architecture](docs/SYSTEM_ARCHITECTURE.md), [validation](docs/VALIDATION.md), [threat model](docs/THREAT_MODEL.md)  |
 
-<details>
-<summary>Repository map</summary>
-
-| Path                             | Responsibility                                                                               |
-| -------------------------------- | -------------------------------------------------------------------------------------------- |
-| `src/lib/`                       | Site layout, sources, evidence, uncertainty, and temporal/spatial rules.                     |
-| `src/components/`, `src/routes/` | 3D presentation, controls, and application routes.                                           |
-| `src/bethesda/`                  | City, fly controllers, durable life, live observer view, and lab interface.                  |
-| `src/garden/`                    | The separate live garden's read-only clay exhibit.                                           |
-| `src/rain/`                      | Research corpus, meetings, autonomy, experiment backends, and registry.                      |
-| `src/game/`                      | Blacksite, player controls, model seats, and evaluation.                                     |
-| `src/noeterra/`, `noeterra/`     | Civilization interface, Rust engine, scenarios, and workbench.                               |
-| `fly-physics/`                   | Separate MuJoCo locomotion evaluation; does not drive the browser fly.                       |
-| `fly-neural/`                    | FAFB and BANC neural research; separate subjects and probes, never an original's controller. |
-| `server/`, `api/`                | Server-side research and decision endpoints.                                                 |
-| `scripts/`, `tools/`             | Importers, validators, research commands, and browser checks.                                |
-| `model-history/`, `docs/`        | Release records, guides, source investigations, and experiments.                             |
-| `deploy/`, `Dockerfile`          | Self-hosting, persistent-life service, and garden deployment tools.                          |
-
-</details>
-
-<details>
-<summary>Implementation lineage and reference investigations</summary>
-
-The research runtime was consolidated from `james_library`:
-[migration record](docs/RAIN_MIGRATION.md). Public-product investigations are
-recorded in the [capability matrix](docs/rea-research/capability-matrix.md),
-[Mirrors](docs/rea-research/mirrors/observations.md),
-[Poth Labs](docs/rea-research/poth-labs/observations.md), and
-[Infera](docs/rea-research/infera/observations.md).
-
-Noeterra's design also draws on studies of
-[Open Historia](docs/research/OPEN_HISTORIA_ANALYSIS.md) and
-[Pax Historia](docs/research/PAX_HISTORIA_ANALYSIS.md). These reports distinguish
-observation, documented behavior, inference, and unknowns. No proprietary
-implementation was copied, and no code from either Historia project is used.
-
-</details>
-
-## Contribute
-
-Bring a sourced correction, a reproducible experiment, a clearer way to inspect
-evidence, an accessibility improvement, or a documented failure case. Start with
-[CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md), or
-[open an issue](https://github.com/topherchris420/lop-nur-twin/issues).
-
-Contributions should keep four promises:
-
-- **Trace claims to sources.** Preserve the observed, reported, interpreted, and illustrative distinctions.
-- **Keep authorship visible.** Label scripted work and model-generated work accurately.
-- **Preserve the record.** Retain unsuccessful results; never hand-edit generated evidence archives.
-- **Make the change verifiable.** Run the build and the checks that cover the affected behavior.
-
-Never invent a source, date, measurement, or confidence value. Report
-vulnerabilities through [SECURITY.md](SECURITY.md).
+The browser uses React 19, TypeScript, Three.js / React Three Fiber and TanStack
+Router, built with Vite; the research runtime and decision endpoints run
+server-side; Noeterra's core is Rust; ECHO's life runs headlessly under Node;
+Eva's garden is a separate Python service.
 
 ## License and attribution
 

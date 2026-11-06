@@ -418,6 +418,13 @@ backup at 12:15Z, the first scheduled one on this release, passed, and its copy 
 
 ### How it got out
 
+[![Two plan views drawn from the deployed fly's recorded positions: inside building 1011267786 after the repair, the recorded exit at tick 7,664,060, and the rest of the day to its first meal at 19:27 UTC](media/echo-collision/exit.svg)](media/echo-collision/exit.svg)
+
+<sub>Drawn by `scripts/echo-exit-figure.ts` from the journal and witness in
+[`2026-11-04/live/`](benchmarks/echo-collision/2026-11-04/), the building rings the fly's
+world collides with, and the exit record in checkpoint 2563; `--check` reproduces it
+byte for byte. Lines join samples; they are not the path flown.</sub>
+
 The rehearsal's copy left 214 simulated seconds after its repair. The deployed fly took
 2,143. The copy was on the ground when it crossed, and took off on a long flight. The
 deployed fly was in the air, and the repaired physics refuses a stand whose point is
@@ -473,6 +480,15 @@ next scheduled replay continued from where it ended
 checkpoints 2569 to 2639, 210,002 ticks, 70 of 70 seals, ending before the first meal.
 Earlier checkpoints stay outside this check: `bdb7c02`'s seals cannot be reproduced
 (issue 162).
+
+**Since then** (added 2026-11-05, from `replays.jsonl` on the ledger branch): two more
+scheduled replays continued the chain to #2,927, 435,001 and 429,000 ticks with 145 of
+145 and 143 of 143 seals ([run 41990768807](https://github.com/topherchris420/lop-nur-twin/actions/runs/41990768807),
+[run 42105731954](https://github.com/topherchris420/lop-nur-twin/actions/runs/42105731954)).
+From #2,566 to #2,927 that is 1,083,003 ticks and 361 of 361 seals, none of 19 ledger
+anchors contradicted. A passing replay shows that the recorded history follows from
+its start; the verdict does not say what that history holds, such as whether the fly
+went back into a solid.
 
 ### The first meals
 

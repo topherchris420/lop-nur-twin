@@ -6,6 +6,10 @@ for every coordinate here is `src/lib/layout.ts`; for every citation,
 `src/lib/siteData.ts`. This document describes them — it does not duplicate
 them, and where the two disagree the code is right.
 
+[![One orbit of the Lop Nur reconstruction while night falls over the compound and lifts again](media/readme/lop-nur-orbit.gif)](https://lop-nur-twin.vercel.app/)
+
+<sub>One orbit of the reconstructed compound while night falls and lifts (press <code>N</code> in the twin).</sub>
+
 - **6.8 km × 6.8 km desert terrain** — seeded simplex heightfield tuned for a
   flat dried-lakebed/gobi plain: broad low relief, vertex-color mottling
   across tan base, darker desert-pavement gravel fields, pale playa and

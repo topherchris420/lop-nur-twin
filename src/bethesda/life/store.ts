@@ -20,7 +20,12 @@
  *   with the reason, and nothing is started in its place.
  * - **Bounded.** Only the newest `keepGraphs` checkpoints keep their whole
  *   graph; older ones keep their header (digests, events) so the chain and
- *   the life's events stay complete while the store stays small.
+ *   the life's events stay complete while the store stays small. A writer's
+ *   first commit under a lease looks at every older checkpoint, so a graph an
+ *   interrupted compaction left behind is still dropped; after that each
+ *   commit reads only the checkpoints that left the window since, so
+ *   committing does not slow as the life ages. Opening the store still reads
+ *   and checks every checkpoint from birth: that is the chain check.
  * - **Wall time is for audit only.** Leases use it; the life's clock is its
  *   tick, and ticks that were not computed are never claimed.
  */
@@ -134,6 +139,12 @@ export class LifeStore<G, L> {
   private holder: string;
   /** Checkpoints whose graphs are kept. */
   readonly keepGraphs: number;
+  /**
+   * Every checkpoint below this sequence is known to hold no graph, because
+   * this writer compacted it under its current lease. Null until it has: the
+   * next compaction then looks at every older checkpoint.
+   */
+  private compactedBelow: number | null = null;
 
   private constructor(
     dir: string,
@@ -226,6 +237,8 @@ export class LifeStore<G, L> {
       throw new Error(`another writer took epoch ${epoch} first`, { cause: e });
     }
     this.epoch = epoch;
+    // Another writer may have committed since this one last did: look again.
+    this.compactedBelow = null;
     return epoch;
   }
 
@@ -331,17 +344,28 @@ export class LifeStore<G, L> {
     return stored.committedUtc;
   }
 
-  /** Drop the graphs of all but the newest `keepGraphs` checkpoints. */
+  /**
+   * Drop the graphs of all but the newest `keepGraphs` checkpoints, oldest
+   * first. Only checkpoints not yet known to be compacted are read: all of
+   * them the first time under a lease, then only those that left the window.
+   */
   private compact(): void {
     const seqs = numbered(join(this.dir, "checkpoints"));
-    for (const seq of seqs.slice(0, Math.max(0, seqs.length - this.keepGraphs))) {
+    const end = Math.max(0, seqs.length - this.keepGraphs);
+    const below = this.compactedBelow;
+    let start = below === null ? 0 : seqs.findIndex((s) => s >= below);
+    if (start < 0) start = end;
+    for (const seq of seqs.slice(start, end)) {
       const stored = this.read(seq);
-      if (!stored.checkpoint.graph) continue;
-      stored.checkpoint = { ...stored.checkpoint, graph: null };
-      writeReplacing(
-        join(this.dir, "checkpoints", `${pad(seq)}.json`),
-        JSON.stringify(stored) + "\n",
-      );
+      if (stored.checkpoint.graph) {
+        stored.checkpoint = { ...stored.checkpoint, graph: null };
+        writeReplacing(
+          join(this.dir, "checkpoints", `${pad(seq)}.json`),
+          JSON.stringify(stored) + "\n",
+        );
+      }
+      // Advanced one checkpoint at a time, so a failure part-way is resumed, not skipped.
+      this.compactedBelow = seq + 1;
     }
   }
 

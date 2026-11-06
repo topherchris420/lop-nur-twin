@@ -19,6 +19,14 @@ legal actions. Deterministic Rust code re-validates every choice, applies what
 is legal, records what is not, and resolves the consequences. Every turn ends in
 a SHA-256 state hash that a replay must reproduce.
 
+[![Noeterra observed for fifty simulated years from Spring 264 BC: borders shift as rule-based powers declare wars, conclude treaties, and annex provinces](media/readme/noeterra.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=mediterranean-264bc&play=observe&seed=1)
+
+<sub>Noeterra's Mediterranean scenario in observer mode (seed 1), one frame per five simulated years. Every power is a rule-based agent; the outcome is an illustrative simulation, not historical evidence.</sub>
+
+[![Loulan and the Tarim Basin observed for fifty simulated years from Spring 77 BC: Western Han declares war on Jushi, Loulan allies with the Xiongnu, Dayuan annexes Yarkand, and Wusun joins Han's war before cancelling the alliance](media/readme/noeterra-tarim.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=tarim-77bc&play=observe&seed=1)
+
+<sub>Noeterra's Tarim Basin scenario, Loulan and its neighbors from Spring 77 BC, in observer mode (seed 1), one frame per five simulated years. The cyan ring beside Loulan's capital marks the twin's airfield today, about 60 km away. Every power is a rule-based agent; the outcome is an illustrative simulation, not historical evidence.</sub>
+
 **Every number Noeterra produces is a simulated observation of an illustrative
 model.** Its economy, warfare and diplomacy are invented rules; the built-in
 scenario's populations, armies and treasuries are game values. Nothing here is

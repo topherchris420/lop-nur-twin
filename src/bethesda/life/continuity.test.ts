@@ -338,6 +338,66 @@ describe("the store", () => {
     ).toThrow(/another individual/);
   }, 60_000);
 
+  it("drops a graph an interrupted compaction left behind, then reads only what left the window", () => {
+    const dir = fresh();
+    const { life, b, c } = first();
+    const path = (s: number) =>
+      join(dir, "checkpoints", `${String(s).padStart(12, "0")}.json`);
+    /** Whether checkpoints `from` to `n - 1` still hold their graphs. */
+    const held = (n: number, from = 0) =>
+      Array.from(
+        { length: n - from },
+        (_, i) =>
+          JSON.parse(readFileSync(path(from + i), "utf8")).checkpoint.graph !== null,
+      );
+    let prev = c;
+    const commit = (store: LifeStore<YardGenesis, YardLife>) => {
+      life.step(20);
+      const next = checkpointLife(YARD_LIFE, life, {
+        genesis: GENESIS,
+        birth: b,
+        previous: prev,
+      });
+      store.commit(next);
+      prev = next;
+    };
+    const a = LifeStore.create(dir, YARD_LIFE, c, { holder: "a", keepGraphs: 2 });
+    commit(a);
+    // The bytes checkpoint 1 was published with, graph and all.
+    const published = readFileSync(path(1), "utf8");
+    for (let k = 0; k < 4; k++) {
+      commit(a);
+      // After every commit, exactly the newest two keep their graphs.
+      expect(held(k + 3)).toEqual([...Array(k + 1).fill(false), true, true]);
+    }
+    // Compaction drops the graph and changes nothing else.
+    const compacted = JSON.parse(published);
+    compacted.checkpoint.graph = null;
+    expect(readFileSync(path(1), "utf8")).toBe(JSON.stringify(compacted) + "\n");
+
+    // Under its lease, a writer does not read again what it has compacted:
+    // a header it already dropped the graph from is not opened by the next commit.
+    const header0 = readFileSync(path(0), "utf8");
+    writeFileSync(path(0), "not a checkpoint");
+    commit(a);
+    expect(held(7, 1)).toEqual([false, false, false, false, true, true]);
+    // Opening the store still reads and checks every checkpoint from birth.
+    expect(() => LifeStore.open(dir, YARD_LIFE)).toThrow();
+    writeFileSync(path(0), header0);
+    a.release();
+
+    // A compaction that stopped part-way (the process died after it published)
+    // can leave an older checkpoint holding its graph. The next writer's first
+    // commit looks at every older checkpoint and drops it.
+    writeFileSync(path(1), published);
+    const second = LifeStore.open(dir, YARD_LIFE, { holder: "b", keepGraphs: 2 });
+    expect(held(7)[1]).toBe(true);
+    second.acquire();
+    commit(second);
+    expect(held(8)).toEqual([false, false, false, false, false, false, true, true]);
+    expect(second.verify()).toEqual({ checkpoints: 8, head: 7, events: 0 });
+  });
+
   it("stops on corruption instead of starting someone new", () => {
     const dir = fresh();
     const { c } = first();

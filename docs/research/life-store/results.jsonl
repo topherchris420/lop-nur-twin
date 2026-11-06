@@ -1,0 +1,12 @@
+{"label":"before","checkpoints":100,"headerBytes":1024,"firstCommitMs":4.2,"steadyCommitMs":3.6}
+{"label":"before","checkpoints":1000,"headerBytes":1024,"firstCommitMs":14.5,"steadyCommitMs":12.7}
+{"label":"before","checkpoints":3000,"headerBytes":1024,"firstCommitMs":35,"steadyCommitMs":29.8}
+{"label":"before","checkpoints":10000,"headerBytes":1024,"firstCommitMs":98.2,"steadyCommitMs":93.8}
+{"label":"before","checkpoints":30000,"headerBytes":1024,"firstCommitMs":308.7,"steadyCommitMs":287.5}
+{"label":"before","checkpoints":100000,"headerBytes":1024,"firstCommitMs":1041.4,"steadyCommitMs":1001}
+{"label":"after","checkpoints":100,"headerBytes":1024,"firstCommitMs":5.9,"steadyCommitMs":3.8}
+{"label":"after","checkpoints":1000,"headerBytes":1024,"firstCommitMs":16.6,"steadyCommitMs":5.4}
+{"label":"after","checkpoints":3000,"headerBytes":1024,"firstCommitMs":40.2,"steadyCommitMs":9.9}
+{"label":"after","checkpoints":10000,"headerBytes":1024,"firstCommitMs":103.2,"steadyCommitMs":17.3}
+{"label":"after","checkpoints":30000,"headerBytes":1024,"firstCommitMs":297.9,"steadyCommitMs":47.9}
+{"label":"after","checkpoints":100000,"headerBytes":1024,"firstCommitMs":1047,"steadyCommitMs":171.5}

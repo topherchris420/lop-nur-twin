@@ -83,7 +83,10 @@ jobs:
     needs: default-branch-or-pr
     if: needs.default-branch-or-pr.outputs.run == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # The unit tests alone take about 19 minutes on these runners. At 25 the job
+    # had no margin: on main at 78654a0 it finished in 24 min 50 s, and the same
+    # steps on a slower runner were cancelled mid-run with nothing failed.
+    timeout-minutes: 40
     steps:
       # Full history: the model-history step below reproduces each recorded
       # revision from its own commit.
