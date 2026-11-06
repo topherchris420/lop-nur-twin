@@ -15,7 +15,8 @@ USAGE
   noeterra run [--scenario mediterranean-264bc|generated] [--seed N] [--turns N]
              [--seat KEY=SEAT]... [--default-seat SEAT] [--out save.json] [--live]
       Runs a history and prints its chronicle. SEAT is rules, amnesic, random,
-      lmstudio[:model] or anthropic[:model]. Model seats need --live.
+      lmstudio[:model], anthropic[:model] or prism[:model] (Sarvam-Prism, a
+      decision model that writes no letters). Model seats need --live.
   noeterra replay save.json
       Re-simulates a save and checks every turn's state hash.
   noeterra experiment plan.json [--out result.json]
@@ -27,8 +28,9 @@ USAGE
       A model proposes a rain-civilization-design/v1 for the R.A.I.N. Lab, with a
       receipt of the exact exchange. Nothing runs until the lab compiles it and an
       operator authorizes its digest.
-  noeterra prompt [--civ KEY] [--json]
-      Prints the exact question a model seat would be asked this season.
+  noeterra prompt [--civ KEY] [--json | --prism]
+      Prints the exact question a model seat would be asked this season;
+      --prism prints the request a Sarvam-Prism seat would send.
   noeterra metrics
       Lists the experiment metrics.
 
@@ -37,6 +39,8 @@ ENVIRONMENT
   NOETERRA_LMSTUDIO_MODEL   else RAIN_MODEL, else the server's first chat model
   ANTHROPIC_API_KEY       read by curl at call time; never logged or recorded
   NOETERRA_ANTHROPIC_MODEL  default claude-opus-5-5
+  SARVAM_API_KEY          read by curl at call time; never logged or recorded
+  NOETERRA_PRISM_MODEL      default sarvam-prism
   NOETERRA_MODEL_TIMEOUT    seconds per model call (default 240)
 
 Every number Noeterra produces is a simulated observation of an illustrative
@@ -90,7 +94,8 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             if seats.iter().any(|s| matches!(s, Seat::Model { .. })) && !args.iter().any(|a| a == "--live") {
                 return Err(
-                    "model seats call a model server (and Anthropic seats spend credit); pass --live to confirm".into(),
+                    "model seats call a model server (and Anthropic and Prism seats spend credit); pass --live to confirm"
+                        .into(),
                 );
             }
             if seats.contains(&Seat::Human) {
@@ -199,7 +204,16 @@ fn run(args: &[String]) -> Result<(), String> {
                 .civ_by_key(&key)
                 .ok_or_else(|| format!("unknown civilization `{key}`"))?;
             let obs = noeterra::observe::observe(&sim.world, c);
-            if args.iter().any(|a| a == "--json") {
+            if args.iter().any(|a| a == "--prism") {
+                let (questions, _) = noeterra::brain::prism::questions(&obs);
+                let body = noeterra::brain::prism::request(
+                    &obs,
+                    &sim.world.memories[c],
+                    &questions,
+                    noeterra::brain::prism::PRISM_DEFAULT_MODEL,
+                );
+                println!("{}", serde_json::to_string_pretty(&body).map_err(|e| e.to_string())?);
+            } else if args.iter().any(|a| a == "--json") {
                 let body = serde_json::json!({
                     "system": noeterra::brain::llm::system_prompt(&obs),
                     "user": noeterra::brain::llm::situation_report(&obs, &sim.world.memories[c]),

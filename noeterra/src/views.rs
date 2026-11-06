@@ -18,7 +18,8 @@ pub fn summarize(r: &TurnRecord) -> Value {
         "applied": r.report.applied, "rejected": r.report.rejected,
         "decisions": r.decisions.iter().map(|d| json!({ "civ": d.civ, "brain": d.brain, "label": d.label,
             "chosen": d.chosen, "rationale": d.rationale, "error": d.error, "usage": d.usage,
-            "discarded": d.discarded, "letters": d.submission.decision.messages.len() })).collect::<Vec<_>>()
+            "discarded": d.discarded, "letters": d.submission.decision.messages.len(),
+            "scores": d.scores })).collect::<Vec<_>>()
     })
 }
 

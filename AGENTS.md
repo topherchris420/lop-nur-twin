@@ -1443,13 +1443,16 @@ it exists to keep: **brains propose; the resolver decides.**
 - **Labels are claims.** A decision is `LIVE` only from a validated model
   answer; a failure is `FALLBACK` with its reason. Letters and notes carry
   `generation`. Model text is never parsed for instructions or executed.
-- **Keys stay out of TypeScript and out of argv.** The Anthropic key is read by
-  `curl` from the environment through `--variable`; nothing under `src/`,
-  `server/` or `api/` handles it. LM Studio is reached only on loopback or
-  private-network `http://`.
-- **Tests never reach a model** (`noeterra/tests/models.rs` uses a scripted
-  provider and local stand-in servers). `noeterra run`/`noeterra design` with model
-  seats refuse to start without `--live`.
+  Probabilities from a decision model (Sarvam-Prism) are recorded as returned
+  in `scores`; no other seat gets any.
+- **Keys stay out of TypeScript and out of argv.** The Anthropic and Sarvam
+  keys are read by `curl` from the environment through `--variable`; nothing
+  under `src/`, `server/` or `api/` handles them. LM Studio is reached only on
+  loopback or private-network `http://`.
+- **Tests never reach a model** (`noeterra/tests/models.rs` and
+  `noeterra/tests/prism.rs` use a scripted provider and local stand-in
+  servers). `noeterra run`/`noeterra design` with model seats refuse to start
+  without `--live`.
 - **The lab runs the engine as WebAssembly that imports nothing**
   (`src/rain/scientific/noeterraEngine.ts`, a fresh instance per call). The
   module is built by `npm run noeterra:wasm`, never committed; `noeterraLoader.ts`
