@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
-      FLY_NEURAL_DATA: ${{ runner.temp }}/banc-research-data
+      FLY_NEURAL_DATA: /tmp/banc-research-data
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -67,8 +67,8 @@ jobs:
         with:
           name: BANC-v888-public-release-research
           path: |
-            ${{ runner.temp }}/banc-research-data/public-banc/v888/
-            ${{ runner.temp }}/banc-research-data/compiled/banc-v888-public-predicted-nt/
+            /tmp/banc-research-data/public-banc/v888/
+            /tmp/banc-research-data/compiled/banc-v888-public-predicted-nt/
           if-no-files-found: warn
           retention-days: 14
           compression-level: 0
