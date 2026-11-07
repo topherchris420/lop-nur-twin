@@ -1,0 +1,298 @@
+{
+  "schema": "vision-looming-protocol/v1",
+  "id": "looming-v1",
+  "frozen": "2026-11-07, committed before the held-out split ran. The development split ran while the eye was built, on two earlier versions of it (one whose tiling kept 16 looming units with an empty branch, and one without the static-scene cache); its record is made again at the frozen commit, and only that record chooses the thresholds.",
+  "question": "Does an image-forming compound eye with LPLC2-like radial-motion-opponent looming units let a research fly in the deployed configuration escape from objects on a collision course while ignoring harmless motion, better than the deployed controller's geometric giant-fiber proxy?",
+  "status": "A seeded study on research subjects, not a registered R.A.I.N. experiment. No subject is Eva or ECHO, a copy of either, or a continuation of either.",
+  "vision_version": "research-compound-eye/1",
+  "fly": {
+    "position": [0, 0.01, 0],
+    "yaw": 0,
+    "note": "A new research fly per run, perched at the arena's centre in the deployed configuration (OrganismAdapter: ECHO v3 over the reduced-order controller, with the mushroom body, olfactory navigation and physiology), spontaneous takeoff, walking and grooming off."
+  },
+  "timeline": { "lead_in_s": 1.0, "tail_s": 0.3, "sample_s": 0.01 },
+  "ground_truth": {
+    "collision_margin_m": 0.01,
+    "harmless_min_surface_m": 0.05,
+    "rule": "From the kinematics alone: a threat's surface comes within 1 cm of the fly; a harmless stimulus keeps it at least 5 cm away; nothing in between is generated."
+  },
+  "arms": {
+    "deployed": "The deployed controller's own giant-fiber proxy at its deployed threshold (gfThreshold 1.0): its first escape command in the held run. Untuned.",
+    "geometric-tuned": "The same geometric proxy (from the world's geometry: the object's angular size and expansion), its threshold chosen on development trials by the selection rule.",
+    "eye-lplc2": "The research compound eye: Hassenstein–Reichardt detectors and LPLC2-like units (radial motion opponency, all four quadrants), summed into a giant-fiber drive; its gain chosen on development trials by the selection rule. Primary arm.",
+    "eye-expansion": "Ablation: the same eye and units read as outward-motion energy only (no inhibition by inward motion, no all-quadrant combination); threshold by the selection rule.",
+    "eye-shuffled": "Control: the same eye and LPLC2 readout with each eye's ommatidia fed to the detectors through a fixed random permutation (retinotopy destroyed, every signal kept); threshold by the selection rule.",
+    "size-heuristic": "Simple non-neural baseline: escape when the geometric angular size of the strongest looming object reaches a threshold chosen by the selection rule. Reads the world's geometry.",
+    "tau-heuristic": "Simple non-neural baseline: escape when expansion rate over angular size (the inverse of the visual time to contact) reaches a threshold chosen by the selection rule. Reads the world's geometry."
+  },
+  "selection": {
+    "min_recall": 0.8,
+    "grid": 80,
+    "rule": "On development trials only, for every arm but deployed: an 80-point log-spaced grid of thresholds from the 1st percentile to the maximum of the trials' peak values; the highest F1 with recall >= 0.8, then the longer median lead, then the higher threshold; if none reaches recall 0.8, the highest recall, then F1. The eye's gain is the deployed threshold over the chosen eye threshold, so the deployed reflex decides on it unchanged."
+  },
+  "scoring": "A decision is the first call (every 10 ms sample) at which the readout reaches its threshold. A threat is hit by a decision at or after it appears and before it collides; a harmless stimulus is a false alarm if any decision falls in its run; a decision before the stimulus appears is early (a false positive and, for a threat, a miss). F1 = 2TP / (2TP + FP + FN) over trials (stimulus x fly seed).",
+  "bootstrap": {
+    "resamples": 4000,
+    "seed": 20261107,
+    "rule": "Paired percentile bootstrap over stimuli (each resample keeps every fly seed of each drawn stimulus); 95% interval."
+  },
+  "minimum_meaningful_effect": { "f1": 0.1 },
+  "criteria": [
+    {
+      "id": "V1",
+      "primary": true,
+      "rule": "Held-out, live runs: F1(eye-lplc2) - F1(deployed) >= 0.10 and the bootstrap interval of the difference excludes 0."
+    },
+    {
+      "id": "V2",
+      "rule": "Held-out: the bootstrap interval of F1(eye-lplc2) - F1(geometric-tuned) excludes 0 (above)."
+    },
+    {
+      "id": "V3",
+      "rule": "Held-out: eye-lplc2 escapes from at most 25% of translating harmless stimuli (near_miss, lateral, zigzag) with recall >= 0.75."
+    },
+    {
+      "id": "V4",
+      "rule": "Held-out: the bootstrap interval of F1(eye-lplc2) - F1(eye-expansion) excludes 0 (above): radial opponency and the all-quadrant combination matter."
+    },
+    {
+      "id": "V5",
+      "rule": "Held-out: F1(eye-lplc2) - F1(eye-shuffled) >= 0.20 and its interval excludes 0: retinotopy matters."
+    },
+    {
+      "id": "V6",
+      "rule": "Held-out: the median lead of eye-lplc2's hits (collision time minus decision time) >= 50 ms."
+    },
+    {
+      "id": "V7",
+      "rule": "Held-out, engineering check: in at least 99% of trials each live run's first escape is the one the held run predicts for its arm (deployed, eye-lplc2 at the chosen gain)."
+    }
+  ],
+  "descriptive": "Reported without criteria: every arm's metrics by stimulus kind, by contrast sign and by illumination; the heuristics; lead distributions; cost.",
+  "splits": {
+    "dev": {
+      "generator_seed": 20261107,
+      "fly_seeds": [7101, 7102, 7103],
+      "cells": [
+        {
+          "kind": "approach",
+          "n": 10,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.5, 3.0],
+          "distance": [0.8, 1.5]
+        },
+        {
+          "kind": "accelerating",
+          "n": 4,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.4, 1.0],
+          "speed2": [1.5, 3.5],
+          "distance": [1.0, 1.5]
+        },
+        {
+          "kind": "glancing",
+          "n": 4,
+          "radius": [0.03, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.5, 2.5],
+          "distance": [0.8, 1.4],
+          "miss_frac": [0.3, 0.8]
+        },
+        {
+          "kind": "near_miss",
+          "n": 8,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.5, 3.0],
+          "distance": [0.8, 1.5],
+          "miss_surface": [0.06, 0.3]
+        },
+        {
+          "kind": "lateral",
+          "n": 6,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.5, 2.5],
+          "miss_surface": [0.1, 0.6],
+          "half_length": [0.5, 1.0]
+        },
+        {
+          "kind": "recede",
+          "n": 4,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.5, 3.0],
+          "distance": [0.8, 1.5]
+        },
+        {
+          "kind": "stationary",
+          "n": 3,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "miss_surface": [0.1, 0.5],
+          "duration_s": [1.0, 1.5]
+        },
+        {
+          "kind": "approach_stop",
+          "n": 4,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.5, 2.0],
+          "distance": [0.8, 1.4],
+          "stop_surface": [0.06, 0.2],
+          "hold_s": [0.5, 1.0]
+        },
+        {
+          "kind": "zigzag",
+          "n": 4,
+          "radius": [0.02, 0.08],
+          "contrast": [-0.9, -0.4],
+          "azimuth_deg": [-130, 130],
+          "elevation_deg": [0, 40],
+          "ambient": { "choices": [0.7] },
+          "speed": [0.5, 2.0],
+          "miss_surface": [0.1, 0.5],
+          "half_length": [0.3, 0.7]
+        }
+      ]
+    },
+    "heldout": {
+      "generator_seed": 20261108,
+      "fly_seeds": [9101, 9102, 9103, 9104],
+      "cells": [
+        {
+          "kind": "approach",
+          "n": 14,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 5.0],
+          "distance": [0.6, 2.0]
+        },
+        {
+          "kind": "accelerating",
+          "n": 5,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 1.0],
+          "speed2": [2.0, 5.0],
+          "distance": [1.0, 2.0]
+        },
+        {
+          "kind": "glancing",
+          "n": 5,
+          "radius": [0.03, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 4.0],
+          "distance": [0.6, 1.8],
+          "miss_frac": [0.2, 0.9]
+        },
+        {
+          "kind": "near_miss",
+          "n": 12,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 5.0],
+          "distance": [0.6, 2.0],
+          "miss_surface": [0.06, 0.4]
+        },
+        {
+          "kind": "lateral",
+          "n": 6,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 4.0],
+          "miss_surface": [0.08, 0.8],
+          "half_length": [0.4, 1.2]
+        },
+        {
+          "kind": "recede",
+          "n": 5,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 5.0],
+          "distance": [0.6, 2.0]
+        },
+        {
+          "kind": "stationary",
+          "n": 3,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "miss_surface": [0.08, 0.6],
+          "duration_s": [1.0, 2.0]
+        },
+        {
+          "kind": "approach_stop",
+          "n": 6,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 3.0],
+          "distance": [0.6, 1.8],
+          "stop_surface": [0.06, 0.3],
+          "hold_s": [0.4, 1.2]
+        },
+        {
+          "kind": "zigzag",
+          "n": 6,
+          "radius": [0.015, 0.12],
+          "contrast": { "choices": [-0.95, -0.7, -0.45, -0.3, 0.5, 1.0] },
+          "azimuth_deg": [-135, 135],
+          "elevation_deg": [-5, 70],
+          "ambient": { "choices": [0.15, 0.7, 2.0] },
+          "speed": [0.3, 3.0],
+          "miss_surface": [0.08, 0.6],
+          "half_length": [0.3, 0.9]
+        }
+      ]
+    }
+  }
+}

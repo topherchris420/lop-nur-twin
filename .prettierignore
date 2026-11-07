@@ -127,3 +127,9 @@ docs/benchmarks/fly-calibration/
 docs/benchmarks/fly-neural/
 fly-neural/tests/data/
 fly-neural/experiments/
+
+# The research compound eye's looming battery: written by
+# `scripts/vision-looming-evaluate.ts` and checked byte for byte by its
+# `--check`, and the frozen protocol whose exact bytes every result records.
+docs/benchmarks/fly-vision/
+src/bethesda/vision/protocols/
