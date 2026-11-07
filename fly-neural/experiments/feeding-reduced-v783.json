@@ -1,0 +1,219 @@
+{
+ "schema": "fly-neural-reduction/v1",
+ "id": "feeding-reduced-v783",
+ "title": "A reduced feeding circuit cut from FlyWire v783: every neuron sugar makes spike, checked spike for spike against the whole brain",
+ "preregistration": "The regimes, seeds and criteria were written before any held-out run. The circuit is cut on the dev regime only (cut_trials per condition). A dev check with 5 trials found closure violations at 150-300 Hz and an engine-bound speedup of 10x; the cut trials were raised to 20 and the criteria rewritten, and a dev check of that cut passed all three (106 of 110 trials exact; 9 closure violations, none changing MN9 by more than the tolerance), before the held-out regime (rates, ramps and steps the dev regime lacks, and new seeds) ran. It runs once, from a clean commit, and is reported whatever it shows.",
+ "purpose": "R.A.I.N. Genesis Stage C: a connectome module cheap enough to sit in a research fly's loop for a whole life in the ecology (docs/RAIN_GENESIS.md).",
+ "connectome": "fafb-v783-shiu",
+ "input": "sugar_shiu",
+ "readout": "mn9_shiu",
+ "duration_ms": 1000.0,
+ "trials": 10,
+ "seeds": {
+  "dev": 3100001,
+  "heldout": 3200001
+ },
+ "dev": [
+  {
+   "name": "sugar-10",
+   "rate_hz": 10
+  },
+  {
+   "name": "sugar-20",
+   "rate_hz": 20
+  },
+  {
+   "name": "sugar-50",
+   "rate_hz": 50
+  },
+  {
+   "name": "sugar-100",
+   "rate_hz": 100
+  },
+  {
+   "name": "sugar-150",
+   "rate_hz": 150
+  },
+  {
+   "name": "sugar-200",
+   "rate_hz": 200
+  },
+  {
+   "name": "sugar-250",
+   "rate_hz": 250
+  },
+  {
+   "name": "sugar-300",
+   "rate_hz": 300
+  },
+  {
+   "name": "pulse-100",
+   "schedule": {
+    "bin_ms": 100,
+    "rates_hz": [
+     0,
+     0,
+     0,
+     100,
+     100,
+     100,
+     100,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "name": "pulse-200",
+   "schedule": {
+    "bin_ms": 100,
+    "rates_hz": [
+     0,
+     0,
+     0,
+     200,
+     200,
+     200,
+     200,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "name": "pulse-300",
+   "schedule": {
+    "bin_ms": 100,
+    "rates_hz": [
+     0,
+     0,
+     0,
+     300,
+     300,
+     300,
+     300,
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "heldout": [
+  {
+   "name": "sugar-15",
+   "rate_hz": 15
+  },
+  {
+   "name": "sugar-35",
+   "rate_hz": 35
+  },
+  {
+   "name": "sugar-75",
+   "rate_hz": 75
+  },
+  {
+   "name": "sugar-125",
+   "rate_hz": 125
+  },
+  {
+   "name": "sugar-175",
+   "rate_hz": 175
+  },
+  {
+   "name": "sugar-225",
+   "rate_hz": 225
+  },
+  {
+   "name": "sugar-275",
+   "rate_hz": 275
+  },
+  {
+   "name": "ramp-up-300",
+   "schedule": {
+    "bin_ms": 100,
+    "rates_hz": [
+     30,
+     60,
+     90,
+     120,
+     150,
+     180,
+     210,
+     240,
+     270,
+     300
+    ]
+   }
+  },
+  {
+   "name": "ramp-down-300",
+   "schedule": {
+    "bin_ms": 100,
+    "rates_hz": [
+     300,
+     270,
+     240,
+     210,
+     180,
+     150,
+     120,
+     90,
+     60,
+     30
+    ]
+   }
+  },
+  {
+   "name": "step-down-240-80",
+   "schedule": {
+    "bin_ms": 100,
+    "rates_hz": [
+     240,
+     240,
+     240,
+     240,
+     240,
+     80,
+     80,
+     80,
+     80,
+     80
+    ]
+   }
+  },
+  {
+   "name": "flicker-180",
+   "schedule": {
+    "bin_ms": 100,
+    "rates_hz": [
+     180,
+     0,
+     180,
+     0,
+     180,
+     0,
+     180,
+     0,
+     180,
+     0
+    ]
+   }
+  }
+ ],
+ "criteria": {
+  "R1": "primary: on every held-out condition, the reduced circuit's mean MN9 rate is within the readout tolerance of the whole brain's (2% of the whole brain's rate or 1 Hz, whichever is larger), under the same random draws",
+  "R2": "at least min_exact_share of held-out trials equal the whole brain's spike counts on every kept neuron",
+  "R3": "every held-out trial in which no neuron outside the cut spikes is exact (the cut's exactness argument holds)"
+ },
+ "limits_note": "One process, on the machine the record names. Nothing here starts cloud compute.",
+ "cut_trials": 20,
+ "readout_tolerance": {
+  "relative": 0.02,
+  "absolute_hz": 1.0
+ },
+ "min_exact_share": 0.95,
+ "cost_note": "Wall time of both is recorded, in this engine. The cost that matters to a fly is the TypeScript engine's, judged by the ecology protocol that uses the circuit."
+}
