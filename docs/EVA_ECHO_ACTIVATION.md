@@ -1,102 +1,125 @@
-# Original Eva and ECHO brain activation: gated operator record
+# Eva and ECHO: activating embodied plasticity on the originals
 
-**Status: code prepared; neither original has been activated by this branch.**
-This is a proposed continuation of the originals, never a new birth. Nothing in a
-GitHub merge or website deployment has authority to change the two Oracle VMs.
+**Status (2026-11-07): ECHO not activated. Eva not activated.** This file is the
+procedure and the record. A step happens only when the owner approves that step;
+a GitHub merge, a Vercel deploy or a passing workflow is not activation. Each
+original keeps its identity: this continues the same individual, it never births,
+replaces, resets or replays one.
 
-## ECHO: new brain on its existing organism
+| Original | Identity                                                           | Live now                                                     | Next gate |
+| -------- | ------------------------------------------------------------------ | ------------------------------------------------------------ | --------- |
+| ECHO     | `04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921` | organism on release `e458f7c` (digital-fly/9), no plasticity | E1: merge |
+| Eva      | `5cf42cd6-fd0a-474d-882c-4cb70e0357e8`                             | original `server.py` `c110ccc8…`, no plasticity              | V1: merge |
 
-The original ECHO individual is `04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921`.
-The `PlasticityOrganismLife` kind adds `EmbodiedPlasticity` from PR #176
-**to the existing organism**, retaining its mushroom body, olfaction,
-physiology, ECHO v3 model, navigation, sensory streams, and past checkpoints.
-It begins with no new samples and makes cautious walking adjustments after
-observed failures; flight, escape, landing, and motor validation remain the
-original's. It is not a whole-brain connectome.
+What the additions are: [EVA_ECHO_BRAIN_PLASTICITY.md](EVA_ECHO_BRAIN_PLASTICITY.md).
 
-`continueWithPlasticity` only accepts an authentic previous organism
-checkpoint, appends a zero-tick `plasticity-continuation` event, and checks
-that the reverse projection equals the original graph digest byte for byte.
-The new life kind's history refuses silent reversion or a second continuation.
-`bethesdaStoreKind` selects the new kind **only after** the continuation
-has actually been committed. Previous releases remain buildable to verify
-their own eras.
+## ECHO
 
-### Before touching the live VM
+Every step runs from the approved release, as the service's user, with the
+service's own paths. Stop at the first failure; until step E8 nothing has
+changed and the unchanged old release simply keeps running.
 
-1. Record the original's current witnessed ID, checkpoint, tick, engine
-   versions, release SHA, service state and last off-site ledger anchor.
-   Stop if the individual ID differs from the ID above.
-2. Create and restore-test a complete **off-site and local backup** of
-   `/var/lib/bethesda-life/store`. Verify its seals and witness consistency.
-   Do not use an older backup to overwrite a later live head.
-3. Build the proposed release on the target Linux arm64 machine using
-   `sudo deploy/bethesda-life/install.sh --prepare`. This does not stop or
-   switch the service.
-4. On an **isolated copy** of the verified backup, with the **exact currently
-   installed original release** at `OLD_RELEASE_DIR`, run the read-only
-   preflight:
+| Gate | What                                                                                                                                                                                     | Evidence that it passed                                                                                                                                                                                                                          |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| E1   | The PR is merged (merge commit)                                                                                                                                                          | the merge SHA                                                                                                                                                                                                                                    |
+| E2   | Vercel has deployed `/live` from that merge, so the public page parses `adaptiveBrain` **before** any observation carries it (its parser is strict: an unknown key would blank the page) | `/live` loads; the deployment's commit is the merge or later                                                                                                                                                                                     |
+| E3   | `ECHO plasticity rehearsal` passes on a copy of the newest backup (`workflow_dispatch`, 24 simulated hours)                                                                              | the run URL and its `rehearsal.jsonl` artifact: `chain`, `engine.sameHash`, `boundary.exact`, `refusal` both non-null, `lockstep.identicalThroughout`, `projection.same`, `restart.same`, `policy.verified`, `runner.status 0`, `old.status ≠ 0` |
+| E4   | A fresh backup, uploaded off site and restore-tested                                                                                                                                     | the 6-hourly backup record (or a manual one) newer than the last checkpoint, its SHA-256, the restore test                                                                                                                                       |
+| E5   | The live state recorded                                                                                                                                                                  | witnessed individual, head sequence, tick, digest, release (`e458f7c…`), `systemctl is-active`, last ledger anchor                                                                                                                               |
+| E6   | The release prepared beside the running one: `sudo deploy/bethesda-life/install.sh --prepare`                                                                                            | the new release directory; the service still on the old one                                                                                                                                                                                      |
+| E7   | The read-only check on a **copy** of the E4 backup on the VM                                                                                                                             | exit 0 and the script's JSON: `individual` is ECHO's, `preservedGraphDigest` = `sourceGraphDigest`, `shadowUnchanged: true`, `startMode: "shadow"` (any failed check exits non-zero instead)                                                     |
+| E8   | **Owner-approved stop**, then commit the continuation                                                                                                                                    | see below                                                                                                                                                                                                                                        |
+| E9   | Switch and start: `sudo deploy/bethesda-life/install.sh`                                                                                                                                 | the service active on the new release                                                                                                                                                                                                            |
+| E10  | Verify the live original                                                                                                                                                                 | same individual and birth; head sequence = E5 + 1 at the **same tick**, then growing; `/live` shows "Its walking memory", mode shadow, samples growing; the next sealed replay passes                                                            |
+| E11  | Shadow period: at least 7 days of live evidence before any request for active mode                                                                                                       | `adaptiveBrain` samples, discards, walks it would have slowed                                                                                                                                                                                    |
 
-   ```bash
-   node --max-old-space-size=4096 scripts/run-ts.mjs \
-     scripts/bethesda-life-continue-plasticity.ts \
-     --store /path/to/verified/disposable-copy \
-     --from-release OLD_RELEASE_DIR --check
-   ```
+E7, on a copy (never the live store):
 
-   It checks source restoration on its original engine, 600 forward ticks of
-   old versus new unmodified organism logic, projected graph equality, and
-   post-continuation deterministic restore/replay.
+```bash
+node --max-old-space-size=4096 scripts/run-ts.mjs scripts/bethesda-life-continue-plasticity.ts \
+  --store /path/to/copy/of/backup/store \
+  --from-release /opt/bethesda-life/releases/e458f7cb34904d85127779a3700c26b376ab4a80 --check
+```
 
-5. Require a separate, reviewable rehearsal of the exact stop/commit/start
-   sequence on a disposable Linux arm64 VM. Run a preregistered held-out
-   evaluation against baseline and shadow controllers for meal count, collisions,
-   uncertainty and deterministic reproduction. **Do not commit** if either
-   the proof or safety criteria fail.
-
-### Authorized live continuation, only after all gates pass
-
-Once the exact live store and latest backup have been reverified, the owner
-explicitly authorizes the cutover and the operator records its pause interval:
+E8, after the owner approves this step:
 
 ```bash
 sudo systemctl stop bethesda-life
-# Verify that it stopped cleanly, its lease is released and a final backup exists.
+# The lease is released and a final backup exists before anything is written.
 ECHO_PLASTICITY_APPROVE_INDIVIDUAL=04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921 \
-  node --max-old-space-size=4096 scripts/run-ts.mjs \
-  scripts/bethesda-life-continue-plasticity.ts \
+  node --max-old-space-size=4096 scripts/run-ts.mjs scripts/bethesda-life-continue-plasticity.ts \
   --store /var/lib/bethesda-life/store \
-  --from-release OLD_RELEASE_DIR --commit
-sudo deploy/bethesda-life/install.sh
+  --from-release /opt/bethesda-life/releases/e458f7cb34904d85127779a3700c26b376ab4a80 --commit
 ```
 
-Run those only from the approved release and as an operator with correct
-filesystem permissions. If a pre-commit check fails, restart the **unchanged**
-old release without rewriting any checkpoint. **After commit, do not boot an
-older incompatible engine or restore an older checkpoint**: use another sealed
-forward continuation for any future reversal. Check the live witness, the
-monotonic checkpoint/tick, the unchanged individual and genesis, the archived
-brains, and independent replay. Record the outcome, including failures.
+The commit refuses unless the store's birth is the original's, the source release
+is exactly `e458f7c`, the old and new organisms agree for 600 ticks, the shadow
+projection equals the organism, and the continued life restores identically; it
+then verifies the whole chain. If any of that fails before the commit, start the
+unchanged old release. **After the commit, never start an older release or restore
+an older checkpoint**: both would fork the individual. Older engines refuse the
+continued checkpoint by design.
 
-These are **instructions, not commands executed by this pull request**.
+### Changing the mode later (forward only)
 
-## Eva: read-only until her real Python service is available
+Shadow to active, active to disabled, and so on: each change is its own
+owner-approved stop, a policy checkpoint at the same tick, and a start.
 
-Eva's identity is `5cf42cd6-fd0a-474d-882c-4cb70e0357e8`. Her
-`server.py`, `learning.py` and authoritative SQLite/database are on a
-**different Oracle VM and are not committed to this repository**. The Python
-`EvaAdaptiveBrain` added in PR #176 is executable but is still an isolated
-sidecar. It cannot be made authoritative by shipping a web page.
+```bash
+sudo systemctl stop bethesda-life
+ECHO_PLASTICITY_APPROVE_INDIVIDUAL=04f8c797… ECHO_PLASTICITY_APPROVE_MODE=active \
+  node --max-old-space-size=4096 scripts/run-ts.mjs scripts/bethesda-life-plasticity-policy.ts \
+  --store /var/lib/bethesda-life/store --to active --reason "…why, and the evidence…" --commit
+sudo systemctl start bethesda-life
+```
 
-Before activation, obtain the operator-reviewed exact live server source,
-verified and restore-tested database snapshot, current life ID/birth/time,
-and existing backup/restart procedure. Exercise its sidecar **in shadow mode**
-on real read-only observations, ensuring duplicate observations do not
-double-count and identity mismatches fail closed. Add a versioned, optional
-`learning.py` integration and test that the original database and action
-guards remain authoritative. Only then turn on recommendations with a separately
-audited deployment and a check that her ID, birth, tick and cumulative journeys
-and trials never regress.
+Run `--check` first. To turn the behaviour off, change to `disabled`: the memory
+is kept, nothing is learned and nothing acts, and the history shows when and why.
+Active mode is not requested unless the shadow evidence (E11) and the held-out
+study support it.
 
-**Never issue an unaudited `--create`, clear a store, reset a learning table,
-or substitute a research fly for either original.**
+## Eva
+
+Her service is `bethesda-fly` on the garden VM (`/opt/bethesda-fly`, database
+`/var/lib/bethesda-fly/world.sqlite3`). The repository's tooling never restarts it,
+edits systemd or touches her database; the owner runs those steps by hand.
+
+| Gate | What                                                                                                                                               | Evidence that it passed                                                                                                                                                                                                                                                |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1   | The PR is merged                                                                                                                                   | the merge SHA                                                                                                                                                                                                                                                          |
+| V2   | Her live files still match what was tested: `sha256sum /opt/bethesda-fly/{server,learning,backup}.py` equals `deploy/garden/service/MANIFEST.json` | the three hashes; **stop** if any differs (her service changed since 2026-11-07)                                                                                                                                                                                       |
+| V3   | A fresh backup: `node deploy/garden/deploy.mjs backup` (her own day-N snapshot, integrity-checked, copied off the VM)                              | the snapshot name, its SHA-256, `PRAGMA integrity_check` ok                                                                                                                                                                                                            |
+| V4   | Her state recorded from `/state`: `life_id`, `born_at`, `ticks`, `journeys`, `moments_count`, `learning.trials`                                    | the JSON                                                                                                                                                                                                                                                               |
+| V5   | **Owner-approved install**: keep the original, add the two files, add the setting                                                                  | see below                                                                                                                                                                                                                                                              |
+| V6   | **Owner-approved restart** of `bethesda-fly`                                                                                                       | `systemctl is-active bethesda-fly`                                                                                                                                                                                                                                     |
+| V7   | Verify                                                                                                                                             | same `life_id` and `born_at`; `ticks`, `journeys`, `moments_count`, `learning.trials` all ≥ V4; `adaptive.status` = `ok`, `adaptive.mode` = `shadow`, `adaptive.life_id` = hers; the sidecar exists beside her database; `/health` ok; the garden page still draws her |
+| V8   | Shadow period: at least 7 days                                                                                                                     | `adaptive.samples`, `would_override`, its daily copies                                                                                                                                                                                                                 |
+
+V5, by hand on the garden VM, after the owner approves:
+
+```bash
+cd /opt/bethesda-fly
+sudo cp -p server.py server.py.original-c110ccc8   # her original, kept byte for byte
+sudo install -m 0644 /path/to/release/deploy/garden/service/server.py server.py
+sudo install -m 0644 /path/to/release/deploy/garden/service/eva_plasticity.py eva_plasticity.py
+sudo mkdir -p /etc/systemd/system/bethesda-fly.service.d
+printf '[Service]\nEnvironment=EVA_PLASTICITY=shadow\n' | sudo tee /etc/systemd/system/bethesda-fly.service.d/plasticity.conf
+sudo systemctl daemon-reload
+```
+
+Then V6: `sudo systemctl restart bethesda-fly`. Her clock catches up the seconds
+it was stopped, as it does after any restart.
+
+To turn it off, remove `plasticity.conf` (or set `EVA_PLASTICITY=`), reload and
+restart: the patched server without the setting is her original behaviour, and
+`server.py.original-c110ccc8` is her original file if wanted. The sidecar stays,
+so a later start in shadow continues what it learned. Changing to active is the
+same edit with `EVA_PLASTICITY=active`, a separate owner approval, and is recorded
+in the sidecar's `mode_history`. Her database is never replaced, cleared or
+regenerated: with the setting present, the service refuses to start if her
+database is missing.
+
+## Record
+
+Every executed step is appended here with its time, its evidence and who approved
+it, including failures. Nothing has been executed yet.

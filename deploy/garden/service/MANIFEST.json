@@ -1,0 +1,13 @@
+{
+  "what": "Eva's live garden service, copied byte for byte from her VM (read only) on 2026-11-07",
+  "from": "/opt/bethesda-fly on the garden's VM",
+  "files": {
+    "original/server.py": "c110ccc8d9028be2446ade496c73d4bf3b08d706d1be26230f3e0f6abb41c18a",
+    "learning.py": "cb1458911d742074352d3ffd27fc2aa2113b3daf468280d005ec7b595bd21fe9",
+    "backup.py": "59c0dc995157050542a4a8129c8153d8ec1acb60a9c1050056a9fdad99b7ce7d"
+  },
+  "patched": {
+    "server.py": "original/server.py plus lines ending '  # eva-plasticity'; removing exactly those lines gives original/server.py byte for byte",
+    "eva_plasticity.py": "new: eva-embodied-plasticity/v1"
+  }
+}
