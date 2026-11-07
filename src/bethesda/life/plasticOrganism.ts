@@ -31,7 +31,7 @@ export const PLASTICITY_EVENT = "plasticity-continuation";
 type Checkpoint = LifeCheckpoint<HeadlessGenesis>;
 const exactSource = { ...ORGANISM_LIFE.versions, graph: GRAPH_SCHEMA };
 
-export class PlasticOrganismAdapter extends OrganismAdapter {
+export class PlasticityOrganismAdapter extends OrganismAdapter {
   readonly plasticity: EmbodiedPlasticity;
 
   constructor(rng: () => number, streams: AdapterStreams, seed: number) {
@@ -58,14 +58,14 @@ export class PlasticOrganismAdapter extends OrganismAdapter {
   }
 }
 
-export class PlasticOrganismLife extends OrganismLife {
+export class PlasticityOrganismLife extends OrganismLife {
   constructor(config: HeadlessGenesis["config"]) {
-    super(config, (rng, streams, seed) => new PlasticOrganismAdapter(rng, streams, seed));
+    super(config, (rng, streams, seed) => new PlasticityOrganismAdapter(rng, streams, seed));
   }
 
-  get adaptive(): PlasticOrganismAdapter {
+  get adaptive(): PlasticityOrganismAdapter {
     const o = this.organism;
-    if (!(o instanceof PlasticOrganismAdapter))
+    if (!(o instanceof PlasticityOrganismAdapter))
       throw new Error("expected the continued ECHO plasticity adapter");
     return o;
   }
@@ -83,8 +83,8 @@ export class PlasticOrganismLife extends OrganismLife {
 export function plasticityProjection(graph: GraphSnapshot): string {
   const g = new Graph(graph);
   if (
-    g.object([]).c !== "PlasticOrganismLife" ||
-    g.object(ADAPTER).c !== "PlasticOrganismAdapter"
+    g.object([]).c !== "PlasticityOrganismLife" ||
+    g.object(ADAPTER).c !== "PlasticityOrganismAdapter"
   )
     throw new Error("not an ECHO plasticity continuation graph");
   g.object([]).c = "OrganismLife";
@@ -93,10 +93,10 @@ export function plasticityProjection(graph: GraphSnapshot): string {
   return sha256(JSON.stringify(g.canonical()));
 }
 
-export const PLASTIC_LIFE: LifeKind<HeadlessGenesis, PlasticOrganismLife> = {
+export const PLASTICITY_LIFE: LifeKind<HeadlessGenesis, PlasticityOrganismLife> = {
   id: BETHESDA_LIFE.id,
   versions: { ...ORGANISM_LIFE.versions, plasticity: ADAPTIVE_BRAIN_VERSION },
-  build: (genesis) => new PlasticOrganismLife(genesis.config),
+  build: (genesis) => new PlasticityOrganismLife(genesis.config),
   step: (life, ticks) => ORGANISM_LIFE.step(life, ticks),
   tick: (life) => life.city.tick,
   hash: (life) => `${ORGANISM_LIFE.hash(life)}|${sha256Json(life.adaptive.plasticity.state)}`,
