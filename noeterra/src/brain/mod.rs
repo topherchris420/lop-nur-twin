@@ -96,6 +96,35 @@ impl BrainOutput {
     }
 }
 
+/// Whether a discarded part was left out by the engine's own limits rather than
+/// because the answer was wrong. The limits: at most `MAX_ACTIONS` actions, one
+/// move per army, the treasury, `MAX_MESSAGES` letters, and Prism's cap on the
+/// options in one question. A seat that wants more than they allow is trimmed,
+/// most wanted first; that is play, not a fault. Everything else discarded is
+/// the answer's fault: an index or option not offered, a proposal or power that
+/// does not exist, a question left unanswered.
+///
+/// Only the engine's own wording counts, and the indexed reasons must start
+/// with an offered index, so text a model wrote cannot pass for a limit.
+pub fn over_limit(reason: &str) -> bool {
+    use crate::action::MAX_ACTIONS;
+    if reason == "letter beyond the limit" {
+        return true;
+    }
+    let Some(rest) = reason
+        .strip_prefix('[')
+        .and_then(|r| r.split_once("] "))
+        .filter(|(i, _)| i.parse::<i64>().is_ok())
+        .map(|(_, rest)| rest)
+    else {
+        return false;
+    };
+    rest == format!("exceeds {MAX_ACTIONS} actions")
+        || (rest.starts_with("moves army #") && rest.ends_with(" a second time"))
+        || (rest.starts_with("costs ") && rest.contains("; only ") && rest.ends_with(" left"))
+        || (rest.starts_with("not asked: ") && rest.ends_with(" options"))
+}
+
 pub trait Brain: Send + Sync {
     fn descriptor(&self) -> String;
     fn decide(&self, obs: &Observation, memory: &Memory, seed: u64) -> BrainOutput;

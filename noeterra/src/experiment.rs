@@ -352,9 +352,11 @@ pub fn metrics(sim: &Simulation) -> BTreeMap<String, f64> {
 /// What one saved history comes to: the metrics of the world it reaches, each
 /// civilization's end state, and for each seat how its decisions were
 /// labelled, how many input tokens they reported, how long they took, how many
-/// parts of its answers were discarded and in how many seasons it acted. The
-/// world is re-simulated from the save without any brain, so a save that does
-/// not replay gets no metrics and no end state, only the replay's reason.
+/// parts of its answers were discarded (split into those the engine's limits
+/// trimmed and those the answer got wrong; see `brain::over_limit`) and in how
+/// many seasons it acted. The world is re-simulated from the save without any
+/// brain, so a save that does not replay gets no metrics and no end state, only
+/// the replay's reason.
 pub fn score(save: &Save) -> serde_json::Value {
     let (replay, sim) = Simulation::replay(save);
     let seats: Vec<serde_json::Value> = save
@@ -364,6 +366,7 @@ pub fn score(save: &Save) -> serde_json::Value {
         .map(|(i, seat)| {
             let mut labels: BTreeMap<String, usize> = BTreeMap::new();
             let (mut tokens_in, mut reported, mut discarded, mut active) = (0u64, 0usize, 0usize, 0usize);
+            let mut over_limit = 0usize;
             let mut latencies: Vec<u64> = Vec::new();
             let mut errors: Vec<String> = Vec::new();
             let mut models: Vec<String> = Vec::new();
@@ -384,6 +387,7 @@ pub fn score(save: &Save) -> serde_json::Value {
                 }
                 latencies.extend(d.usage.latency_ms);
                 discarded += d.discarded.len();
+                over_limit += d.discarded.iter().filter(|r| crate::brain::over_limit(r)).count();
                 active += usize::from(!d.chosen.is_empty());
                 if let Some(e) = &d.error {
                     if errors.len() < 5 && !errors.contains(e) {
@@ -404,6 +408,8 @@ pub fn score(save: &Save) -> serde_json::Value {
                     "max": latencies.last(),
                 },
                 "discarded": discarded,
+                "discarded_over_limit": over_limit,
+                "discarded_invalid": discarded - over_limit,
                 "active_seasons": active,
                 "errors": errors,
             })

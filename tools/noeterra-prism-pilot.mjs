@@ -65,6 +65,10 @@ export const STUDY_SEEDS = 6;
 export const DEV_SEEDS = [101, 102, 103];
 /** Seeds the lab's archived experiments ran (docs/benchmarks/noeterra-civilization). */
 export const LAB_SEEDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+/** Version 1's study seeds (merge 222b459). Drawn, never played; not reused. */
+export const V1_SEEDS = [797830, 930358, 329796, 932285, 129974, 784812];
+/** Labels this version's seed draw, so no draw of version 1 can repeat. */
+const VERSION = 2;
 export const CHECK = { seed: 101, turns: 3 };
 /** A 40-season Prism game with more FALLBACK seasons than this is invalid. */
 export const MAX_FALLBACKS = 2;
@@ -85,18 +89,18 @@ export const ARMS = {
 
 /**
  * The six study seeds, drawn from the commit that merges the preregistration,
- * which the plan's author cannot choose. Seeds the lab has run and the dry
- * run's seeds are skipped.
+ * which the plan's author cannot choose. Seeds the lab has run, the dry run's
+ * seeds and version 1's seeds are skipped.
  */
 export function studySeeds(commit) {
   if (!/^[0-9a-f]{40}$/.test(commit ?? "")) {
     throw new Error("seeds take the full 40-character SHA of the merge commit");
   }
-  const skip = new Set([...LAB_SEEDS, ...DEV_SEEDS]);
+  const skip = new Set([...LAB_SEEDS, ...DEV_SEEDS, ...V1_SEEDS]);
   const seeds = [];
   for (let i = 0; seeds.length < STUDY_SEEDS; i++) {
     const h = createHash("sha256")
-      .update(`noeterra-prism-pilot/1|${commit}|${i}`)
+      .update(`noeterra-prism-pilot/${VERSION}|${commit}|${i}`)
       .digest("hex");
     const seed = Number(BigInt(`0x${h.slice(0, 12)}`) % 1_000_000n) + 1;
     if (!skip.has(seed) && !seeds.includes(seed)) seeds.push(seed);
@@ -290,6 +294,10 @@ export function summarize(score) {
     reporting: seat.decisions_reporting_tokens ?? 0,
     latency: seat.latency_ms ?? {},
     discarded: seat.discarded ?? 0,
+    // Parts the engine's limits trimmed, and parts the answer got wrong. A score
+    // that does not split its discards counts every one as the answer's fault.
+    over_limit: seat.discarded_over_limit ?? 0,
+    invalid: seat.discarded_invalid ?? seat.discarded ?? 0,
     active: seat.active_seasons ?? 0,
     errors: seat.errors ?? [],
     models: seat.models_reported ?? [],
@@ -356,7 +364,7 @@ async function game({ out, stage, arm, seed, turns, stand }) {
   console.log(
     `GAME: stage=${stage} arm=${arm} seed=${seed} replay=${s.replay ? "ok" : "FAIL"} provinces=${s.provinces}` +
       (a.seat === "prism"
-        ? ` live=${s.live} fallback=${s.fallback} tokens_in=${s.tokens_in} discarded=${s.discarded}`
+        ? ` live=${s.live} fallback=${s.fallback} tokens_in=${s.tokens_in} discarded=${s.discarded} (over_limit=${s.over_limit} invalid=${s.invalid})`
         : ""),
   );
   if (real) {
@@ -489,6 +497,22 @@ function requireSpend(flags) {
     throw new Error("SARVAM_API_KEY is not set in this shell's environment");
 }
 
+/**
+ * The priced check's verdict on its game: every season LIVE, nothing the answer
+ * got wrong, a history that replays, and no account error. Parts the engine's
+ * limits trimmed (more than MAX_ACTIONS actions, more than the treasury) are
+ * how the seat plays, so they are counted and reported but do not fail it.
+ */
+export function checkPasses(s) {
+  return (
+    s.replay &&
+    s.fallback === 0 &&
+    s.invalid === 0 &&
+    s.live === CHECK.turns &&
+    !s.errors.some((e) => ACCOUNT.test(e))
+  );
+}
+
 async function check(out, flags) {
   await build();
   requireSpend(flags);
@@ -531,12 +555,7 @@ async function check(out, flags) {
         study_tokens: Math.round((s.tokens_in / Math.max(1, s.reporting)) * calls240),
       };
   const after = spent(out);
-  const pass =
-    s.replay &&
-    s.fallback === 0 &&
-    s.discarded === 0 &&
-    s.live === CHECK.turns &&
-    !s.errors.some((e) => ACCOUNT.test(e));
+  const pass = checkPasses(s);
   const top = projection.range ? projection.range[1] : projection.study_tokens;
   const verdict = after.tokens + top <= TOKEN_CAP ? "within" : "exceeds";
   const result = {
@@ -558,7 +577,7 @@ async function check(out, flags) {
   );
   console.log(`PROJECTION: ${JSON.stringify(projection)} verdict=${verdict}`);
   console.log(
-    `CHECK: ${pass ? "pass" : "FAIL"} live=${s.live}/${CHECK.turns} fallback=${s.fallback} discarded=${s.discarded} models=${s.models.join(",")}`,
+    `CHECK: ${pass ? "pass" : "FAIL"} live=${s.live}/${CHECK.turns} fallback=${s.fallback} invalid=${s.invalid} over_limit=${s.over_limit} models=${s.models.join(",")}`,
   );
   if (!pass) process.exitCode = 1;
 }
@@ -774,6 +793,8 @@ export function evaluate(rows) {
       ),
       prism_latency_ms_max: Math.max(0, ...prismGames.map((p) => p.latency.max ?? 0)),
       prism_discarded: prismGames.reduce((a, p) => a + p.discarded, 0),
+      prism_discarded_over_limit: prismGames.reduce((a, p) => a + p.over_limit, 0),
+      prism_discarded_invalid: prismGames.reduce((a, p) => a + p.invalid, 0),
       prism_models: [...new Set(prismGames.flatMap((p) => p.models))],
     },
   };
