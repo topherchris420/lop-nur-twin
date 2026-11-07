@@ -47,8 +47,18 @@ import { mulberry32 } from "../src/lib/noise.js";
 import { canonicalJson, sha256 } from "../src/rain/sha256.js";
 
 interface LifetimesProtocol extends StudyProtocol {
-  learning: { days: number; skip_days: number; splits: Record<string, StudySplit> };
-  individuality: { days: number; skip_days: number; splits: Record<string, StudySplit> };
+  learning: {
+    days: number;
+    dev_days?: number;
+    skip_days: number;
+    splits: Record<string, StudySplit>;
+  };
+  individuality: {
+    days: number;
+    dev_days?: number;
+    skip_days: number;
+    splits: Record<string, StudySplit>;
+  };
   bootstrap: { resamples: number; seed: number };
   permutation: { shuffles: number; seed: number };
   alpha: number;
@@ -98,6 +108,9 @@ if (protocol.schema !== LIFETIME_SCHEMA || protocol.id !== protocolId)
   throw new Error(`${protocolPath} is not the protocol ${protocolId}`);
 const protocolSha = sha256(protocolText);
 const design = protocol[study];
+/** Days per life: development splits may run shorter lives (`dev_days`). */
+const daysFor = (split: string) =>
+  split === "dev" && design.dev_days ? design.dev_days : design.days;
 
 function sourceDigest(): string {
   const IMPORT = /\bfrom\s*["'](\.{1,2}\/[^"']+)["']/g;
@@ -172,7 +185,7 @@ if (mode === "run") {
         startReserve: 1,
       },
       arm,
-      design.days,
+      daysFor(split),
       (d) =>
         process.stderr.write(`  day ${d.day}: fed ${d.fed_j} J, places ${d.places}\n`),
     );
@@ -359,7 +372,7 @@ if (mode === "run") {
     provenance: shards[0].provenance,
     source: shards[0].source,
     lives: lives.length,
-    days: design.days,
+    days: daysFor(split),
     skip_days: skip,
     analysis,
     criteria,

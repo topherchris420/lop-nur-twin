@@ -4,7 +4,12 @@
  "frozen": "DRAFT: not frozen. Days per life are set from the development runs' cost before the held-out splits run.",
  "question": "Over lives of days in the ecology, does what a research fly learns (its remembered food places) make it a better forager in yards it has never seen (Stage D); and do flies of different seeds, started identically in identical yards, become different individuals: each keeping, from day to day, a way of living that differs from the others' more than its own days differ (Stage E)?",
  "status": "A seeded study on disposable research subjects in the deployed body (artificial maintenance on: none can die), not a registered R.A.I.N. experiment. No subject is Eva or ECHO, a copy or a continuation; nothing here reaches them.",
- "climate": {"meanTempC": 25, "dailyTempAmpC": 5, "humidityShift": -0.4, "rainThreshold": 1.1},
+ "climate": {
+  "meanTempC": 25,
+  "dailyTempAmpC": 5,
+  "humidityShift": -0.4,
+  "rainThreshold": 1.1
+ },
  "spin_up_s": 172800,
  "horizon_s": 86400,
  "start_hour": 8,
@@ -14,29 +19,95 @@
  "learning": {
   "days": 3,
   "skip_days": 0,
-  "arms": {"intact": "The deployed configuration as it is.", "no-place-memory": "The same fly with its remembered food places cleared after every tick: it cannot fly back to food it found; its mushroom body still learns from each meal."},
+  "arms": {
+   "intact": "The deployed configuration as it is.",
+   "no-place-memory": "The same fly with its remembered food places cleared after every tick: it cannot fly back to food it found; its mushroom body still learns from each meal."
+  },
   "splits": {
-   "dev": {"generator_seed": 7101, "environments": 2, "fly_seeds": [701, 702]},
-   "heldout": {"generator_seed": 7202, "environments": 8, "fly_seeds": [801, 802]}
+   "dev": {
+    "generator_seed": 7101,
+    "environments": 2,
+    "fly_seeds": [
+     701,
+     702
+    ]
+   },
+   "heldout": {
+    "generator_seed": 7202,
+    "environments": 8,
+    "fly_seeds": [
+     801,
+     802
+    ]
+   }
   }
  },
  "individuality": {
-  "days": 10,
+  "days": 30,
   "skip_days": 1,
-  "notes": "Every fly of a yard starts at the yard's first start, facing the same way, each in its own copy of the same spun-up yard: only the fly differs. The first day is skipped as the settling-in.",
+  "notes": "Every fly of a yard starts at the yard's first start, facing the same way, each in its own copy of the same spun-up yard: only the fly differs. The first day is skipped as the settling-in. Thirty days: a development pilot measured about 200 s of one core per fly-day on this machine, so a 30-day life is about 1.7 h; four held-out flies run in parallel, one per core.",
   "splits": {
-   "dev": {"generator_seed": 7301, "environments": 1, "fly_seeds": [901, 902, 903, 904]},
-   "heldout": {"generator_seed": 7402, "environments": 1, "fly_seeds": [911, 912, 913, 914, 915, 916, 917, 918]}
-  }
+   "dev": {
+    "generator_seed": 7301,
+    "environments": 1,
+    "fly_seeds": [
+     901,
+     902,
+     903,
+     904
+    ]
+   },
+   "heldout": {
+    "generator_seed": 7402,
+    "environments": 1,
+    "fly_seeds": [
+     911,
+     912,
+     913,
+     914
+    ]
+   }
+  },
+  "dev_days": 5
  },
- "bootstrap": {"resamples": 4000, "seed": 20261107, "rule": "Percentile bootstrap over yards of the per-yard mean difference (intact - lesioned, averaged over the yard's flies); 95% interval."},
- "permutation": {"shuffles": 9999, "seed": 20261108, "rule": "Fly identities shuffled independently within each day: identity removed, what the days share kept. One-sided p, the observed arrangement counted."},
+ "bootstrap": {
+  "resamples": 4000,
+  "seed": 20261107,
+  "rule": "Percentile bootstrap over yards of the per-yard mean difference (intact - lesioned, averaged over the yard's flies); 95% interval."
+ },
+ "permutation": {
+  "shuffles": 9999,
+  "seed": 20261108,
+  "rule": "Fly identities shuffled independently within each day: identity removed, what the days share kept. One-sided p, the observed arrangement counted."
+ },
  "alpha": 0.05,
  "criteria": [
-  {"id": "D1", "study": "learning", "primary": true, "rule": "Held-out: the interval of mean daily food energy, intact - no place memory, excludes 0 (above)."},
-  {"id": "D2", "study": "learning", "rule": "Held-out: the interval of mean daily maintenance energy, intact - no place memory, excludes 0 (below): the intact fly needs less artificial support."},
-  {"id": "E1", "study": "individuality", "primary": true, "rule": "Held-out: the signature index of where each fly spends its day (occupancy of a 4 x 4 grid of the yard) exceeds its permutation null, p < alpha."},
-  {"id": "E2", "study": "individuality", "rule": "Held-out: the signature index of which food sites each fly feeds at exceeds its permutation null, p < alpha."},
-  {"id": "E3", "study": "individuality", "rule": "Held-out: the repeatability of daily flight time exceeds its permutation null, p < alpha."}
+  {
+   "id": "D1",
+   "study": "learning",
+   "primary": true,
+   "rule": "Held-out: the interval of mean daily food energy, intact - no place memory, excludes 0 (above)."
+  },
+  {
+   "id": "D2",
+   "study": "learning",
+   "rule": "Held-out: the interval of mean daily maintenance energy, intact - no place memory, excludes 0 (below): the intact fly needs less artificial support."
+  },
+  {
+   "id": "E1",
+   "study": "individuality",
+   "primary": true,
+   "rule": "Held-out: the signature index of where each fly spends its day (occupancy of a 4 x 4 grid of the yard) exceeds its permutation null, p < alpha."
+  },
+  {
+   "id": "E2",
+   "study": "individuality",
+   "rule": "Held-out: the signature index of which food sites each fly feeds at exceeds its permutation null, p < alpha."
+  },
+  {
+   "id": "E3",
+   "study": "individuality",
+   "rule": "Held-out: the repeatability of daily flight time exceeds its permutation null, p < alpha."
+  }
  ]
 }
