@@ -68,7 +68,7 @@ The exact published source sizes and locally computed SHA-256 digests are:
 
 The published connections contain **10,196,509** per-neuropil rows. The converter excluded and explicitly recorded **29 rows (90 counted synapses)** whose source or target was the background/unassigned root ID 0; the unmodified Parquet source is retained. Negative IDs, zero synapse counts, and missing fields still fail closed. See `conversion-audit.json` and `source-manifest.json` in the package.
 
-The resulting `banc-v888-public-predicted-nt` research model has **188,508** metadata IDs, **3,638,916** directed neuron pairs, **29,198,720** counted synapses, and **114** neuropil labels. These are *not* the same population and filter as the previously reviewed Codex BANC v888 export (158,262 neurons and 23,556,214 counted synapses). Do not present these as contradictory measurements of an identical source graph.
+The resulting `banc-v888-public-predicted-nt` research model has **188,508** metadata IDs, **3,638,916** directed neuron pairs, **29,198,720** counted synapses, and **114** neuropil labels. These are _not_ the same population and filter as the previously reviewed Codex BANC v888 export (158,262 neurons and 23,556,214 counted synapses). Do not present these as contradictory measurements of an identical source graph.
 
 [Download the actual research dataset and compiled model](https://github.com/topherchris420/lop-nur-twin/actions/runs/42392321350/artifacts/13581743465) (GitHub Actions artifact, 14-day retention). This artifact is external to Git, includes the original public files, reproducible converted files, local source hashes, attribution, and the compiled neural model.
 
