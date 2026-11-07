@@ -46,6 +46,7 @@ import {
   OrganismLife,
   PHYSICS_REPAIR_EVENT,
 } from "../src/bethesda/life/organism.js";
+import { PLASTICITY_EVENT } from "../src/bethesda/life/plasticOrganism.js";
 import { PROFILES } from "../src/bethesda/simulation.js";
 
 const TICK_MS = 100;
@@ -249,7 +250,8 @@ async function durable(mode: Mode & { store: string }): Promise<void> {
       e.kind === "engine-upgrade" ||
       e.kind === "self-model-upgrade" ||
       e.kind === ORGANISM_EVENT ||
-      e.kind === PHYSICS_REPAIR_EVENT,
+      e.kind === PHYSICS_REPAIR_EVENT ||
+      e.kind === PLASTICITY_EVENT,
   );
   const pausedFrom = upgrade?.data.pausedFromUtc;
   let pending: LifeEvent[] = [
