@@ -17,6 +17,8 @@
  *   uses for odour); after `GIVE_UP_S` without a clear step up in humidity,
  *   turn about and search elsewhere. On foot only: a flight is the
  *   controller's, whose phototaxis would carry the fly to the sunward wall.
+ *   Thirst yields to hunger (above `HUNGRY`) unless water is below
+ *   `CRITICAL_WATER`: a hungry fly forages, and fruit brings water too.
  * - Otherwise, and always for an escape, the controller's own command stands.
  *
  * Each policy can be switched off for an ablation, and the hygrosensory input
@@ -41,6 +43,10 @@ import { HOMEOSTASIS_VERSION } from "./homeostasis.js";
 export const HOT_C = 31;
 export const THIRSTY = 0.7;
 export const SATED = 0.95;
+/** Hunger (1 − reserve) above which a merely thirsty fly lets the controller forage. */
+export const HUNGRY = 0.2;
+/** Below this water, thirst overrides hunger. */
+export const CRITICAL_WATER = 0.5;
 export const GIVE_UP_S = 30;
 /** A rise in humidity this large counts as finding wetter air. */
 export const HUMIDITY_STEP = 0.05;
@@ -75,6 +81,7 @@ export interface PolicyState {
     thirstFlight: number;
     heat: number;
     shadeRest: number;
+    yieldToHunger: number;
   };
   lastT: number;
   heatWalkFrom: number;
@@ -90,7 +97,14 @@ export class HomeostaticAdapter implements FlyNeuralAdapter {
     searchS: 0,
     bestHumidity: 0,
     turnSign: 1,
-    overrides: { thirstRest: 0, thirstWalk: 0, thirstFlight: 0, heat: 0, shadeRest: 0 },
+    overrides: {
+      thirstRest: 0,
+      thirstWalk: 0,
+      thirstFlight: 0,
+      heat: 0,
+      shadeRest: 0,
+      yieldToHunger: 0,
+    },
     lastT: 0,
     heatWalkFrom: -Infinity,
   };
@@ -161,6 +175,13 @@ export class HomeostaticAdapter implements FlyNeuralAdapter {
     }
     // Feeding on fruit or nectar gives water too: let it go on.
     if (own?.mode === "feed" || body.mode === "feed") return null;
+    // Drives are arbitrated: a hungry fly forages (fruit brings water as well as
+    // sugar) unless its water is critically low.
+    if (1 - body.reserve > HUNGRY && h.water >= CRITICAL_WATER) {
+      s.searchS = 0;
+      s.overrides.yieldToHunger++;
+      return null;
+    }
     const hum = this.options.hygroAt(body.p);
     if (this.options.wetUnderfoot(body.p)) {
       s.overrides.thirstRest++;

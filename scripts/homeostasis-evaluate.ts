@@ -27,7 +27,9 @@ import {
 } from "../src/bethesda/ecology/homeostasis.js";
 import { ECOLOGY_VERSION } from "../src/bethesda/ecology/params.js";
 import {
+  CRITICAL_WATER,
   GIVE_UP_S,
+  HUNGRY,
   HOT_C,
   HUMIDITY_STEP,
   SATED,
@@ -228,7 +230,15 @@ if (mode === "run") {
       homeostasis: HOMEOSTASIS_VERSION,
       fly: FLY_VERSION,
     },
-    policy_constants: { HOT_C, THIRSTY, SATED, GIVE_UP_S, HUMIDITY_STEP },
+    policy_constants: {
+      HOT_C,
+      THIRSTY,
+      SATED,
+      GIVE_UP_S,
+      HUMIDITY_STEP,
+      HUNGRY,
+      CRITICAL_WATER,
+    },
     homeostasis_params: Object.fromEntries(
       Object.entries(HOMEOSTASIS_PARAMS).map(([k, v]) => [k, v.value]),
     ),
