@@ -1,0 +1,1365 @@
+{
+  "schema": "ecology-reference/v1",
+  "ecology_version": "research-ecology/1",
+  "fly_version": "digital-fly/9",
+  "seed": 42,
+  "params": {
+    "stepS": {
+      "value": 1,
+      "unit": "s",
+      "kind": "model"
+    },
+    "dayS": {
+      "value": 86400,
+      "unit": "s",
+      "kind": "model"
+    },
+    "meanTempC": {
+      "value": 22,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "dailyTempAmpC": {
+      "value": 5,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "synopticTempAmpC": {
+      "value": 3,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "cloudCooling": {
+      "value": 3,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "windMeanMS": {
+      "value": 0.8,
+      "unit": "m/s",
+      "kind": "model"
+    },
+    "windGustShare": {
+      "value": 0.6,
+      "unit": "fraction",
+      "kind": "model"
+    },
+    "windVeerRad": {
+      "value": 1,
+      "unit": "rad",
+      "kind": "model"
+    },
+    "rainMaxMmH": {
+      "value": 4,
+      "unit": "mm/h",
+      "kind": "model"
+    },
+    "rainThreshold": {
+      "value": 0.55,
+      "unit": "noise",
+      "kind": "model"
+    },
+    "nightLight": {
+      "value": 0.002,
+      "unit": "relative light",
+      "kind": "model"
+    },
+    "cloudDimming": {
+      "value": 0.75,
+      "unit": "fraction",
+      "kind": "model"
+    },
+    "cellM": {
+      "value": 0.5,
+      "unit": "m",
+      "kind": "model"
+    },
+    "odourDiffusionM2S": {
+      "value": 0.05,
+      "unit": "m²/s",
+      "kind": "model"
+    },
+    "odourDecayPerS": {
+      "value": 0.0033333333333333335,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "odourScale": {
+      "value": 2,
+      "unit": "relative odour per (µg/m²)",
+      "kind": "model"
+    },
+    "soilWaterMaxMm": {
+      "value": 20,
+      "unit": "mm",
+      "kind": "model"
+    },
+    "evaporationPerS": {
+      "value": 0.000046296296296296294,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "fruitSugarMg": {
+      "value": 2000,
+      "unit": "mg",
+      "kind": "model"
+    },
+    "fruitDropsPerDay": {
+      "value": 6,
+      "unit": "per tree per day",
+      "kind": "model"
+    },
+    "fruitScatterM": {
+      "value": 1.5,
+      "unit": "m",
+      "kind": "model"
+    },
+    "ripenS": {
+      "value": 129600,
+      "unit": "s",
+      "kind": "model"
+    },
+    "q10": {
+      "value": 2,
+      "unit": "unitless",
+      "kind": "model"
+    },
+    "yeastStart": {
+      "value": 0.05,
+      "unit": "yeast units",
+      "kind": "model"
+    },
+    "yeastMax": {
+      "value": 1,
+      "unit": "yeast units",
+      "kind": "model"
+    },
+    "yeastGrowthPerS": {
+      "value": 0.000046296296296296294,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "fermentPerS": {
+      "value": 0.000005787037037037037,
+      "unit": "1/s at full yeast",
+      "kind": "model"
+    },
+    "fermentOdourUgPerMg": {
+      "value": 40,
+      "unit": "µg odour per mg sugar",
+      "kind": "model"
+    },
+    "rotRipeness": {
+      "value": 2.5,
+      "unit": "ripeness",
+      "kind": "model"
+    },
+    "rotPerS": {
+      "value": 0.000011574074074074073,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "fruitGoneShare": {
+      "value": 0.02,
+      "unit": "fraction",
+      "kind": "model"
+    },
+    "fruitRadiusM": {
+      "value": 0.03,
+      "unit": "m",
+      "kind": "model"
+    },
+    "inoculumPerFeedS": {
+      "value": 0.002,
+      "unit": "yeast units per s",
+      "kind": "model"
+    },
+    "nectarSecretUlPerH": {
+      "value": 0.5,
+      "unit": "µL/h",
+      "kind": "model"
+    },
+    "nectarMaxUl": {
+      "value": 2,
+      "unit": "µL",
+      "kind": "model"
+    },
+    "nectarSugarMgPerUl": {
+      "value": 0.25,
+      "unit": "mg/µL",
+      "kind": "model"
+    },
+    "nectarEvaporationPerS": {
+      "value": 0.0001388888888888889,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "nectarMinSugarMg": {
+      "value": 0.002,
+      "unit": "mg",
+      "kind": "model"
+    },
+    "nectarOdourUgPerS": {
+      "value": 0.05,
+      "unit": "µg/s",
+      "kind": "model"
+    },
+    "flowerRadiusM": {
+      "value": 0.02,
+      "unit": "m",
+      "kind": "model"
+    },
+    "sugarJPerMg": {
+      "value": 16.7,
+      "unit": "J/mg",
+      "kind": "model"
+    }
+  },
+  "platform": "linux x64",
+  "node": "v22.23.4",
+  "subjects": "Research subjects built from seeds; none is Eva or ECHO, a copy or a continuation.",
+  "commit": "8c391af672498b6c36f2a32a04bc32fc6bbb8eaa",
+  "scenario": "alone-30d",
+  "days": [
+    {
+      "day": 1,
+      "hash": "cdf7d438491d44a585d44750add58b512e10ab2914ae9a38da917c79f0495925",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 20.0354657,
+        "humidity": 0.685757098,
+        "wind_ms": 0.960082571,
+        "rain_mm_h": 0
+      },
+      "t": 86400,
+      "fruits": 21,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 0,
+      "missed": 0,
+      "sugarStockMg": 41901.5531,
+      "sugar": {
+        "produced": 42003.7024,
+        "consumed": 0,
+        "fermented": 102.149298,
+        "rotted": 0,
+        "unbacked": 0
+      },
+      "nectarMg": 3.70244467,
+      "soilWaterMm": 3.17858633,
+      "odourUg": 5.68168623,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 2.91038305e-10,
+        "water_residual_mm": 2.46018317e-8,
+        "odour_residual_ug": 1.64832121e-7
+      }
+    },
+    {
+      "day": 2,
+      "hash": "06f7ff3db6dcdc78dada8d603a26b61396c2c4769074702e924aa0e52f64ae13",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.8261176,
+        "humidity": 0.64453403,
+        "wind_ms": 1.10768037,
+        "rain_mm_h": 0
+      },
+      "t": 172800,
+      "fruits": 40,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 0,
+      "missed": 0,
+      "sugarStockMg": 72691.8329,
+      "sugar": {
+        "produced": 80007.9719,
+        "consumed": 0,
+        "fermented": 7316.13902,
+        "rotted": 0,
+        "unbacked": 0
+      },
+      "nectarMg": 7.97188547,
+      "soilWaterMm": 0.224341011,
+      "odourUg": 37.3749852,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 2.45927367e-9,
+        "water_residual_mm": 2.46988179e-7,
+        "odour_residual_ug": 0.00000426574088
+      }
+    },
+    {
+      "day": 3,
+      "hash": "39895e3c83325d6e870537d1aef6fe7c658f92305dc6926d1e0de9c881ac1175",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 16.5524614,
+        "humidity": 0.873332126,
+        "wind_ms": 0.430355426,
+        "rain_mm_h": 0
+      },
+      "t": 259200,
+      "fruits": 68,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 0,
+      "missed": 0,
+      "sugarStockMg": 110230.321,
+      "sugar": {
+        "produced": 136011.907,
+        "consumed": 0,
+        "fermented": 25781.586,
+        "rotted": 0,
+        "unbacked": 0
+      },
+      "nectarMg": 11.9070628,
+      "soilWaterMm": 0.629622856,
+      "odourUg": 121.458431,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.14669092e-8,
+        "water_residual_mm": 0.00000128255829,
+        "odour_residual_ug": -0.00000637320569
+      }
+    },
+    {
+      "day": 4,
+      "hash": "467b006c5bf05d7a92c38010ff8e6617ca0e5e274f574f9f81881f196c4f3b33",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 16.4288782,
+        "humidity": 0.688873223,
+        "wind_ms": 0.402357139,
+        "rain_mm_h": 0
+      },
+      "t": 345600,
+      "fruits": 87,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 0,
+      "missed": 0,
+      "sugarStockMg": 121673.328,
+      "sugar": {
+        "produced": 174015.432,
+        "consumed": 0,
+        "fermented": 50503.8925,
+        "rotted": 1838.21194,
+        "unbacked": 0
+      },
+      "nectarMg": 15.4320239,
+      "soilWaterMm": 1.16933366,
+      "odourUg": 175.962073,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.53377187e-8,
+        "water_residual_mm": 0.00000128212309,
+        "odour_residual_ug": -0.0000851811234
+      }
+    },
+    {
+      "day": 5,
+      "hash": "8aa58a6702b11243868cf8056f34f04476724e7a2a8ea47a93896d29e1ba0e92",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.373269,
+        "humidity": 0.925872567,
+        "wind_ms": 0.846731649,
+        "rain_mm_h": 0
+      },
+      "t": 432000,
+      "fruits": 109,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 0,
+      "missed": 0,
+      "sugarStockMg": 127461.421,
+      "sugar": {
+        "produced": 218019.239,
+        "consumed": 0,
+        "fermented": 81847.7148,
+        "rotted": 8710.10298,
+        "unbacked": 0
+      },
+      "nectarMg": 19.2387821,
+      "soilWaterMm": 0.78428533,
+      "odourUg": 101.958231,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.3911631e-8,
+        "water_residual_mm": 0.00000152648886,
+        "odour_residual_ug": -0.0000201516107
+      }
+    },
+    {
+      "day": 6,
+      "hash": "1e0ae8ed15b464a67837ca61dcfebc58739b0e486f6505aad337bc7ac7187632",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 19.6314123,
+        "humidity": 0.889123472,
+        "wind_ms": 0.847117346,
+        "rain_mm_h": 0
+      },
+      "t": 518400,
+      "fruits": 117,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 18,
+      "missed": 0,
+      "sugarStockMg": 131408.927,
+      "sugar": {
+        "produced": 270022.551,
+        "consumed": 0,
+        "fermented": 121475.902,
+        "rotted": 17137.7222,
+        "unbacked": 0
+      },
+      "nectarMg": 22.5514468,
+      "soilWaterMm": 1.08084547,
+      "odourUg": 122.069625,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.58324838e-8,
+        "water_residual_mm": 0.00000210469852,
+        "odour_residual_ug": 0.0000250757394
+      }
+    },
+    {
+      "day": 7,
+      "hash": "3c549e2e63b02e7b254bd5209570242858e178b9f5f216024c56ba896eeda028",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.1137086,
+        "humidity": 0.945896201,
+        "wind_ms": 0.729529307,
+        "rain_mm_h": 0
+      },
+      "t": 604800,
+      "fruits": 115,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 34,
+      "missed": 0,
+      "sugarStockMg": 109071.234,
+      "sugar": {
+        "produced": 298026.486,
+        "consumed": 0,
+        "fermented": 159983.665,
+        "rotted": 28971.5869,
+        "unbacked": 0
+      },
+      "nectarMg": 26.4863314,
+      "soilWaterMm": 0.259054623,
+      "odourUg": 132.352098,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 6.13508746e-8,
+        "water_residual_mm": 6.17280079e-7,
+        "odour_residual_ug": 0.000109228159
+      }
+    },
+    {
+      "day": 8,
+      "hash": "f2fdd1605d2a17d2aa056317e8f6ae43bc654198b7a6552ae30929eb74721e54",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.3582827,
+        "humidity": 0.883714952,
+        "wind_ms": 0.687101416,
+        "rain_mm_h": 0
+      },
+      "t": 691200,
+      "fruits": 112,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 60,
+      "missed": 0,
+      "sugarStockMg": 111285.845,
+      "sugar": {
+        "produced": 344029.876,
+        "consumed": 0,
+        "fermented": 193409.582,
+        "rotted": 39334.4485,
+        "unbacked": 0
+      },
+      "nectarMg": 29.8759941,
+      "soilWaterMm": 0.859416741,
+      "odourUg": 121.52162,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 5.13973646e-8,
+        "water_residual_mm": 6.28511316e-7,
+        "odour_residual_ug": 0.000201017815
+      }
+    },
+    {
+      "day": 9,
+      "hash": "bd32dc48d057a86d37b07eb93d98c3106b1ad7b624688429ddde8bbb5a374f2b",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 18.3496095,
+        "humidity": 0.878982318,
+        "wind_ms": 0.568259467,
+        "rain_mm_h": 0
+      },
+      "t": 777600,
+      "fruits": 104,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 85,
+      "missed": 0,
+      "sugarStockMg": 104793.371,
+      "sugar": {
+        "produced": 378033.712,
+        "consumed": 0,
+        "fermented": 223317.297,
+        "rotted": 49923.044,
+        "unbacked": 0
+      },
+      "nectarMg": 33.7122736,
+      "soilWaterMm": 1.27951358,
+      "odourUg": 140.815863,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 6.99074008e-8,
+        "water_residual_mm": 0.00000113442252,
+        "odour_residual_ug": 0.0000158861201
+      }
+    },
+    {
+      "day": 10,
+      "hash": "54c220d9ce8f7db8afee5123550b156e62fff57a1c5873daa2df5c878cce4fd9",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 16.7901309,
+        "humidity": 0.90361938,
+        "wind_ms": 0.759315188,
+        "rain_mm_h": 0
+      },
+      "t": 864000,
+      "fruits": 93,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 109,
+      "missed": 0,
+      "sugarStockMg": 90171.8175,
+      "sugar": {
+        "produced": 404038.233,
+        "consumed": 0,
+        "fermented": 253160.677,
+        "rotted": 60705.7386,
+        "unbacked": 0
+      },
+      "nectarMg": 38.2328581,
+      "soilWaterMm": 2.00543482,
+      "odourUg": 88.4329775,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.01805199e-7,
+        "water_residual_mm": 0.00000287908415,
+        "odour_residual_ug": -0.000178890223
+      }
+    },
+    {
+      "day": 11,
+      "hash": "67c48a8b1160c0f2e85d738e7e5b3dca7deff222019f6bf26f49b0b36df805f9",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 19.2956,
+        "humidity": 0.758707059,
+        "wind_ms": 0.614852736,
+        "rain_mm_h": 0
+      },
+      "t": 950400,
+      "fruits": 91,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 132,
+      "missed": 0,
+      "sugarStockMg": 97541.461,
+      "sugar": {
+        "produced": 446042.294,
+        "consumed": 0,
+        "fermented": 280694.534,
+        "rotted": 67806.2995,
+        "unbacked": 0
+      },
+      "nectarMg": 42.29447,
+      "soilWaterMm": 1.13439206,
+      "odourUg": 127.275104,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 8.03265721e-8,
+        "water_residual_mm": 0.00000305122103,
+        "odour_residual_ug": -0.000454442307
+      }
+    },
+    {
+      "day": 12,
+      "hash": "85952993d46901784d15ba21d0701dfe81eac830c885d52f0e5e3cacbab762a7",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.27007,
+        "humidity": 0.887052215,
+        "wind_ms": 0.510303922,
+        "rain_mm_h": 0
+      },
+      "t": 1036800,
+      "fruits": 95,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 149,
+      "missed": 0,
+      "sugarStockMg": 101733.277,
+      "sugar": {
+        "produced": 488045.527,
+        "consumed": 0,
+        "fermented": 308519.078,
+        "rotted": 77793.1721,
+        "unbacked": 0
+      },
+      "nectarMg": 45.527144,
+      "soilWaterMm": 0.2788786,
+      "odourUg": 127.116593,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 6.22821972e-9,
+        "water_residual_mm": 0.00000194820052,
+        "odour_residual_ug": -0.000640551347
+      }
+    },
+    {
+      "day": 13,
+      "hash": "c535bb85fce3981e951f2e0701229f21b62342488a157f849312239dbd4a93ff",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 19.9894859,
+        "humidity": 0.790590366,
+        "wind_ms": 0.771116816,
+        "rain_mm_h": 0
+      },
+      "t": 1123200,
+      "fruits": 97,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 172,
+      "missed": 0,
+      "sugarStockMg": 114053.869,
+      "sugar": {
+        "produced": 538049.507,
+        "consumed": 0,
+        "fermented": 338801.534,
+        "rotted": 85194.1036,
+        "unbacked": 0
+      },
+      "nectarMg": 49.5073688,
+      "soilWaterMm": 0.685864422,
+      "odourUg": 132.698292,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -2.39815563e-8,
+        "water_residual_mm": -0.00000233734636,
+        "odour_residual_ug": -0.000746721399
+      }
+    },
+    {
+      "day": 14,
+      "hash": "6780a1e22d21c75d6d4e9426b5e822a80a705e46825cce99693009c0e9c92564",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.8588284,
+        "humidity": 0.851675398,
+        "wind_ms": 0.480451107,
+        "rain_mm_h": 0
+      },
+      "t": 1209600,
+      "fruits": 106,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 189,
+      "missed": 0,
+      "sugarStockMg": 121090.734,
+      "sugar": {
+        "produced": 590053.197,
+        "consumed": 0,
+        "fermented": 374703.336,
+        "rotted": 94259.1274,
+        "unbacked": 0
+      },
+      "nectarMg": 53.1968348,
+      "soilWaterMm": 1.99028207,
+      "odourUg": 200.542872,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 3.7252903e-9,
+        "water_residual_mm": -0.0000015708174,
+        "odour_residual_ug": -0.000881686334
+      }
+    },
+    {
+      "day": 15,
+      "hash": "cf31e85320bc7bcfc75b193d888406dc07ad6ab81f2767944f08349e36ec83cd",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 16.8231302,
+        "humidity": 0.735125817,
+        "wind_ms": 0.680684654,
+        "rain_mm_h": 0
+      },
+      "t": 1296000,
+      "fruits": 107,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 203,
+      "missed": 0,
+      "sugarStockMg": 112261.23,
+      "sugar": {
+        "produced": 620056.747,
+        "consumed": 0,
+        "fermented": 404925.433,
+        "rotted": 102870.085,
+        "unbacked": 0
+      },
+      "nectarMg": 56.7474563,
+      "soilWaterMm": 0.379619742,
+      "odourUg": 126.128286,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 5.23868948e-9,
+        "water_residual_mm": -0.00000436743187,
+        "odour_residual_ug": -0.00108696982
+      }
+    },
+    {
+      "day": 16,
+      "hash": "0d1c3e242f8ae3bbd09520d6e8ad7fae1058da610c87fe7f4a77eaf1f93d656f",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 16.7425074,
+        "humidity": 1,
+        "wind_ms": 0.86753935,
+        "rain_mm_h": 2.94767951
+      },
+      "t": 1382400,
+      "fruits": 99,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 223,
+      "missed": 0,
+      "sugarStockMg": 97082.7667,
+      "sugar": {
+        "produced": 644059.824,
+        "consumed": 0,
+        "fermented": 435750.008,
+        "rotted": 111227.05,
+        "unbacked": 0
+      },
+      "nectarMg": 59.8241072,
+      "soilWaterMm": 1.21658714,
+      "odourUg": 93.6853554,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -5.79748303e-8,
+        "water_residual_mm": -0.00000321837774,
+        "odour_residual_ug": -0.00169263646
+      }
+    },
+    {
+      "day": 17,
+      "hash": "8a8e66308c7ecb6c83baa3d15eccdb790f2ff6b189063e710bf8f61ba1550606",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.9846942,
+        "humidity": 0.774190393,
+        "wind_ms": 0.489087474,
+        "rain_mm_h": 0
+      },
+      "t": 1468800,
+      "fruits": 96,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 242,
+      "missed": 0,
+      "sugarStockMg": 92484.9331,
+      "sugar": {
+        "produced": 676063.039,
+        "consumed": 0,
+        "fermented": 462892.85,
+        "rotted": 120685.255,
+        "unbacked": 0
+      },
+      "nectarMg": 63.0385489,
+      "soilWaterMm": 1.40359171,
+      "odourUg": 192.699539,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -5.49480319e-8,
+        "water_residual_mm": -0.00000768644486,
+        "odour_residual_ug": -0.00254961563
+      }
+    },
+    {
+      "day": 18,
+      "hash": "c0b3a323230343163c3bde09abbcdee72d3a46776deab3c146b317ab5c8d355a",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 19.4532058,
+        "humidity": 0.845035694,
+        "wind_ms": 0.953377913,
+        "rain_mm_h": 0
+      },
+      "t": 1555200,
+      "fruits": 89,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 269,
+      "missed": 0,
+      "sugarStockMg": 93817.3081,
+      "sugar": {
+        "produced": 716066.885,
+        "consumed": 0,
+        "fermented": 490924.747,
+        "rotted": 131324.83,
+        "unbacked": 0
+      },
+      "nectarMg": 66.8845795,
+      "soilWaterMm": 0.554255506,
+      "odourUg": 78.3015307,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -2.03726813e-8,
+        "water_residual_mm": -0.00000775033959,
+        "odour_residual_ug": -0.00357763165
+      }
+    },
+    {
+      "day": 19,
+      "hash": "d42399cc9a646031da0953a3e1f01300209a5ef525c5ba3453e23bef26e73f67",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 18.0701019,
+        "humidity": 0.834783897,
+        "wind_ms": 0.907411716,
+        "rain_mm_h": 0
+      },
+      "t": 1641600,
+      "fruits": 90,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 291,
+      "missed": 0,
+      "sugarStockMg": 103139.244,
+      "sugar": {
+        "produced": 762070.585,
+        "consumed": 0,
+        "fermented": 519248.299,
+        "rotted": 139683.042,
+        "unbacked": 0
+      },
+      "nectarMg": 70.5846363,
+      "soilWaterMm": 3.09421903,
+      "odourUg": 75.678835,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -7.06641003e-8,
+        "water_residual_mm": -0.00000430399996,
+        "odour_residual_ug": -0.00454493266
+      }
+    },
+    {
+      "day": 20,
+      "hash": "71002d98c1205bd18ff983d4e971e4d0985582070de5119fac28fce605098d08",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 15.8497166,
+        "humidity": 0.711917919,
+        "wind_ms": 0.829094343,
+        "rain_mm_h": 0
+      },
+      "t": 1728000,
+      "fruits": 97,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 307,
+      "missed": 0,
+      "sugarStockMg": 116342.729,
+      "sugar": {
+        "produced": 808074.861,
+        "consumed": 0,
+        "fermented": 545820.772,
+        "rotted": 145911.36,
+        "unbacked": 0
+      },
+      "nectarMg": 74.860869,
+      "soilWaterMm": 0.815403959,
+      "odourUg": 100.390817,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 9.03382897e-8,
+        "water_residual_mm": -0.00000368239171,
+        "odour_residual_ug": -0.00556570908
+      }
+    },
+    {
+      "day": 21,
+      "hash": "5bb296736c0f4a94a08de0a68badf547a134926a3116b9c07dac59b6fa9d4e39",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 18.9352063,
+        "humidity": 0.659529562,
+        "wind_ms": 0.528249504,
+        "rain_mm_h": 0
+      },
+      "t": 1814400,
+      "fruits": 106,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 321,
+      "missed": 0,
+      "sugarStockMg": 125157.127,
+      "sugar": {
+        "produced": 854077.858,
+        "consumed": 0,
+        "fermented": 575376.602,
+        "rotted": 153544.13,
+        "unbacked": 0
+      },
+      "nectarMg": 77.8584399,
+      "soilWaterMm": 1.76923404,
+      "odourUg": 174.737315,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.32014975e-7,
+        "water_residual_mm": -0.0000032380126,
+        "odour_residual_ug": -0.0065228732
+      }
+    },
+    {
+      "day": 22,
+      "hash": "8dd5e01363a331c942e6c98f36fb84eb3eb799b066559a5b2b8da5c111f98efb",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 20.4272934,
+        "humidity": 0.968503866,
+        "wind_ms": 0.780715524,
+        "rain_mm_h": 1.90018066
+      },
+      "t": 1900800,
+      "fruits": 106,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 342,
+      "missed": 0,
+      "sugarStockMg": 116581.781,
+      "sugar": {
+        "produced": 896081.4,
+        "consumed": 0,
+        "fermented": 616015.609,
+        "rotted": 163484.01,
+        "unbacked": 0
+      },
+      "nectarMg": 81.4002285,
+      "soilWaterMm": 1.44391094,
+      "odourUg": 146.971089,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -1.29221007e-7,
+        "water_residual_mm": -0.00000745902116,
+        "odour_residual_ug": -0.00716229637
+      }
+    },
+    {
+      "day": 23,
+      "hash": "56d4d70a380b2337f8e92a389e8817c4286c739d39db3c29d3ec2263712d405a",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.342066,
+        "humidity": 0.684516317,
+        "wind_ms": 0.609429306,
+        "rain_mm_h": 0
+      },
+      "t": 1987200,
+      "fruits": 107,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 362,
+      "missed": 0,
+      "sugarStockMg": 110002.635,
+      "sugar": {
+        "produced": 938085.618,
+        "consumed": 0,
+        "fermented": 653954.619,
+        "rotted": 174128.364,
+        "unbacked": 0
+      },
+      "nectarMg": 85.6180471,
+      "soilWaterMm": 1.17010871,
+      "odourUg": 135.430441,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -1.47498213e-7,
+        "water_residual_mm": -0.00000766804828,
+        "odour_residual_ug": -0.00801619825
+      }
+    },
+    {
+      "day": 24,
+      "hash": "48823be9bd576237650518845d0c21319da75944d1485d46aa17dba3a81b1727",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 17.8632501,
+        "humidity": 0.65321784,
+        "wind_ms": 1.10167272,
+        "rain_mm_h": 0
+      },
+      "t": 2073600,
+      "fruits": 98,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 381,
+      "missed": 0,
+      "sugarStockMg": 90206.6323,
+      "sugar": {
+        "produced": 958089.132,
+        "consumed": 0,
+        "fermented": 683210.325,
+        "rotted": 184672.175,
+        "unbacked": 0
+      },
+      "nectarMg": 89.1324701,
+      "soilWaterMm": 1.29225925,
+      "odourUg": 93.0503661,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -1.20955519e-7,
+        "water_residual_mm": -0.0000162584302,
+        "odour_residual_ug": -0.00877838501
+      }
+    },
+    {
+      "day": 25,
+      "hash": "e41ed77cfdc982f8b51c24d3dd6f64adaf059a3f00dd283a060d7be090f5272e",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 20.2311599,
+        "humidity": 1,
+        "wind_ms": 1.06138242,
+        "rain_mm_h": 0.750010097
+      },
+      "t": 2160000,
+      "fruits": 83,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 410,
+      "missed": 0,
+      "sugarStockMg": 76481.4353,
+      "sugar": {
+        "produced": 986093.867,
+        "consumed": 0,
+        "fermented": 714585.371,
+        "rotted": 195027.06,
+        "unbacked": 0
+      },
+      "nectarMg": 93.8665219,
+      "soilWaterMm": 0.630359976,
+      "odourUg": 70.4204367,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -4.48198989e-8,
+        "water_residual_mm": -0.0000132990891,
+        "odour_residual_ug": -0.00957328379
+      }
+    },
+    {
+      "day": 26,
+      "hash": "cb8b0d8c6fec2d05461a1d8326a3a1999e034d07fbe9356c9f7298fee79614d3",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 18.5641364,
+        "humidity": 0.838117435,
+        "wind_ms": 0.548434717,
+        "rain_mm_h": 2.72709861
+      },
+      "t": 2246400,
+      "fruits": 79,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 433,
+      "missed": 0,
+      "sugarStockMg": 78993.6071,
+      "sugar": {
+        "produced": 1024097.86,
+        "consumed": 0,
+        "fermented": 739680.774,
+        "rotted": 205423.479,
+        "unbacked": 0
+      },
+      "nectarMg": 97.8593033,
+      "soilWaterMm": 1.61675417,
+      "odourUg": 106.261494,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 8.96397978e-8,
+        "water_residual_mm": -0.0000176396538,
+        "odour_residual_ug": -0.010302899
+      }
+    },
+    {
+      "day": 27,
+      "hash": "697fe89a9a7d013e3bbe80f628d4ec1522cfa692a15acc11d3a3a6520ce07b00",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 18.6344492,
+        "humidity": 0.792010304,
+        "wind_ms": 0.796236305,
+        "rain_mm_h": 0
+      },
+      "t": 2332800,
+      "fruits": 82,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 453,
+      "missed": 0,
+      "sugarStockMg": 95857.1845,
+      "sugar": {
+        "produced": 1070101.22,
+        "consumed": 0,
+        "fermented": 761343.475,
+        "rotted": 212900.561,
+        "unbacked": 0
+      },
+      "nectarMg": 101.220271,
+      "soilWaterMm": 2.52768099,
+      "odourUg": 78.2658702,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 9.54605639e-8,
+        "water_residual_mm": -0.0000185712342,
+        "odour_residual_ug": -0.0112435738
+      }
+    },
+    {
+      "day": 28,
+      "hash": "d70797cb7fbea1d51d31690c953d849f4b0ef28be96d66473339f9b4e2cdea8c",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 19.1704159,
+        "humidity": 0.78188603,
+        "wind_ms": 0.574420494,
+        "rain_mm_h": 0
+      },
+      "t": 2419200,
+      "fruits": 86,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 473,
+      "missed": 0,
+      "sugarStockMg": 112610.291,
+      "sugar": {
+        "produced": 1118105.4,
+        "consumed": 0,
+        "fermented": 786509.479,
+        "rotted": 218985.626,
+        "unbacked": 0
+      },
+      "nectarMg": 105.396676,
+      "soilWaterMm": 1.39649798,
+      "odourUg": 127.449859,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.05705112e-7,
+        "water_residual_mm": -0.000016016616,
+        "odour_residual_ug": -0.0120080988
+      }
+    },
+    {
+      "day": 29,
+      "hash": "1bd05fd214296d451552357bcf52eccccedb9d11671318aa967830e48f400ae5",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 19.714591,
+        "humidity": 0.684774114,
+        "wind_ms": 0.771086774,
+        "rain_mm_h": 0
+      },
+      "t": 2505600,
+      "fruits": 101,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 483,
+      "missed": 0,
+      "sugarStockMg": 121174.263,
+      "sugar": {
+        "produced": 1168108.88,
+        "consumed": 0,
+        "fermented": 821084.106,
+        "rotted": 225850.506,
+        "unbacked": 0
+      },
+      "nectarMg": 108.875626,
+      "soilWaterMm": 0.499114096,
+      "odourUg": 135.919203,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": 1.3737008e-8,
+        "water_residual_mm": -0.0000182341088,
+        "odour_residual_ug": -0.0127181799
+      }
+    },
+    {
+      "day": 30,
+      "hash": "cd5a99e0a3ff38dc5192652e4d3317b0aa264322cd40aa47cc35ca50bf944aeb",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 18.9205316,
+        "humidity": 0.827432667,
+        "wind_ms": 0.945325631,
+        "rain_mm_h": 0
+      },
+      "t": 2592000,
+      "fruits": 107,
+      "fallen": {
+        "tree-a": 198,
+        "tree-b": 207,
+        "tree-c": 205
+      },
+      "gone": 503,
+      "missed": 0,
+      "sugarStockMg": 125175.004,
+      "sugar": {
+        "produced": 1220112.2,
+        "consumed": 0,
+        "fermented": 860943.134,
+        "rotted": 233994.066,
+        "unbacked": 0
+      },
+      "nectarMg": 112.203781,
+      "soilWaterMm": 2.09054344,
+      "odourUg": 98.7110566,
+      "interactions": 0,
+      "books_close": {
+        "sugar_residual_mg": -3.95812094e-8,
+        "water_residual_mm": -0.0000182408244,
+        "odour_residual_ug": -0.0110644543
+      }
+    }
+  ]
+}

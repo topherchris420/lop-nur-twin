@@ -1,0 +1,202 @@
+/**
+ * The looming battery's README, written from its records only
+ * (`scripts/vision-looming-evaluate.ts report`; `--check` holds it to them).
+ * Never edit the README by hand.
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+interface M {
+  trials: number;
+  threats: number;
+  harmless: number;
+  hits: number;
+  misses: number;
+  falseAlarms: number;
+  early: number;
+  recall: number;
+  precision: number | null;
+  falseAlarmRate: number;
+  f1: number;
+  medianLeadS: number | null;
+}
+type Breakdown = Record<
+  string,
+  Record<string, { trials: number; escapes: number; hits?: number; threats?: number }>
+>;
+
+const ARM_LABEL: Record<string, string> = {
+  deployed: "deployed (ECHO's geometric proxy, untuned)",
+  "geometric-tuned": "geometric proxy, threshold tuned on dev",
+  "eye-lplc2": "**research eye, LPLC2 readout**",
+  "eye-expansion": "eye, expansion-only ablation",
+  "eye-shuffled": "eye, shuffled-retinotopy control",
+  "size-heuristic": "angular-size heuristic (geometry)",
+  "tau-heuristic": "time-to-contact (τ) heuristic (geometry)",
+};
+const ARMS = Object.keys(ARM_LABEL);
+
+const f = (x: number | null, d = 3) => (x === null ? "—" : x.toFixed(d));
+const ms = (x: number | null) => (x === null ? "—" : `${Math.round(x * 1000)}`);
+
+function row(label: string, m: M): string {
+  return `| ${label} | ${f(m.f1)} | ${f(m.recall)} | ${m.hits}/${m.threats} | ${m.falseAlarms - m.early} | ${f(m.falseAlarmRate)} | ${m.early} | ${ms(m.medianLeadS)} |`;
+}
+const HEAD =
+  "| Readout | F1 | Recall | Hits | False alarms | Harmless escaped | Early | Median lead (ms) |\n| --- | --- | --- | --- | --- | --- | --- | --- |";
+
+function table(b: Breakdown, keys: string[]): string {
+  const lines = [
+    `| Stimuli | ${ARMS.map((a) => a).join(" | ")} |`,
+    `| --- | ${ARMS.map(() => "---").join(" | ")} |`,
+  ];
+  for (const k of keys) {
+    const cells = ARMS.map((a) => {
+      const c = b[a]?.[k];
+      return c ? `${c.escapes}/${c.trials}` : "—";
+    });
+    lines.push(`| ${k} | ${cells.join(" | ")} |`);
+  }
+  return lines.join("\n");
+}
+
+/** One protocol's section: its development and held-out records, as run. */
+function section(root: string, outDir: string, id: string): string[] {
+  const read = (name: string) => {
+    const p = join(root, outDir, name);
+    return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null;
+  };
+  const dev = read(`${id}-dev.json`);
+  const held = read(`${id}-heldout.json`);
+  const devCost = read(`${id}-dev-cost.json`);
+  const heldCost = read(`${id}-heldout-cost.json`);
+  const out: string[] = [];
+  out.push(`## ${id}${dev ? ` (eye \`${dev.vision_version}\`)` : ""}`);
+  out.push("");
+  if (!dev) {
+    out.push("The development split has not run.");
+    out.push("");
+    return out;
+  }
+  const dKinds = Object.keys(dev.by_kind["deployed"]);
+  out.push("### Development split (thresholds chosen here)");
+  out.push("");
+  out.push(
+    `Commit \`${dev.provenance.commit.slice(0, 12)}\`${dev.provenance.clean ? "" : " (working tree: not a result)"}, ${dev.provenance.platform}, Node ${dev.provenance.node}. ${dev.stimuli.length} stimuli × ${dev.trials.length / dev.stimuli.length} fly seeds = ${dev.trials.length} trials. Eye: ${dev.eye.ommatidia} ommatidia, ${dev.eye.looming_units} looming units. Chosen eye gain ${f(dev.eye_gain, 4)}.`,
+  );
+  out.push("");
+  out.push(HEAD);
+  for (const a of ARMS) out.push(row(ARM_LABEL[a]!, dev.selection[a].metrics));
+  out.push("");
+  out.push("Escapes by stimulus kind (escapes / trials):");
+  out.push("");
+  out.push(table(dev.by_kind, dKinds));
+  out.push("");
+  if (!held) {
+    out.push("### Held-out split");
+    out.push("");
+    out.push("Not run yet. It runs once, from a clean commit, at the thresholds above.");
+    out.push("");
+    return out;
+  }
+  out.push("### Held-out split (run once, at the development thresholds)");
+  out.push("");
+  out.push(
+    `Commit \`${held.provenance.commit.slice(0, 12)}\`${held.provenance.clean ? "" : " (working tree: not a result)"}, ${held.provenance.platform}, Node ${held.provenance.node}. ${held.stimuli.length} stimuli × ${held.trials.length / held.stimuli.length} fly seeds = ${held.trials.length} trials, with conditions the development split never had: bright stimuli, dim (0.15) and bright (2.0) illumination, elevations up to 70°, speeds from 0.3 to 5 m/s.`,
+  );
+  out.push("");
+  out.push(`**${held.passed} of ${held.of} pre-registered criteria pass.**`);
+  out.push("");
+  out.push("| Criterion | Result | Measured |");
+  out.push("| --- | --- | --- |");
+  const C = held.criteria;
+  const iv = (d: { estimate: number; lo: number; hi: number }) =>
+    `${f(d.estimate)} [${f(d.lo)}, ${f(d.hi)}]`;
+  out.push(
+    `| V1 (primary): live F1(eye) − F1(deployed) ≥ 0.10, interval above 0 | ${C.V1.pass ? "pass" : "**fail**"} | ${iv(C.V1.difference)} |`,
+  );
+  out.push(
+    `| V2: F1(eye) − F1(geometric, tuned), interval above 0 | ${C.V2.pass ? "pass" : "**fail**"} | ${iv(C.V2.difference)} |`,
+  );
+  out.push(
+    `| V3: ≤ 25% of translating harmless stimuli escaped, recall ≥ 0.75 | ${C.V3.pass ? "pass" : "**fail**"} | ${f(C.V3.translating_false_alarm_rate)} escaped, recall ${f(C.V3.recall)} |`,
+  );
+  out.push(
+    `| V4: F1(eye) − F1(expansion ablation), interval above 0 | ${C.V4.pass ? "pass" : "**fail**"} | ${iv(C.V4.difference)} |`,
+  );
+  out.push(
+    `| V5: F1(eye) − F1(shuffled) ≥ 0.20, interval above 0 | ${C.V5.pass ? "pass" : "**fail**"} | ${iv(C.V5.difference)} |`,
+  );
+  out.push(
+    `| V6: median lead of the eye's hits ≥ 50 ms | ${C.V6.pass ? "pass" : "**fail**"} | ${ms(C.V6.median_lead_s)} ms |`,
+  );
+  out.push(
+    `| V7: live first escapes match the held runs' predictions in ≥ 99% | ${C.V7.pass ? "pass" : "**fail**"} | deployed ${C.V7.deployed_agree}, eye ${C.V7.eye_agree} |`,
+  );
+  out.push("");
+  out.push("Intervals: paired percentile bootstrap over stimuli, 95%.");
+  out.push("");
+  out.push("Live runs (the fly free to escape):");
+  out.push("");
+  out.push(HEAD);
+  out.push(row(ARM_LABEL["deployed"]!, held.live["deployed"]));
+  out.push(row(ARM_LABEL["eye-lplc2"]!, held.live["eye-lplc2"]));
+  out.push("");
+  out.push("Every readout on the held runs (the same image stream for all):");
+  out.push("");
+  out.push(HEAD);
+  for (const a of ARMS) out.push(row(ARM_LABEL[a]!, held.offline[a]));
+  out.push("");
+  out.push("Escapes by stimulus kind (escapes / trials):");
+  out.push("");
+  out.push(table(held.by_kind, Object.keys(held.by_kind["deployed"])));
+  out.push("");
+  out.push("By the stimulus's contrast sign (escapes / trials):");
+  out.push("");
+  out.push(table(held.by_contrast, Object.keys(held.by_contrast["deployed"])));
+  out.push("");
+  out.push("By illumination (escapes / trials):");
+  out.push("");
+  out.push(table(held.by_illumination, Object.keys(held.by_illumination["deployed"])));
+  out.push("");
+  if (devCost || heldCost) {
+    out.push("### Cost");
+    out.push("");
+    out.push(
+      "| Split | Simulated s | Wall s (held runs) | Wall s (live runs) | Wall s per simulated s | Machine |",
+    );
+    out.push("| --- | --- | --- | --- | --- | --- |");
+    for (const [name, c] of [
+      ["dev", devCost],
+      ["held-out", heldCost],
+    ] as const) {
+      if (!c) continue;
+      out.push(
+        `| ${name} | ${f(c.simS, 1)} | ${f(c.heldWallS, 1)} | ${f(c.liveWallS, 1)} | ${f((c.heldWallS + c.liveWallS) / c.simS, 3)} | ${c.machine.cpu}, ${c.machine.cpus} CPUs, ${c.machine.platform}, Node ${c.machine.node} |`,
+      );
+    }
+    out.push("");
+    out.push(
+      "Wall time covers the whole research fly (body, ECHO, the organism's additions) and, in held runs, the eye and its shuffled control. Timings are not reproduced by `--check`.",
+    );
+    out.push("");
+  }
+  return out;
+}
+
+export function report(root: string, outDir: string, ids: readonly string[]): string {
+  const out: string[] = [];
+  out.push("# Research compound eye: the looming battery");
+  out.push("");
+  out.push(
+    "Generated by `node scripts/run-ts.mjs scripts/vision-looming-evaluate.ts report` from the records in this folder; `--check` holds it to them. Never edit it by hand. The design, the eye and what this does and does not show are in [docs/FLY_VISION.md](../../FLY_VISION.md).",
+  );
+  out.push("");
+  out.push(
+    "Every subject is a new research fly built from a seed, perched in the deployed configuration (`OrganismAdapter`). None is Eva or ECHO, a copy of either or a continuation of either. A seeded study, not a registered R.A.I.N. experiment. Each protocol's held-out split ran once and is spent; a later protocol has a held-out split of its own.",
+  );
+  out.push("");
+  for (const id of ids) out.push(...section(root, outDir, id));
+  while (out[out.length - 1] === "") out.pop();
+  return out.join("\n") + "\n";
+}

@@ -1,0 +1,310 @@
+{
+  "schema": "ecology-reference/v1",
+  "ecology_version": "research-ecology/1",
+  "fly_version": "digital-fly/9",
+  "seed": 42,
+  "params": {
+    "stepS": {
+      "value": 1,
+      "unit": "s",
+      "kind": "model"
+    },
+    "dayS": {
+      "value": 86400,
+      "unit": "s",
+      "kind": "model"
+    },
+    "meanTempC": {
+      "value": 22,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "dailyTempAmpC": {
+      "value": 5,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "synopticTempAmpC": {
+      "value": 3,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "cloudCooling": {
+      "value": 3,
+      "unit": "°C",
+      "kind": "model"
+    },
+    "windMeanMS": {
+      "value": 0.8,
+      "unit": "m/s",
+      "kind": "model"
+    },
+    "windGustShare": {
+      "value": 0.6,
+      "unit": "fraction",
+      "kind": "model"
+    },
+    "windVeerRad": {
+      "value": 1,
+      "unit": "rad",
+      "kind": "model"
+    },
+    "rainMaxMmH": {
+      "value": 4,
+      "unit": "mm/h",
+      "kind": "model"
+    },
+    "rainThreshold": {
+      "value": 0.55,
+      "unit": "noise",
+      "kind": "model"
+    },
+    "nightLight": {
+      "value": 0.002,
+      "unit": "relative light",
+      "kind": "model"
+    },
+    "cloudDimming": {
+      "value": 0.75,
+      "unit": "fraction",
+      "kind": "model"
+    },
+    "cellM": {
+      "value": 0.5,
+      "unit": "m",
+      "kind": "model"
+    },
+    "odourDiffusionM2S": {
+      "value": 0.05,
+      "unit": "m²/s",
+      "kind": "model"
+    },
+    "odourDecayPerS": {
+      "value": 0.0033333333333333335,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "odourScale": {
+      "value": 2,
+      "unit": "relative odour per (µg/m²)",
+      "kind": "model"
+    },
+    "soilWaterMaxMm": {
+      "value": 20,
+      "unit": "mm",
+      "kind": "model"
+    },
+    "evaporationPerS": {
+      "value": 0.000046296296296296294,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "fruitSugarMg": {
+      "value": 2000,
+      "unit": "mg",
+      "kind": "model"
+    },
+    "fruitDropsPerDay": {
+      "value": 6,
+      "unit": "per tree per day",
+      "kind": "model"
+    },
+    "fruitScatterM": {
+      "value": 1.5,
+      "unit": "m",
+      "kind": "model"
+    },
+    "ripenS": {
+      "value": 129600,
+      "unit": "s",
+      "kind": "model"
+    },
+    "q10": {
+      "value": 2,
+      "unit": "unitless",
+      "kind": "model"
+    },
+    "yeastStart": {
+      "value": 0.05,
+      "unit": "yeast units",
+      "kind": "model"
+    },
+    "yeastMax": {
+      "value": 1,
+      "unit": "yeast units",
+      "kind": "model"
+    },
+    "yeastGrowthPerS": {
+      "value": 0.000046296296296296294,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "fermentPerS": {
+      "value": 0.000005787037037037037,
+      "unit": "1/s at full yeast",
+      "kind": "model"
+    },
+    "fermentOdourUgPerMg": {
+      "value": 40,
+      "unit": "µg odour per mg sugar",
+      "kind": "model"
+    },
+    "rotRipeness": {
+      "value": 2.5,
+      "unit": "ripeness",
+      "kind": "model"
+    },
+    "rotPerS": {
+      "value": 0.000011574074074074073,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "fruitGoneShare": {
+      "value": 0.02,
+      "unit": "fraction",
+      "kind": "model"
+    },
+    "fruitRadiusM": {
+      "value": 0.03,
+      "unit": "m",
+      "kind": "model"
+    },
+    "inoculumPerFeedS": {
+      "value": 0.002,
+      "unit": "yeast units per s",
+      "kind": "model"
+    },
+    "nectarSecretUlPerH": {
+      "value": 0.5,
+      "unit": "µL/h",
+      "kind": "model"
+    },
+    "nectarMaxUl": {
+      "value": 2,
+      "unit": "µL",
+      "kind": "model"
+    },
+    "nectarSugarMgPerUl": {
+      "value": 0.25,
+      "unit": "mg/µL",
+      "kind": "model"
+    },
+    "nectarEvaporationPerS": {
+      "value": 0.0001388888888888889,
+      "unit": "1/s",
+      "kind": "model"
+    },
+    "nectarMinSugarMg": {
+      "value": 0.002,
+      "unit": "mg",
+      "kind": "model"
+    },
+    "nectarOdourUgPerS": {
+      "value": 0.05,
+      "unit": "µg/s",
+      "kind": "model"
+    },
+    "flowerRadiusM": {
+      "value": 0.02,
+      "unit": "m",
+      "kind": "model"
+    },
+    "sugarJPerMg": {
+      "value": 16.7,
+      "unit": "J/mg",
+      "kind": "model"
+    }
+  },
+  "platform": "linux x64",
+  "node": "v22.23.4",
+  "subjects": "Research subjects built from seeds; none is Eva or ECHO, a copy or a continuation.",
+  "commit": "8c391af672498b6c36f2a32a04bc32fc6bbb8eaa",
+  "scenario": "fly-1d",
+  "subject": "research-ecology-1d",
+  "genesis": {
+    "seed": 7,
+    "start": [
+      0,
+      0
+    ],
+    "yaw": 0,
+    "startReserve": 0.3
+  },
+  "daily": [
+    {
+      "day": 1,
+      "hash": "9a3bf6573d81a9e19d1a402bf07c5ba5a7e80857517325bf89cf32006932551b",
+      "weather_at_end": {
+        "hour": 5.99972222,
+        "light": 0.002,
+        "tempC": 20.0354657,
+        "humidity": 0.685757098,
+        "wind_ms": 0.960082571,
+        "rain_mm_h": 0
+      },
+      "t": 86400,
+      "fruits": 21,
+      "fallen": {
+        "tree-a": 5,
+        "tree-b": 9,
+        "tree-c": 7
+      },
+      "gone": 0,
+      "missed": 0,
+      "sugarStockMg": 41901.4856,
+      "sugar": {
+        "produced": 42003.7024,
+        "consumed": 0.0675741018,
+        "fermented": 102.149298,
+        "rotted": 0,
+        "unbacked": 0
+      },
+      "nectarMg": 3.70135335,
+      "soilWaterMm": 3.17858633,
+      "odourUg": 5.68168623,
+      "interactions": 999,
+      "books_close": {
+        "sugar_residual_mg": 3.27418093e-10,
+        "water_residual_mm": 2.46018317e-8,
+        "odour_residual_ug": 1.64795741e-7
+      },
+      "fly": {
+        "mode": "rest",
+        "reserve": 0.43205396,
+        "fed_J": 1.1284875,
+        "feed_s": 501.55,
+        "spent_J": 3.42463354,
+        "maintenance_J": 2.3052,
+        "hash": "989720a81392e9e4"
+      }
+    }
+  ],
+  "interactions": 999,
+  "by_item": {
+    "flower-5": {
+      "consumed_mg": 0.00109131737,
+      "inoculated_s": 0
+    },
+    "fruit-11": {
+      "consumed_mg": 0.0664827844,
+      "inoculated_s": 493.45
+    }
+  },
+  "replay_matches": true,
+  "differs_from_flyless_world": true,
+  "flyless_hash": "cdf7d438491d44a585d44750add58b512e10ab2914ae9a38da917c79f0495925",
+  "unbacked_mg": 0,
+  "inoculated_fruit": [
+    {
+      "fruit": "fruit-11",
+      "with_fly": {
+        "sugar_mg": 1999.93352,
+        "yeast": 1
+      },
+      "without_fly": {
+        "sugar_mg": 2000,
+        "yeast": 0.05
+      }
+    }
+  ]
+}

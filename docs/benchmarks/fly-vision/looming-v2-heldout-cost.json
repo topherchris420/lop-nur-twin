@@ -1,0 +1,12 @@
+{
+  "heldWallS": 45.56175659999999,
+  "liveWallS": 23.053650195999957,
+  "simS": 1555.7699999999963,
+  "machine": {
+    "platform": "linux x64",
+    "node": "v22.23.4",
+    "cpus": 4,
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "memory_gb": 17
+  }
+}
