@@ -16,7 +16,14 @@
  * checkpoint, backup or individual, and the script refuses a production host.
  */
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import { arch, cpus, platform } from "node:os";
 import { dirname, join, posix, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
@@ -30,6 +37,7 @@ import {
   runLifetime,
   type DaySummary,
   type LifetimeArm,
+  type LifetimeCheckpoint,
 } from "../src/bethesda/ecology/lifetime.js";
 import {
   normalized,
@@ -148,6 +156,45 @@ function provenance() {
 
 const r6 = (x: number) => Number(x.toPrecision(6));
 
+/** Where a life's day-end checkpoint is kept (outside Git). */
+const checkpointPath = (split: string, env: number, seed: number, arm: string) =>
+  join(
+    root,
+    SHARDS,
+    "checkpoints",
+    `${protocolId}-${study}-${split}-${env}-${seed}-${arm}.json`,
+  );
+
+/** A checkpoint made by this exact code and protocol, or null (one from anything else is refused). */
+function loadCheckpoint(path: string): LifetimeCheckpoint | null {
+  if (!existsSync(path)) return null;
+  const c = JSON.parse(readFileSync(path, "utf8")) as {
+    source: string;
+    protocol_sha256: string;
+    checkpoint: LifetimeCheckpoint;
+  };
+  if (c.source !== sourceDigest() || c.protocol_sha256 !== protocolSha)
+    throw new Error(
+      `${path} was made by other code or another protocol: remove it to start over`,
+    );
+  process.stderr.write(`  resuming after day ${c.checkpoint.days.length}\n`);
+  return c.checkpoint;
+}
+
+function saveCheckpoint(path: string, c: LifetimeCheckpoint): void {
+  mkdirSync(dirname(path), { recursive: true });
+  const tmp = `${path}.tmp`;
+  writeFileSync(
+    tmp,
+    JSON.stringify({
+      source: sourceDigest(),
+      protocol_sha256: protocolSha,
+      checkpoint: c,
+    }),
+  );
+  renameSync(tmp, path);
+}
+
 if (mode === "run") {
   const split = opt("--split") ?? "dev";
   const [k, n] = (opt("--shard") ?? "1/1").split("/").map(Number) as [number, number];
@@ -186,8 +233,14 @@ if (mode === "run") {
       },
       arm,
       daysFor(split),
-      (d) =>
-        process.stderr.write(`  day ${d.day}: fed ${d.fed_j} J, places ${d.places}\n`),
+      {
+        onDay: (d) =>
+          process.stderr.write(`  day ${d.day}: fed ${d.fed_j} J, places ${d.places}\n`),
+        // A life is checkpointed after every day, under the code and protocol
+        // that run it, so a stopped run resumes where it stopped.
+        resume: loadCheckpoint(checkpointPath(split, env.index, start.seed, arm)),
+        save: (c) => saveCheckpoint(checkpointPath(split, env.index, start.seed, arm), c),
+      },
     );
     lives.push({
       environment: env.index,

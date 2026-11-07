@@ -17,6 +17,12 @@
  * it from dying, as Eva's and ECHO's do; the energy that maintenance supplies
  * is metered apart from food, so a fly that forages worse needs more of it.
  */
+import {
+  indexGraph,
+  restoreGraph,
+  snapshotGraph,
+  type GraphSnapshot,
+} from "../life/snapshot.js";
 import type { Ecosystem, EcosystemSpec } from "./ecosystem.js";
 import { cloneEcosystem, EcologicalLife, TICK_S, type FlyGenesis } from "./life.js";
 
@@ -61,25 +67,77 @@ function forgetFoodPlaces(life: EcologicalLife): void {
  * A fly's life of `days` days in a copy of `world`, a summary per day. Each
  * second the fly's mode and place are sampled.
  */
+/** A life saved at a day's end: the days lived so far, and the whole life's graph. */
+export interface LifetimeCheckpoint {
+  schema: "ecology-lifetime-checkpoint/v1";
+  days: DaySummary[];
+  fly_hash: string;
+  eco_hash: string;
+  graph: GraphSnapshot;
+}
+
+export interface LifetimeOptions {
+  /** Called after every day, with that day's summary. */
+  onDay?: (d: DaySummary, life: EcologicalLife) => void;
+  /** A checkpoint to resume from (its days are kept, and the life goes on from its graph). */
+  resume?: LifetimeCheckpoint | null;
+  /** Called with a checkpoint after every day, to save it. */
+  save?: (c: LifetimeCheckpoint) => void;
+  /** The length of a "day" in simulated seconds (86,400; shorter only in tests). */
+  daySeconds?: number;
+}
+
+const freshLife = (spec: EcosystemSpec, world: Ecosystem, genesis: FlyGenesis) =>
+  new EcologicalLife(spec, genesis, { kind: "deployed" }, cloneEcosystem(world));
+
+/** A checkpoint of `life` after `days`: its whole graph, recorded against a fresh life of the same genesis. */
+export function checkpointLife(
+  life: EcologicalLife,
+  days: DaySummary[],
+  fresh: () => EcologicalLife,
+): LifetimeCheckpoint {
+  return {
+    schema: "ecology-lifetime-checkpoint/v1",
+    days: days.map((d) => structuredClone(d)),
+    fly_hash: life.fly!.stateHash(),
+    eco_hash: life.eco.stateHash(),
+    graph: JSON.parse(
+      JSON.stringify(snapshotGraph(life, indexGraph(fresh()))),
+    ) as GraphSnapshot,
+  };
+}
+
+/** The life a checkpoint holds, refilled into a fresh one; refused unless it hashes as it did. */
+export function restoreLife(
+  c: LifetimeCheckpoint,
+  fresh: () => EcologicalLife,
+): EcologicalLife {
+  if (c.schema !== "ecology-lifetime-checkpoint/v1")
+    throw new Error("not a lifetime checkpoint");
+  const life = restoreGraph(c.graph, fresh());
+  if (life.fly!.stateHash() !== c.fly_hash || life.eco.stateHash() !== c.eco_hash)
+    throw new Error("the restored life is not the one checkpointed");
+  return life;
+}
+
 export function runLifetime(
   spec: EcosystemSpec,
   world: Ecosystem,
   genesis: FlyGenesis,
   arm: LifetimeArm,
   days: number,
-  onDay: (d: DaySummary, life: EcologicalLife) => void = () => {},
+  options: LifetimeOptions = {},
 ): { days: DaySummary[]; life: EcologicalLife } {
-  const life = new EcologicalLife(
-    spec,
-    genesis,
-    { kind: "deployed" },
-    cloneEcosystem(world),
-  );
+  const fresh = () => freshLife(spec, world, genesis);
+  const daySeconds = options.daySeconds ?? 86_400;
+  const out: DaySummary[] = options.resume
+    ? options.resume.days.map((d) => structuredClone(d))
+    : [];
+  const life = options.resume ? restoreLife(options.resume, fresh) : fresh();
   const fly = life.fly!;
   const half = spec.half;
-  const out: DaySummary[] = [];
   const perSecond = Math.round(1 / TICK_S);
-  for (let day = 0; day < days; day++) {
+  for (let day = out.length; day < days; day++) {
     const start = {
       fedJ: fly.state.counts.fedJ,
       feedS: fly.state.counts.feedS,
@@ -96,7 +154,7 @@ export function runLifetime(
     let feedFlower = 0,
       feedFruit = 0;
     let last: [number, number, number] = [fly.state.p[0], fly.state.p[1], fly.state.p[2]];
-    for (let s = 0; s < 86_400; s++) {
+    for (let s = 0; s < daySeconds; s++) {
       life.step(perSecond);
       if (arm === "no-place-memory") forgetFoodPlaces(life);
       const st = fly.state;
@@ -150,11 +208,12 @@ export function runLifetime(
           .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
           .map(([k, v]) => [k, r6(v / Math.max(1, feedTotal))]),
       ),
-      occupancy: occ.map((c) => r6(c / 86_400)),
+      occupancy: occ.map((c) => r6(c / daySeconds)),
       active_by_hour: byHour,
     };
     out.push(summary);
-    onDay(summary, life);
+    options.onDay?.(summary, life);
+    options.save?.(checkpointLife(life, out, fresh));
   }
   return { days: out, life };
 }
