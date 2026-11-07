@@ -54,7 +54,10 @@ async function main() {
     throw new Error("old release must be an installed, separate source checkout");
 
   // The new kind's history verifier knows all the original's past eras.
-  const store = LifeStore.open<HeadlessGenesis, PlasticityOrganismLife>(dir, PLASTICITY_LIFE);
+  const store = LifeStore.open<HeadlessGenesis, PlasticityOrganismLife>(
+    dir,
+    PLASTICITY_LIFE,
+  );
   const { checkpoint: source, committedUtc: stoppedUtc } = store.headRecord();
   if (
     args[4] === "--commit" &&

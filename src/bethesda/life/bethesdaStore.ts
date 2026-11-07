@@ -24,7 +24,8 @@ export function bethesdaStoreKind(dir: string): typeof BETHESDA_LIFE {
     };
   };
   const versions = record.checkpoint?.versions;
-  if (versions?.plasticity === PLASTICITY_LIFE.versions.plasticity) return PLASTICITY_LIFE;
+  if (versions?.plasticity === PLASTICITY_LIFE.versions.plasticity)
+    return PLASTICITY_LIFE;
   if (versions?.habits === HABIT_LIFE.versions.habits) return HABIT_LIFE;
   if (versions?.organism === ORGANISM_VERSION) return ORGANISM_LIFE;
   return versions?.upgrade === ECHO_UPGRADE ? ECHO_UPGRADED_LIFE : BETHESDA_LIFE;

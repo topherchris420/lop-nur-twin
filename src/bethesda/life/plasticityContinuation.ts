@@ -37,7 +37,8 @@ export function continueWithPlasticity(
   stoppedUtc = upgradedUtc,
 ): PlasticityContinuation {
   const errors = plasticitySourceErrors(source);
-  if (errors.length) throw new Error(`plasticity continuation refused: ${errors.join("; ")}`);
+  if (errors.length)
+    throw new Error(`plasticity continuation refused: ${errors.join("; ")}`);
   if (!source.graph)
     throw new Error("plasticity continuation needs the un-compacted source graph");
   if (

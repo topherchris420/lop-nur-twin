@@ -60,7 +60,10 @@ export class PlasticityOrganismAdapter extends OrganismAdapter {
 
 export class PlasticityOrganismLife extends OrganismLife {
   constructor(config: HeadlessGenesis["config"]) {
-    super(config, (rng, streams, seed) => new PlasticityOrganismAdapter(rng, streams, seed));
+    super(
+      config,
+      (rng, streams, seed) => new PlasticityOrganismAdapter(rng, streams, seed),
+    );
   }
 
   get adaptive(): PlasticityOrganismAdapter {
@@ -99,7 +102,8 @@ export const PLASTICITY_LIFE: LifeKind<HeadlessGenesis, PlasticityOrganismLife> 
   build: (genesis) => new PlasticityOrganismLife(genesis.config),
   step: (life, ticks) => ORGANISM_LIFE.step(life, ticks),
   tick: (life) => life.city.tick,
-  hash: (life) => `${ORGANISM_LIFE.hash(life)}|${sha256Json(life.adaptive.plasticity.state)}`,
+  hash: (life) =>
+    `${ORGANISM_LIFE.hash(life)}|${sha256Json(life.adaptive.plasticity.state)}`,
   history: {
     versions: [...ORGANISM_LIFE.history!.versions, ORGANISM_LIFE.versions],
     transition(previous, next) {
@@ -138,7 +142,9 @@ export const PLASTICITY_LIFE: LifeKind<HeadlessGenesis, PlasticityOrganismLife> 
         next.tick !== previous.tick ||
         e.tick !== previous.tick
       )
-        return ["continuation requires exactly one plasticity event at an unchanged tick"];
+        return [
+          "continuation requires exactly one plasticity event at an unchanged tick",
+        ];
       const d = e.data;
       if (
         d.migration !== PLASTICITY_CONTINUATION ||

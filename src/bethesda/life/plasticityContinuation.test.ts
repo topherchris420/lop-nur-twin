@@ -55,7 +55,9 @@ describe("original ECHO, additive plasticity continuation", () => {
     const graph = snapshotGraph(updated.life, indexGraph(fresh));
     expect(plasticityProjection(graph)).toEqual(from.graphDigest);
     const recovered = restoreLife(PLASTICITY_LIFE, updated.checkpoint);
-    expect(recovered.adaptive.plasticity.state).toEqual(updated.life.adaptive.plasticity.state);
+    expect(recovered.adaptive.plasticity.state).toEqual(
+      updated.life.adaptive.plasticity.state,
+    );
     expect(divergence(PLASTICITY_LIFE, updated.life, recovered, [1, 10])).toBeNull();
   }, 60000);
 
@@ -68,5 +70,4 @@ describe("original ECHO, additive plasticity continuation", () => {
     tampered.events = [{ tick: checkpoint.tick, kind: PLASTICITY_EVENT, data: {} }];
     expect(PLASTICITY_LIFE.history!.transition(checkpoint, tampered)).not.toEqual([]);
   }, 60000);
-
 });
