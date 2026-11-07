@@ -23,7 +23,7 @@ import {
   PLASTICITY_EVENT,
   PLASTICITY_LIFE,
   type PlasticityOrganismLife,
-} from "../src/bethesda/life/plasticityOrganism.js";
+} from "../src/bethesda/life/plasticOrganism.js";
 import { continueWithPlasticity } from "../src/bethesda/life/plasticityContinuation.js";
 import type { HeadlessGenesis } from "../src/bethesda/life/headless.js";
 import { ORGANISM_LIFE, type OrganismLife } from "../src/bethesda/life/organism.js";
