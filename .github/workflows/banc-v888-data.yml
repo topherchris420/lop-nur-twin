@@ -32,26 +32,6 @@ jobs:
         run: python -m pytest -q fly-neural/tests/test_banc_public.py fly-neural/tests/test_banc.py fly-neural/tests/test_isolation.py
       - name: Acquire official public v888 metadata and connectivity
         run: python -m fly_neural.banc_public fetch --accept-cc-by-4.0
-      - name: Diagnose any invalid public-release connection rows
-        run: |
-          python - <<'PY'
-          import os, pathlib, polars as pl
-          path=pathlib.Path(os.environ['FLY_NEURAL_DATA'])/'public-banc/v888/banc_v888_connections.parquet'
-          edges=pl.read_parquet(path)
-          count='syn_count' if 'syn_count' in edges.columns else 'num_synapses'
-          pre=pl.col('pre_root_id').cast(pl.Int64,strict=False)
-          post=pl.col('post_root_id').cast(pl.Int64,strict=False)
-          syn=pl.col(count).cast(pl.Int64,strict=False)
-          badpre=pre.is_null() | (pre<=0)
-          badpost=post.is_null() | (post<=0)
-          badsyn=syn.is_null() | (syn<=0)
-          print('ROWS',edges.height, 'COLUMNS',edges.columns,flush=True)
-          for name,expr in [('invalid_pre',badpre),('invalid_post',badpost),('invalid_syn',badsyn)]:
-              print(name,edges.filter(expr).height,flush=True)
-          bad=edges.filter(badpre | badpost | badsyn)
-          print('TOTAL_BAD',bad.height,'SAMPLE',bad.head(15).to_dicts(),flush=True)
-          print('BAD_SYN_COUNT_SUM',bad[count].sum(),flush=True)
-          PY
       - name: Validate schema, convert, and pin local SHA-256 hashes
         run: python -m fly_neural.banc_public prepare
       - name: Compile into the isolated research neural engine
