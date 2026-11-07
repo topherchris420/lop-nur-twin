@@ -86,3 +86,4 @@ fly-neural/*.egg-info/
 # The homeostasis study (docs/RAIN_GENESIS.md): shards of trials run in
 # parallel and scratch records. Records go to docs/benchmarks/homeostasis/.
 .fly-homeostasis/
+.fly-feeding/

@@ -142,3 +142,5 @@ docs/benchmarks/ecology/
 # and the frozen protocols whose exact bytes every record hashes.
 docs/benchmarks/homeostasis/
 src/bethesda/ecology/protocols/
+src/bethesda/ecology/connectome/fixtures/
+docs/benchmarks/connectome-feeding/

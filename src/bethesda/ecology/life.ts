@@ -26,6 +26,7 @@ import { indexGraph, restoreGraph, snapshotGraph } from "../life/snapshot.js";
 import { Ecosystem, type EcosystemSpec, type Interaction } from "./ecosystem.js";
 import { Homeostasis, homeostasisParam } from "./homeostasis.js";
 import { P } from "./params.js";
+import { FeedingHybridAdapter, type FeedingBrain } from "./connectome/feeding.js";
 import { HomeostaticAdapter } from "./policy.js";
 import { EcologyWorld, WET_GROUND_MM } from "./world.js";
 
@@ -72,6 +73,8 @@ export class EcologicalLife {
   /** A mortal body's homeostasis, or null in the deployed configuration. */
   readonly homeostasis: Homeostasis | null = null;
   readonly policies: HomeostaticAdapter | null = null;
+  /** The connectome hybrid's feeding decision, or null when the controller decides (Stage C). */
+  readonly feeding: FeedingHybridAdapter | null = null;
   readonly body: BodyOptions;
   /** This second's drinking, by cell (mm). */
   private readonly drinks = new Map<number, number>();
@@ -80,12 +83,15 @@ export class EcologicalLife {
   /**
    * `from`: an ecosystem of this spec that has already lived (`spinUp`); the
    * fly is placed in it as it is. Without one the world begins with the fly.
+   * `brain`: who decides feeding (`connectome/feeding.ts`); by default the
+   * controller, as in the deployed configuration.
    */
   constructor(
     spec: EcosystemSpec,
     fly: FlyGenesis | null,
     body: BodyOptions = { kind: "deployed" },
     from?: Ecosystem,
+    brain: FeedingBrain = { kind: "controller" },
   ) {
     if (from && canonicalJson(from.spec) !== canonicalJson(spec))
       throw new Error("a fly is placed in an ecosystem of its own spec");
@@ -112,34 +118,58 @@ export class EcologicalLife {
       start: { p: [fly.start[0], 0.0011, fly.start[1]], yaw: fly.yaw },
       config: { startReserve: fly.startReserve },
       adapter: (rng, streams) => {
-        const organism = new OrganismAdapter(rng, streams, fly.seed);
-        if (body.kind !== "mortal" || (!body.thirst && !body.thermal)) return organism;
-        const off = body.hygroOffset ?? [0, 0];
-        const half = spec.half;
-        // A displaced point folded back into the yard, for the shuffled-sense control.
-        const fold = (v: number) => {
-          const span = 2 * half;
-          const u = (((v + half) % span) + span) % span;
-          return u - half;
-        };
-        const policies = new HomeostaticAdapter(organism, homeostasis!, {
-          thirst: body.thirst,
-          thermal: body.thermal,
-          seed: fly.seed,
-          hygroAt: (p: V3) =>
-            this.world.humidityAt([fold(p[0] + off[0]), p[1], fold(p[2] + off[1])]),
-          wetUnderfoot: (p: V3) =>
-            p[1] < 0.01 && this.eco.soilWaterAt(p[0], p[2]) >= WET_GROUND_MM,
-        });
-        (this as { policies: HomeostaticAdapter | null }).policies = policies;
-        return policies;
+        const controller = this.controllerStack(
+          rng,
+          streams,
+          fly.seed,
+          spec,
+          body,
+          homeostasis,
+        );
+        if (brain.kind === "controller") return controller;
+        const feeding = new FeedingHybridAdapter(controller, brain, fly.seed);
+        (this as { feeding: FeedingHybridAdapter | null }).feeding = feeding;
+        return feeding;
       },
     });
   }
 
+  /** The deployed controller, with a mortal body's homeostatic policies over it when it has any. */
+  private controllerStack(
+    rng: ConstructorParameters<typeof OrganismAdapter>[0],
+    streams: ConstructorParameters<typeof OrganismAdapter>[1],
+    seed: number,
+    spec: EcosystemSpec,
+    body: BodyOptions,
+    homeostasis: Homeostasis | null,
+  ): OrganismAdapter | HomeostaticAdapter {
+    const organism = new OrganismAdapter(rng, streams, seed);
+    if (body.kind !== "mortal" || (!body.thirst && !body.thermal)) return organism;
+    const off = body.hygroOffset ?? [0, 0];
+    const half = spec.half;
+    // A displaced point folded back into the yard, for the shuffled-sense control.
+    const fold = (v: number) => {
+      const span = 2 * half;
+      const u = (((v + half) % span) + span) % span;
+      return u - half;
+    };
+    const policies = new HomeostaticAdapter(organism, homeostasis!, {
+      thirst: body.thirst,
+      thermal: body.thermal,
+      seed,
+      hygroAt: (p: V3) =>
+        this.world.humidityAt([fold(p[0] + off[0]), p[1], fold(p[2] + off[1])]),
+      wetUnderfoot: (p: V3) =>
+        p[1] < 0.01 && this.eco.soilWaterAt(p[0], p[2]) >= WET_GROUND_MM,
+    });
+    (this as { policies: HomeostaticAdapter | null }).policies = policies;
+    return policies;
+  }
+
   get organism(): OrganismAdapter | null {
     if (!this.fly) return null;
-    const a = this.fly.adapter;
+    let a = this.fly.adapter;
+    if (a instanceof FeedingHybridAdapter) a = a.inner;
     return (a instanceof HomeostaticAdapter ? a.inner : a) as OrganismAdapter;
   }
 
