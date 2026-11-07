@@ -80,11 +80,12 @@ describe("ECHO embodied plasticity (research only)", () => {
     brain.observe(sample(false, 0.002));
     restored.observe(sample(false, 0.002));
     expect(restored.state).toEqual(brain.state);
-    expect(() =>
-      new EmbodiedPlasticity({
-        ...brain.state,
-        schema: "unknown" as typeof ADAPTIVE_BRAIN_VERSION,
-      }),
+    expect(
+      () =>
+        new EmbodiedPlasticity({
+          ...brain.state,
+          schema: "unknown" as typeof ADAPTIVE_BRAIN_VERSION,
+        }),
     ).toThrow(/version/);
   });
 
