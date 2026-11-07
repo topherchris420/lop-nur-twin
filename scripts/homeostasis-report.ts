@@ -1,4 +1,5 @@
 /** The homeostasis study's README, written from its records only (`homeostasis-evaluate.ts report`). */
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -26,6 +27,12 @@ const iv = (d: { estimate: number; lo: number; hi: number }) =>
 
 export function report(root: string, outDir: string, id: string): string {
   const L: string[] = [];
+  const protocolText = readFileSync(
+    join(root, "src/bethesda/ecology/protocols", `${id}.json`),
+    "utf8",
+  );
+  const protocolSha = createHash("sha256").update(protocolText).digest("hex");
+  const hours = (JSON.parse(protocolText) as { horizon_s: number }).horizon_s / 3600;
   L.push(`# Homeostasis study (${id})`);
   L.push("");
   L.push(
@@ -40,12 +47,14 @@ export function report(root: string, outDir: string, id: string): string {
       continue;
     }
     const r = JSON.parse(readFileSync(p, "utf8"));
+    if (r.protocol_sha256 !== protocolSha)
+      throw new Error(`${p} ran another protocol than ${id}.json`);
     const envs = new Set(r.results.map((x: { environment: number }) => x.environment))
       .size;
     L.push(`## ${split === "dev" ? "Development" : "Held-out"} split`);
     L.push("");
     L.push(
-      `Commit \`${String(r.provenance.commit).slice(0, 12)}\`${r.provenance.clean ? "" : " (working tree: not a result)"}, ${r.provenance.platform}, Node ${r.provenance.node}. ${envs} environments × ${r.trials / envs / ARMS.length} flies × ${ARMS.length} arms = ${r.trials} runs of up to 12 simulated hours.`,
+      `Commit \`${String(r.provenance.commit).slice(0, 12)}\`${r.provenance.clean ? "" : " (working tree: not a result)"}, ${r.provenance.platform}, Node ${r.provenance.node}. ${envs} environments × ${r.trials / envs / ARMS.length} flies × ${ARMS.length} arms = ${r.trials} runs of up to ${hours} simulated hours.`,
     );
     L.push("");
     if (r.criteria) {
@@ -92,7 +101,7 @@ export function report(root: string, outDir: string, id: string): string {
       L.push("");
     }
     L.push(
-      "| Arm | Alive at 12 h | Mean hours lived | Mean hydrated share | Mean hours hot | Deaths by cause |",
+      `| Arm | Alive at ${hours} h | Mean hours lived | Mean hydrated share | Mean hours hot | Deaths by cause |`,
     );
     L.push("| --- | --- | --- | --- | --- | --- |");
     for (const a of ARMS) {

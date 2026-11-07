@@ -1,0 +1,36 @@
+{
+  "shards": [
+    {
+      "shard": [
+        1,
+        4
+      ],
+      "wall_s": 2058.82,
+      "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz"
+    },
+    {
+      "shard": [
+        2,
+        4
+      ],
+      "wall_s": 1937.62,
+      "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz"
+    },
+    {
+      "shard": [
+        3,
+        4
+      ],
+      "wall_s": 1867.34,
+      "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz"
+    },
+    {
+      "shard": [
+        4,
+        4
+      ],
+      "wall_s": 1988.16,
+      "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz"
+    }
+  ]
+}
