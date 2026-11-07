@@ -9,7 +9,7 @@ from pathlib import Path
 import polars as pl
 import pytest
 
-from fly_neural import banc, banc_public
+from fly_neural import acquire, banc, banc_public
 
 
 def products(root: Path, *, nt: str = "acetylcholine"):
@@ -85,7 +85,8 @@ def test_unknown_transmitter_is_not_invented(tmp_path):
 def test_no_network_without_explicit_terms(tmp_path, monkeypatch):
     def forbidden(*args, **kwargs):
         raise AssertionError("network must not be called without consent")
-    monkeypatch.setattr(banc_public.urllib.request, "urlopen", forbidden)
+    # acquire.py is the one module that touches the network; banc_public fetches through it.
+    monkeypatch.setattr(acquire.urllib.request, "urlopen", forbidden)
     with pytest.raises(banc_public.PublicBancError, match="accept-cc-by"):
         banc_public.fetch_public(tmp_path, accept_terms=False)
     with pytest.raises(banc_public.PublicBancError, match="missing local BANC"):

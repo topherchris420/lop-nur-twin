@@ -16,13 +16,12 @@ import csv
 import gzip
 import io
 import json
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
 import polars as pl
 
-from .acquire import data_dir, sha256_file
+from .acquire import data_dir, download_bounded, sha256_file
 from .banc import COMPILED_NAME, NEURON_COLUMNS, import_banc
 
 BASE = "https://storage.googleapis.com/lee-lab_brain-and-nerve-cord-fly-connectome"
@@ -67,33 +66,19 @@ def _digest(path: Path) -> dict:
 
 
 def _download(role: str, path: Path) -> None:
-    """Stream a fixed, public HTTPS product; never use credentials or arbitrary URLs."""
-    if path.exists():
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    part = path.with_suffix(path.suffix + ".part")
-    # A partial from an earlier failed transfer cannot become a valid product.
-    part.unlink(missing_ok=True)
-    req = urllib.request.Request(
+    """Stream a fixed, public HTTPS product; never use credentials or arbitrary URLs.
+
+    The transfer itself is ``acquire.download_bounded``: acquire.py stays the one
+    module that touches the network (tests/test_isolation.py)."""
+    download_bounded(
         f"{BASE}/{PRODUCTS[role]}",
-        headers={"User-Agent": "R.A.I.N.-Genesis-BANC-public/1"},
+        path,
+        user_agent="R.A.I.N.-Genesis-BANC-public/1",
+        expected_host="storage.googleapis.com",
+        max_bytes=MAX_PRODUCT_BYTES,
+        label=f"the BANC {role} product",
+        error=PublicBancError,
     )
-    try:
-        with urllib.request.urlopen(req, timeout=120) as response, part.open("wb") as out:
-            if response.url.split("/")[2] != "storage.googleapis.com":
-                raise PublicBancError("unexpected host while fetching the BANC product")
-            total = 0
-            for chunk in iter(lambda: response.read(1 << 20), b""):
-                total += len(chunk)
-                if total > MAX_PRODUCT_BYTES:
-                    raise PublicBancError(f"{role} exceeds the bounded 256 MiB download limit")
-                out.write(chunk)
-        if total == 0:
-            raise PublicBancError(f"{role} is empty")
-        part.replace(path)
-    except Exception:
-        part.unlink(missing_ok=True)
-        raise
 
 
 def fetch_public(root: Path | None = None, *, accept_terms: bool = False) -> dict[str, Path]:

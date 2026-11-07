@@ -15,7 +15,7 @@ There is a separate public distribution of **BANC v888**, available without auth
 
 These are **not necessarily byte-identical** to the reviewed Codex files. The GCS bucket may evolve independently of the paper's immutable Harvard Dataverse snapshot. The public metadata includes more root IDs than the reviewed, filtered Codex network, so count differences are expected and must be explained rather than forced to match.
 
-Publication and attribution: Bates, Phelps, Kim, Yang et al. (2026), *Distributed control circuits across a brain-and-cord connectome*, Nature, DOI:10.1038/s41586-026-10735-w; the v888 data repository, DOI:10.7910/DVN/7WTH1N. Verify the specific release's CC BY 4.0 terms before using it.
+Publication and attribution: Bates, Phelps, Kim, Yang et al. (2026), _Distributed control circuits across a brain-and-cord connectome_, Nature, DOI:10.1038/s41586-026-10735-w; the v888 data repository, DOI:10.7910/DVN/7WTH1N. Verify the specific release's CC BY 4.0 terms before using it.
 
 ## How to run
 
