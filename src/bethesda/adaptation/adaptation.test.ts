@@ -201,6 +201,43 @@ describe("the originals' judge", () => {
     ).toBe("fail");
   });
 
+  it("refuses silently reset Eva learning even when her ID and clock survive", () => {
+    const changed = dayLater(fixture()).map((r) => {
+      if (r.stream !== "eva") return r;
+      const body = JSON.parse(r.body) as Record<string, unknown>;
+      body.journeys = 0;
+      const learning = body.learning as Record<string, unknown>;
+      learning.trials = 0;
+      return { ...r, body: JSON.stringify(body) };
+    });
+    const input: OriginalsInput = {
+      responses: [...fixture(), ...changed],
+      ledger: "",
+      replays: "",
+    };
+    expect(measureEva(input).progressRegressions).toBeGreaterThan(0);
+    expect(judgeOriginals(measureEva(input), measureEcho(input)).E1).toBe("fail");
+  });
+
+  it("refuses a rewound ECHO checkpoint despite an increased lease epoch", () => {
+    const fx = fixture();
+    const changed = dayLater(fx, { epoch: 12 }).map((r) => {
+      if (r.stream !== "echo") return r;
+      const body = JSON.parse(r.body) as Record<string, unknown>;
+      const observation = body.observation as Record<string, unknown>;
+      const checkpoint = observation.checkpoint as Record<string, unknown>;
+      checkpoint.sequence = 1;
+      return { ...r, body: JSON.stringify(body) };
+    });
+    const input: OriginalsInput = {
+      responses: [...fx, ...changed],
+      ledger: "",
+      replays: "",
+    };
+    expect(measureEcho(input).progressRegressions).toBeGreaterThan(0);
+    expect(judgeOriginals(measureEva(input), measureEcho(input)).O1).toBe("fail");
+  });
+
   it("needs a restart between the observations before O1 can pass", () => {
     const fx = fixture();
     expect(judge([...fx, ...dayLater(fx)]).O1).toBe("untestable");
