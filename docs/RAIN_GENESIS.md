@@ -251,7 +251,8 @@ none.
 **What the held-out split found, exploratory.** These comparisons were not
 pre-registered. They are the same bootstrap over the same record:
 
-- **The heat policy makes flies hotter.** Hours above 31 °C, heat only − none:
+- **The heat policy makes flies hotter.** Hours with the body above 32 °C (the
+  study's endpoint; the policy itself acts above 31 °C), heat only − none:
   +0.17 [+0.03, +0.40]; full − none: +0.20 [+0.05, +0.43]. In this body, heat
   comes only from the sun (no activity heating). The policy walks a hot fly
   away from the light's bearing. In a yard whose shade lies under four
@@ -266,11 +267,143 @@ Both point to a next protocol (shade-seeking by the canopies' shadow, or no
 heat policy). That protocol would need its own held-out split: the policy was
 not changed after this one.
 
+## Stage C: a circuit from the FlyWire brain in the loop
+
+The repository already runs both connectomes whole
+([ECHO Connectome](ECHO_CONNECTOME.md)). What those runs said about putting
+one in a fly:
+
+- **The whole brain is too slow for a life.** FAFB v783 runs at about 1.3 s
+  per simulated second on one thread, and a closed loop with it ran 25–45
+  times slower than real time
+  ([ECHO Adaptive Intelligence](ECHO_ADAPTIVE_INTELLIGENCE.md)). An 8-hour
+  life would take days.
+- **The validated way in is a reduced module** that has passed a test of its
+  own ([Project Genesis](PROJECT_GENESIS.md)).
+- **Feeding is where the ecology decides life.** The full brain's
+  sugar → MN9 pathway reproduces Shiu et al.'s criteria. Its closed-loop
+  feeding came in fragments only because its readout read one 10 ms step.
+
+### The cut (`python -m fly_neural reduce`)
+
+In Shiu et al.'s model a neuron acts on others only through its spikes. A
+neuron that never spikes changes nothing downstream. So the neurons a stimulus
+makes spike, with the inputs and the readout, reproduce the whole brain on any
+input whose spiking set they contain. That is a claim about this model,
+checked here, not about the fly.
+
+- **How it is cut.** `reduce cut` drives Shiu et al.'s sugar GRNs, as Poisson
+  inputs, through the whole brain:
+  - at 10–300 Hz, and in 300 ms pulses;
+  - 20 trials each, the development regime only;
+  - keeping every neuron that spiked in any trial, the synapses among them,
+    and the original order.
+- **Why the order matters.** Spikes are gathered in the order neurons first
+  left rest, and each target sums its inputs in that order, so restricting
+  both to the kept neurons changes no floating-point sum.
+- **What it is.** 496 of 139,255 neurons, and 24,858 of 15.1 million
+  connected pairs.
+- **Where it lives.** The cut is a connectivity table derived from FlyWire. It
+  is written under the data directory, never into the repository, and the
+  records name its SHA-256. `reduce cut` from the pinned release reproduces
+  it.
+- **How it is checked.** `reduce check` runs the whole brain and the cut side
+  by side, with the same random draws. It counts exact trials and the neurons
+  outside the cut that spiked (closure violations).
+- **The development check (110 trials) passed all three criteria:**
+  - MN9 within tolerance in every condition, with 0.76 Hz to spare;
+  - 106 trials exact;
+  - every trial without a closure violation exact.
+
+  Closure violations appear only at 150 Hz and above.
+
+### The engine (`connectome/lif.ts`)
+
+The fly runs the cut in TypeScript, inside its own loop, by the same
+integrator in the same order of operations.
+
+- **Conformance.** On a synthetic network (not a connectome) driven by
+  recorded kicks, it gives the Python engine's 701 spikes exactly, step for
+  step and in firing order (`lif.test.ts`).
+- **Rest.** In floating point a decaying neuron never quite reaches rest: it
+  sticks about 10⁻¹² mV above it, with its conductance at a subnormal number.
+  An idle circuit within a nanovolt of rest is therefore set to exact rest
+  and costs nothing.
+- **Cost.** 35–46 ms per simulated second of sugar input on one core of this
+  machine, 20–28 times faster than real time.
+
+### The hybrid (`connectome/feeding.ts`)
+
+- **Taste.** While the fly stands on food, the sugar GRNs fire at
+  200 Hz × hunger, where hunger = 1 − reserve. That starvation raises
+  sugar-GRN sensitivity is Inagaki et al. 2012's finding; the linear form and
+  the ceiling are this model's.
+- **Decision.** The fly feeds while MN9's mean rate over the trailing 500 ms
+  is at least 10 Hz, the connectome backend's own feed readout.
+- **No satiety signal is added.** A meal ends when hunger has turned the
+  sugar neurons down to where MN9 falls below threshold.
+- **What stands.** An escape always does. Off food, the controller decides.
+
+**What a development run showed.** MN9 crosses threshold about 150 ms after
+the fly lands on fruit, then holds at 60–80 Hz through the meal.
+
+- **Where a meal ends.** The readout falls below threshold when the sugar
+  input is near 40 Hz, at a reserve of about 0.8. The deployed controller eats
+  toward 0.98.
+- **Bouts.** Near that point MN9 hovers around its threshold, and the readout
+  flickers: feeding comes in many short bouts at the end of each meal.
+- **What was not done.** Neither was tuned away. The ceiling was not raised to
+  imitate the controller, and no hysteresis was added.
+
+The study, `connectome-feeding-v1`, compares the hybrid with:
+
+- the controller;
+- the same circuit with its weights shuffled across its pairs;
+- a plain hunger threshold set where the intact readout crosses.
+
+Its primary criterion is that the hybrid leaves the fly no worse fed than the
+controller, within 20% (time-weighted mean reserve). It is frozen, with the
+circuit's digest pinned, before its held-out split runs.
+
+**What could not be done here.** BANC v888's tables come from Codex, which
+requires the owner to sign in and accept its terms. No BANC module was built
+in this stage. The repository's BANC results stand as they were.
+
+## Stage F: a read-only causal trace
+
+`trace.ts`'s `Tracer` samples a research fly's life without changing it:
+
+| Group       | What it holds                                                                                                                 | Provenance                                    |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| world       | weather at the sample                                                                                                         | measured in the simulation                    |
+| senses      | odour, light, airflow and looming drive in the fly's sensory frame, and humidity at its antennae                              | measured in the simulation                    |
+| body        | mode, position, reserve, energy fed                                                                                           | measured in the simulation                    |
+| physiology  | water, body temperature, alive                                                                                                | a model's variables                           |
+| learning    | the mushroom body's trials, mean plastic weights, the last trial's prediction and dopamine, the navigator's remembered places | a model's variables                           |
+| decision    | the last command the gate accepted, with the controller's logged reason                                                       | measured: text its code writes, not a thought |
+| policies    | how often each homeostatic policy overrode the controller                                                                     | measured in the simulation                    |
+| effects     | the interactions the fly had with the world                                                                                   | measured in the simulation                    |
+| unavailable | neural activity outside the mushroom body's rate units, motivation as such, anything about experience                         | not modelled                                  |
+
+**It only reads.** A test steps a traced life beside an untraced one and
+compares both state hashes at every sample. That test found that a mortal
+fly's state could not be hashed: the heat policy's walk timer started at −∞.
+It now starts at null. Re-running held-out yard 3 of `homeostasis-v1` with
+the fix gives all 12 trials identical to the record.
+
+`scripts/ecology-trace.ts` writes one fly's 8-hour trace and a self-contained
+page that draws it:
+
+- small-multiple charts of its water, the humidity, odour, reserve, its
+  temperature against the air's, and its learning trials;
+- a band of its modes, with its interactions marked;
+- for any moment, the loop it was in: stimulus → internal state → decision →
+  action → effect.
+
 ## What remains of R.A.I.N. Genesis
 
-Stages C–G: the strongest connectome hybrid benchmarked against
-ECHO's controller in it; learning whose usefulness is tested under held-out
-environments; long developmental histories and their individuality; a
-read-only causal trace of stimulus, neural activity, action and feedback; and
-continuity-preserving proposals for each original. See
-[Project Genesis](PROJECT_GENESIS.md) for where Eva and ECHO stand.
+Stage C's held-out split; Stage D, learning whose usefulness is tested under
+held-out environments; Stage E, long developmental histories and their
+individuality; and Stage G, continuity-preserving proposals for each
+original. See [Project Genesis](PROJECT_GENESIS.md) for where Eva and ECHO
+stand.

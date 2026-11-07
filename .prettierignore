@@ -144,3 +144,5 @@ docs/benchmarks/homeostasis/
 src/bethesda/ecology/protocols/
 src/bethesda/ecology/connectome/fixtures/
 docs/benchmarks/connectome-feeding/
+docs/benchmarks/lifetimes/
+docs/benchmarks/ecology-trace/

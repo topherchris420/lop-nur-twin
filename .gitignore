@@ -87,3 +87,4 @@ fly-neural/*.egg-info/
 # parallel and scratch records. Records go to docs/benchmarks/homeostasis/.
 .fly-homeostasis/
 .fly-feeding/
+.fly-lifetimes/
