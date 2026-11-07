@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import csv
 import gzip
+import io
 import json
 import urllib.request
 from datetime import datetime, timezone
@@ -139,10 +140,12 @@ def _gzip_rows(frame: pl.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(path.suffix + ".part")
     try:
-        with gzip.open(temp, "wt", newline="", encoding="utf-8", compresslevel=6, mtime=0) as out:
-            writer = csv.writer(out, lineterminator="\n")
-            writer.writerow(frame.columns)
-            writer.writerows(frame.iter_rows())
+        with temp.open("wb") as binary:
+            with gzip.GzipFile(filename="", fileobj=binary, mode="wb", compresslevel=6, mtime=0) as compressed:
+                with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as out:
+                    writer = csv.writer(out, lineterminator="\\n")
+                    writer.writerow(frame.columns)
+                    writer.writerows(frame.iter_rows())
         temp.replace(path)
     except Exception:
         temp.unlink(missing_ok=True)
