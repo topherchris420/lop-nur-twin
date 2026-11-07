@@ -94,9 +94,27 @@ nothing a fly does shifts them.
 ## Reference scenarios
 
 `node scripts/run-ts.mjs scripts/ecology-reference.ts` writes
-`docs/benchmarks/ecology/` from a clean commit; `--check`
-reproduces each record on its platform. Its README is written from the records
-there; the records are made from a clean commit after this one.
+[`benchmarks/ecology/`](benchmarks/ecology/README.md) from a clean commit;
+`--check` reproduces each record on its platform. Two independent runs (a
+scratch run and the recorded one, from commit `8c391af`) gave identical
+records.
+
+- **30 days with no fly** (seed 42): 610 fruits fell, 503 were gone by the
+  end and 107 lay in the yard; the yard held between 83 and 117 fruit from the
+  fifth day on. 1.22 kg of sugar was produced, 861 g fermented and 234 g
+  rotted. The worst daily residual of the books was 1.5 × 10⁻⁷ mg of sugar,
+  1.9 × 10⁻⁵ mm of water (summed over 1,600 cells) and 0.013 µg of odour, of
+  about 3.4 × 10⁷ µg emitted. It took 315 s of one core here (10.5 s per
+  simulated day).
+- **A day with one research fly** (the deployed configuration, placed with
+  0.3 of a full reserve): it fed for 502 s, almost all of it on one fruit,
+  taking 1.13 J; the yeast it left took that fruit to the yeast cap (1.0
+  against 0.05 in the fly-less world), so it ferments and smells far sooner.
+  It also sipped nectar. The ecology replayed bare from its 999 recorded
+  interactions equals its world; the fly-less world does not; nothing it took
+  was unbacked. Its artificial maintenance supplied 2.31 J that day, more than
+  food did: in the deployed configuration hunger is cushioned, which Stage B
+  must remove for research bodies.
 
 ## What this does not do
 
@@ -108,6 +126,11 @@ there; the records are made from a clean commit after this one.
   and its body's energy use does not depend on them.
 - The fly cannot drink; the soil's water is not yet the fly's.
 - The yard has no other animals, no plant growth and no seasons.
+- **A flaw found in the 30-day record:** a flower's nectar is capped in volume
+  but not in sugar, so as its water evaporates new secretion keeps adding
+  sugar; unvisited flowers held 112 mg between them after 30 days. Real
+  nectaries stop secreting or resorb; the next version of the ecology caps the
+  sugar.
 
 ## What remains of R.A.I.N. Genesis
 

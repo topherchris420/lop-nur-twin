@@ -61,6 +61,7 @@ Three boundaries hold for every entry:
 | 18  | [Research infrastructure results (R.A.I.N., Noeterra)](#18-research-infrastructure-results)                                                                   | Model-assisted; scripted           | Inconclusive; simulator-only         |
 | 19  | [Every claim in the Lop Nur twin carries its evidence](#19-every-claim-in-the-lop-nur-twin-carries-its-evidence)                                              | Build-enforced rules               | 37 rules, each tested                |
 | 20  | [Seeing looming from an image beats sensing it from geometry](#20-seeing-looming-from-an-image-beats-sensing-it-from-geometry)                                | Held-out (two frozen protocols)    | Negative overall; selective          |
+| 21  | [A world that lives on its own, changed by a fly only through records](#21-a-world-that-lives-on-its-own-changed-by-a-fly-only-through-records)               | Tests; seeded reference            | Passed (deterministic; books close)  |
 
 ## Persistence and continuity of the original
 
@@ -394,6 +395,25 @@ are unavailable and zero-filled.
 - **Record.** [Research compound eye](FLY_VISION.md);
   [`benchmarks/fly-vision/`](benchmarks/fly-vision/README.md);
   [Project Genesis](PROJECT_GENESIS.md).
+
+### 21. A world that lives on its own, changed by a fly only through records
+
+- **Claim.** The research ecology (R.A.I.N. Genesis Stage A) evolves
+  deterministically from its seed with no fly in it, conserves its sugar, soil
+  water and odour, and is changed by a research fly only through recorded
+  interactions (sugar taken, yeast left).
+- **Test.** 13 tests (`src/bethesda/ecology/ecology.test.ts`), including a
+  property test over random yards, an exact-solution check of the odour
+  transport and a replay of a fly's interactions onto a bare ecosystem; a
+  30-day fly-less reference and a day with one research fly, recorded twice
+  with identical results.
+- **Outcome.** **Passed** as an engineering result: same seed, same world;
+  books close to rounding over 30 days; the replayed world equals the fly's.
+- **Limitations.** Every rate is a model choice; nothing is validated against
+  a real ecosystem; odour is one layer in uniform wind; nectar sugar is not
+  capped (a flaw the record exposed).
+- **Record.** [R.A.I.N. Genesis](RAIN_GENESIS.md);
+  [`benchmarks/ecology/`](benchmarks/ecology/README.md).
 
 ## Weaknesses worth a better experiment
 

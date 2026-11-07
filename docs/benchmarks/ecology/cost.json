@@ -1,0 +1,9 @@
+{
+  "wall_s": {
+    "alone-30d": 307.315252,
+    "fly-1d": 147.705764
+  },
+  "platform": "linux x64",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "node": "v22.23.4"
+}
