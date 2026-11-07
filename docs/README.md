@@ -21,6 +21,7 @@ its evidence class and its record.
 | Assess the Lop Nur reconstruction          | [Site model](SITE_MODEL.md), [provenance](DATA_PROVENANCE.md), [uncertainty](UNCERTAINTY_MODEL.md), [temporal model](TEMPORAL_MODEL.md), [white paper](WHITE_PAPER.md) |
 | Run research in the R.A.I.N. Lab           | [Lab guide](RAIN_LAB_BETHESDA.md), [scientific workflow](RAIN_SCIENTIFIC_INTELLIGENCE.md), [discovery](RAIN_EXPERIMENTAL_DISCOVERY.md)                                 |
 | Work on the connectome models              | [Connectome backend](ECHO_CONNECTOME.md), [adaptive intelligence](ECHO_ADAPTIVE_INTELLIGENCE.md), [`fly-neural/`](../fly-neural/README.md)                             |
+| See where Eva and ECHO could go next       | [Project Genesis](PROJECT_GENESIS.md), [research compound eye](FLY_VISION.md)                                                                                          |
 | Contribute code                            | [CONTRIBUTING.md](../CONTRIBUTING.md), [AGENTS.md](../AGENTS.md), [architecture](SYSTEM_ARCHITECTURE.md), [validation](VALIDATION.md)                                  |
 | Run it locally, with the optional parts    | [Getting started](GETTING_STARTED.md)                                                                                                                                  |
 
@@ -78,6 +79,9 @@ Every result, with its class and record, is in the
   [FAFB results](benchmarks/fly-neural/README.md),
   [BANC results](benchmarks/fly-neural/banc/README.md),
   [the originals' neural shadow](ORIGINALS_LIVE_NEURAL_SHADOW.md).
+- **Perception:** [research compound eye](FLY_VISION.md) and its
+  [looming battery](benchmarks/fly-vision/README.md);
+  [Project Genesis](PROJECT_GENESIS.md) for what it means for Eva and ECHO.
 - **Encounters:** [first contact](FIRST_CONTACT.md) and its
   [results](benchmarks/first-contact/README.md);
   [neural augmentation](benchmarks/fly-augmentation/README.md).
@@ -109,6 +113,7 @@ reproduce it.
 | [`fly-neural/`](benchmarks/fly-neural/README.md)                                                                               | FAFB and BANC results, under their data terms                 |
 | [`fly-physics/`](benchmarks/fly-physics/README.md)                                                                             | The MuJoCo backend's traces                                   |
 | [`first-contact/`](benchmarks/first-contact/README.md), [`fly-augmentation/`](benchmarks/fly-augmentation/README.md)           | Encounter and advisor studies                                 |
+| [`fly-vision/`](benchmarks/fly-vision/README.md)                                                                               | The research compound eye's looming battery, and its cost     |
 | [`noeterra-civilization/`](benchmarks/noeterra-civilization/README.md)                                                         | Civilization experiments, refusals included                   |
 
 [`research/`](research/) keeps the scripts and notes investigations ran with, as

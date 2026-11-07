@@ -1088,6 +1088,47 @@ keeping their individual histories across updates and restarts. Read
   folder by hand. `scope.test.ts` keeps the suite to what its benchmarks need, and
   `isolation.test.ts` keeps production from importing it.
 
+### The research compound eye (`src/bethesda/vision/`)
+
+An image-forming eye for research flies: ommatidial lattices, optics, adapting
+photoreceptors, Hassenstein–Reichardt detectors and LPLC2-like looming units,
+and `EyeAdapter`, which puts it in front of a decision maker. Read
+`docs/FLY_VISION.md` and `docs/PROJECT_GENESIS.md` first. Outside the folder it
+adds `scripts/vision-looming-evaluate.ts`, `scripts/vision-looming-report.ts`,
+`scripts/vision-cost.ts`, `docs/benchmarks/fly-vision/`, the two documents,
+the `.fly-vision/` line of `.gitignore`, its lines in `.prettierignore` and its
+pattern in `firstContact/isolation.test.ts`.
+
+- **Never an original, never production.** `EyeAdapter` refuses any subject
+  that is not `research-…` or that names an original (`refuseOriginal`), and
+  nothing in production imports the folder (the isolation test). It is not
+  part of the fly's simulation: it imports the fly, the fly never imports it,
+  and the fly's source digest does not cover it. Do not wire it into
+  `cityFly.ts`, the life, a page or a deployment.
+- **The eye sees only its image.** The renderer is given the body's pose (a
+  sensor must know where it is) and the world, and everything after it reads
+  luminance only. Never pass an object's id, kind, distance or position past
+  the renderer; the looming the eye reports has `distance` NaN.
+- **Observe changes nothing; drive goes through the controller.** In observe
+  mode the wrapped controller must run step for step as without the eye (a
+  test compares state hashes). In drive mode only the frame's `looming` is
+  replaced, and the wrapped controller's own reflex decides, through the gate.
+- **Versioned, and old versions kept.** A change to what the eye computes
+  bumps `VISION_VERSION` and adds an entry to `VISION_VERSIONS` beside the old
+  ones, so every record still describes code that exists. Every number lives
+  in `params.ts`, marked `published` with a source or `model`.
+- **Protocols are frozen; held-out splits run once.** The JSON files in
+  `protocols/` are hashed into every record. A change after a held-out run is a
+  new protocol with a new held-out split; say why in it. Run `dev`, commit,
+  then `heldout`, commit, then `report`, commit, each from a clean commit; the
+  script refuses a held-out run whose development record came from other code.
+  Never edit `docs/benchmarks/fly-vision/` by hand; `--check` reproduces each
+  record on its platform at the commit it names.
+- **The cache is exact.** The renderer reuses the static scene for an
+  unchanged pose; a world whose static geometry changes sets
+  `staticGeometryChanges`. Never add an approximation to it without a version
+  bump and a battery of its own.
+
 ### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 
 A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives meet

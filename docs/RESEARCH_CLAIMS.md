@@ -6,7 +6,7 @@ as strong as the record it links to: this page summarises those records and
 does not replace them. Numbers are copied from the linked records, except
 where an entry says it computed something itself, and then it says how.
 
-As of 2026-11-05. A result recorded later belongs in its own record first and
+As of 2026-11-07. A result recorded later belongs in its own record first and
 here second.
 
 ## How to read an entry
@@ -60,6 +60,7 @@ Three boundaries hold for every entry:
 | 17  | [Flies in separate worlds perceive and recognise each other](#17-flies-in-separate-worlds-perceive-and-recognise-each-other)                                  | Seeded studies, frozen protocols   | Perception yes; recognition negative |
 | 18  | [Research infrastructure results (R.A.I.N., Noeterra)](#18-research-infrastructure-results)                                                                   | Model-assisted; scripted           | Inconclusive; simulator-only         |
 | 19  | [Every claim in the Lop Nur twin carries its evidence](#19-every-claim-in-the-lop-nur-twin-carries-its-evidence)                                              | Build-enforced rules               | 37 rules, each tested                |
+| 20  | [Seeing looming from an image beats sensing it from geometry](#20-seeing-looming-from-an-image-beats-sensing-it-from-geometry)                                | Held-out (two frozen protocols)    | Negative overall; selective          |
 
 ## Persistence and continuity of the original
 
@@ -369,6 +370,30 @@ are unavailable and zero-filled.
   source is right.
 - **Record.** [Site model](SITE_MODEL.md); [provenance](DATA_PROVENANCE.md);
   [`/analysis`](https://lop-nur-twin.vercel.app/analysis).
+
+### 20. Seeing looming from an image beats sensing it from geometry
+
+- **Claim.** A research fly in the deployed configuration that sees looming
+  through an image-forming compound eye (Hassenstein–Reichardt detectors,
+  LPLC2-like units with radial motion opponency) escapes better than one using
+  the deployed giant-fiber proxy, which reads the object's size and expansion
+  from the world's geometry.
+- **Test.** Two frozen protocols, each with its own held-out split run once
+  from a clean commit, 248 trials each, live escapes through the body's gate:
+  looming-v1 (eye v1) and looming-v2 (eye v2, after a flaw found in v1's spent
+  split).
+- **Outcome.** **Negative** on the primary criterion both times: live F1
+  0.677 against 0.739 (−0.062 [−0.217, 0.084]), then 0.825 against 0.800
+  (+0.025 [−0.105, 0.162]). **Supported** for selectivity: no near miss
+  escaped from (0/48 against 16/48 and 20/48), ablation and shuffled
+  retinotopy each cost 0.21–0.35 F1 with intervals above 0, and a 110 ms median
+  lead against 38 ms in v2. A τ rule on the deployed senses scored 0.917 and
+  0.824.
+- **Limitations.** Perched flies in an arena only; a reduced rate model; every
+  constant a model choice; about 50 times the deployed fly's compute.
+- **Record.** [Research compound eye](FLY_VISION.md);
+  [`benchmarks/fly-vision/`](benchmarks/fly-vision/README.md);
+  [Project Genesis](PROJECT_GENESIS.md).
 
 ## Weaknesses worth a better experiment
 
