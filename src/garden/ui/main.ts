@@ -37,6 +37,7 @@ import {
   durationText,
   establishedFor,
   labelOf,
+  adaptiveOf,
   learnedOf,
   lifeOf,
   memoriesOf,
@@ -646,6 +647,7 @@ function renderMemories(state: Observation) {
 }
 
 function renderLearned(state: Observation) {
+  setText("learned-adaptive", adaptiveOf(state.adaptive));
   const l = learnedOf(state.learning);
   const ul = $("learned-movement");
   if (!l) {

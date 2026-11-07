@@ -61,6 +61,22 @@ reproduces them byte for byte on the platform they were recorded on.
 [Reproduce it](#reproduce-it-or-build-on-it), or start from
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## 7 November 2026: learning prepared for both flies, not switched on
+
+ECHO and Eva each have a new learning addition that continues the same individual
+instead of replacing it. ECHO's learns how reliably its own steps carry it, and
+may slow a failing walk. Eva's learns how far flying and walking each carry her,
+and may swap them. Both start in **shadow mode**: they learn and report, and change
+nothing. Neither runs on the live flies yet. That waits for the owner's approval,
+step by step ([activation record](docs/EVA_ECHO_ACTIVATION.md)).
+
+On held-out research individuals, never the originals: shadow mode was identical
+to the original fly in every run (ECHO 144 of 144, Eva 72 of 72), and restarts kept
+what was learned. Active mode showed **no benefit**. ECHO's acted only when its
+legs were weak, and changed meals by +0.17 (95% CI −1.00 to 1.33). Eva's never
+acted, because her own learning already chose well
+([what was built and found](docs/EVA_ECHO_BRAIN_PLASTICITY.md)).
+
 ## 4 November 2026: the collision repair reached the original ECHO
 
 The deployed ECHO spent nearly three days inside the walls of a building it could

@@ -117,6 +117,19 @@ export interface Needs {
   water: number;
 }
 
+/**
+ * The opt-in embodied plasticity's report (`eva_plasticity.py`), present only
+ * when her service runs it. Counts of a toy model, read only.
+ */
+export interface Adaptive {
+  version: string;
+  mode: string;
+  status: string;
+  samples: number | null;
+  wouldOverride: number | null;
+  overrides: number | null;
+}
+
 export interface Observation {
   lifeId: string;
   bornAt: number;
@@ -143,6 +156,7 @@ export interface Observation {
   weather: Weather;
   learning: Learning | null;
   needs: Needs | null;
+  adaptive: Adaptive | null;
 }
 
 export class ObservationError extends Error {}
@@ -288,6 +302,20 @@ function parseLearning(v: unknown): Learning | null {
   };
 }
 
+function parseAdaptive(v: unknown): Adaptive | null {
+  if (!isObject(v) || typeof v.version !== "string" || typeof v.mode !== "string")
+    return null;
+  const count = (x: unknown) => (finite(x) && x >= 0 ? x : null);
+  return {
+    version: v.version.slice(0, 80),
+    mode: v.mode.slice(0, 20),
+    status: typeof v.status === "string" ? v.status.slice(0, 300) : "unknown",
+    samples: count(v.samples),
+    wouldOverride: count(v.would_override),
+    overrides: count(v.overrides),
+  };
+}
+
 function parseNeeds(v: unknown): Needs | null {
   if (!isObject(v)) return null;
   const { energy, fullness, water } = v;
@@ -348,6 +376,7 @@ export function parseObservation(raw: unknown): Observation {
     weather: parseWeather(s.weather),
     learning: parseLearning(s.learning),
     needs: parseNeeds(s.needs),
+    adaptive: parseAdaptive(s.adaptive),
   };
 }
 

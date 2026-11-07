@@ -115,7 +115,10 @@ her original server byte for byte (tested).
    configured, a missing database stops the service instead of beginning a new life.
 5. **Observable.** `/state` gains an `adaptive` object (version, mode, status, life
    ID, ticks, samples, discarded, duplicates, swaps, would-have-swapped, estimates,
-   last save, last daily copy) only when the extension is configured.
+   last save, last daily copy) only when the extension is configured. The garden
+   page reads it (optionally, so a malformed report is dropped rather than blanking
+   the page) and adds one line to its learning panel; that page change reaches her
+   site only through `deploy/garden/deploy.mjs publish`, with the owner's approval.
 
 Shadow mode is byte-identical to her original service: the tests run the original
 and patched services side by side in simulated time (normal, weak wings, steady
@@ -132,7 +135,53 @@ code was written.
 - Eva: [`docs/benchmarks/eva-plasticity/`](benchmarks/eva-plasticity/) (study in
   [`deploy/garden/service/study.py`](../deploy/garden/service/study.py)).
 
-Held-out results: not yet run at this commit, which fixes the plans and seeds.
+Both held-out splits ran once from the clean commit `288b3a8`.
+
+**ECHO** (24 seeds, 2 simulated hours each, 576 runs):
+
+- **Hard checks passed.** Shadow mode was identical to the organism in 144 of 144
+  paired runs (every metric and the final body and controller hash). Restored from
+  a checkpoint at minute 60, every run ended exactly as the uninterrupted one, with
+  what it had learned kept: 96 of 96.
+- **Primary: no difference established.** With weak legs, active minus original
+  meals: +0.17 (95% CI −1.00 to 1.33), better on 11 seeds, worse on 10. Energy
+  taken in: −0.012 J (CI −0.056 to 0.031). The dev split's +1.13 meals did not
+  replicate.
+- **It acts only where the body is failing.** It slowed walks in every weak-legs
+  run (failure rate about 0.72) and never in steady, moving-food, noisy-sense or
+  push runs (failure rates 0.001 to 0.21). Sensor noise and an external push did not
+  make it act. That is the mechanism doing what it was built to do; it is not a
+  benefit.
+- **Secondary, no claims.** With weak legs, active walked 1.2 m less (CI −1.7 to
+  −0.8); collisions, latency and missed placements showed no difference. The
+  fixed-slow ablation also showed no difference in meals with weak legs. In the
+  other conditions it walked 6 to 9 m less, and its intervals for missed placements
+  under push (+0.33, CI +0.08 to +0.63) and collisions with moving food (+0.17,
+  CI +0.04 to +0.33) lie above zero. Active avoided those costs by not acting.
+
+**Eva** (12 seeds, 48 simulated hours each, 288 runs):
+
+- **Hard checks.** Shadow mode was identical to her original service in 72 of 72
+  runs (world row and every moment). A stop and start at hour 24 ended exactly as
+  the uninterrupted run in 45 of 48: original, shadow and active in 36 of 36. The
+  three failures are the no-learning ablation's harness, which reset her gains in
+  memory after her service had saved the world. A diagnostic copy that saves after
+  the reset makes all three exact
+  ([NOTES.md](benchmarks/eva-plasticity/NOTES.md)).
+- **Primary: no difference established, with an interval of exactly zero.** Active
+  mode never swapped a motion in any held-out run. In every condition its evidence
+  agreed with her own `choose_motion`: even with weak wings, flying carried her
+  further per second than walking, and she already chose it. Her own learning
+  already makes the choice this addition was built to correct.
+- **Secondary, no claims.** With her learned gains held at their prior, autumn
+  gardens completed 90.8 fewer journeys (CI −118.5 to −64.6) and took 180 s longer
+  over each.
+
+**What this licenses.** Shadow mode can run on both originals without changing
+their behaviour, and both can be stopped and restarted with what they learned
+kept. Nothing here supports turning on active mode for either fly as an
+improvement. For ECHO, active mode is a bounded, selective safety behaviour with
+no measured benefit in these conditions. For Eva, it is inert in these conditions.
 
 ## Tests
 

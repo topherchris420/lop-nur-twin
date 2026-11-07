@@ -6,6 +6,7 @@ import {
   type Observation,
 } from "../core/observation.js";
 import {
+  adaptiveOf,
   BODY_NOTE,
   establishedFor,
   labelOf,
@@ -178,5 +179,30 @@ describe("the weather", () => {
     expect(weatherOf(reported)).not.toMatch(/seasonal/);
     (r.weather as Record<string, unknown>).source = "seasonal";
     expect(weatherOf(parseObservation(r))).toMatch(/\(seasonal estimate\)$/);
+  });
+});
+
+describe("adaptiveOf", () => {
+  const a = {
+    version: "eva-embodied-plasticity/v1",
+    mode: "shadow",
+    status: "ok",
+    samples: 1403,
+    wouldOverride: 2,
+    overrides: 0,
+  };
+  it("says nothing when her service does not run it", () => {
+    expect(adaptiveOf(null)).toBe("");
+  });
+  it("says shadow mode changes nothing, and what active mode did", () => {
+    expect(adaptiveOf(a)).toBe(
+      "Embodied plasticity (eva-embodied-plasticity/v1, shadow): learned from 1,403 travel steps; would have swapped her motion 2 times; changes nothing.",
+    );
+    expect(adaptiveOf({ ...a, mode: "active", overrides: 5 })).toContain(
+      "swapped her motion 5 times",
+    );
+    expect(
+      adaptiveOf({ ...a, status: "refused: the sidecar belongs to a different life" }),
+    ).toContain("refused");
   });
 });
