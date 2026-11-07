@@ -160,7 +160,7 @@ lives.
 
 | Variable         | What drives it                                                                                                                            | Limit                    |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| Body temperature | Relaxes (20 s) toward the air's temperature plus 4 °C in full sun                                                                         | Death above 39 °C        |
+| Body temperature | Relaxes (20 s) toward the air's temperature plus 6 °C in full sun                                                                         | Death above 39 °C        |
 | Energy           | The body's own spending, plus the difference a Q10 of 2.5 makes against its 25 °C power, taken from (or given back to) its reserve        | Death after 30 min empty |
 | Water            | Lost in proportion to the vapour-pressure deficit at body temperature (Murray 1967), doubled in flight; gained by drinking and from juice | Death below 35%          |
 
@@ -200,10 +200,75 @@ Development runs (not results) found three things worth keeping:
   wet ground, so a policy that drank on humid air rested where the body could
   not drink. Drinking is now decided by contact.
 
+### The study and its held-out result
+
+`homeostasis-v1` (frozen at `724e36e` before its held-out split ran) puts
+mortal research flies in generated courtyards. The climate is dry and warm:
+25 °C mean, a 5 °C daily swing, the humidity shifted down by 0.4. Each yard
+has five trees, four with canopies, six flowers, two rocks and three springs
+under the canopies. A fly starts at least 4 m from a spring at 08:00, after
+the yard's two-day spin-up, and lives up to 8 hours. Six arms per fly:
+
+| Arm               | Body                                                                                   | Feedback                                                                         |
+| ----------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| deployed          | the deployed configuration: maintenance on, cannot die (a reference, not a comparator) | none                                                                             |
+| no-feedback       | mortal                                                                                 | none: the deployed controller alone                                              |
+| full              | mortal                                                                                 | thirst and heat                                                                  |
+| no-thirst         | mortal                                                                                 | heat only                                                                        |
+| no-heat           | mortal                                                                                 | thirst only                                                                      |
+| shuffled-humidity | mortal                                                                                 | both, with humidity read at a displaced point (a control for the humidity sense) |
+
+The held-out split (8 yards × 2 flies × 6 arms = 96 runs) ran once, in four
+shards, and was scored unedited:
+[record](benchmarks/homeostasis/homeostasis-v1-heldout.json),
+[README](benchmarks/homeostasis/README.md). Intervals are paired percentile
+bootstraps over yards, 95%.
+
+| Criterion                                              | Result   | Measured             |
+| ------------------------------------------------------ | -------- | -------------------- |
+| H1 (primary): hydrated share, full − none, above 0     | **fail** | +0.07 [−0.05, +0.16] |
+| H2: hydrated share, full − heat only, above 0          | pass     | +0.11 [+0.05, +0.18] |
+| H3: hydrated share, full − displaced humidity, above 0 | pass     | +0.09 [+0.02, +0.17] |
+| H4: survival, full − none ≥ 0.25, above 0              | **fail** | +0.19 [−0.25, +0.56] |
+| H5: hours hot, full − thirst only, below 0             | **fail** | +0.18 [−0.02, +0.47] |
+| H6: median hydrated share of full ≥ 0.8                | pass     | 0.80                 |
+
+| Arm                | Alive at 8 h | Mean hydrated share | Mean hours hot | Deaths                      |
+| ------------------ | ------------ | ------------------- | -------------- | --------------------------- |
+| no feedback        | 10 of 16     | 0.76                | 0.19           | desiccation 5, starvation 1 |
+| thirst and heat    | 13 of 16     | 0.83                | 0.39           | desiccation 2, starvation 1 |
+| heat only          | 8 of 16      | 0.72                | 0.36           | desiccation 8               |
+| thirst only        | 15 of 16     | 0.82                | 0.21           | starvation 1                |
+| displaced humidity | 8 of 16      | 0.74                | 0.37           | desiccation 8               |
+
+**What it shows.** The primary criterion fails: with both feedbacks, mortal
+flies were not reliably better hydrated than with none. H2 and H3 pass, but
+they say less than they appear to. The arms they compare against (heat only,
+displaced humidity) are worse than no feedback at all, so they show that the
+humidity sense matters inside the full policy, not that the policy beats
+none.
+
+**What the held-out split found, exploratory.** These comparisons were not
+pre-registered. They are the same bootstrap over the same record:
+
+- **The heat policy makes flies hotter.** Hours above 31 °C, heat only − none:
+  +0.17 [+0.03, +0.40]; full − none: +0.20 [+0.05, +0.43]. In this body, heat
+  comes only from the sun (no activity heating). The policy walks a hot fly
+  away from the light's bearing. In a yard whose shade lies under four
+  canopies, that direction rarely leads to shade, and the policy takes over
+  from the controller, whose foraging flights end at trees. That mechanism is
+  a hypothesis; nothing here tested it.
+- **Thirst alone did best.** Survival, thirst only − none: +0.31 [+0.06,
+  +0.56]; thirst only − full: +0.13 [0.00, +0.38]. Hydrated share, thirst only
+  − none: +0.06 [−0.05, +0.17].
+
+Both point to a next protocol (shade-seeking by the canopies' shadow, or no
+heat policy). That protocol would need its own held-out split: the policy was
+not changed after this one.
+
 ## What remains of R.A.I.N. Genesis
 
-Stage B's study (its protocol is `homeostasis-v1`; it has not reported yet), then Stages C–G:
-the strongest connectome hybrid benchmarked against
+Stages C–G: the strongest connectome hybrid benchmarked against
 ECHO's controller in it; learning whose usefulness is tested under held-out
 environments; long developmental histories and their individuality; a
 read-only causal trace of stimulus, neural activity, action and feedback; and

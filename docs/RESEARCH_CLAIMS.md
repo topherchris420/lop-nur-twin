@@ -62,6 +62,7 @@ Three boundaries hold for every entry:
 | 19  | [Every claim in the Lop Nur twin carries its evidence](#19-every-claim-in-the-lop-nur-twin-carries-its-evidence)                                              | Build-enforced rules               | 37 rules, each tested                |
 | 20  | [Seeing looming from an image beats sensing it from geometry](#20-seeing-looming-from-an-image-beats-sensing-it-from-geometry)                                | Held-out (two frozen protocols)    | Negative overall; selective          |
 | 21  | [A world that lives on its own, changed by a fly only through records](#21-a-world-that-lives-on-its-own-changed-by-a-fly-only-through-records)               | Tests; seeded reference            | Passed (deterministic; books close)  |
+| 22  | [Homeostatic feedback keeps a mortal research fly hydrated](#22-homeostatic-feedback-keeps-a-mortal-research-fly-hydrated)                                    | Held-out (frozen protocol)         | Primary failed; 3 of 6               |
 
 ## Persistence and continuity of the original
 
@@ -414,6 +415,33 @@ are unavailable and zero-filled.
   capped (a flaw the record exposed).
 - **Record.** [R.A.I.N. Genesis](RAIN_GENESIS.md);
   [`benchmarks/ecology/`](benchmarks/ecology/README.md).
+
+### 22. Homeostatic feedback keeps a mortal research fly hydrated
+
+- **Claim.** Thirst and heat feedback layered over the deployed controller
+  (R.A.I.N. Genesis Stage B), reading only what a fly could sense (its own
+  water and temperature, humidity at its antennae, water under its feet, the
+  light's direction), keeps a mortal research fly better hydrated in a dry
+  courtyard than the controller alone.
+- **Test.** `homeostasis-v1`, frozen at `724e36e`: 8 held-out yards × 2 flies
+  × 6 arms (the deployed configuration as a reference; mortal bodies with no
+  feedback, both, heat only, thirst only, and both with displaced humidity),
+  8 hours each. Six criteria; H1, hydrated share of full − none with its
+  interval above 0, is primary.
+- **Outcome.** **The primary criterion failed:** +0.07 [−0.05, +0.16]. Passed:
+  H2 (full − heat only, +0.11 [+0.05, +0.18]), H3 (full − displaced humidity,
+  +0.09 [+0.02, +0.17]) and H6 (median hydrated share 0.80). Failed: H4
+  (survival) and H5 (heat). The arms H2 and H3 compare against are worse than
+  no feedback, so they show that the humidity sense matters inside the
+  policy, not that the policy beats none. Exploratory, not pre-registered:
+  the heat policy raised hours hot (+0.20 [+0.05, +0.43] over none), and
+  thirst alone kept 15 of 16 flies alive against 10 of 16 with none.
+- **Limitations.** Physiology of a plausible order, not fitted to
+  _Drosophila_; water loss calibrated on development settings so that water
+  binds first; one climate; 16 flies per arm. Mortal bodies exist only for
+  research subjects: Eva and ECHO cannot die.
+- **Record.** [R.A.I.N. Genesis](RAIN_GENESIS.md#the-study-and-its-held-out-result);
+  [`benchmarks/homeostasis/`](benchmarks/homeostasis/README.md).
 
 ## Weaknesses worth a better experiment
 
