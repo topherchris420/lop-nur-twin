@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use noeterra::action::{Action, MAX_ACTIONS};
 use noeterra::brain::prism::{interpret, questions, request, state, Kind, PrismBrain, SarvamPrism, MAX_OPTIONS};
-use noeterra::brain::{Brain, Label};
+use noeterra::brain::{over_limit, Brain, Label};
 use noeterra::hash::sha256_hex;
 use noeterra::model::CivId;
 use noeterra::observe::{observe, Observation};
@@ -321,7 +321,84 @@ fn answers_outside_the_questions_are_discarded_and_open_proposals_go_to_the_rule
         qs.len() - 1 - usize::from(domestic.is_some()),
         "out-of-range and missing answers leave no score"
     );
+    let limits: Vec<&String> = discarded.iter().filter(|r| over_limit(r)).collect();
+    assert!(limits.is_empty(), "each of these is the answer's fault: {limits:?}");
     assert!(interpret(&obs, &qs, &json!({ "answers": [] }), 5).is_err());
+}
+
+#[test]
+fn wanting_more_than_the_limits_allow_is_trimmed_not_counted_as_wrong() {
+    // Prism says yes to everything a poor Rome is offered: the engine keeps the
+    // most wanted it can afford, at most MAX_ACTIONS, and every cut is a limit.
+    let mut s = sim(3);
+    let rome = s.world.civ_by_key("rome").unwrap();
+    s.world.civs[rome].treasury = 30.0;
+    let obs = observe(&s.world, rome);
+    let (qs, _) = questions(&obs);
+    let body = request(&obs, &s.world.memories[rome], &qs, "sarvam-prism").to_string();
+    let answer: Value = serde_json::from_str(&answer_all(&body, &|_, _| 0.9)).unwrap();
+    let (d, _, discarded) = interpret(&obs, &qs, &answer, 3).unwrap();
+    assert_eq!(d.actions.len(), MAX_ACTIONS);
+    assert!(
+        discarded
+            .iter()
+            .any(|r| r.ends_with(&format!("exceeds {MAX_ACTIONS} actions"))),
+        "{discarded:?}"
+    );
+    assert!(discarded.iter().any(|r| r.contains("] costs ")), "{discarded:?}");
+    let wrong: Vec<&String> = discarded.iter().filter(|r| !over_limit(r)).collect();
+    assert!(wrong.is_empty(), "nothing here is the answer's fault: {wrong:?}");
+
+    // A text model's answer, through the same menu check: a second move for one
+    // army and a fourth letter are limits; an index, proposal or power that does
+    // not exist is the answer's fault.
+    let obs = observe(&sim(3).world, rome);
+    let army = obs.armies[0].id;
+    let moves: Vec<usize> = obs
+        .offered
+        .iter()
+        .filter(|o| matches!(o.action, Action::Move { army: a, .. } if a == army))
+        .map(|o| o.index)
+        .take(2)
+        .collect();
+    let letter = json!({ "to": "carthage", "text": "Rome watches Messana." });
+    let text = json!({
+        "assessment": "",
+        "actions": [moves[0], moves[1], 9999],
+        "responses": [{ "proposal": 4242, "accept": true }],
+        "messages": [{ "to": "atlantis", "text": "hello" }, letter, letter, letter, letter],
+        "memory_note": ""
+    })
+    .to_string();
+    let (_, _, discarded) = noeterra::brain::llm::interpret_answer(&obs, &text, 3).unwrap();
+    let kind = |needle: &str| {
+        let r = discarded
+            .iter()
+            .find(|r| r.contains(needle))
+            .unwrap_or_else(|| panic!("{needle}: {discarded:?}"));
+        over_limit(r)
+    };
+    assert!(kind("a second time"));
+    assert!(kind("letter beyond the limit"));
+    assert!(!kind("9999"));
+    assert!(!kind("4242"));
+    assert!(!kind("atlantis"));
+
+    // Only the engine's own wording counts: text a model chose cannot pass for a limit.
+    assert!(over_limit(&format!("[3] exceeds {MAX_ACTIONS} actions")));
+    assert!(over_limit(&format!(
+        "[7] not asked: power-gauls already has {MAX_OPTIONS} options"
+    )));
+    for forged in [
+        format!("army-1: `[3] exceeds {MAX_ACTIONS} actions` is not one of its options"),
+        "letter to unknown or unreachable power `[1] costs 2; only 1 left`".to_string(),
+        format!("[x] exceeds {MAX_ACTIONS} actions"),
+        format!("[3] exceeds {} actions", MAX_ACTIONS + 1),
+        "proposal 4 left unanswered; the rules answered it".to_string(),
+        "power-epirus: not answered".to_string(),
+    ] {
+        assert!(!over_limit(&forged), "{forged}");
+    }
 }
 
 #[test]
@@ -393,6 +470,12 @@ fn a_prism_seat_plays_full_turns_and_the_history_replays_without_it() {
     );
     assert_eq!(prism["decisions_reporting_tokens"], 3);
     assert!(prism["latency_ms"]["max"].as_u64().is_some());
+    // Yes to everything is more than one season allows: trimmed, never wrong.
+    let trimmed: usize = save.turns.iter().map(|t| t.decisions[2].discarded.len()).sum();
+    assert!(trimmed > 0, "the stand-in wants more than MAX_ACTIONS");
+    assert_eq!(prism["discarded"], trimmed);
+    assert_eq!(prism["discarded_over_limit"], trimmed);
+    assert_eq!(prism["discarded_invalid"], 0);
     assert_eq!(score["seats"][0]["labels"], json!({ "rules": 3 }));
     assert_eq!(score["seats"][0]["tokens_in"], 0);
 

@@ -1,10 +1,48 @@
-# Sarvam-Prism ruling Rome: pilot preregistration
+# Sarvam-Prism ruling Rome: pilot preregistration, version 2
 
-**Status: draft until merged.** The commit that merges this file into `main`
-freezes it, together with the runner (`tools/noeterra-prism-pilot.mjs`) and the
-engine (`noeterra/src`, `noeterra/Cargo.toml`, `noeterra/Cargo.lock`). That
-commit's SHA also draws the study's seeds. Changing anything frozen after the
-first priced call makes a new study, with a new preregistration.
+**Status: version 2, draft until merged.** The commit that merges this file
+into `main` freezes it, together with the runner
+(`tools/noeterra-prism-pilot.mjs`) and the engine (`noeterra/src`,
+`noeterra/Cargo.toml`, `noeterra/Cargo.lock`). That commit's SHA also draws
+the study's seeds. Changing anything frozen after the first priced call makes
+a new study, with a new preregistration.
+
+## Amendment from version 1
+
+Version 1 was frozen by merge `222b459`. Its priced check ran twice on
+2026-11-06, and both runs are kept in [`v1-check/`](v1-check/):
+
+1. Sarvam refused all three calls with 403 `invalid_api_key_error`. No tokens
+   were spent. The key was not one Sarvam's API recognised, and a new key
+   fixed it.
+2. All three calls came back LIVE, the history replayed, and Sarvam reported
+   10,525 input tokens. The check still failed its own rule, "nothing
+   discarded", with 8 discarded parts. None of the 8 was a wrong answer. Each
+   was the engine keeping Prism to its limits: 5 were "exceeds 6 actions" and
+   3 were "costs 24; only 2 left". Prism said yes to more than one season
+   allows, and the engine kept the most probable parts it could afford. The
+   dry run never met this case, because its stand-in never asked for more
+   than Rome could do, so the rule could not tell a trim from a fault.
+
+Version 1's study never started, and none of its six seeds was played. Version
+2 changes only this:
+
+- **The check fails on invalid parts, not on trims.** `noeterra score` now
+  splits a seat's discarded parts into those the engine's limits trimmed and
+  those the answer got wrong (`brain::over_limit`). The limits are at most 6
+  actions, one move per army, the treasury, at most 3 letters, and Prism's
+  option cap. Wrong answers are an option or index not offered, a question
+  left unanswered, and a proposal or power that does not exist. The check
+  needs zero invalid parts. Trims are counted and reported in every stage.
+  Re-scored this way, version 1's second check has 8 trims and 0 invalid
+  parts.
+- **New seeds.** This version's merge draws them under the label
+  `noeterra-prism-pilot/2`, skipping version 1's six seeds as well.
+- **Measured token figures.** The arms table and budget use what version 1's
+  check measured instead of the 4-bytes-a-token guess.
+
+The question, arms, decoys, bars, verdicts, budget and every other stop rule
+are unchanged.
 
 **Evidence class: simulated.** Every number here describes Noeterra's
 illustrative rules and its agents. None of it is evidence about history, and
@@ -24,13 +62,13 @@ and latency, and an effect estimate to size a later study.
 
 ## Design
 
-| Item            | Choice                                                                                                                                                                                                                |
-| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scenario        | `mediterranean-264bc`, 40 seasons                                                                                                                                                                                     |
-| Seat under test | Rome. The other eight civilizations play by the rules in every arm                                                                                                                                                    |
-| Seeds           | Six, drawn by `node tools/noeterra-prism-pilot.mjs seeds <merge commit>` from the full SHA of the commit that merges this file. Seeds 1–12 (the lab's archived experiments) and 101–103 (the dry run) are skipped     |
-| Runner          | `node tools/noeterra-prism-pilot.mjs study --merge <sha> --spend` plays every arm on each seed, in the order rules, random, passive, outage, prism                                                                    |
-| Measurement     | `noeterra score` re-simulates each save without any model and reports the world's metrics, each civilization's end state, and per seat its labels, reported input tokens, latency, discarded parts and active seasons |
+| Item            | Choice                                                                                                                                                                                                                                   |
+| :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scenario        | `mediterranean-264bc`, 40 seasons                                                                                                                                                                                                        |
+| Seat under test | Rome. The other eight civilizations play by the rules in every arm                                                                                                                                                                       |
+| Seeds           | Six, drawn by `node tools/noeterra-prism-pilot.mjs seeds <merge commit>` from the full SHA of the commit that merges this file. Seeds 1–12 (the lab's archived experiments), 101–103 (the dry run) and version 1's six seeds are skipped |
+| Runner          | `node tools/noeterra-prism-pilot.mjs study --merge <sha> --spend` plays every arm on each seed, in the order rules, random, passive, outage, prism                                                                                       |
+| Measurement     | `noeterra score` re-simulates each save without any model and reports the world's metrics, each civilization's end state, and per seat its labels, reported input tokens, latency, discarded parts and active seasons                    |
 
 The study runs in three stages:
 
@@ -39,19 +77,20 @@ The study runs in three stages:
    results are in [`dry-run/`](dry-run/).
 2. **Priced check (3 calls).** Seed 101, seasons 1–3, against Sarvam's API. It
    needs `SARVAM_API_KEY` and `--spend`, and passes only if all three seasons
-   are LIVE with nothing discarded. Season 1's request depends only on the
-   starting world, so it is byte-identical to the dry run's. The check projects
-   the study's tokens from season 1's tokens per byte and the dry run's request
-   sizes.
+   are LIVE, no part of any answer is invalid, and the history replays. Parts
+   the engine's limits trim are counted and reported, and do not fail it.
+   Season 1's request depends only on the starting world, so it is
+   byte-identical to the dry run's. The check projects the study's tokens from
+   season 1's tokens per byte and the dry run's request sizes.
 3. **Study (240 calls).** The six seeds, 40 Prism calls each. It starts only
    after the check passes and the owner approves its projection.
 
 ## Arms
 
-| Arm               | Rome's seat                                                                                                          | Calls Sarvam  | Per game                                                                                                                                                               |
-| :---------------- | :------------------------------------------------------------------------------------------------------------------- | :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| rules (control)   | `rules`                                                                                                              | no            | nothing                                                                                                                                                                |
-| prism (treatment) | `prism`: model `sarvam-prism` at the seat's defaults, one request a season. The runner clears `NOETERRA_PRISM_MODEL` | yes, 40 calls | Dry-run requests were 8,959 to 15,823 bytes (mean 13,422). At 4 bytes a token that is about 3,400 tokens a call and 134,000 a game. The check measures the real figure |
+| Arm               | Rome's seat                                                                                                          | Calls Sarvam  | Per game                                                                                                                                                                                                                                  |
+| :---------------- | :------------------------------------------------------------------------------------------------------------------- | :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| rules (control)   | `rules`                                                                                                              | no            | nothing                                                                                                                                                                                                                                   |
+| prism (treatment) | `prism`: model `sarvam-prism` at the seat's defaults, one request a season. The runner clears `NOETERRA_PRISM_MODEL` | yes, 40 calls | Dry-run requests were 8,959 to 15,823 bytes (mean 13,422). Version 1's check measured 0.35 tokens a byte, so about 4,700 tokens a call, 188,000 a game and 1.13 million for the study (0.75 to 1.33 million). The check measures it again |
 
 gstack's price table has no row for `sarvam-prism` (`EVAL_PRICE_MISSING`), and
 this repository keeps prices only in `config/pricing.json`, which prices
@@ -85,7 +124,8 @@ verdict does not use it.
 
 Descriptive only, with no verdict: Rome's treasury, stability and survival at
 the end; wars declared in the world; and Prism's tokens per call, latency,
-discarded parts and the model name Sarvam reports.
+discarded parts (trimmed and invalid, counted apart) and the model name Sarvam
+reports.
 
 ## Decoys
 
@@ -104,8 +144,10 @@ as the rules" when Prism hardly played.
 
 ## Stop rules
 
-1. **Budget.** At most 2,000,000 reported input tokens across the check and the
-   study together, about 2.5 times the dry run's estimate. Before each Prism
+1. **Budget.** At most 2,000,000 reported input tokens across this version's
+   check and study together: 1.8 times the study's projection from version
+   1's check, and 1.5 times its top end. Version 1's 10,525 tokens are reported beside it, not
+   counted against it. Before each Prism
    game, the runner admits it only if the tokens spent so far, plus 1.25 × 40 ×
    the largest per-call count seen, fit. Otherwise it stops with
    `budget_exhausted`. LIVE calls that report no tokens are counted and shown.
@@ -113,8 +155,8 @@ as the rules" when Prism hardly played.
    study at once.
 3. **Fallbacks.** A game with more than 2 FALLBACK seasons is invalid. A second
    invalid game stops the study, as "not measured".
-4. **Check.** If any of the check's 3 calls falls back, discards a part or fails
-   to replay, nothing further runs until the cause is understood.
+4. **Check.** If any of the check's 3 calls falls back, has an invalid part or
+   fails to replay, nothing further runs until the cause is understood.
 5. **Replay.** Any save that does not re-simulate stops the study.
 6. **Freeze.** The runner refuses the study if the plan, the runner or the
    engine differ from the merge commit, including uncommitted changes. It
@@ -130,11 +172,12 @@ reason.
 
 ## Held-out exposure
 
-| Set                                   | Prior exposure                                                                                                        | Reservation                                       |
-| :------------------------------------ | :-------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------ |
-| Study seeds (six, from the merge SHA) | None. They do not exist until the merge, so no arm, model or person has run them                                      | Run only by `study`, once, after the check passes |
-| Dry-run seeds 101–103                 | The dry run: all five arms, with Prism answered by the stand-in. The priced check replays seed 101's seasons 1–3 live | Development only. Never study seeds               |
-| Lab seeds 1–12                        | The lab's archived experiments, rule-based seats                                                                      | Skipped                                           |
+| Set                                   | Prior exposure                                                                                                                                                                             | Reservation                                       |
+| :------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------ |
+| Study seeds (six, from the merge SHA) | None. They do not exist until the merge, so no arm, model or person has run them                                                                                                           | Run only by `study`, once, after the check passes |
+| Version 1's seeds (merge `222b459`)   | Drawn, never played by any arm                                                                                                                                                             | Skipped                                           |
+| Dry-run seeds 101–103                 | The dry run: all five arms, with Prism answered by the stand-in. Version 1's check played seed 101's seasons 1–3 against Sarvam (once refused, once live), and this check plays them again | Development only. Never study seeds               |
+| Lab seeds 1–12                        | The lab's archived experiments, rule-based seats                                                                                                                                           | Skipped                                           |
 
 ## Diagnostics
 
@@ -161,11 +204,13 @@ fixture: `docs/benchmarks/noeterra-prism/fixture-scores.jsonl`
 ## What Sarvam receives
 
 Each request carries Rome's brief and its fog-of-war report of the simulated
-game, and nothing about any person. Before the priced check, the account owner
-sets the organization's data retention to 0 days and opts out of training:
-Sarvam keeps inputs until a retention period is set, and its privacy policy
-says inputs train its models unless the account opts out. Processing happens
-in India.
+game, and nothing about any person. Sarvam's privacy policy says inputs train
+its models unless the account opts out, and its docs say inputs are kept until
+the organization sets a retention period. The owner turned model training off
+on 2026-11-06, before any call was answered. The dashboard showed no
+data-retention setting then, so 0-day retention has to be requested from
+Sarvam's support, and until it is set Sarvam's default applies. Processing
+happens in India.
 
 ## What is kept
 
@@ -179,5 +224,7 @@ in India.
 - `results/`: `check.json`, `study.json`, `spend.jsonl`, `scores.jsonl` and the
   Prism saves, since Sarvam's answers cannot be regenerated. The other arms'
   saves re-run from their seeds.
+- `v1-check/`: version 1's two check runs, as they were written, including
+  the Prism save with Sarvam's answers.
 - A report of the outcome, whatever it is, including a stopped or
   "not measured" study.

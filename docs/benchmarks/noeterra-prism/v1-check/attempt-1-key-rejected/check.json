@@ -1,0 +1,66 @@
+{
+  "stage": "check",
+  "commit": "222b459399e278408a87302a802044853d94c7c3",
+  "dirty": false,
+  "fingerprint": "0c6ebb1dbbfe9125a268ab7ab192eeabc566eb05952727ea5037610322495230",
+  "seed": 101,
+  "turns": 3,
+  "pass": false,
+  "game": {
+    "replay": true,
+    "final_hash": "40b06142ee1f52ab1008a5be0f93b78fb0a5a233e637a93bfdcff24c445b2f2c",
+    "turns": 3,
+    "provinces": 8,
+    "alive": true,
+    "treasury": 48.5,
+    "stability": 57.67,
+    "live": 0,
+    "fallback": 3,
+    "tokens_in": 0,
+    "reporting": 0,
+    "latency": {
+      "max": null,
+      "median": null
+    },
+    "discarded": 0,
+    "active": 2,
+    "errors": [
+      "Sarvam answered 403 (invalid_api_key_error): Invalid or missing authentication credentials"
+    ],
+    "models": [
+      "sarvam-prism"
+    ],
+    "wars_declared": 1
+  },
+  "calls": [
+    {
+      "turn": 0,
+      "label": "fallback",
+      "tokens_in": null,
+      "prompt_sha256": "ba492f10ba255f87bbd1db1561078b277b88700917791991e6b1c03448cb1bcb"
+    },
+    {
+      "turn": 1,
+      "label": "fallback",
+      "tokens_in": null,
+      "prompt_sha256": "d50d5a0e37eecf690380f970e8ce0583ce5ac1943bc7633fcc9e13e53df63982"
+    },
+    {
+      "turn": 2,
+      "label": "fallback",
+      "tokens_in": null,
+      "prompt_sha256": "9f409302749691c4702f23ec0312408c0bafa0d07369bb3de68d12af82c18b38"
+    }
+  ],
+  "spent": {
+    "tokens": 0,
+    "unreported": 0,
+    "perCall": 0
+  },
+  "projection": {
+    "tokens_per_byte": null,
+    "study_tokens": 0
+  },
+  "cap": 2000000,
+  "verdict": "within"
+}
