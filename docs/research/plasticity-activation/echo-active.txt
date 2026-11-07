@@ -1,0 +1,21 @@
+22:55:05Z ECHO plasticity: shadow -> active, on release 5cc50355148dfc53b3e773bb87b07025d7e94b96
+22:55:05Z service: active, pid 164540, restarts 0, release 5cc50355148dfc53b3e773bb87b07025d7e94b96
+22:55:05Z stopping bethesda-life (it commits a last checkpoint and releases its lease)
+22:55:57Z stopped; head checkpoint 3560
+22:55:57Z backup of the stopped store (restored and checked by backup.sh, uploaded off site)
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 3560, tick 10649300, digest 5f45ec81edf82ff954e260a5df44c7aa54fad23cee54c54278652899fc93990a
+kept /var/backups/bethesda-life/bethesda-life-20261107T225557Z-5cc50355148d.tar.gz (23M), written by release 5cc50355148dfc53b3e773bb87b07025d7e94b96
+deleted /var/backups/bethesda-life/bethesda-life-20261106T120600Z-e458f7cb3490.tar.gz (keeping the newest 8)
+off-site copy: uploaded
+22:56:50Z backup: bethesda-life-20261107T225557Z-5cc50355148d.tar.gz, sha256 fb059f0ba297b91fe7cb4ed821139013459a519b1316aabb2851008e26a6d663, checkpoint 3560, tick 10649300, uploaded off site
+22:56:50Z policy --check (read-only)
+22:59:19Z check: exit 0 in 149 s
+{"mode":"--check","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","from":"shadow","to":"active","tick":10649300,"sequence":3561,"parent":"5f45ec81edf82ff954e260a5df44c7aa54fad23cee54c54278652899fc93990a","committedUtc":null}
+validate --check: ECHO 04f8c797, shadow -> active, checkpoint 3561 at tick 10649300
+22:59:19Z policy --commit
+23:03:26Z commit: exit 0 in 247 s; head now 3561
+{"mode":"--commit","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","from":"shadow","to":"active","tick":10649300,"sequence":3561,"parent":"5f45ec81edf82ff954e260a5df44c7aa54fad23cee54c54278652899fc93990a","committedUtc":"2026-11-07T23:02:19.147Z"}
+validate --commit: ECHO 04f8c797, shadow -> active, checkpoint 3561 at tick 10649300, committed 2026-11-07T23:02:19.147Z
+23:03:26Z starting bethesda-life in active mode; watching it for 90 s
+23:04:56Z service: active, pid 166790, restarts 0, release 5cc50355148dfc53b3e773bb87b07025d7e94b96
+23:04:56Z DONE

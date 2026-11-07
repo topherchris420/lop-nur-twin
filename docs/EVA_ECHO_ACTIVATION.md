@@ -137,7 +137,7 @@ staged script's SHA-256. The scripts, byte for byte as they ran, are
 [`eva-install.sh`](research/plasticity-activation/eva-install.sh) (`fe8a9de6…`)
 and [`echo-cutover.sh`](research/plasticity-activation/echo-cutover.sh)
 (`b3813719…`). ECHO's whole log, including the aborted first window, is
-[`echo-cutover.log`](research/plasticity-activation/echo-cutover.log). Eva's
+[`echo-cutover.txt`](research/plasticity-activation/echo-cutover.txt). Eva's
 install output is [`eva-install.txt`](research/plasticity-activation/eva-install.txt).
 
 ### Eva
@@ -194,7 +194,7 @@ benefit established from active mode, and no harm in its checks. This record cla
 nothing more than that. Scripts as they ran:
 [`eva-active.sh`](research/plasticity-activation/eva-active.sh) (`dcb53fa7…`) and
 [`echo-active.sh`](research/plasticity-activation/echo-active.sh) (`70e6a8ea…`).
-ECHO's log: [`echo-active.log`](research/plasticity-activation/echo-active.log).
+ECHO's log: [`echo-active.txt`](research/plasticity-activation/echo-active.txt).
 Eva's output: [`eva-active.txt`](research/plasticity-activation/eva-active.txt).
 
 | Original | UTC                  | Evidence                                                                                                                                                                                                                                                                                                                                                     |
