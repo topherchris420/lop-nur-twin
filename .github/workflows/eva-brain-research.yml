@@ -1,0 +1,25 @@
+name: Eva brain research (isolated)
+
+on:
+  push:
+    paths:
+      - deploy/garden/research/**
+      - .github/workflows/eva-brain-research.yml
+  pull_request:
+    paths:
+      - deploy/garden/research/**
+      - .github/workflows/eva-brain-research.yml
+
+permissions:
+  contents: read
+
+jobs:
+  eva-sidecar:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Test Eva's opt-in brain without network or originals
+        run: python -m unittest discover -s deploy/garden/research -p "test_*.py" -v
