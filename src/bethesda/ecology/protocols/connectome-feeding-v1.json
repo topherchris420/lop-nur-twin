@@ -6,16 +6,17 @@
  "status": "A seeded study on disposable research subjects, not a registered R.A.I.N. experiment. No subject is Eva or ECHO, a copy or a continuation; nothing here reaches them.",
  "circuit": {
   "id": "feeding-reduced-v783",
-  "sha256": "TO BE PINNED",
-  "neurons": 0,
+  "sha256": "5d04c4061b3c263d7a47405fff6cfd130f096f9b4ba4cc9eecb210a8a6ff11e8",
+  "neurons": 496,
   "made_by": "python -m fly_neural reduce cut (fly-neural/experiments/feeding-reduced-v783.json), from the pinned FlyWire v783 release; kept outside the repository"
  },
  "feeding": {
   "max_rate_hz": 200,
   "window_ms": 500,
   "threshold_hz": 10,
-  "hunger_at": 0.2,
-  "notes": "Sugar GRNs at max_rate_hz x hunger while on food (Inagaki et al. 2012: starvation raises sugar-GRN sensitivity; the linear form and the 200 Hz ceiling, twice Shiu et al.'s standard 100 Hz stimulus, are this model's). threshold_hz is fly-neural's own feed readout (mean MN9 rate >= 10 Hz); window_ms is the trailing window the neural shadow's food result called for. hunger_at, for the threshold arm only, is where the intact circuit's readout first reaches threshold_hz (calibrate)."
+  "hunger_at": 0.23,
+  "notes": "Sugar GRNs at max_rate_hz x hunger while on food (Inagaki et al. 2012: starvation raises sugar-GRN sensitivity; the linear form and the 200 Hz ceiling, twice Shiu et al.'s standard 100 Hz stimulus, are this model's). threshold_hz is fly-neural's own feed readout (mean MN9 rate >= 10 Hz); window_ms is the trailing window the neural shadow's food result called for. hunger_at, for the threshold arm only, is where the intact circuit's readout first reaches threshold_hz (calibrate).",
+  "calibration": "connectome-feeding-evaluate.ts calibrate on this circuit: 40 trials of 1 s per input rate from 10 Hz in steps of 2 Hz; the readout (500 ms) first reaches 10 Hz at 46 Hz input, hunger 46/200 = 0.23."
  },
  "start_reserve": 0.5,
  "body": "Mortal, with the thirst policy and without the heat policy (Stage B found the heat policy raised heat exposure).",
@@ -46,13 +47,40 @@
   "rule": "Paired percentile bootstrap over environments (every fly and arm of a drawn environment kept); 95% interval."
  },
  "criteria": [
-  {"id": "C1", "primary": true, "rule": "Held-out: the interval of mean reserve(connectome) - (1 - margin) x mean reserve(controller) excludes 0 (above): the connectome leaves the fly no worse fed than the controller, within 20%."},
-  {"id": "C2", "rule": "Held-out: the interval of mean reserve(connectome) - mean reserve(shuffled) excludes 0 (above): the wiring, not the numbers, does it."},
-  {"id": "C3", "rule": "Held-out: no more connectome flies than controller flies die of starvation."},
-  {"id": "C4", "rule": "Held-out: on food the circuit runs at least 10 times faster than real time on the machine that ran it: its wall time over the connectome runs, divided by the simulated seconds its sugar neurons were driven, is at most max_circuit_s_per_driven_s. Its share of the runs' total wall time is reported."}
+  {
+   "id": "C1",
+   "primary": true,
+   "rule": "Held-out: the interval of mean reserve(connectome) - (1 - margin) x mean reserve(controller) excludes 0 (above): the connectome leaves the fly no worse fed than the controller, within 20%."
+  },
+  {
+   "id": "C2",
+   "rule": "Held-out: the interval of mean reserve(connectome) - mean reserve(shuffled) excludes 0 (above): the wiring, not the numbers, does it."
+  },
+  {
+   "id": "C3",
+   "rule": "Held-out: no more connectome flies than controller flies die of starvation."
+  },
+  {
+   "id": "C4",
+   "rule": "Held-out: on food the circuit runs at least 10 times faster than real time on the machine that ran it: its wall time over the connectome runs, divided by the simulated seconds its sugar neurons were driven, is at most max_circuit_s_per_driven_s. Its share of the runs' total wall time is reported."
+  }
  ],
  "splits": {
-  "dev": {"generator_seed": 6101, "environments": 4, "fly_seeds": [501, 502]},
-  "heldout": {"generator_seed": 6202, "environments": 12, "fly_seeds": [601, 602]}
+  "dev": {
+   "generator_seed": 6101,
+   "environments": 4,
+   "fly_seeds": [
+    501,
+    502
+   ]
+  },
+  "heldout": {
+   "generator_seed": 6202,
+   "environments": 12,
+   "fly_seeds": [
+    601,
+    602
+   ]
+  }
  }
 }
