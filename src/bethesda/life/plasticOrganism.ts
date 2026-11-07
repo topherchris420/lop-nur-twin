@@ -32,15 +32,15 @@ type Checkpoint = LifeCheckpoint<HeadlessGenesis>;
 const exactSource = { ...ORGANISM_LIFE.versions, graph: GRAPH_SCHEMA };
 
 export class PlasticOrganismAdapter extends OrganismAdapter {
-  readonly plasticitys: EmbodiedPlasticity;
+  readonly plasticity: EmbodiedPlasticity;
 
   constructor(rng: () => number, streams: AdapterStreams, seed: number) {
     super(rng, streams, seed);
-    this.plasticitys = new EmbodiedPlasticity();
+    this.plasticity = new EmbodiedPlasticity();
   }
 
   override get state() {
-    return { ...super.state, plasticitys: this.plasticitys.state };
+    return { ...super.state, plasticity: this.plasticity.state };
   }
 
   override decide(input: DecisionInput): MotorCommand {
@@ -48,7 +48,13 @@ export class PlasticOrganismAdapter extends OrganismAdapter {
     // The old organism has priority; the plasticity policy cannot alter reflexes
     // or bypass the motor-command safety gate.
     const command = super.decide(input);
-    return this.plasticitys.decide(input, command);
+    return this.plasticity.advise(command, input.body.reserve, input.body.edge, true);
+  }
+
+  override interrupt(input: DecisionInput): MotorCommand | null {
+    const command = super.interrupt(input);
+    if (command) this.plasticity.interrupted();
+    return command;
   }
 }
 
@@ -68,7 +74,7 @@ export class PlasticOrganismLife extends OrganismLife {
     return {
       ...super.organismStatus(),
       plasticityVersion: ADAPTIVE_BRAIN_VERSION,
-      plasticitys: structuredClone(this.adaptive.plasticitys.state),
+      plasticity: structuredClone(this.adaptive.plasticity.state),
     };
   }
 }
@@ -83,22 +89,22 @@ export function plasticityProjection(graph: GraphSnapshot): string {
     throw new Error("not an ECHO plasticity continuation graph");
   g.object([]).c = "OrganismLife";
   g.object(ADAPTER).c = "OrganismAdapter";
-  g.remove([...ADAPTER, "plasticitys"]);
+  g.remove([...ADAPTER, "plasticity"]);
   return sha256(JSON.stringify(g.canonical()));
 }
 
 export const PLASTIC_LIFE: LifeKind<HeadlessGenesis, PlasticOrganismLife> = {
   id: BETHESDA_LIFE.id,
-  versions: { ...ORGANISM_LIFE.versions, plasticitys: ADAPTIVE_BRAIN_VERSION },
+  versions: { ...ORGANISM_LIFE.versions, plasticity: ADAPTIVE_BRAIN_VERSION },
   build: (genesis) => new PlasticOrganismLife(genesis.config),
   step: (life, ticks) => ORGANISM_LIFE.step(life, ticks),
   tick: (life) => life.city.tick,
-  hash: (life) => `${ORGANISM_LIFE.hash(life)}|${sha256Json(life.adaptive.plasticitys.state)}`,
+  hash: (life) => `${ORGANISM_LIFE.hash(life)}|${sha256Json(life.adaptive.plasticity.state)}`,
   history: {
     versions: [...ORGANISM_LIFE.history!.versions, ORGANISM_LIFE.versions],
     transition(previous, next) {
-      const isNext = next.versions.plasticitys === ADAPTIVE_BRAIN_VERSION;
-      const wasPrevious = previous?.versions.plasticitys === ADAPTIVE_BRAIN_VERSION;
+      const isNext = next.versions.plasticity === ADAPTIVE_BRAIN_VERSION;
+      const wasPrevious = previous?.versions.plasticity === ADAPTIVE_BRAIN_VERSION;
       if (!isNext) {
         if (wasPrevious)
           return ["an ECHO plasticity continuation cannot be reversed or erased"];
