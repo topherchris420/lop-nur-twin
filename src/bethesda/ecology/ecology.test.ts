@@ -359,15 +359,20 @@ describe("a research fly in the ecosystem", () => {
     },
   );
 
-  it("feeding empties a flower, which then offers nothing until it secretes again", () => {
-    const e = new Ecosystem(referenceYard(42), { transport: false });
-    e.run(DAY / 2);
-    const fl = e.flowers[0]!;
-    const held = fl.sugarMg;
-    expect(held).toBeGreaterThan(P("nectarMinSugarMg"));
-    const taken = e.consume(fl.id, held * 2, "research-ecology-test");
-    expect(taken).toBe(held);
-    expect(fl.sugarMg).toBe(0);
-    expect(e.sugar.unbacked).toBeCloseTo(held, 12);
-  });
+  it(
+    "feeding empties a flower, which then offers nothing until it secretes again",
+    // Half a day of the ecosystem: about 4 s here, past vitest's 5 s default on a loaded CI runner.
+    { timeout: 120_000 },
+    () => {
+      const e = new Ecosystem(referenceYard(42), { transport: false });
+      e.run(DAY / 2);
+      const fl = e.flowers[0]!;
+      const held = fl.sugarMg;
+      expect(held).toBeGreaterThan(P("nectarMinSugarMg"));
+      const taken = e.consume(fl.id, held * 2, "research-ecology-test");
+      expect(taken).toBe(held);
+      expect(fl.sugarMg).toBe(0);
+      expect(e.sugar.unbacked).toBeCloseTo(held, 12);
+    },
+  );
 });
