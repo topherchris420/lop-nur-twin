@@ -8,6 +8,8 @@ on:
       - research/banc-v888-acquire-data
     paths:
       - .github/workflows/banc-v888-data.yml
+      - fly-neural/fly_neural/banc_public.py
+      - fly-neural/tests/test_banc_public.py
   workflow_dispatch:
 
 permissions:
@@ -26,6 +28,8 @@ jobs:
           python-version: '3.13'
       - name: Install existing BANC importer
         run: python -m pip install -e './fly-neural[test]'
+      - name: Verify isolated converter and provenance checks with synthetic data
+        run: python -m pytest -q fly-neural/tests/test_banc_public.py fly-neural/tests/test_banc.py fly-neural/tests/test_isolation.py
       - name: Acquire official public v888 metadata and connectivity
         run: python -m fly_neural.banc_public fetch --accept-cc-by-4.0
       - name: Diagnose any invalid public-release connection rows
