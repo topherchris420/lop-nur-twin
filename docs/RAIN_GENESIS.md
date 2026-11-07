@@ -317,6 +317,21 @@ checked here, not about the fly.
 
   Closure violations appear only at 150 Hz and above.
 
+- **The held-out check passed all three criteria.** The regime was new rates,
+  two ramps, a step down and a flicker, with new seeds: 110 trials, run once
+  from the clean commit `404815b`
+  ([record](benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json);
+  [cut](benchmarks/fly-neural/adaptive/feeding-reduced-v783-cut.json)).
+
+  | Criterion                                                                 | Result | Measured                             |
+  | ------------------------------------------------------------------------- | ------ | ------------------------------------ |
+  | R1 (primary): MN9 within 2% or 1 Hz of the whole brain in every condition | pass   | at least 1.0 Hz inside the tolerance |
+  | R2: at least 95% of trials exact on every kept neuron                     | pass   | 109 of 110                           |
+  | R3: every trial without a closure violation exact                         | pass   | 107 of 107 (3 violations in all)     |
+
+  In the same Python engine, the whole brain cost 3.27 s per simulated
+  second on this machine and the cut 0.30 s.
+
 ### The engine (`connectome/lif.ts`)
 
 The fly runs the cut in TypeScript, inside its own loop, by the same
@@ -342,7 +357,13 @@ integrator in the same order of operations.
   is at least 10 Hz, the connectome backend's own feed readout.
 - **No satiety signal is added.** A meal ends when hunger has turned the
   sugar neurons down to where MN9 falls below threshold.
+- **What counts as food.** The readout decides this for the rest of the fly.
+  While it is off, the controller is told nothing edible is underfoot, and
+  does whatever it does anywhere else.
 - **What stands.** An escape always does. Off food, the controller decides.
+- **Calibration.** On the pinned circuit, the readout first reaches 10 Hz at
+  46 Hz of sugar input (40 trials per rate). That puts the threshold arm's
+  hunger point at 46 / 200 = 0.23.
 
 **What a development run showed.** MN9 crosses threshold about 150 ms after
 the fly lands on fruit, then holds at 60–80 Hz through the meal.
@@ -354,6 +375,17 @@ the fly lands on fruit, then holds at 60–80 Hz through the meal.
   flickers: feeding comes in many short bouts at the end of each meal.
 - **What was not done.** Neither was tuned away. The ceiling was not raised to
   imitate the controller, and no hysteresis was added.
+- **A design flaw found and fixed.** The first design kept the controller
+  informed of the food and replaced its feed command with rest whenever the
+  readout was off. That pinned hungry flies to the food:
+  - The controller asked to feed every 50 ms and never reached the rest
+    state's takeoff.
+  - In the shuffled and threshold arms, flies stayed on one fruit for all 8
+    hours, with more than 560,000 vetoes each.
+  - The intact hybrid was vetoed 11,580 times in one life.
+
+  The current design, above, replaced it before the protocol was frozen, and
+  the development split was re-run.
 
 The study, `connectome-feeding-v1`, compares the hybrid with:
 
