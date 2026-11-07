@@ -8,8 +8,13 @@
  */
 import type { Citation } from "../fly/params.js";
 
-/** Bump on any change to what the ecology computes. */
-export const ECOLOGY_VERSION = "research-ecology/1";
+/**
+ * Bump on any change to what the ecology computes. v2: nectar is capped in
+ * sugar as well as volume; canopies, springs and soil water spreading between
+ * cells; flies drink from the ground. The v1 reference records were made at
+ * commit 8c391af and reproduce there.
+ */
+export const ECOLOGY_VERSION = "research-ecology/2";
 
 export interface EcoParam {
   value: number;
@@ -71,6 +76,26 @@ export const ECOLOGY_PARAMS = {
     20,
     "mm",
     "the most water a cell's surface layer holds; more drains",
+  ),
+  soilSpreadM2S: model(
+    2e-5,
+    "m²/s",
+    "how fast surface water spreads between neighbouring cells (about 2 m in a day)",
+  ),
+  canopyEvaporationShare: model(
+    0.3,
+    "fraction",
+    "evaporation under a canopy, as a share of evaporation in the open",
+  ),
+  vapourLossPerS: model(
+    1 / 60,
+    "1/s",
+    "loss of evaporated water from the near-ground air by mixing upward (a 1 min time constant)",
+  ),
+  vapourHumidityPerMm: model(
+    15,
+    "relative humidity per (mm/m²)",
+    "how much near-ground vapour (mm of water per m², above the weather's own) raises relative humidity",
   ),
   evaporationPerS: model(
     1 / 21_600,

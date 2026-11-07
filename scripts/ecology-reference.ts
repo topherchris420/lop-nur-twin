@@ -55,7 +55,9 @@ function closes(e: Ecosystem) {
     sugar_residual_mg: r9(
       s.produced - (e.sugarStock() + s.consumed + s.fermented + s.rotted),
     ),
-    water_residual_mm: r9(w.rained - w.evaporated - w.drained - e.waterStock()),
+    water_residual_mm: r9(
+      w.rained + w.sprung - w.evaporated - w.drained - w.drunk - e.waterStock(),
+    ),
     odour_residual_ug: r9(o.emitted + o.rounding - o.lost - o.out - e.odour.total()),
   };
 }

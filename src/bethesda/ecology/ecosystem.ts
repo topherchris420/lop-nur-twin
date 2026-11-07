@@ -27,7 +27,7 @@
  */
 import { mulberry32, streamPosition } from "../../lib/noise.js";
 import { canonicalJson, sha256 } from "../../rain/sha256.js";
-import { Atmosphere, type Weather } from "./atmosphere.js";
+import { Atmosphere, type Climate, type Weather } from "./atmosphere.js";
 import { OdourField, type GridSpec } from "./field.js";
 import { ECOLOGY_VERSION, P } from "./params.js";
 
@@ -42,6 +42,17 @@ export interface Rock extends Placed {
   height: number;
 }
 
+/** A tree; its canopy, if it has one, shades the ground and slows evaporation under it. */
+export interface Tree extends Placed {
+  /** Canopy radius (m), absent for a bare trunk. */
+  canopyM?: number;
+}
+
+/** A spring: water seeping into one cell at a steady rate. */
+export interface Spring extends Placed {
+  inflowMmPerS: number;
+}
+
 export interface EcosystemSpec {
   seed: number;
   /** Hour of the day at time 0. */
@@ -50,9 +61,12 @@ export interface EcosystemSpec {
   windHeading: number;
   /** The yard is a square of this half-side (m), centred on the origin. */
   half: number;
-  trees: Placed[];
+  trees: Tree[];
   flowers: Placed[];
   rocks: Rock[];
+  springs?: Spring[];
+  /** A climate unlike the default one (the reference yard has none). */
+  climate?: Climate;
 }
 
 export interface Fruit {
@@ -76,13 +90,14 @@ export interface Flower extends Placed {
 export interface Interaction {
   /** Ecology time of the step it fell in (s). */
   t: number;
-  kind: "consume" | "inoculate";
+  kind: "consume" | "inoculate" | "drink";
+  /** A food item's id, or `cell-<index>` for water drunk from the ground. */
   item: string;
   /** The research subject that did it. */
   who: string;
-  /** mg of sugar asked for (consume) or seconds of feeding (inoculate). */
+  /** mg of sugar asked for (consume), seconds of feeding (inoculate) or mm of a cell's water (drink). */
   amount: number;
-  /** What the item could give: mg taken, or yeast units left. */
+  /** What the item could give: mg taken, yeast units left, or mm drunk. */
   effect: number;
 }
 
@@ -96,8 +111,12 @@ export interface SugarBooks {
 }
 export interface WaterBooks {
   rained: number;
+  /** In from springs. */
+  sprung: number;
   evaporated: number;
   drained: number;
+  /** Taken by flies drinking from the ground. */
+  drunk: number;
 }
 
 export interface EcologyHistory {
@@ -108,12 +127,19 @@ export interface EcologyHistory {
 }
 
 const r9 = (x: number) => Number(x.toPrecision(9));
+/** Surface water below this (mm) counts as evaporated. */
+const SOIL_FLOOR_MM = 1e-12;
 
 export class Ecosystem {
   readonly version = ECOLOGY_VERSION;
   readonly spec: Readonly<EcosystemSpec>;
   readonly atmosphere: Atmosphere;
   readonly odour: OdourField;
+  /**
+   * Water vapour from evaporating ground, carried and lost like odour (its
+   * mass in mm of water over a cell): the humid air downwind of wet ground.
+   */
+  readonly vapour: OdourField;
   /** Surface water per cell (mm). */
   readonly soil: Float64Array;
   readonly fruits: Fruit[] = [];
@@ -125,7 +151,17 @@ export class Ecosystem {
     rotted: 0,
     unbacked: 0,
   };
-  readonly water: WaterBooks = { rained: 0, evaporated: 0, drained: 0 };
+  readonly water: WaterBooks = {
+    rained: 0,
+    sprung: 0,
+    evaporated: 0,
+    drained: 0,
+    drunk: 0,
+  };
+  /** Evaporation's share in each cell: less under a canopy. */
+  private readonly shade: Float64Array;
+  private readonly soilFlux: Float64Array;
+  private readonly vapourEmit: Float64Array;
   readonly history: EcologyHistory;
   readonly interactions: Interaction[] = [];
   /** One stream per tree, drawn three times every step. */
@@ -144,12 +180,15 @@ export class Ecosystem {
   readonly transport: boolean;
 
   constructor(spec: EcosystemSpec, options: { transport?: boolean } = {}) {
+    if (!Number.isInteger(spec.seed))
+      throw new Error("an ecosystem's seed is an integer");
     this.spec = Object.freeze(structuredClone(spec));
     this.transport = options.transport ?? true;
     this.atmosphere = new Atmosphere({
       seed: spec.seed,
       startHour: spec.startHour,
       windHeading: spec.windHeading,
+      ...(spec.climate ? { climate: spec.climate } : {}),
     });
     const h = P("cellM");
     const n = Math.round((2 * spec.half) / h);
@@ -165,8 +204,26 @@ export class Ecosystem {
           blocked[iz * n + ix] = 1;
       }
     this.odour = new OdourField(grid, blocked);
+    this.vapour = new OdourField(grid, blocked);
+    this.vapourEmit = new Float64Array(n * n);
     this.soil = new Float64Array(n * n);
+    this.soilFlux = new Float64Array(n * n);
     this.emit = new Float64Array(n * n);
+    this.shade = new Float64Array(n * n).fill(1);
+    for (let iz = 0; iz < n; iz++)
+      for (let ix = 0; ix < n; ix++) {
+        const x = grid.x0 + (ix + 0.5) * h,
+          z = grid.z0 + (iz + 0.5) * h;
+        if (spec.trees.some((t) => t.canopyM && Math.hypot(x - t.x, z - t.z) < t.canopyM))
+          this.shade[iz * n + ix] = P("canopyEvaporationShare");
+      }
+    for (const sp of spec.springs ?? []) {
+      const c = this.odour.cellAt(sp.x, sp.z);
+      if (c < 0 || blocked[c])
+        throw new Error(`spring ${sp.id} is outside the yard or on a rock`);
+      if (!(sp.inflowMmPerS >= 0))
+        throw new Error(`spring ${sp.id} flows a non-negative amount`);
+    }
     this.flowers = spec.flowers.map((f) => ({ ...f, waterUl: 0, sugarMg: 0 }));
     for (const f of this.flowers)
       if (this.odour.cellAt(f.x, f.z) < 0 || blocked[this.odour.cellAt(f.x, f.z)])
@@ -190,23 +247,42 @@ export class Ecosystem {
     const soilMax = P("soilWaterMaxMm");
     const field = this.odour;
     const blk = field.blocked;
-    // Soil water.
+    // Soil water: rain and springs in, evaporation out (less under a canopy),
+    // a slow spread between neighbouring cells, and drainage above capacity.
     const rain = (w.rainMmH * dt) / 3600;
     const wind = Math.hypot(w.wind[0], w.wind[2]);
     const evap = P("evaporationPerS") * q * (1 + wind) * 2 * (1 - w.humidity);
-    const keepWater = Math.exp(-evap * dt);
-    for (let i = 0; i < this.soil.length; i++) {
+    const soil = this.soil;
+    for (let i = 0; i < soil.length; i++) {
       if (blk[i]) continue;
-      let v = this.soil[i]! + rain;
+      soil[i] = soil[i]! + rain;
       this.water.rained += rain;
-      const kept = v * keepWater;
+    }
+    for (const sp of this.spec.springs ?? []) {
+      const c = field.cellAt(sp.x, sp.z);
+      const add = sp.inflowMmPerS * dt;
+      soil[c] = soil[c]! + add;
+      this.water.sprung += add;
+    }
+    const vEmit = this.vapourEmit;
+    for (let i = 0; i < soil.length; i++) {
+      if (blk[i]) continue;
+      const v = soil[i]!;
+      const kept = v * Math.exp(-evap * this.shade[i]! * dt);
       this.water.evaporated += v - kept;
-      v = kept;
-      if (v > soilMax) {
-        this.water.drained += v - soilMax;
-        v = soilMax;
+      vEmit[i] = (v - kept) / dt;
+      soil[i] = kept;
+    }
+    this.spreadSoil(dt);
+    for (let i = 0; i < soil.length; i++) {
+      if (soil[i]! > soilMax) {
+        this.water.drained += soil[i]! - soilMax;
+        soil[i] = soilMax;
+      } else if (soil[i]! > 0 && soil[i]! < SOIL_FLOOR_MM) {
+        // A film this thin has evaporated; keeping it would only grow subnormal numbers.
+        this.water.evaporated += soil[i]!;
+        soil[i] = 0;
       }
-      this.soil[i] = v;
     }
     // Fruit falls: three draws per tree, every step, whatever they decide.
     const dropP = (P("fruitDropsPerDay") / P("dayS")) * dt * (w.tempC > 10 ? q : 0);
@@ -283,8 +359,17 @@ export class Ecosystem {
     );
     for (const fl of this.flowers) {
       fl.waterUl *= keepNectarWater;
+      // The nectary secretes until the flower holds its most nectar by volume or
+      // by sugar: as water evaporates the sugar stays, and no more is added.
       const room = Math.max(0, P("nectarMaxUl") - fl.waterUl);
-      const add = Math.min(room, (P("nectarSecretUlPerH") / 3600) * daylight * dt);
+      const sugarRoom =
+        Math.max(0, P("nectarMaxUl") * P("nectarSugarMgPerUl") - fl.sugarMg) /
+        P("nectarSugarMgPerUl");
+      const add = Math.min(
+        room,
+        sugarRoom,
+        (P("nectarSecretUlPerH") / 3600) * daylight * dt,
+      );
       if (add > 0) {
         fl.waterUl += add;
         const s = add * P("nectarSugarMgPerUl");
@@ -296,6 +381,15 @@ export class Ecosystem {
         emit[cell] = emit[cell]! + P("nectarOdourUgPerS");
       }
     }
+    if (this.transport)
+      this.vapour.step(
+        dt,
+        w.wind[0],
+        w.wind[2],
+        P("odourDiffusionM2S"),
+        P("vapourLossPerS"),
+        vEmit,
+      );
     if (this.transport)
       field.step(
         dt,
@@ -312,6 +406,85 @@ export class Ecosystem {
   /** Run `n` steps. */
   run(n: number): void {
     for (let i = 0; i < n; i++) this.step();
+  }
+
+  /**
+   * Water spreading through the surface layer between neighbouring open cells
+   * (explicit diffusion, no flux across the yard's edge or into rock), so a
+   * spring wets a patch around it. Moves water only between cells.
+   */
+  private spreadSoil(dt: number): void {
+    const S = this.odour.spec;
+    const k = (P("soilSpreadM2S") * dt) / (S.h * S.h);
+    if (k === 0) return;
+    const soil = this.soil,
+      f = this.soilFlux,
+      blk = this.odour.blocked;
+    f.fill(0);
+    for (let iz = 0; iz < S.nz; iz++)
+      for (let ix = 0; ix < S.nx; ix++) {
+        const i = iz * S.nx + ix;
+        if (blk[i]) continue;
+        if (ix + 1 < S.nx && !blk[i + 1]) {
+          const q = k * (soil[i]! - soil[i + 1]!);
+          f[i] = f[i]! - q;
+          f[i + 1] = f[i + 1]! + q;
+        }
+        if (iz + 1 < S.nz && !blk[i + S.nx]) {
+          const q = k * (soil[i]! - soil[i + S.nx]!);
+          f[i] = f[i]! - q;
+          f[i + S.nx] = f[i + S.nx]! + q;
+        }
+      }
+    for (let i = 0; i < soil.length; i++) soil[i] = soil[i]! + f[i]!;
+  }
+
+  /** The cell of world point (x, z), or −1. */
+  cellAt(x: number, z: number): number {
+    return this.odour.cellAt(x, z);
+  }
+
+  /** Surface water (mm) at a world point, bilinear between cell centres; 0 outside and in rock. */
+  soilWaterAt(x: number, z: number): number {
+    const S = this.odour.spec;
+    const fx = (x - S.x0) / S.h - 0.5,
+      fz = (z - S.z0) / S.h - 0.5;
+    const ix = Math.floor(fx),
+      iz = Math.floor(fz);
+    const ux = fx - ix,
+      uz = fz - iz;
+    const at = (i: number, k: number) => {
+      if (i < 0 || k < 0 || i >= S.nx || k >= S.nz) return 0;
+      const c = k * S.nx + i;
+      return this.odour.blocked[c] ? 0 : this.soil[c]!;
+    };
+    return (
+      (1 - uz) * ((1 - ux) * at(ix, iz) + ux * at(ix + 1, iz)) +
+      uz * ((1 - ux) * at(ix, iz + 1) + ux * at(ix + 1, iz + 1))
+    );
+  }
+
+  /**
+   * A fly drank `mm` of a cell's surface water (as mm over the cell): take up
+   * to what the cell holds.
+   */
+  drink(cell: number, mm: number, who: string): number {
+    if (!(mm >= 0) || !Number.isFinite(mm))
+      throw new Error("drinking is a finite amount");
+    if (cell < 0 || cell >= this.soil.length || this.odour.blocked[cell])
+      throw new Error("water is drunk from an open cell of the yard");
+    const taken = Math.min(this.soil[cell]!, mm);
+    this.soil[cell] = this.soil[cell]! - taken;
+    this.water.drunk += taken;
+    this.record({
+      t: this.t,
+      kind: "drink",
+      item: `cell-${cell}`,
+      who,
+      amount: mm,
+      effect: taken,
+    });
+    return taken;
   }
 
   /** The food item with this id, or null. */
@@ -375,7 +548,8 @@ export class Ecosystem {
    */
   apply(e: Interaction): void {
     if (e.kind === "consume") this.consume(e.item, e.amount, e.who);
-    else this.inoculate(e.item, e.amount, e.who);
+    else if (e.kind === "inoculate") this.inoculate(e.item, e.amount, e.who);
+    else this.drink(Number(e.item.slice("cell-".length)), e.amount, e.who);
   }
 
   /** Sugar held now, in fruit and nectar. */
@@ -403,7 +577,13 @@ export class Ecosystem {
         flowers: this.flowers,
         soil: Array.from(this.soil),
         odour: Array.from(this.odour.mass),
-        books: { sugar: this.sugar, water: this.water, odour: this.odour.books },
+        vapour: Array.from(this.vapour.mass),
+        books: {
+          sugar: this.sugar,
+          water: this.water,
+          odour: this.odour.books,
+          vapour: this.vapour.books,
+        },
         history: this.history,
         streams: this.streams.map((s) => streamPosition(s)),
       }),

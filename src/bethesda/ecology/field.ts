@@ -20,6 +20,9 @@
  * height: approximations named here, not validated fluid transport.
  */
 
+/** Mass below this in a cell (µg, or mm of vapour) counts as lost. */
+const MASS_FLOOR = 1e-30;
+
 export interface GridSpec {
   /** Cells along x and z. */
   nx: number;
@@ -196,7 +199,8 @@ export class OdourField {
         // Rounding can leave −1e-18 where a cell emptied: nothing below zero is real.
         const pos = v > 0 ? v : 0;
         if (v < 0) this.books.rounding -= v;
-        const kept = pos * keep;
+        // Below the floor, mass counts as lost: subnormal numbers are slow and meaningless.
+        const kept = pos * keep < MASS_FLOOR ? 0 : pos * keep;
         lost += pos - kept;
         m[i] = kept;
       }

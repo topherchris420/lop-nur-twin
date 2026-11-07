@@ -82,3 +82,7 @@ fly-neural/*.egg-info/
 # The research ecology (docs/RAIN_GENESIS.md): scratch runs of its reference
 # scenarios. Records go to docs/benchmarks/ecology/.
 .fly-ecology/
+
+# The homeostasis study (docs/RAIN_GENESIS.md): shards of trials run in
+# parallel and scratch records. Records go to docs/benchmarks/homeostasis/.
+.fly-homeostasis/

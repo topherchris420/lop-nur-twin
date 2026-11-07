@@ -14,8 +14,18 @@ import { seededNoise2D } from "../../lib/noise.js";
 import type { V3 } from "../fly/units.js";
 import { P } from "./params.js";
 
+/** A climate unlike the default one: each field replaces that parameter for this sky. */
+export interface Climate {
+  meanTempC?: number;
+  dailyTempAmpC?: number;
+  /** Added to the relative humidity before it is bounded (negative is drier). */
+  humidityShift?: number;
+  rainThreshold?: number;
+}
+
 export interface AtmosphereSpec {
   seed: number;
+  climate?: Climate;
   /** Hour of the day at time 0 (0–24). */
   startHour: number;
   /** Mean direction the wind blows toward (rad, the fly's heading convention: 0 east, π/2 north). */
@@ -54,22 +64,27 @@ export class Atmosphere {
 
   at(t: number): Weather {
     const day = P("dayS");
+    const c = this.spec.climate ?? {};
+    const meanT = c.meanTempC ?? P("meanTempC");
+    const ampT = c.dailyTempAmpC ?? P("dailyTempAmpC");
+    const rainAt = c.rainThreshold ?? P("rainThreshold");
     const hour = (((this.spec.startHour + t / 3600) % 24) + 24) % 24;
     const cloud = clamp(0.45 + 0.6 * this.n(t, 10_800, 1), 0, 1);
     const sun = Math.sin((2 * Math.PI * (hour - 6)) / 24);
     const light = P("nightLight") + (sun > 0 ? sun * (1 - P("cloudDimming") * cloud) : 0);
     const tempC =
-      P("meanTempC") +
-      P("dailyTempAmpC") * Math.sin((2 * Math.PI * (hour - 9)) / 24) -
+      meanT +
+      ampT * Math.sin((2 * Math.PI * (hour - 9)) / 24) -
       P("cloudCooling") * cloud * Math.max(0, sun) +
       P("synopticTempAmpC") * this.n(t, 3 * day, 2);
     const r = this.n(t, 5_400, 3);
-    const rainMmH =
-      r > P("rainThreshold")
-        ? (P("rainMaxMmH") * (r - P("rainThreshold"))) / (1 - P("rainThreshold"))
-        : 0;
+    const rainMmH = r > rainAt ? (P("rainMaxMmH") * (r - rainAt)) / (1 - rainAt) : 0;
     const humidity = clamp(
-      0.55 - 0.02 * (tempC - P("meanTempC")) + 0.3 * cloud + (rainMmH > 0 ? 0.2 : 0),
+      0.55 +
+        (c.humidityShift ?? 0) -
+        0.02 * (tempC - meanT) +
+        0.3 * cloud +
+        (rainMmH > 0 ? 0.2 : 0),
       0.1,
       1,
     );

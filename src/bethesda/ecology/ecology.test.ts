@@ -10,7 +10,7 @@ import { indexGraph, restoreGraph, snapshotGraph } from "../life/snapshot";
 import { Atmosphere } from "./atmosphere";
 import { Ecosystem, referenceYard, type EcosystemSpec } from "./ecosystem";
 import { OdourField } from "./field";
-import { EcologicalLife, replay } from "./life";
+import { cloneEcosystem, EcologicalLife, replay, spinUp } from "./life";
 import { P } from "./params";
 
 const DAY = 86_400;
@@ -59,7 +59,7 @@ function books(e: Ecosystem) {
     sugarScale: Math.max(1, s.produced),
     odour: o.emitted + o.rounding - o.lost - o.out - e.odour.total(),
     odourScale: Math.max(1, o.emitted),
-    water: w.rained - w.evaporated - w.drained - e.waterStock(),
+    water: w.rained + w.sprung - w.evaporated - w.drained - w.drunk - e.waterStock(),
     waterScale: Math.max(1, w.rained),
   };
 }
@@ -294,11 +294,24 @@ describe("a research fly in the ecosystem", () => {
     { timeout: 240_000 },
     () => {
       const spec = referenceYard(42);
-      const life = new EcologicalLife(spec, genesis);
-      const bare = new EcologicalLife(spec, null);
+      // The world has lived six hours (its flowers hold nectar); a hungry fly is
+      // placed beside a flower, and the same world goes on without it.
+      const world = spinUp(spec, 6 * 3_600);
+      const life = new EcologicalLife(
+        spec,
+        { ...genesis, start: [7.3, -1] },
+        { kind: "deployed" },
+        cloneEcosystem(world),
+      );
+      const bare = new EcologicalLife(
+        spec,
+        null,
+        { kind: "deployed" },
+        cloneEcosystem(world),
+      );
       // Until the fly first feeds, the world beside it is the world without it, second for second.
       let first: number | null = null;
-      for (let s = 0; s < 3_000; s++) {
+      for (let s = 0; s < 6_000; s++) {
         life.step(10);
         bare.step(10);
         if (life.eco.interactions.length) {

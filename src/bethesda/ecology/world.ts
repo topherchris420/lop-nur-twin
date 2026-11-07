@@ -1,7 +1,7 @@
 /**
- * The research ecology as a fly's world: a flat yard with tree trunks (which
- * are landmarks), rocks (obstacles with tops to stand on), and whatever fruit
- * and nectar the ecosystem holds now.
+ * The research ecology as a fly's world: a flat, walled yard with tree trunks
+ * (which are landmarks) and canopies, rocks (obstacles with tops to stand on),
+ * and whatever fruit and nectar the ecosystem holds now.
  *
  * It answers the fly's questions from the ecosystem's current state and never
  * changes it: light from the atmosphere (a sun moving with the hour, rocks and
@@ -27,6 +27,9 @@ import {
 import type { Ecosystem, Flower, Fruit } from "./ecosystem.js";
 import { P } from "./params.js";
 
+/** The courtyard's walls: thickness and the height of the air in it (m). */
+const WALL_M = 0.2;
+const CEILING_M = 6;
 /** A standing fly is on a food item within this height of the ground (m). */
 const FOOD_HEIGHT_M = 0.01;
 /** Odour falls with height above the near-ground layer over this scale (m). */
@@ -62,7 +65,7 @@ export class EcologyWorld implements FlyWorld {
     this.home = {
       center: [0, 0, 0],
       radius: s.half,
-      ceiling: 6,
+      ceiling: CEILING_M,
       bounds: { min: { x: -s.half, z: -s.half }, max: { x: s.half, z: s.half } },
     };
     this.base = new PrimitiveWorld({
@@ -72,22 +75,54 @@ export class EcologyWorld implements FlyWorld {
       ground: () => 0,
       groundMax: 0,
       ambient: 0,
-      cylinders: s.trees.map((t) => ({
-        kind: "pole" as const,
-        id: `trunk-${t.id}`,
-        x: t.x,
-        z: t.z,
-        r: 0.15,
-        y0: 0,
-        y1: 3,
-      })),
-      boxes: s.rocks.map((r) => ({
-        kind: "obstacle" as const,
-        id: r.id,
-        center: [r.x, r.height / 2, r.z] as V3,
-        half: [r.half, r.height / 2, r.half] as V3,
-        angle: 0,
-      })),
+      cylinders: [
+        ...s.trees.map((t) => ({
+          kind: "pole" as const,
+          id: `trunk-${t.id}`,
+          x: t.x,
+          z: t.z,
+          r: 0.15,
+          y0: 0,
+          y1: 3,
+        })),
+        // A canopy is a thin disc of crown above the trunk: it casts shade.
+        ...s.trees
+          .filter((t) => t.canopyM)
+          .map((t) => ({
+            kind: "roof" as const,
+            id: `canopy-${t.id}`,
+            x: t.x,
+            z: t.z,
+            r: t.canopyM!,
+            y0: 2.6,
+            y1: 2.9,
+          })),
+      ],
+      boxes: [
+        ...s.rocks.map((r) => ({
+          kind: "obstacle" as const,
+          id: r.id,
+          center: [r.x, r.height / 2, r.z] as V3,
+          half: [r.half, r.height / 2, r.half] as V3,
+          angle: 0,
+        })),
+        // The yard is a walled courtyard, its walls as high as the air the fly
+        // may use: nothing lies beyond it, and the fly cannot leave.
+        ...(
+          [
+            ["wall-n", 0, -s.half - WALL_M / 2, s.half + WALL_M, WALL_M / 2],
+            ["wall-s", 0, s.half + WALL_M / 2, s.half + WALL_M, WALL_M / 2],
+            ["wall-w", -s.half - WALL_M / 2, 0, WALL_M / 2, s.half + WALL_M],
+            ["wall-e", s.half + WALL_M / 2, 0, WALL_M / 2, s.half + WALL_M],
+          ] as const
+        ).map(([id, x, z, hx, hz]) => ({
+          kind: "wall" as const,
+          id,
+          center: [x, CEILING_M / 2, z] as V3,
+          half: [hx, CEILING_M / 2, hz] as V3,
+          angle: 0,
+        })),
+      ],
     });
   }
 
@@ -124,8 +159,14 @@ export class EcologyWorld implements FlyWorld {
     return { level, toward: lit ? sun : null, sunlit: lit };
   }
 
+  /**
+   * The ecosystem's time at the fly's time 0 (s): a fly placed in a world that
+   * had already lived this long.
+   */
+  timeOffsetS = 0;
+
   wind(_p: V3, t: number): V3 {
-    return this.eco.atmosphere.at(t).wind;
+    return this.eco.atmosphere.at(t + this.timeOffsetS).wind;
   }
 
   private foods(): (Fruit | Flower)[] {
@@ -183,4 +224,35 @@ export class EcologyWorld implements FlyWorld {
   landmarks(near: V3, radius: number, out: Landmark[]): void {
     this.base.landmarks(near, radius, out);
   }
+
+  /**
+   * The relative humidity of the air at `p`: the weather's, raised by the
+   * vapour evaporating ground has put into the near-ground air (carried by the
+   * wind, `Ecosystem.vapour`), and to saturation over wet ground itself (a
+   * cell holding `WET_GROUND_MM`), each falling off with height. What a fly's
+   * antennal hygroreceptors would meet; a model, not a measurement.
+   */
+  humidityAt(p: V3): number {
+    const rh = this.eco.weather.humidity;
+    const y = Math.max(0, p[1]);
+    const wet = Math.min(1, this.eco.soilWaterAt(p[0], p[2]) / WET_GROUND_MM);
+    const plume =
+      P("vapourHumidityPerMm") *
+      this.eco.vapour.concentrationAt(p[0], p[2]) *
+      Math.exp(-y / VAPOUR_LAYER_M);
+    const dryShare = (1 - rh) * (1 - wet * Math.exp(-y / HUMID_LAYER_M));
+    return Math.min(1, 1 - dryShare + plume);
+  }
+
+  /** Air temperature at `p` (°C): the weather's, the same everywhere in the yard. */
+  airTempAt(_p: V3): number {
+    return this.eco.weather.tempC;
+  }
 }
+
+/** Ground holding this much surface water (mm) is wet: the air at it is saturated. */
+export const WET_GROUND_MM = 2;
+/** Over this height (m) the humidity of wet ground falls off into the air's. */
+export const HUMID_LAYER_M = 0.3;
+/** Over this height (m) the vapour carried near the ground thins out. */
+export const VAPOUR_LAYER_M = 1;

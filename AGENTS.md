@@ -1153,6 +1153,13 @@ pattern in `firstContact/isolation.test.ts`.
 - **Model choices are named.** Every constant is in `params.ts` as `model`
   (or `published` with a source). Never describe the ecology as validated
   against a real one.
+- **Mortal bodies are for disposable research subjects only.** `homeostasis.ts`
+  can desiccate, overheat or starve a research fly, with no artificial
+  maintenance; it never reaches Eva or ECHO, which cannot die. Its policies
+  (`policy.ts`) read only what a fly could sense (its own water and body
+  temperature, the humidity at its antennae, water under its feet, the light
+  it sees), never yield the escape reflex, and change behaviour only through
+  commands the gate checks. Never give them a place's coordinates.
 - **Never an original, never production.** Subjects are `research-…`
   (`refuseOriginal`), nothing in production imports the folder, and the fly's
   simulation is not changed by it. Its records are written by the reference
