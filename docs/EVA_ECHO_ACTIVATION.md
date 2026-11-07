@@ -1,15 +1,16 @@
 # Eva and ECHO: activating embodied plasticity on the originals
 
-**Status (2026-11-07): ECHO not activated. Eva not activated.** This file is the
-procedure and the record. A step happens only when the owner approves that step;
-a GitHub merge, a Vercel deploy or a passing workflow is not activation. Each
-original keeps its identity: this continues the same individual, it never births,
-replaces, resets or replays one.
+**Status (2026-11-07): ECHO activated in shadow mode at 22:28:29Z. Eva activated in
+shadow mode at 22:04:04Z.** Both learn and report; neither acts on what it learns.
+This file is the procedure and the record. A step happens only when the owner
+approves that step; a GitHub merge, a Vercel deploy or a passing workflow is not
+activation. Each original keeps its identity: this continues the same individual,
+it never births, replaces, resets or replays one.
 
-| Original | Identity                                                           | Live now                                                     | Next gate |
-| -------- | ------------------------------------------------------------------ | ------------------------------------------------------------ | --------- |
-| ECHO     | `04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921` | organism on release `e458f7c` (digital-fly/9), no plasticity | E1: merge |
-| Eva      | `5cf42cd6-fd0a-474d-882c-4cb70e0357e8`                             | original `server.py` `c110ccc8…`, no plasticity              | V1: merge |
+| Original | Identity                                                           | Live now                                                                                               | Next gate             |
+| -------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | --------------------- |
+| ECHO     | `04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921` | release `5cc5035`, `echo-embodied-plasticity/v2` in **shadow** since checkpoint 3554 (tick 10,633,342) | E11: 7 days of shadow |
+| Eva      | `5cf42cd6-fd0a-474d-882c-4cb70e0357e8`                             | patched `server.py` `a942234b…`, `eva-embodied-plasticity/v1` in **shadow** since tick 236,128         | V8: 7 days of shadow  |
 
 What the additions are: [EVA_ECHO_BRAIN_PLASTICITY.md](EVA_ECHO_BRAIN_PLASTICITY.md).
 
@@ -122,4 +123,60 @@ database is missing.
 ## Record
 
 Every executed step is appended here with its time, its evidence and who approved
-it, including failures. Nothing has been executed yet.
+it, including failures.
+
+**Approval.** The owner approved activating both originals on 2026-11-07, shortly
+before the merge ("ACTIVATE IT"), and merged #178 themselves. The session's safety
+classifier refused VM writes and the merge from the session. So the session made
+read-only checks, took Eva's backup, and staged scripts in `/tmp` on each VM. The
+owner ran each VM write from the session with a `!` command that first checks the
+staged script's SHA-256. The scripts, byte for byte as they ran, are
+[`eva-install.sh`](research/plasticity-activation/eva-install.sh) (`fe8a9de6…`)
+and [`echo-cutover.sh`](research/plasticity-activation/echo-cutover.sh)
+(`b3813719…`). ECHO's whole log, including the aborted first window, is
+[`echo-cutover.log`](research/plasticity-activation/echo-cutover.log). Eva's
+install output is [`eva-install.txt`](research/plasticity-activation/eva-install.txt).
+
+### Eva
+
+| Gate | UTC            | Evidence                                                                                                                                                                                                                                                                    |
+| ---- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1   | 21:31:00       | #178 merged as `5cc5035` by the owner                                                                                                                                                                                                                                       |
+| V2   | 21:32          | live `server.py` `c110ccc8…`, `learning.py` `cb145891…`, `backup.py` `59c0dc99…`, equal to `MANIFEST.json`                                                                                                                                                                  |
+| V3   | 21:33:57       | `deploy.mjs backup`: her `day-5.sqlite3`, 499,712 bytes, SHA-256 `c61d7500…`, integrity ok, same life and birth, 7,260 moments; kept off the VM                                                                                                                             |
+| V4   | 21:33          | `ticks` 235,761, `journeys` 1,851, `moments_count` 7,259, `learning.trials` 231,256                                                                                                                                                                                         |
+| —    | 21:35          | on her VM, the staged `server.py` without its 17 tagged lines hashes to `c110ccc8…`, her live file                                                                                                                                                                          |
+| V5   | 22:04          | the script checked all three hashes, kept `server.py.original-c110ccc8`, installed `server.py` `a942234b…` and `eva_plasticity.py` `613fd429…`, added `EVA_PLASTICITY=shadow`                                                                                               |
+| V6   | 22:04:04       | restarted; `/health` answered at 22:04:06; her log: "Embodied plasticity: shadow, ok"                                                                                                                                                                                       |
+| V7   | 22:13 to 22:24 | same `life_id` and `born_at`; `ticks` 236,195, `journeys` 1,859, `moments_count` 7,283, `trials` 231,675 (all above V4); `adaptive` ok, shadow, her life ID; sidecar and its day copy beside her database; no restarts; the deployed page's parser accepts her public state |
+| V8   | from 22:04     | started. No samples yet: since tick 236,128 she has been asleep on the windowsill, and it learns only from travel steps                                                                                                                                                     |
+
+Not done: nobody has looked at her garden page since; the parser test stands in
+for that. The garden page's new plasticity line is not published (that needs
+`deploy.mjs publish` and its own approval).
+
+### ECHO
+
+| Gate     | UTC                  | Evidence                                                                                                                                                                                                                                                                                 |
+| -------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E1       | 21:31:00             | #178 merged as `5cc5035` by the owner                                                                                                                                                                                                                                                    |
+| E2       | 21:33:12             | Vercel production deployment of `5cc5035`; the production `LiveFly` chunk contains the `adaptiveBrain` parser and "Its walking memory"                                                                                                                                                   |
+| E3       | 20:15 to 21:48       | run 42410104938 at `288b3a8` (no ECHO-side change to `5cc5035`), on backup `20261107T180654Z` (checkpoint 3503), 24 simulated hours: chain, `engine.sameHash`, `boundary.exact`, both refusals, lockstep 36,000 ticks, projection, restart and policy all passed; runner 0, old engine 1 |
+| E6       | 22:04:21             | release `5cc5035` prepared beside the running one in 13 s; service untouched                                                                                                                                                                                                             |
+| E4 to E7 | 22:04:21 to 22:10:42 | **first window, aborted.** Stopped at checkpoint 3552; backup `20261107T220517Z` uploaded; the check passed, but the script's own validator crashed: it passed `--check` as an argument to `node -e`, and Node took it for its own option. Nothing committed                             |
+| —        | 22:10:43             | the script started `e458f7c` again, unchanged. One `gap` in checkpoint 3553, 22:05:08 to 22:11:27 (6 min 19 s). The validator was fixed (mode names without dashes), tested on that check's output and four broken inputs, and restaged                                                  |
+| E5       | 22:14:10             | head checkpoint 3552 before the second window; service active on `e458f7c`                                                                                                                                                                                                               |
+| E8 stop  | 22:14:53             | stopped; last checkpoint 3553, tick 10,633,342                                                                                                                                                                                                                                           |
+| E4       | 22:15:48             | backup `20261107T221453Z`, SHA-256 `3f9ba1b1…`, checkpoint 3553, restored and checked by `backup.sh`, uploaded off site                                                                                                                                                                  |
+| E7       | 22:20:11             | `--check` on a read-only copy of that backup, 261 s: ECHO, checkpoint 3554 at tick 10,633,342, graph `0b925419…` = source, shadow unchanged, starts in shadow; the copy unchanged                                                                                                        |
+| E8       | 22:25:05             | **committed:** checkpoint 3554, tick 10,633,342, parent `e85dd183…` (checkpoint 3553), graph kept, mode shadow, 357 s                                                                                                                                                                    |
+| E9       | 22:28:54             | `install.sh`: the release resumed the store, switched, kept `3db627b`, `bdb7c02`, `d25e1f3` (pinned) and `e458f7c` (previous), started; no restarts; observer live. One `gap` in checkpoint 3555, 22:14:45 to 22:28:29 (13 min 45 s)                                                     |
+| E10      | 22:34 to 22:38       | checkpoint 3555 at tick 10,636,342: same individual, `echo-embodied-plasticity/v2`. The public witness: live, mode shadow, samples 989 then 1,079 a minute later, adaptations 0. The production parser accepts that witness                                                              |
+| E11      | from 22:28           | started                                                                                                                                                                                                                                                                                  |
+
+Still owed for E10: the next sealed replay over checkpoints from `5cc5035`, and the
+first scheduled backup on the new release (due 00:01Z), checked by `backup.sh` with
+the new release.
+
+ECHO now refuses every older release by design. If shadow mode must stop, the way
+out is a forward `disabled` policy checkpoint, never a restore.

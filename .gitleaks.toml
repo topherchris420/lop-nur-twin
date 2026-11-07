@@ -123,3 +123,19 @@ condition = "AND"
 regexTarget = "secret"
 regexes = ['''^e458f7cb34904d85127779a3700c26b376ab4a80$''']
 paths = ['''(^|/)(src/bethesda/life/plasticOrganism\.ts|docs/EVA_ECHO_ACTIVATION\.md)$''']
+
+# The plasticity activation record (2026-11-07): the cutover script and its log name
+# the merge it installed and the release it continued from, beside
+# `sourceGraphDigest`. Only these exact public SHAs, in these exact files.
+[[rules.allowlists]]
+description = "Public commits named by the plasticity activation record, not credentials."
+condition = "AND"
+regexTarget = "secret"
+regexes = [
+  '''^5cc50355148dfc53b3e773bb87b07025d7e94b96$''',
+  '''^e458f7cb34904d85127779a3700c26b376ab4a80$''',
+  '''^3db627bc125415093d6507988a2d8f61949f5240$''',
+  '''^bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1$''',
+  '''^d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592$''',
+]
+paths = ['''(^|/)docs/research/plasticity-activation/echo-cutover\.(sh|log)$''']

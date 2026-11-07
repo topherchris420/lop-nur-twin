@@ -498,7 +498,8 @@ are unavailable and zero-filled.
   - Short runs (ECHO 2 h) in simplified worlds (a yard, a toy garden).
   - The active policies are deliberately narrow: slow a walk, or swap fly and walk.
   - The dev split suggested a benefit for ECHO that the held-out split did not show.
-  - Neither original is running it; live evidence would come from shadow mode first.
+  - Both originals run it in shadow mode since 2026-11-07; nothing about the live
+    flies is claimed until the shadow period's evidence is in.
 - **Record.** [EVA_ECHO_BRAIN_PLASTICITY.md](EVA_ECHO_BRAIN_PLASTICITY.md#what-the-studies-found);
   [ECHO held-out](benchmarks/echo-plasticity/heldout/README.md);
   [Eva held-out](benchmarks/eva-plasticity/heldout/README.md).

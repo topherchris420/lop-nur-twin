@@ -1,9 +1,11 @@
 # Eva and ECHO: embodied plasticity for the two originals
 
-**Status: implemented, tested and studied on research individuals. Activated on
-neither original.** Activation is a separate, owner-approved procedure on each VM
-([EVA_ECHO_ACTIVATION.md](EVA_ECHO_ACTIVATION.md)); a merge or a website deploy
-changes neither fly.
+**Status: implemented, tested and studied on research individuals. Running on
+both originals in shadow mode since 2026-11-07** (Eva from 22:04Z, ECHO from
+22:28Z): they learn and report, and change nothing they do. Active mode is not
+switched on for either. Each step was owner-approved and is recorded in
+[EVA_ECHO_ACTIVATION.md](EVA_ECHO_ACTIVATION.md#record); a merge or a website
+deploy changes neither fly.
 
 The aim is to add learning to the two persistent flies **without replacing them**:
 the same life ID, birth, genesis, checkpoint ancestry, counters, random streams

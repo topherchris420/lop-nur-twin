@@ -61,14 +61,17 @@ reproduces them byte for byte on the platform they were recorded on.
 [Reproduce it](#reproduce-it-or-build-on-it), or start from
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 7 November 2026: learning prepared for both flies, not switched on
+## 7 November 2026: both flies learn from their own bodies, in shadow mode
 
 ECHO and Eva each have a new learning addition that continues the same individual
 instead of replacing it. ECHO's learns how reliably its own steps carry it, and
 may slow a failing walk. Eva's learns how far flying and walking each carry her,
-and may swap them. Both start in **shadow mode**: they learn and report, and change
-nothing. Neither runs on the live flies yet. That waits for the owner's approval,
-step by step ([activation record](docs/EVA_ECHO_ACTIVATION.md)).
+and may swap them. Both run on the live flies in **shadow mode** since the evening
+of 7 November: they learn and report, and change nothing they do. ECHO continues
+as the same individual from checkpoint 3554, at the tick its old brain stopped,
+after a pause of 13 min 45 s. Eva's service restarted in two seconds with her
+database untouched. Every step was owner-approved
+([activation record](docs/EVA_ECHO_ACTIVATION.md#record)).
 
 On held-out research individuals, never the originals: shadow mode was identical
 to the original fly in every run (ECHO 144 of 144, Eva 72 of 72), and restarts kept
