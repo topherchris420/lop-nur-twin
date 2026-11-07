@@ -108,3 +108,48 @@ def test_local_pin_records_exact_source_digests(tmp_path):
         assert receipt["source_products"][role]["sha256"] == sha256_file(path)
     persisted = json.loads((banc_public.root_dir(tmp_path) / "source-manifest.json").read_text())
     assert receipt == persisted
+
+
+def test_published_background_id_zero_is_audited_not_modeled(tmp_path):
+    """v888 release contains zero-root background edges, not neural cells."""
+    files = products(tmp_path)
+    pl.DataFrame(
+        {
+            "pre_root_id": [101, 201, 0, 101, 0],
+            "post_root_id": [201, 301, 201, 0, 0],
+            "neuropil": ["VNC_T1_L", "GNG", "VNC_unassigned", "GNG", "GNG"],
+            "num_synapses": [6, 8, 3, 5, 7],
+        }
+    ).write_parquet(files["connections"])
+    receipt = banc_public.prepare(tmp_path)
+    assert receipt["conversion_audit"]["raw_connection_rows"] == 5
+    assert receipt["conversion_audit"]["modeled_connection_rows"] == 2
+    assert receipt["conversion_audit"]["excluded_root_zero_rows"] == 3
+    assert receipt["conversion_audit"]["excluded_root_zero_synapses"] == 15
+    assert pl.read_parquet(files["connections"]).height == 5  # raw source preserved
+    assert banc_public.import_public(tmp_path)["counts"]["synapses"] == 14
+    assert banc_public.prepare(tmp_path) == receipt
+
+
+def test_negative_ids_and_nonpositive_synapse_counts_still_fail(tmp_path):
+    files = products(tmp_path)
+    pl.DataFrame(
+        {
+            "pre_root_id": [-1],
+            "post_root_id": [201],
+            "neuropil": ["VNC_T1_L"],
+            "num_synapses": [2],
+        }
+    ).write_parquet(files["connections"])
+    with pytest.raises(banc_public.PublicBancError, match="negative IDs"):
+        banc_public.prepare(tmp_path)
+    pl.DataFrame(
+        {
+            "pre_root_id": [101],
+            "post_root_id": [201],
+            "neuropil": ["VNC_T1_L"],
+            "num_synapses": [0],
+        }
+    ).write_parquet(files["connections"])
+    with pytest.raises(banc_public.PublicBancError, match="connection counts"):
+        banc_public.prepare(tmp_path)
