@@ -113,3 +113,13 @@ regexes = [
   '''^3db627bc125415093d6507988a2d8f61949f5240$''',
 ]
 paths = ['''(^|/)docs/research/echo-collision/cutover\.txt$''']
+
+# The plasticity continuation pins the release that wrote its source checkpoint
+# (PLASTICITY_CONTINUATION_SOURCE), and its activation record names it beside
+# `sourceGraphDigest`. Only this exact public SHA, in these exact files.
+[[rules.allowlists]]
+description = "Public release commit pinned by the plasticity continuation, not a credential."
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^e458f7cb34904d85127779a3700c26b376ab4a80$''']
+paths = ['''(^|/)(src/bethesda/life/plasticOrganism\.ts|docs/EVA_ECHO_ACTIVATION\.md)$''']

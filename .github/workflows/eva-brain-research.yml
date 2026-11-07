@@ -1,25 +1,32 @@
-name: Eva brain research (isolated)
+name: Eva service and plasticity
 
+# Eva's live service sources (byte for byte, MANIFEST.json), the patched service
+# with eva-embodied-plasticity/v1, and their side-by-side tests: research gardens
+# in temporary directories only. No network, no VM, no copy of her database.
 on:
   push:
     paths:
-      - deploy/garden/research/**
+      - deploy/garden/service/**
       - .github/workflows/eva-brain-research.yml
   pull_request:
     paths:
-      - deploy/garden/research/**
+      - deploy/garden/service/**
       - .github/workflows/eva-brain-research.yml
 
 permissions:
   contents: read
 
 jobs:
-  eva-sidecar:
+  eva-service:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-      - name: Test Eva's opt-in brain without network or originals
-        run: python -m unittest discover -s deploy/garden/research -p "test_*.py" -v
+          # Eva's VM runs Ubuntu's Python 3; the service is standard library only.
+          python-version: "3.12"
+      - name: Byte-identity, shadow equivalence, restart, identity binding and fault tests
+        working-directory: deploy/garden/service
+        run: python -m unittest test_service -v

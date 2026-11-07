@@ -71,6 +71,12 @@ docs/benchmarks/noeterra-civilization/
 # bytes are hashed, written by `npm run rain:fly`, never by hand.
 docs/benchmarks/fly-behavior/
 
+# Embodied-plasticity studies on research individuals: records and reports
+# written by scripts/echo-plasticity-evaluate.ts and deploy/garden/service/study.py,
+# never by hand.
+docs/benchmarks/echo-plasticity/
+docs/benchmarks/eva-plasticity/
+
 # Digital-fly pilots: exploratory sizing runs, never evidence, written by
 # `npm run rain:fly -- --pilot` and checked byte for byte by `--pilot --check`.
 docs/benchmarks/fly-pilots/

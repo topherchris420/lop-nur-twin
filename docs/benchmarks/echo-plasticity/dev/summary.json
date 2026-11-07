@@ -1,0 +1,3994 @@
+{
+  "study": "echo-plasticity-study/v1",
+  "split": "dev",
+  "runs": 192,
+  "seeds": 8,
+  "shadow": {
+    "runs": 48,
+    "identical": 48,
+    "differing": []
+  },
+  "restart": {
+    "runs": 32,
+    "identical": 32,
+    "learningKept": 32
+  },
+  "primary": {
+    "contrast": {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 1.125,
+        "low": -0.25,
+        "high": 2.375,
+        "better": 5,
+        "worse": 2,
+        "tied": 1
+      },
+      "missing": 0
+    },
+    "verdict": "no difference established"
+  },
+  "contrasts": [
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "shadow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "active",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": -0.375,
+        "low": -3.125,
+        "high": 2,
+        "better": 4,
+        "worse": 4,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0.01140468750001844,
+        "low": -0.06103125000009868,
+        "high": 0.09025312500014593,
+        "better": 3,
+        "worse": 5,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": -0.01142513437553104,
+        "low": -0.03631146875201052,
+        "high": 0.010810859375418036,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0.016191363032770856,
+        "low": -0.029013816488913782,
+        "high": 0.06385924423843443,
+        "better": 5,
+        "worse": 3,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.375,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": -0.25,
+        "low": -0.5,
+        "high": 0,
+        "better": 2,
+        "worse": 0,
+        "tied": 6
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": -6.11240441564419,
+        "low": -7.409861179303114,
+        "high": -4.599278192160295,
+        "better": 0,
+        "worse": 8,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": -15.817635619208772,
+        "low": -58.36001771834019,
+        "high": 23.25000757393191,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0.00627083333333334,
+        "low": -0.0036927083333333326,
+        "high": 0.01683680555555557,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 10.5625,
+        "low": -24.25,
+        "high": 50.8125,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": -0.15000000000000036,
+        "low": -4.962500000000003,
+        "high": 4.200000000000002,
+        "better": 1,
+        "worse": 7,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "steady",
+      "arm": "fixed-slow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "shadow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "active",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": -2.125,
+        "low": -4.5,
+        "high": 0.25,
+        "better": 3,
+        "worse": 5,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": -0.04716562500007626,
+        "low": -0.13806562500022324,
+        "high": 0.0455203125000736,
+        "better": 3,
+        "worse": 5,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0.013411302500264136,
+        "low": -0.012019827501062244,
+        "high": 0.03738810562588793,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": -0.042962359930104374,
+        "low": -0.10117905629455007,
+        "high": 0.015260436168822764,
+        "better": 2,
+        "worse": 6,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": -0.25,
+        "low": -0.75,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.375,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": -6.796896688935145,
+        "low": -8.252565894340123,
+        "high": -4.7993432867945405,
+        "better": 0,
+        "worse": 8,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 27.10768938835588,
+        "low": -22.38370186108095,
+        "high": 75.95192392080433,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": -0.000736111111111111,
+        "low": -0.013619791666666662,
+        "high": 0.017065972222222222,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": -10.3125,
+        "low": -36.375,
+        "high": 22.4375,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": -11.030416666666667,
+        "low": -213.97916666666669,
+        "high": 191.91833333333335,
+        "better": 4,
+        "worse": 4,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "food-moves",
+      "arm": "fixed-slow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0.125,
+        "low": -0.625,
+        "high": 0.875,
+        "better": 3,
+        "worse": 3,
+        "tied": 2
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 1.125,
+        "low": -0.25,
+        "high": 2.375,
+        "better": 5,
+        "worse": 2,
+        "tied": 1
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": -0.053142187500085925,
+        "low": -0.12487500000020191,
+        "high": 0.013598437500021987,
+        "better": 3,
+        "worse": 5,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": -0.01857264125151556,
+        "low": -0.045442101877792115,
+        "high": 0.008163758749527891,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": -0.024517408686812778,
+        "low": -0.08283571276509683,
+        "high": 0.03282326817690537,
+        "better": 4,
+        "worse": 4,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": -1.1234127317716662,
+        "low": -2.0155120962594446,
+        "high": -0.32149660301571603,
+        "better": 1,
+        "worse": 7,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": -36.1770570799778,
+        "low": -89.5957258850874,
+        "high": 18.102009261898573,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0.007369791666666667,
+        "low": -0.0030000000000000027,
+        "high": 0.016755208333333337,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 16.0625,
+        "low": -22.8125,
+        "high": 48.75,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": -15.158541666666665,
+        "low": -120.95500000000001,
+        "high": 130.81625,
+        "better": 6,
+        "worse": 2,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.5,
+        "high": 0.25,
+        "better": 2,
+        "worse": 1,
+        "tied": 5
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": -2.25,
+        "high": 2.125,
+        "better": 3,
+        "worse": 3,
+        "tied": 2
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": -0.06672656250010789,
+        "low": -0.13467656250021776,
+        "high": 0.007101562500011482,
+        "better": 2,
+        "worse": 6,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": -0.023612141876540593,
+        "low": -0.05258153937816454,
+        "high": 0.004274993749614153,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": -0.0305776032789052,
+        "low": -0.09088173049606736,
+        "high": 0.02748109840568176,
+        "better": 3,
+        "worse": 5,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.375,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0.125,
+        "low": 0,
+        "high": 0.375,
+        "better": 0,
+        "worse": 1,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": -1.7482529142309624,
+        "low": -2.9543525744967534,
+        "high": -0.18164541249570632,
+        "better": 1,
+        "worse": 7,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": -45.09896223959127,
+        "low": -104.245837527061,
+        "high": 10.369191085891373,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0.00516666666666667,
+        "low": -0.009434027777777774,
+        "high": 0.023392361111111107,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 17.125,
+        "low": -17.75,
+        "high": 54.875,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 11.172083333333333,
+        "low": -135.65625,
+        "high": 204.52187500000002,
+        "better": 5,
+        "worse": 3,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "fixed-slow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": -0.25,
+        "low": -1,
+        "high": 0.375,
+        "better": 3,
+        "worse": 2,
+        "tied": 3
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "shadow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "active",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": -0.5,
+        "low": -2,
+        "high": 0.875,
+        "better": 2,
+        "worse": 3,
+        "tied": 3
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0.06183281250009997,
+        "low": -0.0555468750000898,
+        "high": 0.17537343750028356,
+        "better": 5,
+        "worse": 3,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0.002678391250039179,
+        "low": -0.0031098343749352414,
+        "high": 0.0086153662500102,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0.041953490254063155,
+        "low": -0.044237423763409514,
+        "high": 0.1260694237812891,
+        "better": 5,
+        "worse": 3,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.375,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0.375,
+        "low": 0,
+        "high": 1.125,
+        "better": 0,
+        "worse": 1,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": -9.096039172194985,
+        "low": -10.548537677299752,
+        "high": -7.5794348618544625,
+        "better": 0,
+        "worse": 8,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 2.9636845110206935,
+        "low": -3.021035199847058,
+        "high": 9.459558739268086,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0.001092013888888889,
+        "low": -0.01313541666666667,
+        "high": 0.01547395833333333,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": -16.9375,
+        "low": -40.75,
+        "high": 9.125,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 93.90000000000002,
+        "low": -1.9624999999999995,
+        "high": 222.9125,
+        "better": 1,
+        "worse": 7,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "noisy-sense",
+      "arm": "fixed-slow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.375,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "shadow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "active",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": -1.875,
+        "low": -5.25,
+        "high": 0.75,
+        "better": 2,
+        "worse": 5,
+        "tied": 1
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0.0194203125000314,
+        "low": -0.01140468750001844,
+        "high": 0.047953125000077534,
+        "better": 5,
+        "worse": 3,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0.008897958750393356,
+        "low": -0.009666099375838136,
+        "high": 0.030872314376706456,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0.007462662234359055,
+        "low": -0.011302722517252395,
+        "high": 0.025879232713621414,
+        "better": 5,
+        "worse": 3,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": -0.5,
+        "low": -1.125,
+        "high": 0.125,
+        "better": 4,
+        "worse": 1,
+        "tied": 3
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0.375,
+        "low": 0,
+        "high": 1.125,
+        "better": 0,
+        "worse": 1,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": -5.931424688471019,
+        "low": -6.920960981633714,
+        "high": -4.911878631273732,
+        "better": 0,
+        "worse": 8,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 9.021402514955355,
+        "low": -27.698615920086283,
+        "high": 54.64643994844636,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": -0.006661458333333339,
+        "low": -0.01706770833333334,
+        "high": 0.0032361111111111063,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": -15.5625,
+        "low": -37.75,
+        "high": 4.9375,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": -18.909999999999993,
+        "low": -84.72291666666668,
+        "high": 54.16125000000002,
+        "better": 5,
+        "worse": 3,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "push",
+      "arm": "fixed-slow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.5,
+        "high": 0.25,
+        "better": 2,
+        "worse": 1,
+        "tied": 5
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "meals",
+      "interval": {
+        "n": 8,
+        "mean": -2.125,
+        "low": -4.5,
+        "high": 0.25,
+        "better": 3,
+        "worse": 5,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "fedJ",
+      "interval": {
+        "n": 8,
+        "mean": -0.04716562500007626,
+        "low": -0.13806562500022324,
+        "high": 0.0455203125000736,
+        "better": 3,
+        "worse": 5,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "spentJ",
+      "interval": {
+        "n": 8,
+        "mean": 0.013411302500264136,
+        "low": -0.012019827501062244,
+        "high": 0.03738810562588793,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "maintenanceJ",
+      "interval": {
+        "n": 8,
+        "mean": 0,
+        "low": 0,
+        "high": 0,
+        "better": 0,
+        "worse": 0,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "endReserve",
+      "interval": {
+        "n": 8,
+        "mean": -0.042962359930104374,
+        "low": -0.10117905629455007,
+        "high": 0.015260436168822764,
+        "better": 2,
+        "worse": 6,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "collisions",
+      "interval": {
+        "n": 8,
+        "mean": -0.25,
+        "low": -0.75,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "walkingBlocks",
+      "interval": {
+        "n": 8,
+        "mean": -0.125,
+        "low": -0.375,
+        "high": 0,
+        "better": 1,
+        "worse": 0,
+        "tied": 7
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "walkedM",
+      "interval": {
+        "n": 8,
+        "mean": -6.796896688935145,
+        "low": -8.252565894340123,
+        "high": -4.7993432867945405,
+        "better": 0,
+        "worse": 8,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "flownM",
+      "interval": {
+        "n": 8,
+        "mean": 27.10768938835588,
+        "low": -22.38370186108095,
+        "high": 75.95192392080433,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "walkingShare",
+      "interval": {
+        "n": 8,
+        "mean": -0.000736111111111111,
+        "low": -0.013619791666666662,
+        "high": 0.017065972222222222,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "modeChangesPerHour",
+      "interval": {
+        "n": 8,
+        "mean": -10.3125,
+        "low": -36.375,
+        "high": 22.4375,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "meanLatencyS",
+      "interval": {
+        "n": 8,
+        "mean": -11.030416666666667,
+        "low": -213.97916666666669,
+        "high": 191.91833333333335,
+        "better": 4,
+        "worse": 4,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "fixed-slow",
+      "metric": "placementsMissed",
+      "interval": {
+        "n": 8,
+        "mean": 0.125,
+        "low": -0.625,
+        "high": 0.875,
+        "better": 3,
+        "worse": 3,
+        "tied": 2
+      },
+      "missing": 0
+    }
+  ],
+  "means": {
+    "steady": {
+      "original": {
+        "meals": 10.875,
+        "fedJ": 1.2537140625015348,
+        "spentJ": 0.7824921468886123,
+        "maintenanceJ": 0,
+        "endReserve": 0.8341999401616638,
+        "collisions": 0.125,
+        "walkingBlocks": 0.25,
+        "walkedM": 22.000446637518124,
+        "flownM": 957.6413320192855,
+        "walkingShare": 0.1686527777777778,
+        "modeChangesPerHour": 691.9375,
+        "meanLatencyS": 86.17500000000001,
+        "placementsMissed": 0
+      },
+      "shadow": {
+        "meals": 10.875,
+        "fedJ": 1.2537140625015348,
+        "spentJ": 0.7824921468886123,
+        "maintenanceJ": 0,
+        "endReserve": 0.8341999401616638,
+        "collisions": 0.125,
+        "walkingBlocks": 0.25,
+        "walkedM": 22.000446637518124,
+        "flownM": 957.6413320192855,
+        "walkingShare": 0.1686527777777778,
+        "modeChangesPerHour": 691.9375,
+        "meanLatencyS": 86.17500000000001,
+        "placementsMissed": 0
+      },
+      "active": {
+        "meals": 10.875,
+        "fedJ": 1.2537140625015348,
+        "spentJ": 0.7824921468886123,
+        "maintenanceJ": 0,
+        "endReserve": 0.8341999401616638,
+        "collisions": 0.125,
+        "walkingBlocks": 0.25,
+        "walkedM": 22.000446637518124,
+        "flownM": 957.6413320192855,
+        "walkingShare": 0.1686527777777778,
+        "modeChangesPerHour": 691.9375,
+        "meanLatencyS": 86.17500000000001,
+        "placementsMissed": 0
+      },
+      "fixed-slow": {
+        "meals": 10.5,
+        "fedJ": 1.2651187500015533,
+        "spentJ": 0.7710670125130813,
+        "maintenanceJ": 0,
+        "endReserve": 0.8503913031944346,
+        "collisions": 0,
+        "walkingBlocks": 0,
+        "walkedM": 15.888042221873931,
+        "flownM": 941.8236964000769,
+        "walkingShare": 0.1749236111111111,
+        "modeChangesPerHour": 702.5,
+        "meanLatencyS": 86.02500000000002,
+        "placementsMissed": 0
+      }
+    },
+    "food-moves": {
+      "original": {
+        "meals": 11.625,
+        "fedJ": 1.3130578125016308,
+        "spentJ": 0.7729964256383807,
+        "maintenanceJ": 0,
+        "endReserve": 0.88302226019791,
+        "collisions": 0.25,
+        "walkingBlocks": 0.125,
+        "walkedM": 22.05419832922381,
+        "flownM": 944.0124138048905,
+        "walkingShare": 0.16765798611111113,
+        "modeChangesPerHour": 696.1875,
+        "meanLatencyS": 400.7904166666667,
+        "placementsMissed": 1.25
+      },
+      "shadow": {
+        "meals": 11.625,
+        "fedJ": 1.3130578125016308,
+        "spentJ": 0.7729964256383807,
+        "maintenanceJ": 0,
+        "endReserve": 0.88302226019791,
+        "collisions": 0.25,
+        "walkingBlocks": 0.125,
+        "walkedM": 22.05419832922381,
+        "flownM": 944.0124138048905,
+        "walkingShare": 0.16765798611111113,
+        "modeChangesPerHour": 696.1875,
+        "meanLatencyS": 400.7904166666667,
+        "placementsMissed": 1.25
+      },
+      "active": {
+        "meals": 11.625,
+        "fedJ": 1.3130578125016308,
+        "spentJ": 0.7729964256383807,
+        "maintenanceJ": 0,
+        "endReserve": 0.88302226019791,
+        "collisions": 0.25,
+        "walkingBlocks": 0.125,
+        "walkedM": 22.05419832922381,
+        "flownM": 944.0124138048905,
+        "walkingShare": 0.16765798611111113,
+        "modeChangesPerHour": 696.1875,
+        "meanLatencyS": 400.7904166666667,
+        "placementsMissed": 1.25
+      },
+      "fixed-slow": {
+        "meals": 9.5,
+        "fedJ": 1.2658921875015545,
+        "spentJ": 0.7864077281386448,
+        "maintenanceJ": 0,
+        "endReserve": 0.8400599002678055,
+        "collisions": 0,
+        "walkingBlocks": 0,
+        "walkedM": 15.25730164028866,
+        "flownM": 971.1201031932463,
+        "walkingShare": 0.166921875,
+        "modeChangesPerHour": 685.875,
+        "meanLatencyS": 389.76,
+        "placementsMissed": 1.375
+      }
+    },
+    "weak-legs": {
+      "original": {
+        "meals": 10,
+        "fedJ": 1.2827250000015817,
+        "spentJ": 0.7653417243886208,
+        "maintenanceJ": 0,
+        "endReserve": 0.8669384933542867,
+        "collisions": 0.125,
+        "walkingBlocks": 0,
+        "walkedM": 16.00188869636918,
+        "flownM": 891.0436345818331,
+        "walkingShare": 0.17280034722222226,
+        "modeChangesPerHour": 732.1875,
+        "meanLatencyS": 472.05604166666666,
+        "placementsMissed": 1.5
+      },
+      "shadow": {
+        "meals": 10,
+        "fedJ": 1.2827250000015817,
+        "spentJ": 0.7653417243886208,
+        "maintenanceJ": 0,
+        "endReserve": 0.8669384933542867,
+        "collisions": 0.125,
+        "walkingBlocks": 0,
+        "walkedM": 16.00188869636918,
+        "flownM": 891.0436345818331,
+        "walkingShare": 0.17280034722222226,
+        "modeChangesPerHour": 732.1875,
+        "meanLatencyS": 472.05604166666666,
+        "placementsMissed": 1.5
+      },
+      "active": {
+        "meals": 11.125,
+        "fedJ": 1.2295828125014958,
+        "spentJ": 0.7467690831371052,
+        "maintenanceJ": 0,
+        "endReserve": 0.842421084667474,
+        "collisions": 0.125,
+        "walkingBlocks": 0,
+        "walkedM": 14.878475964597513,
+        "flownM": 854.8665775018553,
+        "walkingShare": 0.18017013888888891,
+        "modeChangesPerHour": 748.25,
+        "meanLatencyS": 456.89750000000004,
+        "placementsMissed": 1.375
+      },
+      "fixed-slow": {
+        "meals": 10,
+        "fedJ": 1.2159984375014739,
+        "spentJ": 0.7417295825120801,
+        "maintenanceJ": 0,
+        "endReserve": 0.8363608900753815,
+        "collisions": 0,
+        "walkingBlocks": 0.125,
+        "walkedM": 14.253635782138216,
+        "flownM": 845.9446723422418,
+        "walkingShare": 0.1779670138888889,
+        "modeChangesPerHour": 749.3125,
+        "meanLatencyS": 483.228125,
+        "placementsMissed": 1.25
+      }
+    },
+    "noisy-sense": {
+      "original": {
+        "meals": 4.625,
+        "fedJ": 0.5875875000004579,
+        "spentJ": 0.2935323899978311,
+        "maintenanceJ": 0,
+        "endReserve": 0.7085497234216827,
+        "collisions": 0.125,
+        "walkingBlocks": 0,
+        "walkedM": 30.158348184136443,
+        "flownM": 48.13996051095267,
+        "walkingShare": 0.3510729166666667,
+        "modeChangesPerHour": 1091.5625,
+        "meanLatencyS": 86.17500000000001,
+        "placementsMissed": 4
+      },
+      "shadow": {
+        "meals": 4.625,
+        "fedJ": 0.5875875000004579,
+        "spentJ": 0.2935323899978311,
+        "maintenanceJ": 0,
+        "endReserve": 0.7085497234216827,
+        "collisions": 0.125,
+        "walkingBlocks": 0,
+        "walkedM": 30.158348184136443,
+        "flownM": 48.13996051095267,
+        "walkingShare": 0.3510729166666667,
+        "modeChangesPerHour": 1091.5625,
+        "meanLatencyS": 86.17500000000001,
+        "placementsMissed": 4
+      },
+      "active": {
+        "meals": 4.625,
+        "fedJ": 0.5875875000004579,
+        "spentJ": 0.2935323899978311,
+        "maintenanceJ": 0,
+        "endReserve": 0.7085497234216827,
+        "collisions": 0.125,
+        "walkingBlocks": 0,
+        "walkedM": 30.158348184136443,
+        "flownM": 48.13996051095267,
+        "walkingShare": 0.3510729166666667,
+        "modeChangesPerHour": 1091.5625,
+        "meanLatencyS": 86.17500000000001,
+        "placementsMissed": 4
+      },
+      "fixed-slow": {
+        "meals": 4.125,
+        "fedJ": 0.6494203125005579,
+        "spentJ": 0.29621078124787026,
+        "maintenanceJ": 0,
+        "endReserve": 0.7505032136757459,
+        "collisions": 0,
+        "walkingBlocks": 0.375,
+        "walkedM": 21.062309011941455,
+        "flownM": 51.10364502197337,
+        "walkingShare": 0.3521649305555556,
+        "modeChangesPerHour": 1074.625,
+        "meanLatencyS": 180.075,
+        "placementsMissed": 3.875
+      }
+    },
+    "push": {
+      "original": {
+        "meals": 19.375,
+        "fedJ": 1.1651906250013917,
+        "spentJ": 0.7298159968866629,
+        "maintenanceJ": 0,
+        "endReserve": 0.8087763320072429,
+        "collisions": 0.625,
+        "walkingBlocks": 0,
+        "walkedM": 24.6006367639718,
+        "flownM": 854.945797160153,
+        "walkingShare": 0.19586458333333334,
+        "modeChangesPerHour": 787.4375,
+        "meanLatencyS": 338.3216666666667,
+        "placementsMissed": 0.375
+      },
+      "shadow": {
+        "meals": 19.375,
+        "fedJ": 1.1651906250013917,
+        "spentJ": 0.7298159968866629,
+        "maintenanceJ": 0,
+        "endReserve": 0.8087763320072429,
+        "collisions": 0.625,
+        "walkingBlocks": 0,
+        "walkedM": 24.6006367639718,
+        "flownM": 854.945797160153,
+        "walkingShare": 0.19586458333333334,
+        "modeChangesPerHour": 787.4375,
+        "meanLatencyS": 338.3216666666667,
+        "placementsMissed": 0.375
+      },
+      "active": {
+        "meals": 19.375,
+        "fedJ": 1.1651906250013917,
+        "spentJ": 0.7298159968866629,
+        "maintenanceJ": 0,
+        "endReserve": 0.8087763320072429,
+        "collisions": 0.625,
+        "walkingBlocks": 0,
+        "walkedM": 24.6006367639718,
+        "flownM": 854.945797160153,
+        "walkingShare": 0.19586458333333334,
+        "modeChangesPerHour": 787.4375,
+        "meanLatencyS": 338.3216666666667,
+        "placementsMissed": 0.375
+      },
+      "fixed-slow": {
+        "meals": 17.5,
+        "fedJ": 1.184610937501423,
+        "spentJ": 0.7387139556370562,
+        "maintenanceJ": 0,
+        "endReserve": 0.816238994241602,
+        "collisions": 0.125,
+        "walkingBlocks": 0.375,
+        "walkedM": 18.66921207550078,
+        "flownM": 863.9671996751085,
+        "walkingShare": 0.18920312500000003,
+        "modeChangesPerHour": 771.875,
+        "meanLatencyS": 319.4116666666667,
+        "placementsMissed": 0.25
+      }
+    },
+    "restart": {
+      "original": {
+        "meals": 11.625,
+        "fedJ": 1.3130578125016308,
+        "spentJ": 0.7729964256383807,
+        "maintenanceJ": 0,
+        "endReserve": 0.88302226019791,
+        "collisions": 0.25,
+        "walkingBlocks": 0.125,
+        "walkedM": 22.05419832922381,
+        "flownM": 944.0124138048905,
+        "walkingShare": 0.16765798611111113,
+        "modeChangesPerHour": 696.1875,
+        "meanLatencyS": 400.7904166666667,
+        "placementsMissed": 1.25
+      },
+      "shadow": {
+        "meals": 11.625,
+        "fedJ": 1.3130578125016308,
+        "spentJ": 0.7729964256383807,
+        "maintenanceJ": 0,
+        "endReserve": 0.88302226019791,
+        "collisions": 0.25,
+        "walkingBlocks": 0.125,
+        "walkedM": 22.05419832922381,
+        "flownM": 944.0124138048905,
+        "walkingShare": 0.16765798611111113,
+        "modeChangesPerHour": 696.1875,
+        "meanLatencyS": 400.7904166666667,
+        "placementsMissed": 1.25
+      },
+      "active": {
+        "meals": 11.625,
+        "fedJ": 1.3130578125016308,
+        "spentJ": 0.7729964256383807,
+        "maintenanceJ": 0,
+        "endReserve": 0.88302226019791,
+        "collisions": 0.25,
+        "walkingBlocks": 0.125,
+        "walkedM": 22.05419832922381,
+        "flownM": 944.0124138048905,
+        "walkingShare": 0.16765798611111113,
+        "modeChangesPerHour": 696.1875,
+        "meanLatencyS": 400.7904166666667,
+        "placementsMissed": 1.25
+      },
+      "fixed-slow": {
+        "meals": 9.5,
+        "fedJ": 1.2658921875015545,
+        "spentJ": 0.7864077281386448,
+        "maintenanceJ": 0,
+        "endReserve": 0.8400599002678055,
+        "collisions": 0,
+        "walkingBlocks": 0,
+        "walkedM": 15.25730164028866,
+        "flownM": 971.1201031932463,
+        "walkingShare": 0.166921875,
+        "modeChangesPerHour": 685.875,
+        "meanLatencyS": 389.76,
+        "placementsMissed": 1.375
+      }
+    }
+  },
+  "plasticity": {
+    "steady|shadow": {
+      "samples": 20189.875,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.0015986691064108543
+    },
+    "steady|active": {
+      "samples": 20189.875,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.0015986691064108543
+    },
+    "food-moves|shadow": {
+      "samples": 20154.125,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.0014968896651081818
+    },
+    "food-moves|active": {
+      "samples": 20154.125,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.0014968896651081818
+    },
+    "weak-legs|shadow": {
+      "samples": 24221.5,
+      "adaptations": 0,
+      "shadowWouldAdapt": 22521.875,
+      "failureNormal": 0.7380032489723686
+    },
+    "weak-legs|active": {
+      "samples": 25179.75,
+      "adaptations": 23556.875,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.7152577843670919
+    },
+    "noisy-sense|shadow": {
+      "samples": 30620.25,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.2192431304691055
+    },
+    "noisy-sense|active": {
+      "samples": 30620.25,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.2192431304691055
+    },
+    "push|shadow": {
+      "samples": 23436.75,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.11158964269303685
+    },
+    "push|active": {
+      "samples": 23436.75,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.11158964269303685
+    },
+    "restart|shadow": {
+      "samples": 20154.125,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.0014968896651081818
+    },
+    "restart|active": {
+      "samples": 20154.125,
+      "adaptations": 0,
+      "shadowWouldAdapt": 0,
+      "failureNormal": 0.0014968896651081818
+    }
+  }
+}

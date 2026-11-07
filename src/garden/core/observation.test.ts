@@ -5,6 +5,34 @@ import { ObservationError, parseObservation, sameLife } from "./observation.js";
 const sample = () => raw(SEQUENCES["stone-to-flowers"][2]!);
 
 describe("parseObservation", () => {
+  it("reads the optional plasticity report, and its absence", () => {
+    expect(parseObservation(sample()).adaptive).toBeNull();
+    const o = parseObservation({
+      ...(sample() as object),
+      adaptive: {
+        version: "eva-embodied-plasticity/v1",
+        mode: "shadow",
+        status: "ok",
+        samples: 1403,
+        would_override: 0,
+        overrides: 0,
+        estimates: {},
+      },
+    });
+    expect(o.adaptive).toEqual({
+      version: "eva-embodied-plasticity/v1",
+      mode: "shadow",
+      status: "ok",
+      samples: 1403,
+      wouldOverride: 0,
+      overrides: 0,
+    });
+    // A malformed report is dropped, never allowed to blank the garden.
+    expect(
+      parseObservation({ ...(sample() as object), adaptive: [1] }).adaptive,
+    ).toBeNull();
+  });
+
   it("reads every recorded state", () => {
     for (const seq of Object.values(SEQUENCES))
       for (const r of seq) {

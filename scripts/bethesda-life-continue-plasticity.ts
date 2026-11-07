@@ -1,18 +1,21 @@
 /**
- * One-time continuation of THE ORIGINAL ECHO organism, not a birth.
- * This CLI does not control Eva and cannot operate on her Python VM.
+ * One-time continuation of THE ORIGINAL ECHO organism onto embodied plasticity
+ * (src/bethesda/life/plasticOrganism.ts), not a birth. It starts in shadow mode:
+ * it learns and changes no command. This CLI cannot reach Eva or her VM.
  *
- * DO NOT use --commit before a copy of the full live store and the exact old
- * release pass --check and a restore-tested backup exists. --check is read-only.
- * --commit requires a stopped service, lease ownership and an explicit matching
- * production individual authorization; it still refuses a changed parent.
+ * --check is read-only: it opens the store without the lease and writes nothing.
+ * --commit needs a stopped service (a free lease), the exact source release
+ * installed beside it, and ECHO_PLASTICITY_APPROVE_INDIVIDUAL set to the
+ * original's id; it still refuses a changed parent. After a commit, the source
+ * release refuses the store: forward fixes only (docs/EVA_ECHO_ACTIVATION.md).
  *
- * node scripts/run-ts.mjs scripts/bethesda-life-continue-plasticity.ts \
- *   --store DIR --from-release /opt/bethesda-life/releases/OLD_SHA --check
+ *   node --max-old-space-size=4096 scripts/run-ts.mjs scripts/bethesda-life-continue-plasticity.ts \
+ *     --store DIR --from-release /opt/bethesda-life/releases/<PLASTICITY_CONTINUATION_SOURCE> --check
  */
 import { readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { sha256 } from "../src/rain/sha256.js";
 import {
   divergence,
   restoreLife,
@@ -20,17 +23,21 @@ import {
   type LifeKind,
 } from "../src/bethesda/life/continuity.js";
 import {
+  PLASTICITY_CONTINUATION_SOURCE,
   PLASTICITY_EVENT,
   PLASTICITY_LIFE,
+  plasticityProjection,
   type PlasticityOrganismLife,
 } from "../src/bethesda/life/plasticOrganism.js";
 import { continueWithPlasticity } from "../src/bethesda/life/plasticityContinuation.js";
 import type { HeadlessGenesis } from "../src/bethesda/life/headless.js";
 import { ORGANISM_LIFE, type OrganismLife } from "../src/bethesda/life/organism.js";
+import { indexGraph, snapshotGraph } from "../src/bethesda/life/snapshot.js";
 import { LifeStore } from "../src/bethesda/life/store.js";
 
 const ORIGINAL_ECHO = "04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921";
 const SAME_ENGINE_TICKS = 600;
+const SHADOW_TICKS = 600;
 const RECOVERY_TICKS = [1, 10, 100, 500];
 
 async function main() {
@@ -43,24 +50,33 @@ async function main() {
     args[2] !== "--from-release" ||
     (args[4] !== "--check" && args[4] !== "--commit")
   )
-    throw new Error("usage: --store DIR --from-release OLD_RELEASE_DIR --check|--commit");
-
+    throw new Error(
+      "usage: --store DIR --from-release SOURCE_RELEASE_DIR --check|--commit",
+    );
+  const commit = args[4] === "--commit";
   const dir = resolve(args[1]!);
   const oldRelease = realpathSync(resolve(args[3]!));
-  const release = readFileSync(resolve(oldRelease, "RELEASE"), "utf8");
-  const sha = release.split(/\r?\n/).find((x) => /^commit [a-f0-9]{40}$/.test(x));
-  if (!sha) throw new Error("old release has no pinned 40-character commit");
-  if (oldRelease === resolve("."))
-    throw new Error("old release must be an installed, separate source checkout");
+  if (oldRelease === realpathSync(resolve(".")))
+    throw new Error("the source release must be an installed, separate source tree");
+  const pinned = readFileSync(resolve(oldRelease, "RELEASE"), "utf8")
+    .split(/\r?\n/)
+    .includes(`commit ${PLASTICITY_CONTINUATION_SOURCE}`);
+  if (!pinned)
+    throw new Error(
+      `the source release must be the exact ${PLASTICITY_CONTINUATION_SOURCE} release`,
+    );
 
   // The new kind's history verifier knows all the original's past eras.
   const store = LifeStore.open<HeadlessGenesis, PlasticityOrganismLife>(
     dir,
     PLASTICITY_LIFE,
+    {
+      holder: "plasticity continuation",
+    },
   );
   const { checkpoint: source, committedUtc: stoppedUtc } = store.headRecord();
   if (
-    args[4] === "--commit" &&
+    commit &&
     (source.birth.individual !== ORIGINAL_ECHO ||
       process.env.ECHO_PLASTICITY_APPROVE_INDIVIDUAL !== ORIGINAL_ECHO)
   )
@@ -68,13 +84,11 @@ async function main() {
       "refusing production continuation without the exact original ECHO individual authorization",
     );
 
-  // Compare the old and new *organism* engines, without learning changes.
-  // Both copies are disposable and start from the same authentic checkpoint.
+  // 1. The source restores on the release that wrote it, and this release's
+  //    organism engine lives on from it exactly as that one does.
   const old = (await import(
     pathToFileURL(resolve(oldRelease, "src/bethesda/life/organism.ts")).href
-  )) as {
-    ORGANISM_LIFE: LifeKind<HeadlessGenesis, unknown>;
-  };
+  )) as { ORGANISM_LIFE: LifeKind<HeadlessGenesis, unknown> };
   const oldContinuity = (await import(
     pathToFileURL(resolve(oldRelease, "src/bethesda/life/continuity.ts")).href
   )) as {
@@ -87,7 +101,7 @@ async function main() {
     JSON.stringify(old.ORGANISM_LIFE.versions) !== JSON.stringify(ORGANISM_LIFE.versions)
   )
     throw new Error(
-      "the old source is not the organism engine whose version wrote this checkpoint",
+      "the source release is not the organism engine whose versions wrote this checkpoint",
     );
   let oldLife: unknown = oldContinuity.restoreLife(old.ORGANISM_LIFE, source);
   let newLife: OrganismLife | null = restoreLife(ORGANISM_LIFE, source);
@@ -95,20 +109,49 @@ async function main() {
   ORGANISM_LIFE.step(newLife, SAME_ENGINE_TICKS);
   if (old.ORGANISM_LIFE.hash(oldLife) !== ORGANISM_LIFE.hash(newLife))
     throw new Error(
-      "behavior of the original organism differs on this release; refusing",
+      "the original organism behaves differently on this release; refusing",
     );
   oldLife = null;
-  newLife = null;
 
+  // 2. The continuation, in memory: every old byte preserved, starting in shadow mode.
   const upgradedUtc = new Date().toISOString();
   const result = continueWithPlasticity(source, upgradedUtc, stoppedUtc);
+
+  // 3. Shadow mode changes nothing: beside the organism restored from the same
+  //    source, the continued life holds exactly the organism's graph once the
+  //    addition is taken out, random streams included.
+  newLife = restoreLife(ORGANISM_LIFE, source);
+  const shadow = restoreLife(PLASTICITY_LIFE, result.checkpoint);
+  ORGANISM_LIFE.step(newLife, SHADOW_TICKS);
+  PLASTICITY_LIFE.step(shadow, SHADOW_TICKS);
+  const organismDigest = sha256(
+    JSON.stringify(
+      snapshotGraph(
+        newLife,
+        indexGraph(ORGANISM_LIFE.build(structuredClone(source.genesis))),
+      ),
+    ),
+  );
+  const shadowDigest = plasticityProjection(
+    snapshotGraph(
+      shadow,
+      indexGraph(PLASTICITY_LIFE.build(structuredClone(source.genesis))),
+    ),
+  );
+  if (shadowDigest !== organismDigest)
+    throw new Error(
+      `shadow mode changed the organism within ${SHADOW_TICKS} ticks; refusing`,
+    );
+  newLife = null;
+
+  // 4. Two restores of the continuation stay the same life.
   const recovered = restoreLife(PLASTICITY_LIFE, result.checkpoint);
   const mismatch = divergence(PLASTICITY_LIFE, result.life, recovered, RECOVERY_TICKS);
   if (mismatch)
     throw new Error(`post-continuation recovery diverged after ${mismatch.after} ticks`);
 
   let committedUtc: string | null = null;
-  if (args[4] === "--commit") {
+  if (commit) {
     // The lease must be free: this is an explicit stopped-service migration.
     store.acquire();
     try {
@@ -123,15 +166,17 @@ async function main() {
     JSON.stringify({
       mode: args[4],
       individual: result.checkpoint.birth.individual,
-      oldReleaseCommit: sha.split(" ")[1],
+      sourceRelease: PLASTICITY_CONTINUATION_SOURCE,
       tick: result.checkpoint.tick,
       sequence: result.checkpoint.sequence,
       parent: result.checkpoint.parent,
       preservedGraphDigest: result.preservedGraphDigest,
       sourceGraphDigest: source.graphDigest,
       sameEngineTicks: SAME_ENGINE_TICKS,
+      shadowTicks: SHADOW_TICKS,
+      shadowUnchanged: true,
       recoveryTicks: RECOVERY_TICKS.reduce((a, b) => a + b, 0),
-      preservation: event?.data.interpretation,
+      startMode: event?.data.mode,
       committedUtc,
     }),
   );

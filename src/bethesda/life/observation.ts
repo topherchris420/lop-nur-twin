@@ -12,8 +12,17 @@
  *   unavailable it says so instead of showing a fly that is not this one.
  *
  * Kept free of the simulation's imports, so a browser can parse a witness
- * without loading the city or the fly.
+ * without loading the city or the fly. (adaptiveBrain.ts has no runtime
+ * imports of its own: only types from the fly's interface.)
  */
+import {
+  ADAPTIVE_BRAIN_VERSION,
+  isPlasticityMode,
+  type Adaptation,
+  type AdaptiveBrainStatus,
+  type ContextVerdict,
+  type PlasticityMode,
+} from "../fly/echo/adaptiveBrain.js";
 
 export const OBSERVATION_SCHEMA = "bethesda-life-observation/v1" as const;
 export const WITNESS_SCHEMA = "bethesda-life-witness/v1" as const;
@@ -114,6 +123,13 @@ export interface LifeObservation {
    * from before the wind (fly versions before `digital-fly/8`) write none.
    */
   weather?: ObservedWeather;
+  /**
+   * With embodied plasticity (fly/echo/adaptiveBrain.ts, life/plasticOrganism.ts):
+   * its mode, how much it has learned, what each energy context's evidence says,
+   * and its latest adaptation. Model variables, not measurements. Lives before
+   * the plasticity continuation write none.
+   */
+  adaptiveBrain?: AdaptiveBrainStatus;
 }
 
 export interface ObservedWeather {
@@ -232,7 +248,7 @@ export function parseObservation(value: unknown): LifeObservation {
       "nearby",
       "selfModel",
     ],
-    ["weather"],
+    ["weather", "adaptiveBrain"],
   );
   if (o.schema !== OBSERVATION_SCHEMA)
     fail("observation.schema", `not ${OBSERVATION_SCHEMA}`);
@@ -417,6 +433,75 @@ export function parseObservation(value: unknown): LifeObservation {
     }),
     selfModel,
     ...(weather ? { weather } : {}),
+    ...(o.adaptiveBrain !== undefined
+      ? { adaptiveBrain: parseAdaptiveBrain(o.adaptiveBrain, o.flyController) }
+      : {}),
+  };
+}
+
+function parseAdaptiveBrain(v: unknown, controller: unknown): AdaptiveBrainStatus {
+  if (controller !== "echo") fail("adaptiveBrain", "only with the echo controller");
+  const b = object(v, "adaptiveBrain", [
+    "version",
+    "mode",
+    "samples",
+    "discarded",
+    "adaptations",
+    "shadowWouldAdapt",
+    "contexts",
+    "lastAdaptation",
+  ]);
+  if (b.version !== ADAPTIVE_BRAIN_VERSION)
+    fail("adaptiveBrain.version", `not ${ADAPTIVE_BRAIN_VERSION}`);
+  if (!isPlasticityMode(b.mode))
+    fail("adaptiveBrain.mode", "not shadow, active or disabled");
+  const contexts = object(b.contexts, "adaptiveBrain.contexts", ["low", "normal"]);
+  const verdict = (x: unknown, p: string): ContextVerdict => {
+    const c = object(x, p, ["n", "failure", "failureLower", "cautious"]);
+    if (typeof c.cautious !== "boolean") fail(`${p}.cautious`, "not true or false");
+    return {
+      n: int(c.n, `${p}.n`),
+      failure: num(c.failure, `${p}.failure`, 0, 1),
+      failureLower: num(c.failureLower, `${p}.failureLower`, 0, 1),
+      cautious: c.cautious as boolean,
+    };
+  };
+  let lastAdaptation: Adaptation | null = null;
+  if (b.lastAdaptation !== null) {
+    const a = object(b.lastAdaptation, "adaptiveBrain.lastAdaptation", [
+      "t",
+      "context",
+      "fromCmS",
+      "toCmS",
+      "failureLower",
+    ]);
+    if (a.context !== "low" && a.context !== "normal")
+      fail("adaptiveBrain.lastAdaptation.context", "neither low nor normal");
+    lastAdaptation = {
+      t: num(a.t, "adaptiveBrain.lastAdaptation.t", 0),
+      context: a.context as Adaptation["context"],
+      fromCmS: num(a.fromCmS, "adaptiveBrain.lastAdaptation.fromCmS", 0, 100),
+      toCmS: num(a.toCmS, "adaptiveBrain.lastAdaptation.toCmS", 0, 100),
+      failureLower: num(
+        a.failureLower,
+        "adaptiveBrain.lastAdaptation.failureLower",
+        0,
+        1,
+      ),
+    };
+  }
+  return {
+    version: ADAPTIVE_BRAIN_VERSION,
+    mode: b.mode as PlasticityMode,
+    samples: int(b.samples, "adaptiveBrain.samples"),
+    discarded: int(b.discarded, "adaptiveBrain.discarded"),
+    adaptations: int(b.adaptations, "adaptiveBrain.adaptations"),
+    shadowWouldAdapt: int(b.shadowWouldAdapt, "adaptiveBrain.shadowWouldAdapt"),
+    contexts: {
+      low: verdict(contexts.low, "adaptiveBrain.contexts.low"),
+      normal: verdict(contexts.normal, "adaptiveBrain.contexts.normal"),
+    },
+    lastAdaptation,
   };
 }
 

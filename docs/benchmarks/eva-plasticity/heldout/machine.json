@@ -1,0 +1,71 @@
+{
+  "commit": "288b3a87e532c00d3ec0497219f2bb54d90c41a9",
+  "clean": true,
+  "platform": "Windows ARM64",
+  "python": "3.15.2",
+  "plan": {
+    "study": "eva-plasticity-study/v1",
+    "brain": "eva-embodied-plasticity/v1",
+    "params": {
+      "min_evidence": 30,
+      "z": 1.96,
+      "count_cap": 2000,
+      "min_effort": 0.5,
+      "recent": 32,
+      "mode_history": 64
+    },
+    "arms": [
+      "original",
+      "shadow",
+      "active",
+      "no-learning"
+    ],
+    "conditions": [
+      "autumn",
+      "rain",
+      "weak-wings",
+      "weak-legs",
+      "winter",
+      "restart"
+    ],
+    "hours": 48,
+    "restart_hour": 24,
+    "seeds": {
+      "dev": [
+        7001,
+        7002,
+        7003,
+        7004
+      ],
+      "heldout": [
+        7101,
+        7102,
+        7103,
+        7104,
+        7105,
+        7106,
+        7107,
+        7108,
+        7109,
+        7110,
+        7111,
+        7112
+      ]
+    },
+    "primary": {
+      "question": "With weak wings, does active plasticity change the number of journeys Eva completes, relative to her original service?",
+      "metric": "arrivals",
+      "condition": "weak-wings",
+      "contrast": [
+        "active",
+        "original"
+      ],
+      "rule": "Claim a benefit only if the 95% bootstrap interval of the paired mean difference (active minus original) lies above zero; a harm only if it lies below; otherwise no difference is established. Every other contrast is secondary and reported the same way, without a claim."
+    },
+    "shadow_check": "identical world row and moments to the original, every run",
+    "bootstrap": {
+      "resamples": 10000,
+      "seed": 20261108
+    }
+  }
+}

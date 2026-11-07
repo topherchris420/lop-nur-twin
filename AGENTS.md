@@ -1057,6 +1057,23 @@ verified to be; a copy is always someone else.**
 - **Functional words only**, as for ECHO: the fly remembers where it fed and
   acts on it. Never present continuity or a distinct history as evidence of a
   self, awareness or consciousness.
+- **Embodied plasticity continues the original; it never restarts it.**
+  `PLASTICITY_LIFE` (`plasticOrganism.ts`) is entered only by
+  `continueWithPlasticity` from an organism checkpoint written by the pinned
+  release (`PLASTICITY_CONTINUATION_SOURCE`), in shadow mode, at the same tick,
+  with `plasticityProjection` reproducing the source graph digest. Mode changes
+  are `changePlasticityPolicy` checkpoints, forward only: to turn it off, go
+  to `disabled`, never to an older engine or checkpoint. Shadow mode must stay
+  behaviour-identical to the organism (`plasticityContinuation.test.ts` compares
+  them for 1,200 ticks); a change that breaks that is a change to the live fly.
+  The study (`src/bethesda/plasticity/`, `scripts/echo-plasticity-evaluate.ts`,
+  `docs/benchmarks/echo-plasticity/`) runs research flies only and nothing
+  deployed imports it (`scope.test.ts`); its reports are generated, never edited.
+  Eva's counterpart lives in `deploy/garden/service/`: her live files byte for
+  byte (`MANIFEST.json`), and a patched `server.py` whose added lines all end
+  `# eva-plasticity` so removing them restores her original. Keep both
+  properties, and never let the extension write her state or database. Procedures
+  and the record: `docs/EVA_ECHO_ACTIVATION.md`.
 
 ### Adaptation and continuity benchmarks (`src/bethesda/adaptation/`)
 

@@ -1,0 +1,3417 @@
+{
+  "study": "eva-plasticity-study/v1",
+  "split": "heldout",
+  "runs": 288,
+  "seeds": 12,
+  "shadow": {
+    "runs": 72,
+    "identical": 72,
+    "differing": []
+  },
+  "restart": {
+    "runs": 48,
+    "identical": 45
+  },
+  "primary": {
+    "contrast": {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    "verdict": "no difference established"
+  },
+  "contrasts": [
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "shadow",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "active",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": -90.75,
+        "low": -118.5,
+        "high": -64.58333333333333,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": -90.5,
+        "low": -118.16666666666667,
+        "high": -64.41666666666667,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 180.28253178003226,
+        "low": 109.17860035716308,
+        "high": 254.8547809238374,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 9.916666666666666,
+        "low": 2.25,
+        "high": 18.166666666666668,
+        "better": 0,
+        "worse": 4,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 826.4095765244692,
+        "low": 70.87501095598809,
+        "high": 1600.4044646608097,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": -5.49742338204092,
+        "low": -9.70763955198696,
+        "high": -1.3394481216242073,
+        "better": 5,
+        "worse": 7,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": -0.44166666666666643,
+        "low": -0.7412499999999996,
+        "high": -0.22749999999999973,
+        "better": 1,
+        "worse": 11,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": -0.2283333333333335,
+        "low": -0.35166666666666657,
+        "high": -0.10499999999999983,
+        "better": 3,
+        "worse": 9,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.002589699074074074,
+        "low": 0.001494984567901235,
+        "high": 0.0038387345679012346,
+        "better": 1,
+        "worse": 11,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 967.0,
+        "low": -626.5833333333334,
+        "high": 2592.6666666666665,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "autumn",
+      "arm": "no-learning",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 2979.5,
+        "low": 2005.25,
+        "high": 3925.9166666666665,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "shadow",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "active",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": -2.0,
+        "low": -4.083333333333333,
+        "high": 0.25,
+        "better": 2,
+        "worse": 8,
+        "tied": 2
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": -2.0,
+        "low": -4.083333333333333,
+        "high": 0.25,
+        "better": 0,
+        "worse": 0,
+        "tied": 2
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 94.41676594646127,
+        "low": 90.69876225023565,
+        "high": 98.13703874381697,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 1.6451822245252512,
+        "low": -7.35639412645494,
+        "high": 11.335117902764622,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": -0.09218894675928031,
+        "low": -0.12173864293982106,
+        "high": -0.06103901427472754,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": -0.25374999999999986,
+        "low": -0.3141666666666663,
+        "high": -0.1945833333333328,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": -0.225833333333334,
+        "low": -0.3058333333333338,
+        "high": -0.15500000000000114,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.006467013888888889,
+        "low": 0.005157696759259259,
+        "high": 0.007641300154320987,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": -161.33333333333334,
+        "low": -177.83333333333334,
+        "high": -144.41666666666666,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "rain",
+      "arm": "no-learning",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 912.5833333333334,
+        "low": 876.9166666666666,
+        "high": 952.1666666666666,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "shadow",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "active",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": -44.75,
+        "low": -56.833333333333336,
+        "high": -35.5,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": -44.666666666666664,
+        "low": -56.666666666666664,
+        "high": -35.5,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 76.60587885614252,
+        "low": 66.20335074091768,
+        "high": 93.04981509062385,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 1.5,
+        "low": 0.0,
+        "high": 4.5,
+        "better": 0,
+        "worse": 1,
+        "tied": 11
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 20.137768975412076,
+        "low": -143.82107279434626,
+        "high": 331.0891024148106,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": -0.7911297984181722,
+        "low": -2.629607445987658,
+        "high": 0.2927892915703178,
+        "better": 8,
+        "worse": 4,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": -0.5766666666666668,
+        "low": -1.2370833333333333,
+        "high": -0.2041666666666669,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": -0.16500000000000034,
+        "low": -0.23249999999999993,
+        "high": -0.0958333333333344,
+        "better": 1,
+        "worse": 11,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0029031635802469133,
+        "low": 0.0013985339506172839,
+        "high": 0.004892457561728395,
+        "better": 1,
+        "worse": 11,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": -707.5833333333334,
+        "low": -1281.3333333333333,
+        "high": 170.75,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-wings",
+      "arm": "no-learning",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 3211.9166666666665,
+        "low": 2490.5,
+        "high": 3780.9166666666665,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "shadow",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "active",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": -93.16666666666667,
+        "low": -99.0,
+        "high": -88.33333333333333,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": -93.08333333333333,
+        "low": -98.75,
+        "high": -88.41666666666667,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 145.97311602802452,
+        "low": 141.57069461966864,
+        "high": 150.5031114704079,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 10.0,
+        "low": 9.5,
+        "high": 10.583333333333334,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 783.4591858503886,
+        "low": 736.7688989837635,
+        "high": 827.3018919211294,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": -5.568989740065515,
+        "low": -5.85663043740346,
+        "high": -5.258993899498381,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": -0.26291666666666674,
+        "low": -0.4279166666666662,
+        "high": -0.10166666666666717,
+        "better": 4,
+        "worse": 8,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": -0.14833333333333373,
+        "low": -0.210833333333334,
+        "high": -0.08833333333333293,
+        "better": 0,
+        "worse": 11,
+        "tied": 1
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.002220775462962963,
+        "low": 0.0008704668209876546,
+        "high": 0.0034601658950617286,
+        "better": 2,
+        "worse": 10,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 886.9166666666666,
+        "low": 795.5833333333334,
+        "high": 972.0833333333334,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "weak-legs",
+      "arm": "no-learning",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 3112.6666666666665,
+        "low": 3025.5833333333335,
+        "high": 3193.1666666666665,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "shadow",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "active",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.08333333333333333,
+        "low": -1.1666666666666667,
+        "high": 1.5,
+        "better": 4,
+        "worse": 5,
+        "tied": 3
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.08333333333333333,
+        "low": -1.1666666666666667,
+        "high": 1.5,
+        "better": 0,
+        "worse": 0,
+        "tied": 3
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 66.07857459967816,
+        "low": 63.77742868696816,
+        "high": 68.74020975324824,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": -0.34822776834657176,
+        "low": -4.687055415197935,
+        "high": 4.772413187320887,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.09158908420140814,
+        "low": 0.06568015769678699,
+        "high": 0.11921531394677724,
+        "better": 12,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": -0.21333333333333382,
+        "low": -0.2908333333333341,
+        "high": -0.13833333333333395,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": -0.09416666666666718,
+        "low": -0.1533333333333339,
+        "high": -0.0383333333333337,
+        "better": 3,
+        "worse": 9,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.004453607253086419,
+        "low": 0.002657214506172839,
+        "high": 0.006382619598765432,
+        "better": 1,
+        "worse": 11,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": -483.8333333333333,
+        "low": -498.0,
+        "high": -469.6666666666667,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "winter",
+      "arm": "no-learning",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 1030.75,
+        "low": 985.3333333333334,
+        "high": 1082.1666666666667,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "shadow",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "active",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "better": 0,
+        "worse": 0,
+        "tied": 12
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "arrivals",
+      "interval": {
+        "n": 12,
+        "mean": -89.91666666666667,
+        "low": -118.08333333333333,
+        "high": -63.416666666666664,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "departures",
+      "interval": {
+        "n": 12,
+        "mean": -89.58333333333333,
+        "low": -117.75,
+        "high": -63.083333333333336,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "mean_journey_s",
+      "interval": {
+        "n": 12,
+        "mean": 180.34248240404102,
+        "low": 109.2196664670037,
+        "high": 254.88516603137575,
+        "better": 0,
+        "worse": 12,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "stalls",
+      "interval": {
+        "n": 12,
+        "mean": 9.916666666666666,
+        "low": 2.25,
+        "high": 18.166666666666668,
+        "better": 0,
+        "worse": 4,
+        "tied": 8
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "distance",
+      "interval": {
+        "n": 12,
+        "mean": 829.2835294545775,
+        "low": 74.4243248768171,
+        "high": 1602.5355927586027,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "mean_energy",
+      "interval": {
+        "n": 12,
+        "mean": -5.533068998360353,
+        "low": -9.728371913580311,
+        "high": -1.3893938078703119,
+        "better": 4,
+        "worse": 8,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "min_fullness",
+      "interval": {
+        "n": 12,
+        "mean": -0.40083333333333293,
+        "low": -0.7166666666666662,
+        "high": -0.15208333333333268,
+        "better": 2,
+        "worse": 10,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "min_water",
+      "interval": {
+        "n": 12,
+        "mean": -0.25333333333333324,
+        "low": -0.3650000000000002,
+        "high": -0.14666666666666592,
+        "better": 2,
+        "worse": 10,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "hungry_share",
+      "interval": {
+        "n": 12,
+        "mean": 0.002758487654320988,
+        "low": 0.0016251929012345682,
+        "high": 0.003997878086419753,
+        "better": 1,
+        "worse": 11,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "fly_steps",
+      "interval": {
+        "n": 12,
+        "mean": 967.9166666666666,
+        "low": -625.9166666666666,
+        "high": 2593.6666666666665,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    },
+    {
+      "condition": "restart",
+      "arm": "no-learning",
+      "metric": "walk_steps",
+      "interval": {
+        "n": 12,
+        "mean": 3002.3333333333335,
+        "low": 2014.25,
+        "high": 3960.5,
+        "better": 0,
+        "worse": 0,
+        "tied": 0
+      },
+      "missing": 0
+    }
+  ],
+  "means": {
+    "autumn": {
+      "original": {
+        "arrivals": 252.33333333333334,
+        "departures": 252.5,
+        "mean_journey_s": 30.69889889661634,
+        "stalls": 0.0,
+        "distance": 722.1016079463625,
+        "mean_energy": 98.76554277584894,
+        "min_fullness": 31.20875,
+        "min_water": 29.565833333333334,
+        "hungry_share": 0.006715374228395062,
+        "fly_steps": 1295.6666666666667,
+        "walk_steps": 27.666666666666668
+      },
+      "shadow": {
+        "arrivals": 252.33333333333334,
+        "departures": 252.5,
+        "mean_journey_s": 30.69889889661634,
+        "stalls": 0.0,
+        "distance": 722.1016079463625,
+        "mean_energy": 98.76554277584894,
+        "min_fullness": 31.20875,
+        "min_water": 29.565833333333334,
+        "hungry_share": 0.006715374228395062,
+        "fly_steps": 1295.6666666666667,
+        "walk_steps": 27.666666666666668
+      },
+      "active": {
+        "arrivals": 252.33333333333334,
+        "departures": 252.5,
+        "mean_journey_s": 30.69889889661634,
+        "stalls": 0.0,
+        "distance": 722.1016079463625,
+        "mean_energy": 98.76554277584894,
+        "min_fullness": 31.20875,
+        "min_water": 29.565833333333334,
+        "hungry_share": 0.006715374228395062,
+        "fly_steps": 1295.6666666666667,
+        "walk_steps": 27.666666666666668
+      },
+      "no-learning": {
+        "arrivals": 161.58333333333334,
+        "departures": 162.0,
+        "mean_journey_s": 210.98143067664856,
+        "stalls": 9.916666666666666,
+        "distance": 1548.5111844708317,
+        "mean_energy": 93.26811939380804,
+        "min_fullness": 30.767083333333332,
+        "min_water": 29.337500000000002,
+        "hungry_share": 0.009305073302469135,
+        "fly_steps": 2262.6666666666665,
+        "walk_steps": 3007.1666666666665
+      }
+    },
+    "rain": {
+      "original": {
+        "arrivals": 42.333333333333336,
+        "departures": 42.333333333333336,
+        "mean_journey_s": 30.44491990224301,
+        "stalls": 0.0,
+        "distance": 133.2502911597321,
+        "mean_energy": 99.50348602671694,
+        "min_fullness": 31.1725,
+        "min_water": 29.485,
+        "hungry_share": 0.01107494212962963,
+        "fly_steps": 214.08333333333334,
+        "walk_steps": 2.1666666666666665
+      },
+      "shadow": {
+        "arrivals": 42.333333333333336,
+        "departures": 42.333333333333336,
+        "mean_journey_s": 30.44491990224301,
+        "stalls": 0.0,
+        "distance": 133.2502911597321,
+        "mean_energy": 99.50348602671694,
+        "min_fullness": 31.1725,
+        "min_water": 29.485,
+        "hungry_share": 0.01107494212962963,
+        "fly_steps": 214.08333333333334,
+        "walk_steps": 2.1666666666666665
+      },
+      "active": {
+        "arrivals": 42.333333333333336,
+        "departures": 42.333333333333336,
+        "mean_journey_s": 30.44491990224301,
+        "stalls": 0.0,
+        "distance": 133.2502911597321,
+        "mean_energy": 99.50348602671694,
+        "min_fullness": 31.1725,
+        "min_water": 29.485,
+        "hungry_share": 0.01107494212962963,
+        "fly_steps": 214.08333333333334,
+        "walk_steps": 2.1666666666666665
+      },
+      "no-learning": {
+        "arrivals": 40.333333333333336,
+        "departures": 40.333333333333336,
+        "mean_journey_s": 124.86168584870427,
+        "stalls": 0.0,
+        "distance": 134.89547338425734,
+        "mean_energy": 99.41129707995766,
+        "min_fullness": 30.91875,
+        "min_water": 29.25916666666667,
+        "hungry_share": 0.017541956018518517,
+        "fly_steps": 52.75,
+        "walk_steps": 914.75
+      }
+    },
+    "weak-wings": {
+      "original": {
+        "arrivals": 238.91666666666666,
+        "departures": 239.08333333333334,
+        "mean_journey_s": 48.06446432161516,
+        "stalls": 0.0,
+        "distance": 681.4561594854111,
+        "mean_energy": 98.27880943769308,
+        "min_fullness": 31.181250000000002,
+        "min_water": 29.559166666666666,
+        "hungry_share": 0.006970968364197531,
+        "fly_steps": 1580.3333333333333,
+        "walk_steps": 500.9166666666667
+      },
+      "shadow": {
+        "arrivals": 238.91666666666666,
+        "departures": 239.08333333333334,
+        "mean_journey_s": 48.06446432161516,
+        "stalls": 0.0,
+        "distance": 681.4561594854111,
+        "mean_energy": 98.27880943769308,
+        "min_fullness": 31.181250000000002,
+        "min_water": 29.559166666666666,
+        "hungry_share": 0.006970968364197531,
+        "fly_steps": 1580.3333333333333,
+        "walk_steps": 500.9166666666667
+      },
+      "active": {
+        "arrivals": 238.91666666666666,
+        "departures": 239.08333333333334,
+        "mean_journey_s": 48.06446432161516,
+        "stalls": 0.0,
+        "distance": 681.4561594854111,
+        "mean_energy": 98.27880943769308,
+        "min_fullness": 31.181250000000002,
+        "min_water": 29.559166666666666,
+        "hungry_share": 0.006970968364197531,
+        "fly_steps": 1580.3333333333333,
+        "walk_steps": 500.9166666666667
+      },
+      "no-learning": {
+        "arrivals": 194.16666666666666,
+        "departures": 194.41666666666666,
+        "mean_journey_s": 124.67034317775769,
+        "stalls": 1.5,
+        "distance": 701.5939284608233,
+        "mean_energy": 97.4876796392749,
+        "min_fullness": 30.604583333333334,
+        "min_water": 29.394166666666667,
+        "hungry_share": 0.009874131944444444,
+        "fly_steps": 872.75,
+        "walk_steps": 3712.8333333333335
+      }
+    },
+    "weak-legs": {
+      "original": {
+        "arrivals": 253.08333333333334,
+        "departures": 253.25,
+        "mean_journey_s": 30.89413867339432,
+        "stalls": 0.0,
+        "distance": 728.9650458042834,
+        "mean_energy": 98.76513623649709,
+        "min_fullness": 31.14708333333333,
+        "min_water": 29.51,
+        "hungry_share": 0.006744309413580247,
+        "fly_steps": 1308.5833333333333,
+        "walk_steps": 28.416666666666668
+      },
+      "shadow": {
+        "arrivals": 253.08333333333334,
+        "departures": 253.25,
+        "mean_journey_s": 30.89413867339432,
+        "stalls": 0.0,
+        "distance": 728.9650458042834,
+        "mean_energy": 98.76513623649709,
+        "min_fullness": 31.14708333333333,
+        "min_water": 29.51,
+        "hungry_share": 0.006744309413580247,
+        "fly_steps": 1308.5833333333333,
+        "walk_steps": 28.416666666666668
+      },
+      "active": {
+        "arrivals": 253.08333333333334,
+        "departures": 253.25,
+        "mean_journey_s": 30.89413867339432,
+        "stalls": 0.0,
+        "distance": 728.9650458042834,
+        "mean_energy": 98.76513623649709,
+        "min_fullness": 31.14708333333333,
+        "min_water": 29.51,
+        "hungry_share": 0.006744309413580247,
+        "fly_steps": 1308.5833333333333,
+        "walk_steps": 28.416666666666668
+      },
+      "no-learning": {
+        "arrivals": 159.91666666666666,
+        "departures": 160.16666666666666,
+        "mean_journey_s": 176.86725470141883,
+        "stalls": 10.0,
+        "distance": 1512.4242316546718,
+        "mean_energy": 93.19614649643158,
+        "min_fullness": 30.88416666666667,
+        "min_water": 29.361666666666665,
+        "hungry_share": 0.00896508487654321,
+        "fly_steps": 2195.5,
+        "walk_steps": 3141.0833333333335
+      }
+    },
+    "winter": {
+      "original": {
+        "arrivals": 41.166666666666664,
+        "departures": 41.166666666666664,
+        "mean_journey_s": 68.62612823026535,
+        "stalls": 0.0,
+        "distance": 129.39062401639148,
+        "mean_energy": 99.35057490596074,
+        "min_fullness": 31.084166666666665,
+        "min_water": 29.403333333333336,
+        "hungry_share": 0.01382860725308642,
+        "fly_steps": 520.75,
+        "walk_steps": 3.8333333333333335
+      },
+      "shadow": {
+        "arrivals": 41.166666666666664,
+        "departures": 41.166666666666664,
+        "mean_journey_s": 68.62612823026535,
+        "stalls": 0.0,
+        "distance": 129.39062401639148,
+        "mean_energy": 99.35057490596074,
+        "min_fullness": 31.084166666666665,
+        "min_water": 29.403333333333336,
+        "hungry_share": 0.01382860725308642,
+        "fly_steps": 520.75,
+        "walk_steps": 3.8333333333333335
+      },
+      "active": {
+        "arrivals": 41.166666666666664,
+        "departures": 41.166666666666664,
+        "mean_journey_s": 68.62612823026535,
+        "stalls": 0.0,
+        "distance": 129.39062401639148,
+        "mean_energy": 99.35057490596074,
+        "min_fullness": 31.084166666666665,
+        "min_water": 29.403333333333336,
+        "hungry_share": 0.01382860725308642,
+        "fly_steps": 520.75,
+        "walk_steps": 3.8333333333333335
+      },
+      "no-learning": {
+        "arrivals": 41.25,
+        "departures": 41.25,
+        "mean_journey_s": 134.70470282994353,
+        "stalls": 0.0,
+        "distance": 129.04239624804492,
+        "mean_energy": 99.44216399016214,
+        "min_fullness": 30.870833333333334,
+        "min_water": 29.309166666666666,
+        "hungry_share": 0.01828221450617284,
+        "fly_steps": 36.916666666666664,
+        "walk_steps": 1034.5833333333333
+      }
+    },
+    "restart": {
+      "original": {
+        "arrivals": 252.33333333333334,
+        "departures": 252.5,
+        "mean_journey_s": 30.69889889661634,
+        "stalls": 0.0,
+        "distance": 722.1016079463625,
+        "mean_energy": 98.76554277584894,
+        "min_fullness": 31.20875,
+        "min_water": 29.565833333333334,
+        "hungry_share": 0.006715374228395062,
+        "fly_steps": 1295.6666666666667,
+        "walk_steps": 27.666666666666668
+      },
+      "shadow": {
+        "arrivals": 252.33333333333334,
+        "departures": 252.5,
+        "mean_journey_s": 30.69889889661634,
+        "stalls": 0.0,
+        "distance": 722.1016079463625,
+        "mean_energy": 98.76554277584894,
+        "min_fullness": 31.20875,
+        "min_water": 29.565833333333334,
+        "hungry_share": 0.006715374228395062,
+        "fly_steps": 1295.6666666666667,
+        "walk_steps": 27.666666666666668
+      },
+      "active": {
+        "arrivals": 252.33333333333334,
+        "departures": 252.5,
+        "mean_journey_s": 30.69889889661634,
+        "stalls": 0.0,
+        "distance": 722.1016079463625,
+        "mean_energy": 98.76554277584894,
+        "min_fullness": 31.20875,
+        "min_water": 29.565833333333334,
+        "hungry_share": 0.006715374228395062,
+        "fly_steps": 1295.6666666666667,
+        "walk_steps": 27.666666666666668
+      },
+      "no-learning": {
+        "arrivals": 162.41666666666666,
+        "departures": 162.91666666666666,
+        "mean_journey_s": 211.04138130065738,
+        "stalls": 9.916666666666666,
+        "distance": 1551.38513740094,
+        "mean_energy": 93.23247377748861,
+        "min_fullness": 30.807916666666667,
+        "min_water": 29.3125,
+        "hungry_share": 0.00947386188271605,
+        "fly_steps": 2263.5833333333335,
+        "walk_steps": 3030.0
+      }
+    }
+  },
+  "plasticity": {
+    "autumn|shadow": {
+      "samples": 1452.75,
+      "discarded": 96.25,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "autumn|active": {
+      "samples": 1452.75,
+      "discarded": 96.25,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "rain|shadow": {
+      "samples": 234.58333333333334,
+      "discarded": 23.333333333333332,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "rain|active": {
+      "samples": 234.58333333333334,
+      "discarded": 23.333333333333332,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "weak-wings|shadow": {
+      "samples": 2226.75,
+      "discarded": 68.41666666666667,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "weak-wings|active": {
+      "samples": 2226.75,
+      "discarded": 68.41666666666667,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "weak-legs|shadow": {
+      "samples": 1466.5833333333333,
+      "discarded": 96.91666666666667,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "weak-legs|active": {
+      "samples": 1466.5833333333333,
+      "discarded": 96.91666666666667,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "winter|shadow": {
+      "samples": 559.5,
+      "discarded": 5.416666666666667,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "winter|active": {
+      "samples": 559.5,
+      "discarded": 5.416666666666667,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "restart|shadow": {
+      "samples": 1452.75,
+      "discarded": 96.25,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    },
+    "restart|active": {
+      "samples": 1452.75,
+      "discarded": 96.25,
+      "overrides": 0.0,
+      "would_override": 0.0,
+      "ok": 12
+    }
+  }
+}

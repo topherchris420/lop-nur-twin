@@ -134,6 +134,7 @@ export default function LiveFly() {
         {o ? <Life o={o} /> : null}
         {o ? <CheckIt o={o} live={view.status === "live"} /> : null}
         {o ? <SelfModel o={o} /> : null}
+        {o?.adaptiveBrain ? <WalkingMemory o={o} /> : null}
         <footer className="text-muted-foreground border-border space-y-2 border-t pt-4 text-xs leading-relaxed">
           <p>
             This page only reads: it cannot step, steer or restart the fly, and watching
@@ -611,6 +612,52 @@ function SelfModel({ o }: { o: LifeObservation }) {
           its own body, and the inquiries it opens when its predictions fail.
         </p>
       )}
+    </Section>
+  );
+}
+
+const PLASTICITY_MODE_WORDS: Record<string, string> = {
+  shadow: "learning only: it changes none of its commands",
+  active: "learning, and may slow a walk its evidence says is failing",
+  disabled: "off: it keeps what it learned and learns nothing new",
+};
+
+/** The embodied plasticity's own counts (fly/echo/adaptiveBrain.ts): model variables, read only. */
+function WalkingMemory({ o }: { o: LifeObservation }) {
+  const b = o.adaptiveBrain;
+  if (!b) return null;
+  const share = (x: number) => `${(x * 100).toFixed(0)}%`;
+  const context = (label: string, c: (typeof b.contexts)["normal"]) => (
+    <Fact label={label}>
+      {c.n
+        ? `${c.n} walking periods; failing ${share(c.failure)} (at least ${share(c.failureLower)})${c.cautious ? "; enough to act on" : ""}`
+        : "no evidence yet"}
+    </Fact>
+  );
+  const last = b.lastAdaptation;
+  return (
+    <Section title="Its walking memory">
+      <p className="text-muted-foreground text-xs">
+        How reliably its own steps carry it forward, learned from its sense of self-motion
+        and touch ({b.version}). Mode: {b.mode}, {PLASTICITY_MODE_WORDS[b.mode] ?? b.mode}
+        . Counts of a simulated controller, not measurements of a real fly.
+      </p>
+      <dl className="mt-2 grid grid-cols-2 gap-3">
+        {context("Well fed", b.contexts.normal)}
+        {context("Low reserve", b.contexts.low)}
+        <Fact label="Periods learned from">{b.samples}</Fact>
+        <Fact label="Periods set aside">{b.discarded}</Fact>
+        <Fact
+          label={b.mode === "shadow" ? "Walks it would have slowed" : "Walks it slowed"}
+        >
+          {b.mode === "shadow" ? b.shadowWouldAdapt : b.adaptations}
+        </Fact>
+        <Fact label="Latest slowing">
+          {last
+            ? `${span(Math.max(0, o.simulatedSeconds - last.t))} ago, ${last.fromCmS.toFixed(1)} to ${last.toCmS.toFixed(1)} cm/s`
+            : "none"}
+        </Fact>
+      </dl>
     </Section>
   );
 }

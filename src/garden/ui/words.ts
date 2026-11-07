@@ -17,7 +17,7 @@
  */
 import groomingReference from "../../bethesda/fly/data/grooming-reference.json" with { type: "json" };
 import flybodySource from "../../bethesda/fly/data/flybody.source.json" with { type: "json" };
-import type { Learning, Moment, Observation } from "../core/observation.js";
+import type { Adaptive, Learning, Moment, Observation } from "../core/observation.js";
 import { BROADCAST_DELAY_S } from "../core/timeline.js";
 
 export const ZONE = "America/New_York";
@@ -271,6 +271,19 @@ export interface LearnedView {
   last: string | null;
   body: string;
   others: string;
+}
+
+/** The opt-in plasticity's line in the learning panel, or "" when her service does not run it. */
+export function adaptiveOf(a: Adaptive | null): string {
+  if (!a) return "";
+  const n = (x: number | null) => (x === null ? "?" : x.toLocaleString("en-US"));
+  if (a.status !== "ok")
+    return `Embodied plasticity (${a.version}, ${a.mode}): ${a.status}.`;
+  const acted =
+    a.mode === "shadow"
+      ? `would have swapped her motion ${n(a.wouldOverride)} times; changes nothing`
+      : `swapped her motion ${n(a.overrides)} times`;
+  return `Embodied plasticity (${a.version}, ${a.mode}): learned from ${n(a.samples)} travel steps; ${acted}.`;
 }
 
 export function learnedOf(l: Learning | null): LearnedView | null {

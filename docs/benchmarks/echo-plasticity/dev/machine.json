@@ -1,0 +1,94 @@
+{
+  "commit": "172d2af8ef8e157b1f94494df48236c5dab57502",
+  "cleanSources": false,
+  "platform": "win32",
+  "arch": "arm64",
+  "node": "v24.22.1",
+  "plan": {
+    "study": "echo-plasticity-study/v1",
+    "brain": "echo-embodied-plasticity/v2",
+    "params": {
+      "recentKept": 48,
+      "countCap": 1024,
+      "minEvidence": 40,
+      "z": 1.645,
+      "failureBound": 0.5,
+      "progressShare": 0.4,
+      "minLegM": 0.0005,
+      "cautiousScale": 0.7,
+      "lowReserve": 0.35
+    },
+    "arms": [
+      "original",
+      "shadow",
+      "active",
+      "fixed-slow"
+    ],
+    "conditions": [
+      "steady",
+      "food-moves",
+      "weak-legs",
+      "noisy-sense",
+      "push"
+    ],
+    "hours": 2,
+    "perturbFromS": 600,
+    "foodMoveS": 1200,
+    "restartAtS": 3600,
+    "restartCondition": "food-moves",
+    "startReserve": 0.5,
+    "seeds": {
+      "dev": [
+        9001,
+        9002,
+        9003,
+        9004,
+        9005,
+        9006,
+        9007,
+        9008
+      ],
+      "heldout": [
+        9101,
+        9102,
+        9103,
+        9104,
+        9105,
+        9106,
+        9107,
+        9108,
+        9109,
+        9110,
+        9111,
+        9112,
+        9113,
+        9114,
+        9115,
+        9116,
+        9117,
+        9118,
+        9119,
+        9120,
+        9121,
+        9122,
+        9123,
+        9124
+      ]
+    },
+    "primary": {
+      "question": "In weak-legs, does active plasticity change meals relative to the original organism?",
+      "metric": "meals",
+      "condition": "weak-legs",
+      "contrast": [
+        "active",
+        "original"
+      ],
+      "rule": "Claim a benefit only if the 95% bootstrap interval of the paired mean difference (active minus original) lies above zero; a harm only if it lies below; otherwise no difference is established. Every other contrast is secondary and reported the same way, without a claim."
+    },
+    "shadowCheck": "identical",
+    "bootstrap": {
+      "resamples": 10000,
+      "seed": 20261108
+    }
+  }
+}
