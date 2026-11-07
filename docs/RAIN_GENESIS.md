@@ -132,10 +132,78 @@ records.
   nectaries stop secreting or resorb; the next version of the ecology caps the
   sugar.
 
+## Stage B: bodies the world can harm
+
+Stage B puts a body in the world whose physiology the world drives, for
+disposable research subjects only. It changes nothing for Eva or ECHO, which
+cannot die.
+
+### The ecology, version 2
+
+`research-ecology/2` adds what water needs to matter:
+
+- **Nectar capped in sugar** as well as volume (the flaw above).
+- **Canopies** that shade the ground (the sun's ray meets them) and cut
+  evaporation under them to 30%.
+- **Springs** seeping water into a cell, and surface water spreading slowly
+  between neighbouring cells, so a spring wets a patch.
+- **Water vapour** from evaporating ground, carried by the wind and lost like
+  odour: a humid plume downwind of wet ground, which a fly's antennae meet.
+- **A walled courtyard**: walls as high as the air the fly may use.
+- **Drinking** from the ground, a recorded interaction booked in the water
+  ledger (rained + sprung = held + evaporated + drained + drunk).
+
+The v1 reference records stay reproducible at commit `8c391af`, where v1
+lives.
+
+### Homeostasis (`homeostasis.ts`)
+
+| Variable         | What drives it                                                                                                                            | Limit                    |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| Body temperature | Relaxes (20 s) toward the air's temperature plus 4 °C in full sun                                                                         | Death above 39 °C        |
+| Energy           | The body's own spending, plus the difference a Q10 of 2.5 makes against its 25 °C power, taken from (or given back to) its reserve        | Death after 30 min empty |
+| Water            | Lost in proportion to the vapour-pressure deficit at body temperature (Murray 1967), doubled in flight; gained by drinking and from juice | Death below 35%          |
+
+Each is a model choice of a plausible order, named in the file; none is
+fitted to Drosophila. Water loss was set so that, in the study's dry yard,
+water binds before food: a resting fly goes from full to lethal water in
+about 6 hours and empties its reserve in about 12. That calibration was made
+on development settings so that the study asks about water and heat at all,
+and is stated here because it shapes every result.
+
+### Feedback (`policy.ts`)
+
+Layered over the deployed controller, reading only what a fly could sense:
+its own water and body temperature, the humidity at its antennae
+(hygrosensation; Enjin et al. 2016, Knecht et al. 2016), water under its feet
+(water taste; Cameron et al. 2010) and the direction of the light.
+
+- **Thirst** (water below 0.7): on water, stay still and drink; elsewhere,
+  walk and turn more while the humidity falls and less while it rises; after
+  30 s without a clear step up, turn about and search elsewhere. On foot only.
+- **Heat** (body above 31 °C): in the light, walk away from it for up to a
+  minute, then rest as long; in shade, stay still.
+- An escape always stands; outside its extent the controller turns the fly
+  back.
+
+### What building it found
+
+Development runs (not results) found three things worth keeping:
+
+- With the heat-driven metabolism, mortal flies starved before thirst
+  mattered: the deployed controller forages slowly in the yard (hungry flies
+  went five hours without feeding). Water loss was raised so water binds first.
+- A thirst search that took off handed the flight to the controller, whose
+  phototaxis carried the fly out of the yard and, once the yard was walled, to
+  the sunward wall. The search now stays on foot.
+- Air humidity is not water: near a spring the humid plume reaches beyond the
+  wet ground, so a policy that drank on humid air rested where the body could
+  not drink. Drinking is now decided by contact.
+
 ## What remains of R.A.I.N. Genesis
 
-Stages B–G, in order: physiology driven by this world (temperature, water,
-food) on research bodies; the strongest connectome hybrid benchmarked against
+Stage B's study (its protocol is `homeostasis-v1`; it has not reported yet), then Stages C–G:
+the strongest connectome hybrid benchmarked against
 ECHO's controller in it; learning whose usefulness is tested under held-out
 environments; long developmental histories and their individuality; a
 read-only causal trace of stimulus, neural activity, action and feedback; and
