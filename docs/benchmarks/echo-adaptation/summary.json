@@ -163,6 +163,7 @@
       "bornAts": [1792908400.321717],
       "clockBreaks": 0,
       "ticksFell": 0,
+      "progressRegressions": 0,
       "description": {
         "trials": [103411, 155372],
         "journeys": [823, 1210],
@@ -185,6 +186,7 @@
         "{\"city\":\"bethesda-city/4\",\"echo\":\"echo-self-model/v3\",\"fly\":\"digital-fly/8\",\"headless\":\"bethesda-headless-life/v2\"}"
       ],
       "clockBreaks": 0,
+      "progressRegressions": 0,
       "ledger": {
         "lines": 13,
         "individuals": [

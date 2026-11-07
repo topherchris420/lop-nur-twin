@@ -87,6 +87,8 @@ export interface EvaMeasures {
   clockBreaks: number;
   /** Consecutive states (in receipt order) whose ticks fell. */
   ticksFell: number;
+  /** Same-life drops in cumulative journeys or learned trials. */
+  progressRegressions: number;
   description: EvaDescription | null;
 }
 
@@ -94,10 +96,22 @@ export function measureEva(input: OriginalsInput): EvaMeasures {
   const { states, refused } = parsed<Observation>(input.responses, "eva", parseGarden);
   const unique = <T>(xs: T[]) => [...new Set(xs)];
   let clockBreaks = 0,
-    ticksFell = 0;
+    ticksFell = 0,
+    progressRegressions = 0;
   states.forEach((s, i) => {
     if (!checkGardenClock(s.value).consistent) clockBreaks++;
-    if (i > 0 && s.value.ticks < states[i - 1]!.value.ticks) ticksFell++;
+    const previous = states[i - 1]?.value;
+    if (previous && s.value.ticks < previous.ticks) ticksFell++;
+    if (
+      previous &&
+      s.value.lifeId === previous.lifeId &&
+      s.value.bornAt === previous.bornAt &&
+      (s.value.journeys < previous.journeys ||
+        (s.value.learning !== null &&
+          previous.learning !== null &&
+          s.value.learning.trials < previous.learning.trials))
+    )
+      progressRegressions++;
   });
   const first = states[0]?.value,
     last = states.at(-1)?.value;
@@ -110,6 +124,7 @@ export function measureEva(input: OriginalsInput): EvaMeasures {
     bornAts: unique(states.map((s) => s.value.bornAt)),
     clockBreaks,
     ticksFell,
+    progressRegressions,
     description:
       first && last
         ? {
@@ -143,6 +158,8 @@ export interface EchoMeasures {
   /** Engine versions, first and last observed, as canonical text. */
   versions: [string, string] | null;
   clockBreaks: number;
+  /** Same-individual regressions in time, lease epoch, checkpoint or lifetime counts. */
+  progressRegressions: number;
   ledger: {
     lines: number;
     individuals: string[];
@@ -182,6 +199,18 @@ export function measureEcho(input: OriginalsInput): EchoMeasures {
   const unique = <T>(xs: T[]) => [...new Set(xs)];
   const first = live[0]?.value,
     last = live.at(-1)?.value;
+  const progressRegressions = live.filter((s, i) => {
+    const previous = live[i - 1]?.value;
+    return (
+      previous !== undefined &&
+      previous.individual === s.value.individual &&
+      (s.value.tick < previous.tick ||
+        s.value.epoch < previous.epoch ||
+        s.value.checkpoint.sequence < previous.checkpoint.sequence ||
+        s.value.fly.meals < previous.fly.meals ||
+        s.value.fly.escapes < previous.fly.escapes)
+    );
+  }).length;
   const canonical = (o: LifeObservation) =>
     JSON.stringify(Object.fromEntries(Object.entries(o.versions).sort()));
   const individual = first?.individual ?? "";
@@ -205,6 +234,7 @@ export function measureEcho(input: OriginalsInput): EchoMeasures {
     epochs: first && last ? [first.epoch, last.epoch] : null,
     versions: first && last ? [canonical(first), canonical(last)] : null,
     clockBreaks: live.filter((s) => !checkLifeClock(s.value).consistent).length,
+    progressRegressions,
     ledger: {
       lines: anchors.length,
       individuals: unique(anchors.map((a) => a.individual)),
@@ -255,7 +285,8 @@ export function judgeOriginals(
       : eva.lifeIds.length === 1 &&
           eva.bornAts.length === 1 &&
           eva.clockBreaks === 0 &&
-          eva.ticksFell === 0
+          eva.ticksFell === 0 &&
+          eva.progressRegressions === 0
         ? "pass"
         : "fail";
   let O1: Verdict;
@@ -264,7 +295,8 @@ export function judgeOriginals(
     echo.individuals.length !== 1 ||
     echo.ledger.individuals.some((i) => i !== echo.individuals[0]) ||
     echo.ledger.notRising > 0 ||
-    echo.clockBreaks > 0
+    echo.clockBreaks > 0 ||
+    echo.progressRegressions > 0
   )
     O1 = "fail";
   // Same individual throughout, but with no restart between the observations it says nothing about restarts.
