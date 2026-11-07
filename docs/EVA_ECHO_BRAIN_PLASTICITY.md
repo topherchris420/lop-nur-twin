@@ -25,7 +25,7 @@ intentionally left as they are. Their machines are distinct:
 context-specific action-outcome memory to the existing ECHO self-model.
 
 1. Its existing controller produces an intention and ECHO v3 evaluates it.
-2. The new memory records the *executed* walking command and its energy
+2. The new memory records the _executed_ walking command and its energy
    context, never hidden state, world geometry, or a scenario label.
 3. On the next decision, the fly's own self-motion sample and touch sense
    provide evidence of how well that commanded step worked.
@@ -107,7 +107,7 @@ database snapshot, record the exact source digests, back up the running state,
 and rehearse an isolated migration.
 
 For **ECHO**, add a new versioned `LifeKind` and append a sealed continuation
-checkpoint at the *same tick* with the same birth, exact parent digest, and an
+checkpoint at the _same tick_ with the same birth, exact parent digest, and an
 explicit new event. A reverse projection must reproduce the old full graph
 digest **byte for byte**, then the upgraded life must pass strict restore,
 replay, no-fork and rollback tests. The code here is not yet such a migration.
