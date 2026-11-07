@@ -54,21 +54,39 @@ export function report(root: string, outDir: string, id: string): string {
       L.push("| Criterion | Result | Measured |");
       L.push("| --- | --- | --- |");
       const C = r.criteria;
-      L.push(
-        `| H1 (primary): survival, full − no feedback ≥ 0.25, interval above 0 | ${C.H1.pass ? "pass" : "**fail**"} | ${iv(C.H1.difference)} |`,
-      );
-      L.push(
-        `| H2: hydrated share, full − heat only, interval above 0 | ${C.H2.pass ? "pass" : "**fail**"} | ${iv(C.H2.difference)} |`,
-      );
-      L.push(
-        `| H3: hydrated share, full − displaced humidity, interval above 0 | ${C.H3.pass ? "pass" : "**fail**"} | ${iv(C.H3.difference)} |`,
-      );
-      L.push(
-        `| H4: hours hot, full − thirst only, interval below 0 | ${C.H4.pass ? "pass" : "**fail**"} | ${iv(C.H4.difference)} |`,
-      );
-      L.push(
-        `| H5: median hydrated share of the full arm ≥ 0.8 | ${C.H5.pass ? "pass" : "**fail**"} | ${f(C.H5.median_hydrated_share_full)} |`,
-      );
+      const rows: [string, string, string][] = [
+        [
+          "H1 (primary): hydrated share, full − no feedback, interval above 0",
+          C.H1.pass,
+          iv(C.H1.difference),
+        ],
+        [
+          "H2: hydrated share, full − heat only, interval above 0",
+          C.H2.pass,
+          iv(C.H2.difference),
+        ],
+        [
+          "H3: hydrated share, full − displaced humidity, interval above 0",
+          C.H3.pass,
+          iv(C.H3.difference),
+        ],
+        [
+          "H4: survival, full − no feedback ≥ 0.25, interval above 0",
+          C.H4.pass,
+          iv(C.H4.difference),
+        ],
+        [
+          "H5: hours hot, full − thirst only, interval below 0",
+          C.H5.pass,
+          iv(C.H5.difference),
+        ],
+        [
+          "H6: median hydrated share of the full arm ≥ 0.8",
+          C.H6.pass,
+          f(C.H6.median_hydrated_share_full),
+        ],
+      ].map(([a, b, c]) => [a as string, b ? "pass" : "**fail**", c as string]);
+      for (const [a, b, c] of rows) L.push(`| ${a} | ${b} | ${c} |`);
       L.push("");
       L.push("Intervals: paired percentile bootstrap over environments, 95%.");
       L.push("");

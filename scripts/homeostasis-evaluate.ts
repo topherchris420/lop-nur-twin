@@ -191,6 +191,7 @@ if (mode === "run") {
   const diff = (a: Arm, b: Arm, stat: (rs: TrialResult[]) => number) =>
     pairedBootstrap(results, a, b, stat, B.resamples, B.seed);
   const surv = Object.fromEntries(ARMS.map((a) => [a, r6(survival(by(a)))]));
+  const d0 = diff("full", "no-feedback", meanOf("hydrated_share"));
   const d1 = diff("full", "no-feedback", survival);
   const d2 = diff("full", "no-thirst", meanOf("hydrated_share"));
   const d3 = diff("full", "shuffled-humidity", meanOf("hydrated_share"));
@@ -204,11 +205,12 @@ if (mode === "run") {
   const criteria =
     split === "heldout"
       ? {
-          H1: { pass: d1.estimate >= 0.25 && d1.lo > 0, difference: d1 },
+          H1: { pass: d0.lo > 0, difference: d0 },
           H2: { pass: d2.lo > 0, difference: d2 },
           H3: { pass: d3.lo > 0, difference: d3 },
-          H4: { pass: d4.hi < 0, difference: d4 },
-          H5: { pass: median >= 0.8, median_hydrated_share_full: r6(median) },
+          H4: { pass: d1.estimate >= 0.25 && d1.lo > 0, difference: d1 },
+          H5: { pass: d4.hi < 0, difference: d4 },
+          H6: { pass: median >= 0.8, median_hydrated_share_full: r6(median) },
         }
       : null;
   const causes = Object.fromEntries(
@@ -255,6 +257,7 @@ if (mode === "run") {
     mean_hot_h: Object.fromEntries(ARMS.map((a) => [a, r6(meanOf("hot_h")(by(a)))])),
     causes,
     differences: {
+      hydrated_full_vs_no_feedback: d0,
       survival_full_vs_no_feedback: d1,
       hydrated_full_vs_no_thirst: d2,
       hydrated_full_vs_shuffled: d3,

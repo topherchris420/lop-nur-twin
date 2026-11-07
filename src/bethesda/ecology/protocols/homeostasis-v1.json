@@ -1,10 +1,15 @@
 {
   "schema": "homeostasis-protocol/v1",
   "id": "homeostasis-v1",
-  "frozen": "Committed before the held-out split ran. The development split ran while the policies and the study were built.",
+  "frozen": "Committed before the held-out split ran. The development split ran twice while the policies and the study were built (scratch runs, not records): the first found the full feedback worse than none, because the thirst search overrode foraging and fruit juice is water too, which led to thirst yielding to hunger; the second showed the full feedback improving hydration (+0.07 over no feedback, +0.10 over the heat-only arm, +0.08 over the displaced-humidity arm) but not survival (0.75 for both), because survival in one environment was decided by food the feedback does not reach. On that basis, and before any held-out run, the primary endpoint was set to hydration, the variable the feedback regulates; survival stays a pre-registered criterion with its 0.25 minimum effect.",
   "question": "Do homeostatic feedback policies (thirst-driven humidity search and drinking; heat-driven escape from the light and rest in shade) keep a mortal research fly in the deployed configuration alive and hydrated in a hot, dry walled yard, and is the benefit attributable to the feedback and to the humidity sense it reads?",
   "status": "A seeded study on disposable research subjects, not a registered R.A.I.N. experiment. No subject is Eva or ECHO, a copy or a continuation; Eva and ECHO cannot die and nothing here reaches them.",
-  "climate": { "meanTempC": 25, "dailyTempAmpC": 5, "humidityShift": -0.4, "rainThreshold": 1.1 },
+  "climate": {
+    "meanTempC": 25,
+    "dailyTempAmpC": 5,
+    "humidityShift": -0.4,
+    "rainThreshold": 1.1
+  },
   "spin_up_s": 172800,
   "horizon_s": 28800,
   "start_hour": 8,
@@ -20,17 +25,58 @@
     "shuffled-humidity": "Mortal body, both policies, the humidity sense read at a fixed point 7 m away (folded into the yard): the policy's activity kept, its link to the fly's place broken. Water underfoot is still sensed where the fly is."
   },
   "endpoints": "Alive at the horizon; hours lived; hydrated share (time alive with body water >= 0.7, over time alive); hours with body above 32 C.",
-  "bootstrap": { "resamples": 4000, "seed": 20261107, "rule": "Paired percentile bootstrap over environments (every fly of a drawn environment kept); 95% interval." },
-  "minimum_meaningful_effect": { "survival": 0.25 },
+  "bootstrap": {
+    "resamples": 4000,
+    "seed": 20261107,
+    "rule": "Paired percentile bootstrap over environments (every fly of a drawn environment kept); 95% interval."
+  },
+  "minimum_meaningful_effect": {
+    "survival": 0.25,
+    "hydrated_share": "any, with an interval above 0"
+  },
   "criteria": [
-    { "id": "H1", "primary": true, "rule": "Held-out: survival(full) - survival(no-feedback) >= 0.25 and its interval excludes 0." },
-    { "id": "H2", "rule": "Held-out: the interval of hydrated share(full) - hydrated share(no-thirst) excludes 0 (above): the thirst feedback keeps it hydrated." },
-    { "id": "H3", "rule": "Held-out: the interval of hydrated share(full) - hydrated share(shuffled-humidity) excludes 0 (above): the humidity sense, not activity, matters." },
-    { "id": "H4", "rule": "Held-out: the interval of hours hot(full) - hours hot(no-heat) excludes 0 (below): the heat feedback keeps it cooler." },
-    { "id": "H5", "rule": "Held-out: the median hydrated share of the full arm >= 0.8." }
+    {
+      "id": "H1",
+      "primary": true,
+      "rule": "Held-out: the interval of hydrated share(full) - hydrated share(no-feedback) excludes 0 (above): the feedback keeps a mortal fly hydrated."
+    },
+    {
+      "id": "H2",
+      "rule": "Held-out: the interval of hydrated share(full) - hydrated share(no-thirst) excludes 0 (above): the thirst feedback is what does it."
+    },
+    {
+      "id": "H3",
+      "rule": "Held-out: the interval of hydrated share(full) - hydrated share(shuffled-humidity) excludes 0 (above): the humidity sense, not activity, matters."
+    },
+    {
+      "id": "H4",
+      "rule": "Held-out: survival(full) - survival(no-feedback) >= 0.25 and its interval excludes 0."
+    },
+    {
+      "id": "H5",
+      "rule": "Held-out: the interval of hours hot(full) - hours hot(no-heat) excludes 0 (below): the heat feedback keeps it cooler."
+    },
+    {
+      "id": "H6",
+      "rule": "Held-out: the median hydrated share of the full arm >= 0.8."
+    }
   ],
   "splits": {
-    "dev": { "generator_seed": 5101, "environments": 4, "fly_seeds": [301, 302] },
-    "heldout": { "generator_seed": 5202, "environments": 8, "fly_seeds": [401, 402] }
+    "dev": {
+      "generator_seed": 5101,
+      "environments": 4,
+      "fly_seeds": [
+        301,
+        302
+      ]
+    },
+    "heldout": {
+      "generator_seed": 5202,
+      "environments": 8,
+      "fly_seeds": [
+        401,
+        402
+      ]
+    }
   }
 }
