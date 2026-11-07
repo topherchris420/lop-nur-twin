@@ -11,7 +11,18 @@
 import { CITATIONS, PARAMS, type Citation } from "../fly/params.js";
 
 /** Bump on any change to what the eye computes; results name the version that made them. */
-export const VISION_VERSION = "research-compound-eye/1";
+export const VISION_VERSION = "research-compound-eye/2";
+
+/**
+ * Every version of the eye, and the photoreceptor adaptation that tells them
+ * apart: v1 (Weber contrast) ran looming-v1 and is kept so that its records
+ * still describe code that exists; v2 (log luminance) is the current eye.
+ */
+export const VISION_VERSIONS = {
+  "research-compound-eye/1": "weber",
+  "research-compound-eye/2": "log",
+} as const;
+export type VisionVersion = keyof typeof VISION_VERSIONS;
 
 export const VISION_CITATIONS = {
   hassenstein1956: {
@@ -78,7 +89,7 @@ export const VISION_PARAMS = {
   adaptationS: model(
     0.25,
     "s",
-    "time constant of each photoreceptor's luminance adaptation; its output is Weber contrast against that running mean, so static scenes fade and a step in illumination is a transient (not fitted)",
+    "time constant of each photoreceptor's adaptation: a running mean of log luminance (v2) or of luminance (v1, whose output is Weber contrast against it), so static scenes fade and a step in illumination is a transient (not fitted)",
   ),
   luminanceFloor: model(
     1e-3,

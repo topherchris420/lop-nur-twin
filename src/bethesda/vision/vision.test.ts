@@ -279,6 +279,24 @@ describe("looming selectivity (radial motion opponency)", () => {
     expect(passing).toBeGreaterThan(0.3 * loom);
   });
 
+  it("v2's log adaptation leaves a still image silent after a step; v1's Weber does not", () => {
+    // A very dark disc appears and stays: after the onset nothing moves.
+    const before = discImage(AZ, EL, 0),
+      after = discImage(AZ, EL, 12 * DEG, 1, -0.95);
+    const frames = (k: number) => (k < 20 ? before : after);
+    const late = (adaptation: "log" | "weber") => {
+      const eye = new MotionVision(LATTICE, LOOMING_UNITS, { adaptation });
+      let max = 0;
+      for (let k = 0; k < 220; k++) {
+        const o = eye.step(frames(k), k * DT);
+        if (k >= 40) max = Math.max(max, Math.abs(o.wideField), o.lplc2);
+      }
+      return max;
+    };
+    expect(late("log")).toBeLessThan(1e-9);
+    expect(late("weber")).toBeGreaterThan(1e-6);
+  });
+
   it("starts new: a still scene gives no contrast, no motion and no looming", () => {
     const img = discImage(AZ, EL, 10 * DEG);
     const out = run(() => img, 50);

@@ -2,9 +2,10 @@
  * Motion vision on the research compound eye: from luminance to local motion,
  * to looming units, to a giant-fiber drive and a wide-field rotation signal.
  *
- * 1. **Photoreceptors** adapt: each keeps a running mean of its luminance
- *    (time constant `adaptationS`) and signals Weber contrast against it, so
- *    a still scene fades and the output does not scale with illumination.
+ * 1. **Photoreceptors** adapt (time constant `adaptationS`), so a still scene
+ *    fades and the output does not scale with illumination: eye v2 signals
+ *    log luminance less its running mean, eye v1 Weber contrast against a
+ *    running mean of luminance (`Adaptation`).
  * 2. **Elementary motion detectors**: a Hassenstein–Reichardt correlator on
  *    each pair of neighbouring ommatidia along the lattice's three axes
  *    (Hassenstein & Reichardt 1956), one first-order low-pass as its delay,
@@ -59,9 +60,24 @@ export interface MotionOutput {
   contrastEnergy: number;
 }
 
+/**
+ * How a photoreceptor adapts. `weber` (eye v1): Weber contrast against a
+ * running mean of luminance. `log` (eye v2): a running mean of log luminance
+ * subtracted from log luminance, a linear high-pass of log luminance. After a
+ * step every ommatidium's `log` signal decays with the same time course, so
+ * a still image drives no detector (the detector's output is a difference of
+ * products that a shared time course cancels); `weber` recovers at a pace
+ * that depends on how dark the step went, which neighbours then read as
+ * motion (the looming-v1 held-out split found escapes from stationary objects
+ * this way; docs/FLY_VISION.md).
+ */
+export type Adaptation = "weber" | "log";
+
 export interface MotionOptions {
   /** A permutation of the ommatidia (within each eye) the detectors read through, or null. */
   shuffle?: Int32Array | null;
+  /** The photoreceptors' adaptation; `log` unless set. */
+  adaptation?: Adaptation;
 }
 
 /** Elevation band (rad) the wide-field signal averages over. */
@@ -71,7 +87,8 @@ export class MotionVision {
   readonly lattice: EyeLattice;
   readonly units: LoomingUnits;
   private readonly shuffle: Int32Array | null;
-  /** Adapted luminance, contrast, delayed contrast, per ommatidium. */
+  readonly adaptation: Adaptation;
+  /** Adapted luminance (log luminance under `log`), contrast, delayed contrast, per ommatidium. */
   readonly adapted: Float64Array;
   readonly contrast: Float64Array;
   readonly delayed: Float64Array;
@@ -87,6 +104,7 @@ export class MotionVision {
     this.lattice = lattice;
     this.units = units;
     this.shuffle = options.shuffle ?? null;
+    this.adaptation = options.adaptation ?? "log";
     if (this.shuffle && this.shuffle.length !== lattice.n)
       throw new Error("a shuffle permutes every ommatidium");
     this.adapted = new Float64Array(lattice.n);
@@ -106,9 +124,11 @@ export class MotionVision {
     const n = L.n;
     const perm = this.shuffle;
     const floor = VISION_PARAMS.luminanceFloor.value;
+    const log = this.adaptation === "log";
     if (!this.started) {
       for (let i = 0; i < n; i++) {
-        this.adapted[i] = luminance[perm ? perm[i]! : i]!;
+        const lum = luminance[perm ? perm[i]! : i]!;
+        this.adapted[i] = log ? Math.log(lum + floor) : lum;
         this.contrast[i] = 0;
         this.delayed[i] = 0;
       }
@@ -128,9 +148,10 @@ export class MotionVision {
     for (let i = 0; i < n; i++) {
       const lum = luminance[perm ? perm[i]! : i]!;
       const a = this.adapted[i]!;
-      const c = (lum - a) / (a + floor);
+      const x = log ? Math.log(lum + floor) : lum;
+      const c = log ? x - a : (x - a) / (a + floor);
       this.contrast[i] = c;
-      this.adapted[i] = a + ka * (lum - a);
+      this.adapted[i] = a + ka * (x - a);
       this.delayed[i] = this.delayed[i]! + kd * (c - this.delayed[i]!);
       energy += c * c;
     }

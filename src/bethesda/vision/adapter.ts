@@ -30,7 +30,12 @@ import { PARAMS } from "../fly/params.js";
 import type { Looming, SenseFrame } from "../fly/senses.js";
 import { LATTICE, LOOMING_UNITS } from "./lattice.js";
 import { MotionVision, shuffledWiring, type MotionOutput } from "./motion.js";
-import { VISION_PARAMS, VISION_VERSION } from "./params.js";
+import {
+  VISION_PARAMS,
+  VISION_VERSION,
+  VISION_VERSIONS,
+  type VisionVersion,
+} from "./params.js";
 import { photoreceptorStream, Renderer, type VisionScene } from "./scene.js";
 import { mulberry32 } from "../../lib/noise.js";
 
@@ -55,6 +60,8 @@ export interface EyeOptions {
   image?: (luminance: Float64Array, t: number) => void;
   /** Photoreceptor noise on (the default) or off. */
   noise?: boolean;
+  /** Which version of the eye; the current one unless set. */
+  version?: VisionVersion;
 }
 
 export interface EyeRecord {
@@ -98,11 +105,15 @@ export class EyeAdapter implements FlyNeuralAdapter {
     const shuffle = options.shuffled
       ? shuffledWiring(LATTICE, mulberry32((options.seed ^ 0x51ab1e) >>> 0))
       : null;
-    this.vision = new MotionVision(LATTICE, LOOMING_UNITS, { shuffle });
+    const version = options.version ?? VISION_VERSION;
+    this.vision = new MotionVision(LATTICE, LOOMING_UNITS, {
+      shuffle,
+      adaptation: VISION_VERSIONS[version],
+    });
     const d = inner.descriptor;
     this.descriptor = {
       ...d,
-      id: `${d.id} + ${VISION_VERSION} (${options.readout}${options.shuffled ? ", shuffled" : ""}, ${options.mode})`,
+      id: `${d.id} + ${version} (${options.readout}${options.shuffled ? ", shuffled" : ""}, ${options.mode})`,
       label: `${d.label}, seeing looming through a research compound eye`,
       fidelity: `${d.fidelity}; looming from an image-forming eye: Hassenstein–Reichardt motion detectors and LPLC2-like looming units (rate model, not spiking neurons, not a connectome)`,
     };

@@ -32,6 +32,7 @@ import { OrganismAdapter } from "../life/organism.js";
 import { EyeAdapter, type EyeRecord } from "./adapter.js";
 import { LATTICE, LOOMING_UNITS } from "./lattice.js";
 import { MotionVision, shuffledWiring, type MotionOutput } from "./motion.js";
+import { VISION_VERSIONS, type VisionVersion } from "./params.js";
 import {
   batteryArena,
   groundTruth,
@@ -79,6 +80,7 @@ export interface Split {
 export interface Protocol {
   schema: string;
   id: string;
+  vision_version: VisionVersion;
   fly: { position: V3; yaw: number };
   timeline: { lead_in_s: number; tail_s: number; sample_s: number };
   splits: Record<string, Split>;
@@ -235,6 +237,7 @@ export function heldRun(
   // The shuffled control sees the same images through its own wiring.
   const shuffled = new MotionVision(LATTICE, LOOMING_UNITS, {
     shuffle: shuffledWiring(LATTICE, mulberry32((eyeSeed ^ 0x51ab1e) >>> 0)),
+    adaptation: VISION_VERSIONS[protocol.vision_version],
   });
   const shuffledOut = new Map<number, MotionOutput>();
   let tap: Tap | null = null;
@@ -252,6 +255,7 @@ export function heldRun(
         mode: "observe",
         readout: "lplc2",
         gain: 1,
+        version: protocol.vision_version,
         record: (r) => records.push(r),
         image: (img, t) => shuffledOut.set(round6(t), shuffled.step(img, t)),
       });
@@ -337,6 +341,7 @@ export function liveRun(
           mode: "drive",
           readout: "lplc2",
           gain: eyeGain,
+          version: protocol.vision_version,
         });
         tap = new Tap(eye, false);
       }

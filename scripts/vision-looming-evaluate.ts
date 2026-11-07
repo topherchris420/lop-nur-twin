@@ -1,11 +1,12 @@
 /**
  * The research compound eye's looming battery (docs/FLY_VISION.md).
  *
- *   node scripts/run-ts.mjs scripts/vision-looming-evaluate.ts dev        # development split: select thresholds
- *   node scripts/run-ts.mjs scripts/vision-looming-evaluate.ts heldout    # held-out split, once, at the dev selection
- *   node scripts/run-ts.mjs scripts/vision-looming-evaluate.ts report     # README from both records
- *   ... <mode> --check     reproduce the committed file byte for byte (this platform)
- *   ... <mode> --scratch   run from a working tree; writes to .fly-vision/, never a result
+ *   node scripts/run-ts.mjs scripts/vision-looming-evaluate.ts dev --protocol looming-v2      # development split: select thresholds
+ *   node scripts/run-ts.mjs scripts/vision-looming-evaluate.ts heldout --protocol looming-v2  # held-out split, once, at the dev selection
+ *   node scripts/run-ts.mjs scripts/vision-looming-evaluate.ts report                         # README from every protocol's records
+ *   ... --check     reproduce the committed file byte for byte (this platform, and code whose
+ *                   battery digest is the record's: check a record out at the commit it names)
+ *   ... --scratch   run from a working tree; writes to .fly-vision/, never a result
  *
  * Every subject is a new research fly built from a seed (`research-vision-…`).
  * Nothing here reads or writes Eva, ECHO, a store, a checkpoint, a backup or a
@@ -34,7 +35,7 @@ import {
   type Stimulus,
 } from "../src/bethesda/vision/battery.js";
 import { LATTICE, LOOMING_UNITS } from "../src/bethesda/vision/lattice.js";
-import { VISION_PARAMS, VISION_VERSION } from "../src/bethesda/vision/params.js";
+import { VISION_PARAMS, VISION_VERSIONS } from "../src/bethesda/vision/params.js";
 import {
   bootstrap,
   envelope,
@@ -51,7 +52,8 @@ import {
 import { canonicalJson, sha256 } from "../src/rain/sha256.js";
 
 const root = resolve(dirname(new URL(import.meta.url).pathname), "..");
-const PROTOCOL_PATH = "src/bethesda/vision/protocols/looming-v1.json";
+/** Every protocol, in the order they were frozen. */
+export const PROTOCOLS = ["looming-v1", "looming-v2"] as const;
 const OUT = "docs/benchmarks/fly-vision";
 const SCRATCH = ".fly-vision";
 const RESULT_SCHEMA = "vision-looming-result/v1";
@@ -60,6 +62,11 @@ const args = process.argv.slice(2);
 const mode = args.find((a) => ["dev", "heldout", "report"].includes(a));
 const check = args.includes("--check");
 const scratch = args.includes("--scratch");
+const pAt = args.indexOf("--protocol");
+const protocolId = pAt >= 0 ? args[pAt + 1]! : "looming-v2";
+if (!(PROTOCOLS as readonly string[]).includes(protocolId))
+  throw new Error(`no protocol ${protocolId}: ${PROTOCOLS.join(", ")}`);
+const PROTOCOL_PATH = `src/bethesda/vision/protocols/${protocolId}.json`;
 if (!mode || !["dev", "heldout", "report"].includes(mode)) {
   console.error(
     "usage: vision-looming-evaluate.ts dev|heldout|report [--check] [--scratch]",
@@ -76,13 +83,11 @@ const protocolText = readFileSync(join(root, PROTOCOL_PATH), "utf8");
 const protocol = JSON.parse(protocolText) as Protocol & {
   selection: { min_recall: number; grid: number };
   bootstrap: { resamples: number; seed: number };
-  vision_version: string;
 };
 if (protocol.schema !== PROTOCOL_SCHEMA) throw new Error("not a looming protocol");
-if (protocol.vision_version !== VISION_VERSION)
-  throw new Error(
-    `the protocol names ${protocol.vision_version}, the eye is ${VISION_VERSION}`,
-  );
+if (!(protocol.vision_version in VISION_VERSIONS))
+  throw new Error(`the protocol names ${protocol.vision_version}, which no eye here is`);
+if (protocol.id !== protocolId) throw new Error(`${PROTOCOL_PATH} is ${protocol.id}`);
 const protocolSha = sha256(protocolText.replace(/\r\n?/g, "\n"));
 
 /** The battery's code: every file reached by relative imports from this script, LF-normalized. */
@@ -264,7 +269,7 @@ function header(split: string) {
     protocol: protocol.id,
     protocol_sha256: protocolSha,
     split,
-    vision_version: VISION_VERSION,
+    vision_version: protocol.vision_version,
     versions: {
       fly: FLY_VERSION,
       echo: ECHO_VERSION,
@@ -338,7 +343,7 @@ function devMode(): void {
     metrics: armMetrics(records, "deployed", null),
     rule: "deployed threshold, untuned",
   };
-  const name = "looming-v1-dev.json";
+  const name = `${protocol.id}-dev.json`;
   const old = check ? recorded(name) : null;
   write(name, {
     ...header("dev"),
@@ -354,7 +359,7 @@ function devMode(): void {
   });
   if (!check)
     writeFileSync(
-      join(root, outDir, "looming-v1-dev-cost.json"),
+      join(root, outDir, `${protocol.id}-dev-cost.json`),
       JSON.stringify({ ...cost, machine: machine() }, null, 2) + "\n",
     );
 }
@@ -370,7 +375,7 @@ function machine() {
 }
 
 function heldoutMode(): void {
-  const devPath = join(root, outDir, "looming-v1-dev.json");
+  const devPath = join(root, outDir, `${protocol.id}-dev.json`);
   if (!existsSync(devPath)) throw new Error("the development split has not run");
   const dev = JSON.parse(readFileSync(devPath, "utf8"));
   const source = sourceDigest();
@@ -467,7 +472,7 @@ function heldoutMode(): void {
       eye_agree: `${agreeEye}/${live.length}`,
     },
   };
-  const name = "looming-v1-heldout.json";
+  const name = `${protocol.id}-heldout.json`;
   const old = check ? recorded(name) : null;
   write(name, {
     ...header("heldout"),
@@ -508,7 +513,7 @@ function heldoutMode(): void {
   });
   if (!check)
     writeFileSync(
-      join(root, outDir, "looming-v1-heldout-cost.json"),
+      join(root, outDir, `${protocol.id}-heldout-cost.json`),
       JSON.stringify({ ...cost, machine: machine() }, null, 2) + "\n",
     );
 }
@@ -518,7 +523,7 @@ else if (mode === "heldout") heldoutMode();
 else {
   // The report is written by scripts/vision-looming-report.ts's logic, kept here to stay one script.
   const { report } = await import("./vision-looming-report.js");
-  const text = report(root, outDir);
+  const text = report(root, outDir, PROTOCOLS);
   const path = join(root, outDir, "README.md");
   if (check) {
     if (!existsSync(path) || readFileSync(path, "utf8") !== text) {
