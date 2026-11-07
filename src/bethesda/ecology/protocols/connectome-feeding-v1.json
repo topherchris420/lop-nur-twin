@@ -1,0 +1,86 @@
+{
+ "schema": "connectome-feeding-protocol/v1",
+ "id": "connectome-feeding-v1",
+ "frozen": "Committed before the held-out split ran. Development (scratch runs, not records): a first design, which replaced the controller's feed command with rest while the readout was off, pinned hungry flies to the food (in the shuffled and threshold arms flies stayed on one fruit all 8 hours, over 560,000 vetoes; the intact hybrid was vetoed 11,580 times in one life); the hybrid now tells the controller nothing edible is underfoot while the readout is off. The development split re-run with that design (4 yards x 2 flies): survival controller 5/8, connectome 4/8, shuffled 0/8, threshold 1/8; mean reserve 0.556, 0.502, 0.317, 0.384; starved 3, 3, 7, 6; zero vetoes; the circuit cost 42.7 ms per simulated second driven. Nothing was changed after that run.",
+ "question": "Can a circuit cut from the FlyWire v783 whole brain decide when a mortal research fly feeds, for a whole 8-hour life in the ecology, without leaving it worse fed than the deployed controller leaves it; does its wiring matter; and does it cost little enough to run in the loop?",
+ "status": "A seeded study on disposable research subjects, not a registered R.A.I.N. experiment. No subject is Eva or ECHO, a copy or a continuation; nothing here reaches them.",
+ "circuit": {
+  "id": "feeding-reduced-v783",
+  "sha256": "5d04c4061b3c263d7a47405fff6cfd130f096f9b4ba4cc9eecb210a8a6ff11e8",
+  "neurons": 496,
+  "made_by": "python -m fly_neural reduce cut (fly-neural/experiments/feeding-reduced-v783.json), from the pinned FlyWire v783 release; kept outside the repository"
+ },
+ "feeding": {
+  "max_rate_hz": 200,
+  "window_ms": 500,
+  "threshold_hz": 10,
+  "hunger_at": 0.23,
+  "notes": "Sugar GRNs at max_rate_hz x hunger while on food (Inagaki et al. 2012: starvation raises sugar-GRN sensitivity; the linear form and the 200 Hz ceiling, twice Shiu et al.'s standard 100 Hz stimulus, are this model's). threshold_hz is fly-neural's own feed readout (mean MN9 rate >= 10 Hz); window_ms is the trailing window the neural shadow's food result called for. hunger_at, for the threshold arm only, is where the intact circuit's readout first reaches threshold_hz (calibrate).",
+  "calibration": "connectome-feeding-evaluate.ts calibrate on this circuit: 40 trials of 1 s per input rate from 10 Hz in steps of 2 Hz; the readout (500 ms) first reaches 10 Hz at 46 Hz input, hunger 46/200 = 0.23."
+ },
+ "start_reserve": 0.5,
+ "body": "Mortal, with the thirst policy and without the heat policy (Stage B found the heat policy raised heat exposure).",
+ "climate": {
+  "meanTempC": 25,
+  "dailyTempAmpC": 5,
+  "humidityShift": -0.4,
+  "rainThreshold": 1.1
+ },
+ "spin_up_s": 172800,
+ "horizon_s": 28800,
+ "start_hour": 8,
+ "spring_inflow_mm_s": 0.003,
+ "springs": 3,
+ "min_start_from_spring_m": 4,
+ "arms": {
+  "controller": "The deployed controller decides feeding, as it does now (with the thirst policy over it).",
+  "connectome": "The reduced FAFB v783 circuit's MN9 readout decides feeding; the controller does everything else. Primary arm.",
+  "shuffled": "The same circuit with its weights shuffled across its synapse pairs (seeded per fly): the same numbers, the wiring lost.",
+  "threshold": "Feeding while on food whenever hunger >= hunger_at: the intact circuit reduced to the one number where its readout crosses threshold."
+ },
+ "endpoints": "Time-weighted mean reserve over the life (sampled each minute while alive); fed energy (J); alive at the horizon and cause of death; feeding seconds and bouts; the hybrid's meals and vetoes; the circuit's wall time.",
+ "noninferiority_margin": 0.2,
+ "max_circuit_s_per_driven_s": 0.1,
+ "bootstrap": {
+  "resamples": 4000,
+  "seed": 20261107,
+  "rule": "Paired percentile bootstrap over environments (every fly and arm of a drawn environment kept); 95% interval."
+ },
+ "criteria": [
+  {
+   "id": "C1",
+   "primary": true,
+   "rule": "Held-out: the interval of mean reserve(connectome) - (1 - margin) x mean reserve(controller) excludes 0 (above): the connectome leaves the fly no worse fed than the controller, within 20%."
+  },
+  {
+   "id": "C2",
+   "rule": "Held-out: the interval of mean reserve(connectome) - mean reserve(shuffled) excludes 0 (above): the wiring, not the numbers, does it."
+  },
+  {
+   "id": "C3",
+   "rule": "Held-out: no more connectome flies than controller flies die of starvation."
+  },
+  {
+   "id": "C4",
+   "rule": "Held-out: on food the circuit runs at least 10 times faster than real time on the machine that ran it: its wall time over the connectome runs, divided by the simulated seconds its sugar neurons were driven, is at most max_circuit_s_per_driven_s. Its share of the runs' total wall time is reported."
+  }
+ ],
+ "splits": {
+  "dev": {
+   "generator_seed": 6101,
+   "environments": 4,
+   "fly_seeds": [
+    501,
+    502
+   ]
+  },
+  "heldout": {
+   "generator_seed": 6202,
+   "environments": 12,
+   "fly_seeds": [
+    601,
+    602
+   ]
+  }
+ }
+}

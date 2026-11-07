@@ -902,12 +902,16 @@ describe("the runner with an organism", () => {
       tick: v3.tick,
       previousSequence: v3.sequence,
     });
+    // Each child process can take tens of seconds on a loaded runner: keep the
+    // held lease alive across them, so it is still held when the test relies on it.
+    held.renew();
     const blocked = continuation(dir, "--commit");
     expect(blocked.status).toBe(1);
     expect(blocked.stderr).toMatch(/lease is held/);
     expect(files(dir)).toEqual(before);
     expect(LifeStore.open(dir, ORGANISM_LIFE).head().digest).toBe(v3.digest);
     // Once that lease is gone the continuation is made, once; the partial file is never read.
+    held.renew();
     held.release();
     const commit = continuation(dir, "--commit");
     expect(commit.status, commit.stderr).toBe(0);

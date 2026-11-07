@@ -127,3 +127,22 @@ docs/benchmarks/fly-calibration/
 docs/benchmarks/fly-neural/
 fly-neural/tests/data/
 fly-neural/experiments/
+
+# The research compound eye's looming battery: written by
+# `scripts/vision-looming-evaluate.ts` and checked byte for byte by its
+# `--check`, and the frozen protocol whose exact bytes every result records.
+docs/benchmarks/fly-vision/
+src/bethesda/vision/protocols/
+
+# The research ecology's reference scenarios: written by
+# `scripts/ecology-reference.ts` and checked by its `--check`.
+docs/benchmarks/ecology/
+
+# The homeostasis study: records written by `scripts/homeostasis-evaluate.ts`,
+# and the frozen protocols whose exact bytes every record hashes.
+docs/benchmarks/homeostasis/
+src/bethesda/ecology/protocols/
+src/bethesda/ecology/connectome/fixtures/
+docs/benchmarks/connectome-feeding/
+docs/benchmarks/lifetimes/
+docs/benchmarks/ecology-trace/

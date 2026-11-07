@@ -1,0 +1,42 @@
+{
+  "schema": "vision-cost/v1",
+  "note": "Wall seconds per simulated second on this machine (one thread). Not the deployed VM; not reproduced byte for byte.",
+  "machine": {
+    "platform": "linux x64",
+    "node": "v22.23.4",
+    "cpus": 4,
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "memory_gb": 17
+  },
+  "simulated_s": 10,
+  "ommatidia": 1694,
+  "images_per_simulated_s": 100,
+  "arena": {
+    "deployed_fly": 0.003242,
+    "deployed_fly_with_eye": 0.07506,
+    "eye_share": 0.9568
+  },
+  "city_1201": {
+    "simulated_s": 300,
+    "fly_modes_ticks": {
+      "escape": 21,
+      "flight": 896,
+      "groom": 261,
+      "land": 282,
+      "rest": 1337,
+      "takeoff": 2,
+      "walk": 201
+    },
+    "images": {
+      "images": 30000,
+      "casts": 13802
+    },
+    "city_alone": 0.0003266,
+    "city_with_fly": 0.00731,
+    "city_with_fly_and_eye": 0.3687,
+    "one_image_ms": 7.371,
+    "rays_per_image": 1694,
+    "eye_at_sense_rate_core_share": 0.7371
+  },
+  "coarser_lattices_estimate": "Rays scale with ommatidia: twice the spacing is about a quarter of the rays (and of the image time); 50 Hz instead of 100 Hz halves it again. Estimates from this image time, not measured runs."
+}

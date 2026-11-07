@@ -201,6 +201,27 @@ def cmd_mbcode(args) -> int:
     return 0 if data["selected"] else 3
 
 
+def cmd_reduce(args) -> int:
+    from . import reduce as rd
+    from .record import write_json
+
+    cfg = _config(args.config)
+    out = Path(args.out or ADAPTIVE)
+    if args.action == "fixture":
+        path = REPO / "src" / "bethesda" / "ecology" / "connectome" / "fixtures" / "lif-conformance.json"
+        print(f"wrote {write_json(path, rd.conformance_fixture())}")
+        return 0
+    if args.action == "cut":
+        data = rd.reduce(cfg, compiled_dir(args.connectome), out)
+        print(f"wrote {write_json(out / f'{cfg.stem}-cut.json', data)}")
+        return 0
+    data = rd.check(cfg, compiled_dir(args.connectome), out, args.split)
+    print(f"wrote {write_json(out / f'{cfg.stem}-{args.split}.json', data)}")
+    for k, v in data["criteria"].items():
+        print(f"  {k} {'PASS' if v['passed'] else 'FAIL'}: {v['value']}")
+    return 0 if all(v["passed"] for v in data["criteria"].values()) else 3
+
+
 def cmd_threat(args) -> int:
     from . import threat
 
@@ -354,6 +375,13 @@ def main(argv: list[str] | None = None) -> int:
     mb.add_argument("--connectome", default="fafb-v783-shiu")
     mb.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
     mb.set_defaults(fn=cmd_mbcode)
+    rd = sub.add_parser("reduce", help="a reduced circuit (experiments/feeding-reduced-v783.json): cut it on the dev regime, or check it spike for spike against the whole brain")
+    rd.add_argument("action", choices=["cut", "check", "fixture"])
+    rd.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    rd.add_argument("--config", default="feeding-reduced-v783.json")
+    rd.add_argument("--connectome", default="fafb-v783-shiu")
+    rd.add_argument("--out", help=f"results directory (default {ADAPTIVE})")
+    rd.set_defaults(fn=cmd_reduce)
     th = sub.add_parser("threat", help="threat discrimination (experiments/threat-v783.json): write a battery for the recorder, or replay and score it")
     th.add_argument("action", choices=["battery", "run"])
     th.add_argument("--split", required=True, choices=["dev", "heldout"])
