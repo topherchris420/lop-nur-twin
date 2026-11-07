@@ -143,7 +143,7 @@ def _gzip_rows(frame: pl.DataFrame, path: Path) -> None:
         with temp.open("wb") as binary:
             with gzip.GzipFile(filename="", fileobj=binary, mode="wb", compresslevel=6, mtime=0) as compressed:
                 with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as out:
-                    writer = csv.writer(out, lineterminator="\\n")
+                    writer = csv.writer(out, lineterminator="\n")
                     writer.writerow(frame.columns)
                     writer.writerows(frame.iter_rows())
         temp.replace(path)
