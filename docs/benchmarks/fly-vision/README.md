@@ -109,6 +109,107 @@ By illumination (escapes / trials):
 
 Wall time covers the whole research fly (body, ECHO, the organism's additions) and, in held runs, the eye and its shuffled control. Timings are not reproduced by `--check`.
 
-## looming-v2
+## looming-v2 (eye `research-compound-eye/2`)
 
-The development split has not run.
+### Development split (thresholds chosen here)
+
+Commit `bf6eaf5b60d9`, linux x64, Node v22.23.4. 47 stimuli × 3 fly seeds = 141 trials. Eye: 1694 ommatidia, 138 looming units. Chosen eye gain 3.6053.
+
+| Readout | F1 | Recall | Hits | False alarms | Harmless escaped | Early | Median lead (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| deployed (ECHO's geometric proxy, untuned) | 0.889 | 0.889 | 48/54 | 6 | 0.069 | 0 | 43 |
+| geometric proxy, threshold tuned on dev | 0.923 | 1.000 | 54/54 | 9 | 0.103 | 0 | 63 |
+| **research eye, LPLC2 readout** | 0.903 | 0.944 | 51/54 | 8 | 0.092 | 0 | 115 |
+| eye, expansion-only ablation | 0.653 | 0.889 | 48/54 | 45 | 0.517 | 0 | 69 |
+| eye, shuffled-retinotopy control | 0.512 | 0.815 | 44/54 | 74 | 0.851 | 0 | 55 |
+| angular-size heuristic (geometry) | 0.732 | 0.833 | 45/54 | 24 | 0.276 | 0 | 42 |
+| time-to-contact (τ) heuristic (geometry) | 0.971 | 0.944 | 51/54 | 0 | 0.000 | 0 | 53 |
+
+Escapes by stimulus kind (escapes / trials):
+
+| Stimuli | deployed | geometric-tuned | eye-lplc2 | eye-expansion | eye-shuffled | size-heuristic | tau-heuristic |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| accelerating | 6/12 | 12/12 | 9/12 | 6/12 | 6/12 | 6/12 | 12/12 |
+| approach | 30/30 | 30/30 | 30/30 | 30/30 | 27/30 | 27/30 | 27/30 |
+| approach_stop | 3/12 | 3/12 | 8/12 | 6/12 | 10/12 | 3/12 | 0/12 |
+| glancing | 12/12 | 12/12 | 12/12 | 12/12 | 11/12 | 12/12 | 12/12 |
+| lateral | 0/18 | 0/18 | 0/18 | 12/18 | 18/18 | 0/18 | 0/18 |
+| near_miss | 3/24 | 6/24 | 0/24 | 12/24 | 20/24 | 6/24 | 0/24 |
+| recede | 0/12 | 0/12 | 0/12 | 12/12 | 12/12 | 12/12 | 0/12 |
+| stationary | 0/9 | 0/9 | 0/9 | 0/9 | 6/9 | 3/9 | 0/9 |
+| zigzag | 0/12 | 0/12 | 0/12 | 3/12 | 8/12 | 0/12 | 0/12 |
+
+### Held-out split (run once, at the development thresholds)
+
+Commit `09429f9340f1`, linux x64, Node v22.23.4. 62 stimuli × 4 fly seeds = 248 trials, with conditions the development split never had: bright stimuli, dim (0.15) and bright (2.0) illumination, elevations up to 70°, speeds from 0.3 to 5 m/s.
+
+**5 of 7 pre-registered criteria pass.**
+
+| Criterion | Result | Measured |
+| --- | --- | --- |
+| V1 (primary): live F1(eye) − F1(deployed) ≥ 0.10, interval above 0 | **fail** | 0.025 [-0.105, 0.162] |
+| V2: F1(eye) − F1(geometric, tuned), interval above 0 | **fail** | -0.005 [-0.137, 0.129] |
+| V3: ≤ 25% of translating harmless stimuli escaped, recall ≥ 0.75 | pass | 0.042 escaped, recall 0.760 |
+| V4: F1(eye) − F1(expansion ablation), interval above 0 | pass | 0.343 [0.215, 0.494] |
+| V5: F1(eye) − F1(shuffled) ≥ 0.20, interval above 0 | pass | 0.355 [0.234, 0.498] |
+| V6: median lead of the eye's hits ≥ 50 ms | pass | 110 ms |
+| V7: live first escapes match the held runs' predictions in ≥ 99% | pass | deployed 248/248, eye 248/248 |
+
+Intervals: paired percentile bootstrap over stimuli, 95%.
+
+Live runs (the fly free to escape):
+
+| Readout | F1 | Recall | Hits | False alarms | Harmless escaped | Early | Median lead (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| deployed (ECHO's geometric proxy, untuned) | 0.800 | 0.833 | 80/96 | 24 | 0.158 | 0 | 38 |
+| **research eye, LPLC2 readout** | 0.825 | 0.760 | 73/96 | 8 | 0.053 | 0 | 110 |
+
+Every readout on the held runs (the same image stream for all):
+
+| Readout | F1 | Recall | Hits | False alarms | Harmless escaped | Early | Median lead (ms) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| deployed (ECHO's geometric proxy, untuned) | 0.800 | 0.833 | 80/96 | 24 | 0.158 | 0 | 38 |
+| geometric proxy, threshold tuned on dev | 0.830 | 0.917 | 88/96 | 28 | 0.184 | 0 | 54 |
+| **research eye, LPLC2 readout** | 0.825 | 0.760 | 73/96 | 8 | 0.053 | 0 | 110 |
+| eye, expansion-only ablation | 0.481 | 0.542 | 52/96 | 68 | 0.447 | 0 | 89 |
+| eye, shuffled-retinotopy control | 0.470 | 0.573 | 55/96 | 81 | 0.539 | 2 | 91 |
+| angular-size heuristic (geometry) | 0.667 | 0.792 | 76/96 | 56 | 0.368 | 0 | 31 |
+| time-to-contact (τ) heuristic (geometry) | 0.824 | 0.875 | 84/96 | 24 | 0.158 | 0 | 60 |
+
+Escapes by stimulus kind (escapes / trials):
+
+| Stimuli | deployed | geometric-tuned | eye-lplc2 | eye-expansion | eye-shuffled | size-heuristic | tau-heuristic |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| accelerating | 12/20 | 20/20 | 16/20 | 8/20 | 6/20 | 12/20 | 20/20 |
+| approach | 48/56 | 48/56 | 40/56 | 32/56 | 33/56 | 44/56 | 44/56 |
+| approach_stop | 0/24 | 0/24 | 4/24 | 4/24 | 5/24 | 0/24 | 4/24 |
+| glancing | 20/20 | 20/20 | 17/20 | 12/20 | 17/20 | 20/20 | 20/20 |
+| lateral | 4/24 | 4/24 | 0/24 | 8/24 | 8/24 | 4/24 | 4/24 |
+| near_miss | 20/48 | 24/48 | 0/48 | 24/48 | 27/48 | 24/48 | 16/48 |
+| recede | 0/20 | 0/20 | 0/20 | 16/20 | 17/20 | 20/20 | 0/20 |
+| stationary | 0/12 | 0/12 | 0/12 | 0/12 | 9/12 | 4/12 | 0/12 |
+| zigzag | 0/24 | 0/24 | 4/24 | 16/24 | 16/24 | 4/24 | 0/24 |
+
+By the stimulus's contrast sign (escapes / trials):
+
+| Stimuli | deployed | geometric-tuned | eye-lplc2 | eye-expansion | eye-shuffled | size-heuristic | tau-heuristic |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| bright | 24/80 | 28/80 | 27/80 | 56/80 | 62/80 | 44/80 | 36/80 |
+| dark | 80/168 | 88/168 | 54/168 | 64/168 | 76/168 | 88/168 | 72/168 |
+
+By illumination (escapes / trials):
+
+| Stimuli | deployed | geometric-tuned | eye-lplc2 | eye-expansion | eye-shuffled | size-heuristic | tau-heuristic |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| ambient 0.15 | 32/64 | 32/64 | 21/64 | 44/64 | 50/64 | 36/64 | 32/64 |
+| ambient 0.7 | 40/104 | 48/104 | 28/104 | 36/104 | 49/104 | 56/104 | 44/104 |
+| ambient 2 | 32/80 | 36/80 | 32/80 | 40/80 | 39/80 | 40/80 | 32/80 |
+
+### Cost
+
+| Split | Simulated s | Wall s (held runs) | Wall s (live runs) | Wall s per simulated s | Machine |
+| --- | --- | --- | --- | --- | --- |
+| dev | 319.7 | 25.9 | 0.0 | 0.081 | Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs, linux x64, Node v22.23.4 |
+| held-out | 1555.8 | 45.6 | 23.1 | 0.044 | Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs, linux x64, Node v22.23.4 |
+
+Wall time covers the whole research fly (body, ECHO, the organism's additions) and, in held runs, the eye and its shuffled control. Timings are not reproduced by `--check`.
