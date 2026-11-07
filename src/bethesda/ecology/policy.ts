@@ -84,7 +84,8 @@ export interface PolicyState {
     yieldToHunger: number;
   };
   lastT: number;
-  heatWalkFrom: number;
+  /** When the current heat walk began; null before the first (a finite state, so a fly hashes). */
+  heatWalkFrom: number | null;
 }
 
 export class HomeostaticAdapter implements FlyNeuralAdapter {
@@ -106,7 +107,7 @@ export class HomeostaticAdapter implements FlyNeuralAdapter {
       yieldToHunger: 0,
     },
     lastT: 0,
-    heatWalkFrom: -Infinity,
+    heatWalkFrom: null,
   };
   private readonly rng: () => number;
   constructor(inner: FlyNeuralAdapter, body: Homeostasis, options: PolicyOptions) {
@@ -148,7 +149,8 @@ export class HomeostaticAdapter implements FlyNeuralAdapter {
       body.mode !== "feed"
     ) {
       if (input.frame.lightBearing !== null) {
-        if (body.t - s.heatWalkFrom > 2 * HEAT_WALK_S) s.heatWalkFrom = body.t;
+        if (s.heatWalkFrom === null || body.t - s.heatWalkFrom > 2 * HEAT_WALK_S)
+          s.heatWalkFrom = body.t;
         if (body.t - s.heatWalkFrom <= HEAT_WALK_S) {
           s.overrides.heat++;
           const away = wrapAngle(input.frame.lightBearing + Math.PI);
