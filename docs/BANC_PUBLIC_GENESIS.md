@@ -55,6 +55,24 @@ compiled/banc-v888-public-predicted-nt/
 
 The existing reviewed Codex pin and `import --dataset banc-v888` command are untouched and continue to reject unreviewed bytes. The separate public import is marked **unverified inputs** in its neural manifest: do not cite it as a reproduction of the older reviewed-Codex network until release differences and output counts have been independently checked.
 
+
+## Verified public GCS acquisition on November 7, 2026
+
+The reproducible [GitHub Actions research acquisition](https://github.com/topherchris420/lop-nur-twin/actions/runs/42392321350) downloaded both published v888 products, ran 25 synthetic/structural isolation tests (all passing), converted the full public tables, and compiled the isolated model successfully.
+
+| Source | Bytes | Local SHA-256 |
+| --- | ---: | --- |
+| `banc_888_meta.feather` | 57,503,026 | `86ccf5df0c67419f8c5f43e93a7ed38d23a080e9f7fde26737290252f3780098` |
+| `banc_v888_connections.parquet` | 76,125,807 | `b1d8267976f54c8c04e5a6ba85f46d2b60dc4b5ed4a285e3cb4c77abcef4070a` |
+
+The published connections contain **10,196,509** per-neuropil rows. The converter excluded and explicitly recorded **29 rows (90 counted synapses)** whose source or target was the background/unassigned root ID 0; the unmodified Parquet source is retained. Negative IDs, zero synapse counts, and missing fields still fail closed. See `conversion-audit.json` and `source-manifest.json` in the package.
+
+The resulting `banc-v888-public-predicted-nt` research model has **188,508** metadata IDs, **3,638,916** directed neuron pairs, **29,198,720** counted synapses, and **114** neuropil labels. These are *not* the same population and filter as the previously reviewed Codex BANC v888 export (158,262 neurons and 23,556,214 counted synapses). Do not present these as contradictory measurements of an identical source graph.
+
+[Download the actual research dataset and compiled model](https://github.com/topherchris420/lop-nur-twin/actions/runs/42392321350/artifacts/13581743465) (GitHub Actions artifact, 14-day retention). This artifact is external to Git, includes the original public files, reproducible converted files, local source hashes, attribution, and the compiled neural model.
+
+**Limits:** This validates real acquisition, schema conversion, graph compilation and local consistency. It does not independently authenticate the hashes against an authoritative upstream publication record, reproduce the earlier Codex graph, or demonstrate behavioral benefit in research flies. No changes to the running Eva or ECHO have been made.
+
 ## What this implements and what it does not
 
 **Implemented:** A fixed-URL, explicit opt-in public download; bounded streaming and local caching; Feather/Parquet schema validation; deterministic projection to the existing BANC import format; source and derived SHA-256 pinning; separate full BANC compiler output; synthetic isolation and bad-input tests.
