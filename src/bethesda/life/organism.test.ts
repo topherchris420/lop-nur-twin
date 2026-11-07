@@ -893,7 +893,11 @@ describe("the runner with an organism", () => {
       `${next}.99999.${Date.now()}.tmp`,
       '{"schema":"life-store/v1","epoch":',
     );
-    const held = LifeStore.open(dir, ORGANISM_LIFE);
+    // Freeze a generous test-only lease horizon. On crowded CI workers a
+    // child may take longer than a production 60-second lease to boot.
+    // The production lease and its fencing rules remain unchanged.
+    let heldClock = Date.now() + 30 * 60_000;
+    const held = LifeStore.open(dir, ORGANISM_LIFE, { now: () => heldClock });
     held.acquire();
     const before = files(dir);
     const check = continuation(dir, "--check");
@@ -911,7 +915,8 @@ describe("the runner with an organism", () => {
     expect(files(dir)).toEqual(before);
     expect(LifeStore.open(dir, ORGANISM_LIFE).head().digest).toBe(v3.digest);
     // Once that lease is gone the continuation is made, once; the partial file is never read.
-    held.renew();
+    // Release at real wall time, so the next process can immediately acquire.
+    heldClock = Date.now();
     held.release();
     const commit = continuation(dir, "--commit");
     expect(commit.status, commit.stderr).toBe(0);
