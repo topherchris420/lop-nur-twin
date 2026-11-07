@@ -82,6 +82,8 @@ Every result, with its class and record, is in the
 - **Perception:** [research compound eye](FLY_VISION.md) and its
   [looming battery](benchmarks/fly-vision/README.md);
   [Project Genesis](PROJECT_GENESIS.md) for what it means for Eva and ECHO.
+- **A world of its own:** the [research ecology](RAIN_GENESIS.md) and its
+  reference scenarios (`benchmarks/ecology/`, being recorded).
 - **Encounters:** [first contact](FIRST_CONTACT.md) and its
   [results](benchmarks/first-contact/README.md);
   [neural augmentation](benchmarks/fly-augmentation/README.md).

@@ -133,3 +133,7 @@ fly-neural/experiments/
 # `--check`, and the frozen protocol whose exact bytes every result records.
 docs/benchmarks/fly-vision/
 src/bethesda/vision/protocols/
+
+# The research ecology's reference scenarios: written by
+# `scripts/ecology-reference.ts` and checked by its `--check`.
+docs/benchmarks/ecology/

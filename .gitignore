@@ -78,3 +78,7 @@ fly-neural/*.egg-info/
 # The research compound eye (docs/FLY_VISION.md): development runs made with
 # --scratch from a working tree. Results go to docs/benchmarks/fly-vision/.
 .fly-vision/
+
+# The research ecology (docs/RAIN_GENESIS.md): scratch runs of its reference
+# scenarios. Records go to docs/benchmarks/ecology/.
+.fly-ecology/

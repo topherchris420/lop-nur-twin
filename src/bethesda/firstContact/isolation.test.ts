@@ -1,7 +1,7 @@
 /**
  * The research code stays beside production, never inside it: nothing that
  * runs, serves or deploys either original imports the first-contact,
- * augmentation, adaptation-benchmark or research-eye modules, and the fly's
+ * augmentation, adaptation-benchmark, research-eye or research-ecology modules, and the fly's
  * experiment digest does not cover them.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -24,7 +24,7 @@ const PRODUCTION = [
 const PRODUCTION_SCRIPTS = /^scripts\/(bethesda-life-|garden-)/;
 // The adaptation suite is matched by import path only: "adaptation" is an ordinary word in prose.
 const RESEARCH =
-  /firstContact|bethesda\/augmentation|\.\.\/augmentation|bethesda\/adaptation\/|["'](?:\.\.?\/)+adaptation\/|bethesda\/vision\/|["'](?:\.\.?\/)+vision\//;
+  /firstContact|bethesda\/augmentation|\.\.\/augmentation|bethesda\/adaptation\/|["'](?:\.\.?\/)+adaptation\/|bethesda\/vision\/|["'](?:\.\.?\/)+vision\/|bethesda\/ecology\/|["'](?:\.\.?\/)+ecology\//;
 
 function files(dir: string): string[] {
   const out: string[] = [];

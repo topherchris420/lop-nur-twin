@@ -1129,6 +1129,35 @@ pattern in `firstContact/isolation.test.ts`.
   `staticGeometryChanges`. Never add an approximation to it without a version
   bump and a battery of its own.
 
+### The research ecology (`src/bethesda/ecology/`)
+
+R.A.I.N. Genesis Stage A: a yard whose weather, soil water, fruit, nectar and
+odour evolve on their own, and `EcologicalLife`, which puts a research fly in
+it. Read `docs/RAIN_GENESIS.md` first. Outside the folder it adds
+`scripts/ecology-reference.ts`, `docs/benchmarks/ecology/`, the document, the
+`.fly-ecology/` line of `.gitignore`, its line in `.prettierignore` and its
+pattern in `firstContact/isolation.test.ts`.
+
+- **The world lives without the fly.** The weather is a pure function of the
+  seed and time; every random draw is made on a fixed schedule, the same number
+  each step whatever happened. Never make a draw, a rate or a placement depend
+  on a fly, its needs or its position: nothing may put food near a fly.
+- **A fly changes it only by recorded interactions.** `consume` and
+  `inoculate`, gathered per second and applied at its end, are the only ways
+  in; a bare ecosystem replayed from them must equal the fly's world (a test).
+  A new effect of a fly is a new interaction kind with its own record, never a
+  side channel.
+- **Books close.** Sugar, soil water and odour each have books with every
+  source and sink named; the tests hold their residuals to rounding. A new
+  process adds its terms to the books it touches.
+- **Model choices are named.** Every constant is in `params.ts` as `model`
+  (or `published` with a source). Never describe the ecology as validated
+  against a real one.
+- **Never an original, never production.** Subjects are `research-…`
+  (`refuseOriginal`), nothing in production imports the folder, and the fly's
+  simulation is not changed by it. Its records are written by the reference
+  script from a clean commit; never edit `docs/benchmarks/ecology/` by hand.
+
 ### The R.A.I.N. Lab (`src/bethesda/rain/`) and its runtime (`src/rain/`)
 
 A hidden lab behind a door in the city, where R.A.I.N.'s four perspectives meet
