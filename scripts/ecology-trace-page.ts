@@ -100,10 +100,11 @@ document.getElementById("lede").textContent =
   " Drawn from the simulation's own records: no panel shows a thought or a feeling.";
 const GROUPS = { rest: 0, groom: 0, walk: 1, feed: 2, takeoff: 3, flight: 3, land: 3, escape: 3 };
 const GROUP_NAMES = ["still (rest, groom)", "walking", "feeding", "flying"];
-const W = 640, PAD = 34;
+// Drawn at the container's own width, so the charts' text keeps its size on a phone.
+const W = Math.max(300, Math.min(640, document.getElementById("charts").clientWidth || 640)), PAD = 34;
 const x = (h) => PAD + (h / H(S[S.length - 1])) * (W - PAD - 8);
 const charts = [];
-function lineChart(title, unit, get, refs = []) {
+function lineChart(title, unit, get, refs = [], digits = 3) {
   const vals = S.map(get).filter((v) => v !== null && v !== undefined);
   if (!vals.length) return;
   let lo = Math.min(...vals, ...refs.map((r) => r[0])), hi = Math.max(...vals, ...refs.map((r) => r[0]));
@@ -123,7 +124,7 @@ function lineChart(title, unit, get, refs = []) {
     '<text class="tick" x="' + (W - 8) + '" y="' + (Hh - 2) + '" text-anchor="end">' + hhmm(S[S.length - 1]) + '</text>' +
     '<line class="cross" x1="0" x2="0" y1="4" y2="' + (Hh - 16) + '"/></svg>';
   document.getElementById("charts").appendChild(div);
-  charts.push({ div, get, unit });
+  charts.push({ div, get, unit, digits });
 }
 function bandChart() {
   const div = document.createElement("div"); div.className = "chart";
@@ -151,16 +152,16 @@ lineChart("Body water (share of full)", "", (s) => s.physiology?.water, [[0.7, "
 lineChart("Humidity at the antennae", "", (s) => s.senses.humidity_at_antennae);
 lineChart("Food odour sensed (relative)", "", (s) => s.senses.odour);
 lineChart("Energy reserve (share of full)", "", (s) => s.body.reserve);
-lineChart("Body temperature (°C)", "°C", (s) => s.physiology?.temp_c, [[31, "hot above"]]);
-lineChart("Air temperature (°C)", "°C", (s) => s.world.temp_c);
-lineChart("Mushroom body: learning trials so far", "", (s) => s.learning.trials);
+lineChart("Body temperature (°C)", "°C", (s) => s.physiology?.temp_c, [[31, "heat policy acts above"]], 1);
+lineChart("Air temperature (°C)", "°C", (s) => s.world.temp_c, [], 1);
+lineChart("Mushroom body: learning trials so far", "", (s) => s.learning.trials, [], 0);
 const slider = document.getElementById("t"); slider.max = String(S.length - 1);
 function show(i) {
   const s = S[i]; slider.value = String(i);
   document.getElementById("tlabel").textContent = hhmm(s) + " (" + fmt(H(s), 2) + " h in)";
   for (const c of charts) {
     const cx = x(H(s)); c.div.querySelectorAll(".cross").forEach((l) => { l.setAttribute("x1", cx); l.setAttribute("x2", cx); });
-    const v = c.get(s); c.div.querySelector(".val").textContent = typeof v === "number" ? fmt(v, 3) + (c.unit ? " " + c.unit : "") : (v ?? "—");
+    const v = c.get(s); c.div.querySelector(".val").textContent = typeof v === "number" ? fmt(v, c.digits ?? 3) + (c.unit ? " " + c.unit : "") : (v ?? "—");
   }
   const lt = s.learning.last_trial;
   const effects = s.effects.length ? s.effects.map((e) => e.kind + " " + e.item + " (" + fmt(e.effect, 4) + ")").join("; ") : "none in this sample";
