@@ -1,0 +1,31 @@
+name: BANC public bridge (synthetic)
+
+on:
+  push:
+    paths:
+      - "fly-neural/fly_neural/banc_public.py"
+      - "fly-neural/tests/test_banc_public.py"
+      - ".github/workflows/banc-public-bridge.yml"
+  pull_request:
+    paths:
+      - "fly-neural/fly_neural/banc_public.py"
+      - "fly-neural/tests/test_banc_public.py"
+      - ".github/workflows/banc-public-bridge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-banc-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install research-only Python package
+        run: python -m pip install -e "./fly-neural[test]"
+      - name: Check public bridge and original BANC isolation with synthetic data
+        run: python -m pytest -q fly-neural/tests/test_banc_public.py fly-neural/tests/test_banc.py
