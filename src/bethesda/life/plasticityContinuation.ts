@@ -17,7 +17,7 @@ import {
   plasticityProjection,
   plasticitySourceErrors,
   type PlasticityOrganismLife,
-} from "./plasticityOrganism.js";
+} from "./plasticOrganism.js";
 import { ADAPTIVE_BRAIN_VERSION } from "../fly/echo/adaptiveBrain.js";
 import { type HeadlessGenesis } from "./headless.js";
 import { ORGANISM_ADAPTER_PATH as ADAPTER } from "./organism.js";
