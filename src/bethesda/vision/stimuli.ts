@@ -3,8 +3,8 @@
  * straight constant-speed segments past a fly perched at the centre of an
  * arena, with a contrast against the arena's walls.
  *
- * The vocabulary follows the earlier threat battery
- * (`fly-neural/fly_neural/threat.py`), re-implemented here, and adds a
+ * The vocabulary follows the connectome backend's earlier threat battery
+ * (docs/ECHO_ADAPTIVE_INTELLIGENCE.md), re-implemented here, and adds a
  * glancing hit. Ground truth comes from the kinematics alone, never from
  * what any readout sees: a threat is a stimulus whose surface comes within
  * `COLLISION_MARGIN_M` of the fly; a harmless one keeps its surface at least
