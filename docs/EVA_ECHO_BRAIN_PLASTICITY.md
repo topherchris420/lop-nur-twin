@@ -1,9 +1,11 @@
 # Eva and ECHO: embodied plasticity for the two originals
 
 **Status: implemented, tested and studied on research individuals. Running on
-both originals in shadow mode since 2026-11-07** (Eva from 22:04Z, ECHO from
-22:28Z): they learn and report, and change nothing they do. Active mode is not
-switched on for either. Each step was owner-approved and is recorded in
+both originals in active mode since 2026-11-07** (Eva from 22:55Z, ECHO from
+23:03Z, each after a shadow start the same evening): what they learn can change
+what they do, within the bounds below. The owner chose active mode; the held-out
+studies below found no benefit established from it, so none is claimed. Each step
+was owner-approved and is recorded in
 [EVA_ECHO_ACTIVATION.md](EVA_ECHO_ACTIVATION.md#record); a merge or a website
 deploy changes neither fly.
 

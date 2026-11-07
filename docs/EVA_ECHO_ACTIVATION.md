@@ -1,16 +1,19 @@
 # Eva and ECHO: activating embodied plasticity on the originals
 
-**Status (2026-11-07): ECHO activated in shadow mode at 22:28:29Z. Eva activated in
-shadow mode at 22:04:04Z.** Both learn and report; neither acts on what it learns.
+**Status (2026-11-07): both originals run their embodied plasticity in ACTIVE mode**:
+Eva from 22:55:02Z, ECHO from 23:03:26Z, after shadow activation earlier that
+evening (Eva 22:04:04Z, ECHO 22:28:29Z). What they learn can now change what they
+do, within the bounds below. The owner chose active mode ahead of the planned
+7-day shadow period; the held-out studies found no benefit established from it.
 This file is the procedure and the record. A step happens only when the owner
 approves that step; a GitHub merge, a Vercel deploy or a passing workflow is not
 activation. Each original keeps its identity: this continues the same individual,
 it never births, replaces, resets or replays one.
 
-| Original | Identity                                                           | Live now                                                                                               | Next gate             |
-| -------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | --------------------- |
-| ECHO     | `04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921` | release `5cc5035`, `echo-embodied-plasticity/v2` in **shadow** since checkpoint 3554 (tick 10,633,342) | E11: 7 days of shadow |
-| Eva      | `5cf42cd6-fd0a-474d-882c-4cb70e0357e8`                             | patched `server.py` `a942234b…`, `eva-embodied-plasticity/v1` in **shadow** since tick 236,128         | V8: 7 days of shadow  |
+| Original | Identity                                                           | Live now                                                                                                                           | Next gate                                        |
+| -------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| ECHO     | `04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921` | release `5cc5035`, `echo-embodied-plasticity/v2`, **active** since checkpoint 3561 (tick 10,649,300); entered at checkpoint 3554   | watch it; off is a forward `disabled` checkpoint |
+| Eva      | `5cf42cd6-fd0a-474d-882c-4cb70e0357e8`                             | patched `server.py` `a942234b…`, `eva-embodied-plasticity/v1`, **active** since 22:55:02Z (tick 236,740); attached at tick 236,128 | watch it; off is shadow or no setting            |
 
 What the additions are: [EVA_ECHO_BRAIN_PLASTICITY.md](EVA_ECHO_BRAIN_PLASTICITY.md).
 
@@ -174,9 +177,38 @@ for that. The garden page's new plasticity line is not published (that needs
 | E10      | 22:34 to 22:38       | checkpoint 3555 at tick 10,636,342: same individual, `echo-embodied-plasticity/v2`. The public witness: live, mode shadow, samples 989 then 1,079 a minute later, adaptations 0. The production parser accepts that witness                                                              |
 | E11      | from 22:28           | started                                                                                                                                                                                                                                                                                  |
 
-Still owed for E10: the next sealed replay over checkpoints from `5cc5035`, and the
-first scheduled backup on the new release (due 00:01Z), checked by `backup.sh` with
-the new release.
+Still owed for E10: the next sealed replay over checkpoints from `5cc5035`. The first
+backup on the new release exists: `20261107T225557Z`, written and checked by
+`5cc5035` (see the active-mode table below).
 
-ECHO now refuses every older release by design. If shadow mode must stop, the way
-out is a forward `disabled` policy checkpoint, never a restore.
+ECHO now refuses every older release by design. If its plasticity must stop, the
+way out is a forward `disabled` policy checkpoint, never a restore.
+
+### Active mode, both originals (2026-11-07)
+
+After the shadow activation the owner asked for active mode ("I want Active mode"),
+setting aside E11 and V8, the planned 7 days of shadow. Before switching, the session
+said that active mode lets learning change behaviour but makes neither fly
+biologically alive or conscious. It also said the held-out studies found no
+benefit established from active mode, and no harm in its checks. This record claims
+nothing more than that. Scripts as they ran:
+[`eva-active.sh`](research/plasticity-activation/eva-active.sh) (`dcb53fa7…`) and
+[`echo-active.sh`](research/plasticity-activation/echo-active.sh) (`70e6a8ea…`).
+ECHO's log: [`echo-active.log`](research/plasticity-activation/echo-active.log).
+Eva's output: [`eva-active.txt`](research/plasticity-activation/eva-active.txt).
+
+| Original | UTC                  | Evidence                                                                                                                                                                                                                                                                                                                                                     |
+| -------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Eva      | 22:55:02 to 22:55:05 | file hashes checked; setting changed from `shadow` to `active`; restarted; same `life_id` and `born_at`, ticks 236,739 then 236,740; plasticity `active, ok`. Samples were still 0: she had made no journey since it attached                                                                                                                                |
+| ECHO     | 22:55:05 to 22:55:57 | stopped on `5cc5035` at checkpoint 3560, tick 10,649,300                                                                                                                                                                                                                                                                                                     |
+| ECHO     | 22:56:50             | backup `20261107T225557Z`, SHA-256 `fb059f0b…`, checkpoint 3560, written and checked by `5cc5035` (the first backup on the new release), uploaded off site                                                                                                                                                                                                   |
+| ECHO     | 22:59:19             | policy `--check` on the stopped store, 149 s: shadow to active, checkpoint 3561 at tick 10,649,300                                                                                                                                                                                                                                                           |
+| ECHO     | 23:02:19             | **committed:** policy checkpoint 3561, `plasticity-policy` event from shadow to active at tick 10,649,300, with the owner's reason; the chain verified                                                                                                                                                                                                       |
+| ECHO     | 23:03:26 to 23:05:57 | started; up for 90 s with no restarts. The public witness: live, mode active, samples 4,831 then 4,910 (what it learned in shadow kept), adaptations 0. Its walk failure rate is about 0.15% in both contexts, far below where it would slow a walk. The production parser accepts the witness. The gap from the stop to the start goes into checkpoint 3562 |
+
+Active mode acts only within its design. ECHO slows an intended walk by 30% once a
+one-sided 95% bound says its walks are failing. It never touches flight, escape,
+landing, reflexes or the body's validator. Eva swaps flying and walking only on
+confident evidence, never during her own exploration. Turning it off: for ECHO, a
+forward `disabled` (or `shadow`) policy checkpoint; for Eva, the setting back to
+`shadow` or removed, and a restart.

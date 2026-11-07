@@ -1,0 +1,12 @@
+Eva: eva-active.sh as the owner ran it on 2026-11-07 (output as printed)
+
+/tmp/eva-plasticity-f18ebb2/active.sh: OK
+/opt/bethesda-fly/server.py: OK
+/opt/bethesda-fly/eva_plasticity.py: OK
+before: 5cf42cd6-fd0a-474d-882c-4cb70e0357e8 1792908400.321717 236739 shadow ok 0 0
+restarting bethesda-fly (active) at 2026-11-07T22:55:02Z
+after: 5cf42cd6-fd0a-474d-882c-4cb70e0357e8 1792908400.321717 236740 active ok 0 0
+Eva: active, ok, same life, at 2026-11-07T22:55:05Z
+
+Columns: life_id, born_at, ticks, adaptive.mode, adaptive.status, adaptive.samples,
+adaptive.overrides.
