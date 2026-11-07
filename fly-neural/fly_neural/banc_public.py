@@ -195,8 +195,28 @@ def convert_products(paths: dict[str, Path], out: Path) -> dict[str, Path]:
         raise PublicBancError("BANC connection product is empty")
     if any(edges[c].null_count() for c in edges.columns):
         raise PublicBancError("null values in public BANC connections")
-    if (edges["syn_count"] < 1).any() or (edges["pre_root_id"] <= 0).any() or (edges["post_root_id"] <= 0).any():
-        raise PublicBancError("invalid BANC public connection counts or IDs")
+    if (edges["syn_count"] < 1).any() or (edges["pre_root_id"] < 0).any() or (edges["post_root_id"] < 0).any():
+        raise PublicBancError("invalid BANC public connection counts or negative IDs")
+    # The published v888 connection table includes root ID 0 as the
+    # unassigned/background sentinel, not a neuron. In the public release
+    # inspected on 2026-11-07, 29 of 10,196,509 per-neuropil rows contain
+    # that sentinel (90 counted synapses). Never invent a neuron 0, and never
+    # silently discard it: retain the complete Parquet and record exact
+    # exclusions alongside each converted release.
+    background = edges.filter((pl.col("pre_root_id") == 0) | (pl.col("post_root_id") == 0))
+    audit = {
+        "raw_connection_rows": edges.height,
+        "excluded_root_zero_rows": background.height,
+        "excluded_root_zero_synapses": int(background["syn_count"].sum() or 0),
+        "reason": "root ID 0 is unassigned/background, not a modeled neuron",
+        "raw_table_retained": True,
+    }
+    edges = edges.filter((pl.col("pre_root_id") > 0) & (pl.col("post_root_id") > 0))
+    audit["modeled_connection_rows"] = edges.height
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "conversion-audit.json").write_text(
+        json.dumps(audit, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     target = {"neurons": out / "neurons.csv.gz", "connections": out / "connections_princeton.csv.gz"}
     _gzip_rows(neurons, target["neurons"])
@@ -222,10 +242,11 @@ def prepare(root: Path | None = None) -> dict:
             raise PublicBancError("the locally pinned public BANC source changed; inspect and explicitly remove source-manifest.json before re-pinning")
     tables = convert_products(raw, d / "codex-compatible")
     derived = {role: _digest(path) for role, path in tables.items()}
+    audit = json.loads((d / "codex-compatible" / "conversion-audit.json").read_text(encoding="utf-8"))
     if manifest_file.exists():
         old = json.loads(manifest_file.read_text(encoding="utf-8"))
-        if old.get("derived_tables") != derived:
-            raise PublicBancError("converted BANC tables differ from the local pin")
+        if old.get("derived_tables") != derived or old.get("conversion_audit") != audit:
+            raise PublicBancError("converted BANC tables or audit differ from the local pin")
         return old
     record = {
         "schema": SCHEMA,
@@ -235,6 +256,7 @@ def prepare(root: Path | None = None) -> dict:
         "snapshot_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source_products": sources,
         "derived_tables": derived,
+        "conversion_audit": audit,
         "independent_official_hash": None,
         "reviewed_codex_bytes": False,
         "data_policy": "research only; keep all downloaded and derived tables outside Git",
