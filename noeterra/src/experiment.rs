@@ -12,10 +12,11 @@ use serde::{Deserialize, Serialize};
 use crate::hash::sha256_hex;
 use crate::model::*;
 use crate::scenario::{builtin, generate, Scenario};
-use crate::sim::{engine_id, run_offline, Intervention, Seat, Simulation};
+use crate::sim::{engine_id, run_offline, Intervention, Save, Seat, Simulation};
 
 pub const PLAN_SCHEMA: &str = "noeterra-experiment/v1";
 pub const RESULT_SCHEMA: &str = "noeterra-experiment-result/v1";
+pub const SCORE_SCHEMA: &str = "noeterra-score/v1";
 pub const MAX_TURNS: u32 = 400;
 pub const MAX_SEEDS: usize = 64;
 pub const MAX_ARMS: usize = 6;
@@ -346,6 +347,101 @@ pub fn metrics(sim: &Simulation) -> BTreeMap<String, f64> {
         m.insert(format!("alive.{}", c.key), if c.alive { 1.0 } else { 0.0 });
     }
     m
+}
+
+/// What one saved history comes to: the metrics of the world it reaches, each
+/// civilization's end state, and for each seat how its decisions were
+/// labelled, how many input tokens they reported, how long they took, how many
+/// parts of its answers were discarded and in how many seasons it acted. The
+/// world is re-simulated from the save without any brain, so a save that does
+/// not replay gets no metrics and no end state, only the replay's reason.
+pub fn score(save: &Save) -> serde_json::Value {
+    let (replay, sim) = Simulation::replay(save);
+    let seats: Vec<serde_json::Value> = save
+        .seats
+        .iter()
+        .enumerate()
+        .map(|(i, seat)| {
+            let mut labels: BTreeMap<String, usize> = BTreeMap::new();
+            let (mut tokens_in, mut reported, mut discarded, mut active) = (0u64, 0usize, 0usize, 0usize);
+            let mut latencies: Vec<u64> = Vec::new();
+            let mut errors: Vec<String> = Vec::new();
+            let mut models: Vec<String> = Vec::new();
+            for d in save.turns.iter().flat_map(|t| &t.decisions).filter(|d| d.civ == i) {
+                if let Some(m) = &d.usage.model {
+                    if !models.contains(m) {
+                        models.push(m.clone());
+                    }
+                }
+                let label = serde_json::to_value(d.label)
+                    .ok()
+                    .and_then(|v| v.as_str().map(String::from))
+                    .unwrap_or_default();
+                *labels.entry(label).or_default() += 1;
+                if let Some(n) = d.usage.tokens_in {
+                    tokens_in += n;
+                    reported += 1;
+                }
+                latencies.extend(d.usage.latency_ms);
+                discarded += d.discarded.len();
+                active += usize::from(!d.chosen.is_empty());
+                if let Some(e) = &d.error {
+                    if errors.len() < 5 && !errors.contains(e) {
+                        errors.push(e.clone());
+                    }
+                }
+            }
+            latencies.sort_unstable();
+            serde_json::json!({
+                "civ": save.scenario.civs.get(i).map(|c| c.key.as_str()),
+                "seat": seat,
+                "models_reported": models,
+                "labels": labels,
+                "tokens_in": tokens_in,
+                "decisions_reporting_tokens": reported,
+                "latency_ms": {
+                    "median": latencies.get(latencies.len() / 2),
+                    "max": latencies.last(),
+                },
+                "discarded": discarded,
+                "active_seasons": active,
+                "errors": errors,
+            })
+        })
+        .collect();
+    let (metrics, civs) = match sim.filter(|_| replay.ok) {
+        Some(sim) => {
+            let w = &sim.world;
+            let civs: BTreeMap<String, serde_json::Value> = w
+                .civs
+                .iter()
+                .map(|c| {
+                    (
+                        c.key.clone(),
+                        serde_json::json!({
+                            "provinces": w.provinces_of(c.id).count(),
+                            "alive": c.alive,
+                            "treasury": round2(c.treasury),
+                            "stability": round2(c.stability),
+                        }),
+                    )
+                })
+                .collect();
+            (serde_json::json!(metrics(&sim)), serde_json::json!(civs))
+        }
+        None => (serde_json::Value::Null, serde_json::Value::Null),
+    };
+    serde_json::json!({
+        "schema": SCORE_SCHEMA,
+        "evidence_class": EVIDENCE_CLASS,
+        "seed": save.seed,
+        "turns": save.turns.len(),
+        "final_hash": save.final_hash,
+        "replay": replay,
+        "metrics": metrics,
+        "civs": civs,
+        "seats": seats,
+    })
 }
 
 fn round4(x: f64) -> f64 {

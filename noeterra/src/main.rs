@@ -19,6 +19,10 @@ USAGE
       decision model that writes no letters). Model seats need --live.
   noeterra replay save.json
       Re-simulates a save and checks every turn's state hash.
+  noeterra score save.json...
+      One noeterra-score/v1 line per save: the replayed world's metrics, each
+      civilization's end state, and per seat its labels, reported input tokens,
+      latency, discarded parts and active seasons. Fails if any save diverges.
   noeterra experiment plan.json [--out result.json]
       Runs a noeterra-experiment/v1 plan (rule-based seats only).
   noeterra verify plan.json result.json
@@ -160,6 +164,26 @@ fn run(args: &[String]) -> Result<(), String> {
                 Ok(())
             } else {
                 Err("replay diverged".into())
+            }
+        }
+        "score" => {
+            let paths = &args[1..];
+            if paths.is_empty() {
+                return Err("score takes one or more save files".into());
+            }
+            let mut diverged = Vec::new();
+            for path in paths {
+                let save: Save = serde_json::from_str(&read(path)?).map_err(|e| format!("{path}: not a save: {e}"))?;
+                let line = experiment::score(&save);
+                if line["replay"]["ok"] != true {
+                    diverged.push(path.as_str());
+                }
+                println!("{line}");
+            }
+            if diverged.is_empty() {
+                Ok(())
+            } else {
+                Err(format!("replay diverged: {}", diverged.join(", ")))
             }
         }
         "experiment" => {

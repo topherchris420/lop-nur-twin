@@ -1,0 +1,13 @@
+# Saves and chronicles of games that re-run identically from their seed. The
+# Prism saves under results/ are kept: Sarvam's answers cannot be regenerated.
+dry-run/*.log
+dry-run/rules-*.json
+dry-run/random-*.json
+dry-run/passive-*.json
+dry-run/outage-*.json
+dry-run/prism-*.json
+results/*.log
+results/rules-*.json
+results/random-*.json
+results/passive-*.json
+results/outage-*.json

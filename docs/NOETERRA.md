@@ -306,6 +306,7 @@ cargo run --release -- run --seed 264 --turns 40                    # a rule-bas
 cargo run --release -- run --seat rome=anthropic --seat carthage=lmstudio --live --out save.json
 cargo run --release -- run --seat rome=prism --live --out prism.json  # needs SARVAM_API_KEY
 cargo run --release -- replay save.json                             # re-simulate, compare hashes
+cargo run --release -- score save.json                              # metrics, end state, labels and tokens per seat
 cargo run --release -- prompt --civ carthage                        # the exact question a model seat gets
 cargo run --release -- prompt --civ carthage --prism                # the request a Prism seat sends
 cargo run --release -- experiment plan.json                         # a noeterra-experiment/v1 plan
@@ -418,13 +419,13 @@ These describe the simulator's agents and rules, not ancient states.
 
 ## Tests
 
-| Suite                                      | Covers                                                                                                                                                                                                                                                                                                            |
-| :----------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `noeterra/src/**` unit tests               | RNG streams and a pinned first value, memory bounds and recall, scenario validation, the local-address rule                                                                                                                                                                                                       |
-| `noeterra/tests/simulation.rs`             | 120-season invariants after every season, determinism, a bounded and always-legal menu, illegal choices refused and recorded, save → replay to identical hashes, forged decisions and a tampered scenario refused, memory changes behaviour, interventions, experiments, a 400-province world                     |
-| `noeterra/tests/models.rs`                 | A model seat over real HTTP to a stand-in server: valid answers kept to the menu, every malformed or unusable answer falling back with a reason, the fog of war in the prompt, a model seat replaying without the model, the Anthropic client's request shape and refusal handling, design receipts               |
-| `noeterra/tests/prism.rs`                  | A Prism seat over real HTTP to a stand-in for Sarvam's API: every offered action asked exactly once, only accepted request fields, the key only in a header, picks kept to the menu, failures falling back with the provider's reason, out-of-range answers discarded, a full history replaying without the model |
-| `src/rain/scientific/civilization.test.ts` | The engine imports nothing and agrees with the host on metrics; compiler determinism and refusals; authorization; execution and independent re-simulation; resealed tampering refused; registry admission of passing and non-passing results; the typed backend seam                                              |
+| Suite                                      | Covers                                                                                                                                                                                                                                                                                                                                              |
+| :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `noeterra/src/**` unit tests               | RNG streams and a pinned first value, memory bounds and recall, scenario validation, the local-address rule                                                                                                                                                                                                                                         |
+| `noeterra/tests/simulation.rs`             | 120-season invariants after every season, determinism, a bounded and always-legal menu, illegal choices refused and recorded, save → replay to identical hashes, forged decisions and a tampered scenario refused, memory changes behaviour, interventions, experiments, a 400-province world                                                       |
+| `noeterra/tests/models.rs`                 | A model seat over real HTTP to a stand-in server: valid answers kept to the menu, every malformed or unusable answer falling back with a reason, the fog of war in the prompt, a model seat replaying without the model, the Anthropic client's request shape and refusal handling, design receipts                                                 |
+| `noeterra/tests/prism.rs`                  | A Prism seat over real HTTP to a stand-in for Sarvam's API: every offered action asked exactly once, only accepted request fields, the key only in a header, picks kept to the menu, failures falling back with the provider's reason, out-of-range answers discarded, a full history replaying without the model and scoring as the live world did |
+| `src/rain/scientific/civilization.test.ts` | The engine imports nothing and agrees with the host on metrics; compiler determinism and refusals; authorization; execution and independent re-simulation; resealed tampering refused; registry admission of passing and non-passing results; the typed backend seam                                                                                |
 
 ## Limitations
 
@@ -444,7 +445,10 @@ These describe the simulator's agents and rules, not ancient states.
   own, so a Prism seat cannot weigh two actions together (a gift and an alliance
   to different powers, say) beyond the ranking by probability. Sarvam keeps API
   inputs until the account owner sets a data-retention period, and its privacy
-  policy says inputs train its models unless the account opts out.
+  policy says inputs train its models unless the account opts out. A
+  preregistered pilot, Prism against the rules ruling Rome, is in
+  [`docs/benchmarks/noeterra-prism/`](benchmarks/noeterra-prism/preregistration.md);
+  so far only its free dry run against a stand-in has run.
 - The workbench runs on a person's machine; the deployed site does not include
   it and cannot reach a local model server.
 - The experiment protocol trusts its designer further than it should:
