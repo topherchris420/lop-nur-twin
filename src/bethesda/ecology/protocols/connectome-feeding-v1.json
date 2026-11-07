@@ -1,7 +1,7 @@
 {
  "schema": "connectome-feeding-protocol/v1",
  "id": "connectome-feeding-v1",
- "frozen": "DRAFT: not frozen. The circuit digest and the threshold arm's hunger point are filled in from the clean-commit cut and its calibration before the held-out split runs.",
+ "frozen": "DRAFT: not frozen. Development runs of a first design (2 of 4 dev shards; scratch, not records) found that replacing the controller's feed command with rest while the readout was off pinned hungry flies to the food all day: in the shuffled and threshold arms flies stayed on one fruit for all 8 hours (food contact 28,673 s, over 560,000 vetoes), and the intact hybrid was vetoed 11,580 times in one life. The hybrid now tells the controller that nothing edible is underfoot while the readout is off (connectome/feeding.ts). The development split is re-run with that design before the protocol is frozen.",
  "question": "Can a circuit cut from the FlyWire v783 whole brain decide when a mortal research fly feeds, for a whole 8-hour life in the ecology, without leaving it worse fed than the deployed controller leaves it; does its wiring matter; and does it cost little enough to run in the loop?",
  "status": "A seeded study on disposable research subjects, not a registered R.A.I.N. experiment. No subject is Eva or ECHO, a copy or a continuation; nothing here reaches them.",
  "circuit": {

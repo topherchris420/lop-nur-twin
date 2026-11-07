@@ -16,8 +16,13 @@
  *   connectome feeding come in short bursts in the closed loop
  *   (docs/ECHO_ADAPTIVE_INTELLIGENCE.md).
  * - **What stands.** An escape always does. On food the readout decides
- *   whether the fly feeds; when it is off and the controller asked to feed,
- *   the fly rests instead. Off food, the controller's command stands.
+ *   whether the fly feeds, and what counts as food for the rest of the fly:
+ *   while it is off, the controller is told nothing edible is underfoot, and
+ *   does whatever it does anywhere else. (A first design kept the controller
+ *   informed and replaced its feed command with rest; development runs found
+ *   that pinned a hungry fly to the food all day, its controller asking to
+ *   feed every 50 ms and never reaching the rest state's takeoff.) Off food,
+ *   the controller's command stands.
  *
  * No satiety signal is added: a meal ends when the fed fly's own hunger has
  * turned its sugar neurons down far enough that MN9 falls below threshold.
@@ -164,7 +169,11 @@ export class FeedingHybridAdapter implements FlyNeuralAdapter {
   decide(input: DecisionInput): MotorCommand {
     const body = input.body;
     const on = this.sense(body);
-    const own = this.inner.decide(input);
+    // The readout decides what counts as food for the rest of the fly: while
+    // it is off, the controller is told nothing edible is underfoot.
+    const seen =
+      this.onFood(body) && !on ? { ...input, body: { ...body, onFood: null } } : input;
+    const own = this.inner.decide(seen);
     const s = this.s;
     if (own.mode === "escape") {
       s.feeding = false;

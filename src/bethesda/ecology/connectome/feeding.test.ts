@@ -42,6 +42,27 @@ describe("the feeding hybrid", () => {
     expect(esc.decide(input(0, "fruit-1", 0.1)).mode).toBe("escape");
   });
 
+  it("tells the controller nothing edible is underfoot while the readout is off", () => {
+    // A controller that feeds on food and walks elsewhere, as the deployed one does when hungry.
+    const seen: (string | null)[] = [];
+    const ctrl: FlyNeuralAdapter = {
+      descriptor: { id: "stub", label: "stub" } as FlyNeuralAdapter["descriptor"],
+      decide: (i) => {
+        seen.push(i.body.onFood);
+        return i.body.onFood
+          ? { mode: "feed", reason: "food" }
+          : { mode: "walk", reason: "none" };
+      },
+    };
+    const a = new FeedingHybridAdapter(ctrl, { kind: "threshold", hungerAt: 0.3 }, 1);
+    // Sated on fruit: the readout is off, so the controller sees no food and walks on.
+    expect(a.decide(input(0, "fruit-1", 0.9)).mode).toBe("walk");
+    // Hungry on fruit: the readout is on, the controller sees the fruit, and the fly feeds.
+    expect(a.decide(input(0.05, "fruit-1", 0.4)).mode).toBe("feed");
+    expect(seen).toEqual([null, "fruit-1"]);
+    expect(a.state.vetoed).toBe(0);
+  });
+
   it("feeds once the circuit's readout reaches threshold, and the same fly decides the same", () => {
     const brain: FeedingBrain = {
       kind: "connectome",
