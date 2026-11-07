@@ -1,0 +1,68 @@
+{
+  "stage": "check",
+  "commit": "222b459399e278408a87302a802044853d94c7c3",
+  "dirty": false,
+  "fingerprint": "0c6ebb1dbbfe9125a268ab7ab192eeabc566eb05952727ea5037610322495230",
+  "seed": 101,
+  "turns": 3,
+  "pass": false,
+  "game": {
+    "replay": true,
+    "final_hash": "46ef73cf0f74eb421c416f5ccdb7b492b561c8beedf78d333d964788d3dc1a1d",
+    "turns": 3,
+    "provinces": 8,
+    "alive": true,
+    "treasury": 12.96,
+    "stability": 38.96,
+    "live": 3,
+    "fallback": 0,
+    "tokens_in": 10525,
+    "reporting": 3,
+    "latency": {
+      "max": 1876,
+      "median": 1561
+    },
+    "discarded": 8,
+    "active": 3,
+    "errors": [],
+    "models": [
+      "sarvam-prism"
+    ],
+    "wars_declared": 3
+  },
+  "calls": [
+    {
+      "turn": 0,
+      "label": "live",
+      "tokens_in": 3138,
+      "prompt_sha256": "ba492f10ba255f87bbd1db1561078b277b88700917791991e6b1c03448cb1bcb"
+    },
+    {
+      "turn": 1,
+      "label": "live",
+      "tokens_in": 3626,
+      "prompt_sha256": "2c4d9f38ff526bb5a739d0f176a619e6ac9aa0899dd141302cc2de688c15390f"
+    },
+    {
+      "turn": 2,
+      "label": "live",
+      "tokens_in": 3761,
+      "prompt_sha256": "31b1a40d79799576444147034772423aeeab485324612b0ed14afd862b5e7c45"
+    }
+  ],
+  "spent": {
+    "tokens": 10525,
+    "unreported": 0,
+    "perCall": 3761
+  },
+  "projection": {
+    "tokens_per_byte": 0.3502,
+    "study_tokens": 1128167,
+    "range": [
+      753036,
+      1329980
+    ]
+  },
+  "cap": 2000000,
+  "verdict": "within"
+}
