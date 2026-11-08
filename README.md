@@ -1,6 +1,7 @@
 <div align="center">
 
 # LOP NUR TWIN
+
 ### R.A.I.N. LAB · VERS3DYNAMICS
 
 **Persistent simulated individuals. Verifiable histories. Experiments that can fail.**
@@ -28,14 +29,14 @@ The purpose is not to produce the appearance of life. It is to build and measure
 
 ## 02. The operating systems
 
-| System | What actually runs | Boundary |
-| --- | --- | --- |
-| **ECHO** | One persistent fruit-fly-scale simulated individual in a headless Bethesda environment, with body, sensors, behavioral control, learning state, and sealed checkpoints | The original is observed, not used as an experimental subject |
-| **Eva** | A separate persistent simulated fly in a garden service, with its own state and history | Her Python service and database are separate from ECHO and not contained in this repository |
-| **Lop Nur twin** | Evidence-linked 3D reconstruction, source dossiers, and changing historical visibility | Observed, reported, interpreted, and illustrative details remain distinct |
-| **R.A.I.N. experiments** | Protocol validation, bounded simulation, recorded outcomes, and replay | AI agents may propose work but cannot authorize or grade their own claims |
-| **Neural research** | Separate experimental fly subjects using FlyWire FAFB v783 and BANC v888 connectome-derived models | Neither original fly is run by those connectome models |
-| **Noeterra / Blacksite** | Civilization and first-person simulation environments | Modeled worlds, not records of real-world behavior |
+| System                   | What actually runs                                                                                                                                                     | Boundary                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **ECHO**                 | One persistent fruit-fly-scale simulated individual in a headless Bethesda environment, with body, sensors, behavioral control, learning state, and sealed checkpoints | The original is observed, not used as an experimental subject                               |
+| **Eva**                  | A separate persistent simulated fly in a garden service, with its own state and history                                                                                | Her Python service and database are separate from ECHO and not contained in this repository |
+| **Lop Nur twin**         | Evidence-linked 3D reconstruction, source dossiers, and changing historical visibility                                                                                 | Observed, reported, interpreted, and illustrative details remain distinct                   |
+| **R.A.I.N. experiments** | Protocol validation, bounded simulation, recorded outcomes, and replay                                                                                                 | AI agents may propose work but cannot authorize or grade their own claims                   |
+| **Neural research**      | Separate experimental fly subjects using FlyWire FAFB v783 and BANC v888 connectome-derived models                                                                     | Neither original fly is run by those connectome models                                      |
+| **Noeterra / Blacksite** | Civilization and first-person simulation environments                                                                                                                  | Modeled worlds, not records of real-world behavior                                          |
 
 The live pages are public interfaces, not control consoles for the original animals. Service uptime and current state should be checked at the destination, not inferred from a recorded demonstration.
 
@@ -64,18 +65,18 @@ On 4 November the corrected physics was delivered by a recorded continuation. EC
 
 The table below contains **reported results, not universal performance claims**. Every comparison belongs to a specified simulator, protocol, input set, and software revision. Consult the [claims register](docs/RESEARCH_CLAIMS.md) for the complete definitions and evidence classes.
 
-| Test | Recorded outcome | What it does **not** establish |
-| --- | --- | --- |
-| ECHO checkpoint replay | 361 / 361 seals reproduced in the audited interval | Full lifetime replay or biological identity |
-| Collision correction | 9 / 12 subjects trapped before; 0 / 12 after | Correct collision handling in every geometry |
-| Self-model under concealed impairment, ECHO-01 | Path error 0.073 vs 0.370 in registered conditions | General motor intelligence |
-| Hidden-change attribution, ECHO-02 | 0.919 vs 0.537; overconfidence remains | Calibrated certainty in all conditions |
-| Memory and place preference | Distinct preferences develop in seeded research subjects | Open-ended animal learning |
-| Memory with continuously moving food | Negative: 1.2 fewer meals per life | That memory necessarily improves fitness |
-| ECHO-03 through ECHO-05 | Inconclusive | That the added mechanisms help |
-| FlyWire FAFB v783 reproduction | 10 / 12 registered criteria met | Full fly-neural equivalence |
-| Connectome odor learning | Negative in the tested design | Functional biological mushroom-body learning |
-| Cross-world individual recognition | Negative | That the two original flies perceive one another |
+| Test                                           | Recorded outcome                                         | What it does **not** establish                   |
+| ---------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------ |
+| ECHO checkpoint replay                         | 361 / 361 seals reproduced in the audited interval       | Full lifetime replay or biological identity      |
+| Collision correction                           | 9 / 12 subjects trapped before; 0 / 12 after             | Correct collision handling in every geometry     |
+| Self-model under concealed impairment, ECHO-01 | Path error 0.073 vs 0.370 in registered conditions       | General motor intelligence                       |
+| Hidden-change attribution, ECHO-02             | 0.919 vs 0.537; overconfidence remains                   | Calibrated certainty in all conditions           |
+| Memory and place preference                    | Distinct preferences develop in seeded research subjects | Open-ended animal learning                       |
+| Memory with continuously moving food           | Negative: 1.2 fewer meals per life                       | That memory necessarily improves fitness         |
+| ECHO-03 through ECHO-05                        | Inconclusive                                             | That the added mechanisms help                   |
+| FlyWire FAFB v783 reproduction                 | 10 / 12 registered criteria met                          | Full fly-neural equivalence                      |
+| Connectome odor learning                       | Negative in the tested design                            | Functional biological mushroom-body learning     |
+| Cross-world individual recognition             | Negative                                                 | That the two original flies perceive one another |
 
 A 7 November extension added bounded embodied plasticity to the original ECHO and Eva, with owner-approved shadow-mode activation followed by active mode. On held-out **research subjects**, shadow mode preserved baseline behavior, but **active mode demonstrated no established performance advantage**. The fact that an addition is active is not evidence that it helped.
 
