@@ -11,7 +11,7 @@
 
 [![Recorded ECHO session](docs/media/readme/live-fly.gif)](https://lop-nur-twin.vercel.app/live)
 
-*Recorded ECHO observation, 28 October 2026, displayed at 2× speed. The animation is not proof of biological life.*
+_Recorded ECHO observation, 28 October 2026, displayed at 2× speed. The animation is not proof of biological life._
 
 [Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Visit Eva's garden](https://150-136-49-49.sslip.io/) · [Open the twin](https://lop-nur-twin.vercel.app/) · [Inspect claims](docs/RESEARCH_CLAIMS.md) · [Reproduce](#reproduce-the-work)
 
@@ -168,4 +168,4 @@ Contributions should include a source, a test, a reproducible correction, or a c
 
 **The aim is not to persuade an observer that a simulation is alive. It is to preserve what the simulation actually did, make its behavior testable, and record what the test could not establish.**
 
-*Built at [Vers3Dynamics](https://vers3dynamics.com) by Christopher Woodyard. Open for inspection, correction, and independent reproduction.*
+_Built at [Vers3Dynamics](https://vers3dynamics.com) by Christopher Woodyard. Open for inspection, correction, and independent reproduction._
