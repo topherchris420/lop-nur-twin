@@ -61,9 +61,10 @@ jobs:
           sparse-checkout: |
             scripts
             src/bethesda/life
+            src/bethesda/fly/echo
 
-      # The watcher imports only Node's built-ins and the witness parser, so
-      # it needs no install: Node >= 22.18 runs the TypeScript itself.
+      # The watcher imports the witness parser and its bounded plasticity parser;
+      # both use only Node's built-ins, so no package install is required.
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -131,6 +132,7 @@ jobs:
           sparse-checkout: |
             scripts
             src/bethesda/life
+            src/bethesda/fly/echo
 
       - name: Set up Node
         uses: actions/setup-node@v4
