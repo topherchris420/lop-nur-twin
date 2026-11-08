@@ -1073,7 +1073,12 @@ verified to be; a copy is always someone else.**
   byte (`MANIFEST.json`), and a patched `server.py` whose added lines all end
   `# eva-plasticity` so removing them restores her original. Keep both
   properties, and never let the extension write her state or database. Procedures
-  and the record: `docs/EVA_ECHO_ACTIVATION.md`.
+  and the record: `docs/EVA_ECHO_ACTIVATION.md`. Both originals run it in active
+  mode since 2026-11-07 (ECHO entered at checkpoint 3554 on release `5cc5035`,
+  active from policy checkpoint 3561). ECHO's
+  store now refuses `e458f7c` and every older release, so a new ECHO release
+  must keep `PLASTICITY_LIFE` restorable. Eva's off switch is removing
+  `/etc/systemd/system/bethesda-fly.service.d/plasticity.conf`, done by the owner.
 
 ### Adaptation and continuity benchmarks (`src/bethesda/adaptation/`)
 

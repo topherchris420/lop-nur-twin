@@ -1,0 +1,72 @@
+22:04:08Z ECHO plasticity cutover from e458f7cb34904d85127779a3700c26b376ab4a80 to merge 5cc50355148dfc53b3e773bb87b07025d7e94b96
+22:04:08Z service: active, pid 107122, restarts 0, release e458f7cb34904d85127779a3700c26b376ab4a80
+22:04:08Z E6: check out 5cc50355148dfc53b3e773bb87b07025d7e94b96 and prepare its release beside the running one
+memory: 7913 MB (the life needs 7000 MB; heap 2560 MB)
+release: 5cc50355148dfc53b3e773bb87b07025d7e94b96 (installing its production dependencies)
+
+added 96 packages in 12s
+prepared /opt/bethesda-life/releases/5cc50355148dfc53b3e773bb87b07025d7e94b96; the running release and individual were not changed
+22:04:21Z E6: prepared; service: active, pid 107122, restarts 0, release e458f7cb34904d85127779a3700c26b376ab4a80
+22:04:21Z E5: live state before the window: head checkpoint 3551; last backup record:
+{"schema":"bethesda-life-backup/v1","attempt":{"utc":"2026-11-07T18:06:54Z","result":"kept","detail":null,"offsite":"uploaded"},"kept":{"utc":"2026-11-07T18:06:54Z","archive":"bethesda-life-20261107T180654Z-e458f7cb3490.tar.gz","sha256":"7865bd42822a2ff8a188d1be25a4a49aca4f6b2815c465ae51acd3cc7bbe20b0","bytes":23957541,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","checkpoint":3503,"tick":10486640,"release":"e458f7cb34904d85127779a3700c26b376ab4a80","digest":"a8575889d64727081d76e826f36194d42447a1fa9947a5fda431bc0094e32062","committed":"2026-11-07T18:03:17.817Z"},"offsite":{"utc":"2026-11-07T18:08:48Z","archive":"bethesda-life-20261107T180654Z-e458f7cb3490.tar.gz"}}
+
+22:04:21Z E8 window opens: stopping bethesda-life (it commits a last checkpoint and releases its lease)
+22:05:17Z stopped; head checkpoint 3552
+22:05:17Z E4: back up the stopped store (backup.sh restores and checks it, then uploads it off site)
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 3552, tick 10631707, digest f04760ee0cfa84dccbe48d1530ef32e6cf3a1b9015e5097e5eb9af558911d95c
+kept /var/backups/bethesda-life/bethesda-life-20261107T220517Z-e458f7cb3490.tar.gz (23M), written by release e458f7cb34904d85127779a3700c26b376ab4a80
+deleted /var/backups/bethesda-life/bethesda-life-20261106T000954Z-e458f7cb3490.tar.gz (keeping the newest 8)
+off-site copy: uploaded
+22:06:11Z E4: bethesda-life-20261107T220517Z-e458f7cb3490.tar.gz, sha256 60daa6f499419f6f7fa0ec48523802f7ac8fcf68528a37219595fae2908085eb, checkpoint 3552, tick 10631707, uploaded off site
+22:06:11Z E7: the continuation's --check on a copy of that backup, read-only to bethesda-life
+22:10:42Z E7: exit 0 in 269 s
+{"mode":"--check","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","sourceRelease":"e458f7cb34904d85127779a3700c26b376ab4a80","tick":10631707,"sequence":3553,"parent":"f04760ee0cfa84dccbe48d1530ef32e6cf3a1b9015e5097e5eb9af558911d95c","preservedGraphDigest":"f320cb6ca49a85e5cf9585f1b6162470e42ec03413a690289c4e24023f4c1e2f","sourceGraphDigest":"f320cb6ca49a85e5cf9585f1b6162470e42ec03413a690289c4e24023f4c1e2f","sameEngineTicks":600,"shadowTicks":600,"shadowUnchanged":true,"recoveryTicks":611,"startMode":"shadow","committedUtc":null}
+/opt/bethesda-life/node/bin/node: either --check or --eval can be used, not both
+22:10:42Z FAILED: the check's result is not the expected continuation
+22:10:42Z nothing was committed: starting the unchanged release e458f7cb34904d85127779a3700c26b376ab4a80 again
+22:10:43Z service: active, pid 161117, restarts 0, release e458f7cb34904d85127779a3700c26b376ab4a80
+22:10:43Z STOPPED (exit 1)
+22:14:09Z ECHO plasticity cutover from e458f7cb34904d85127779a3700c26b376ab4a80 to merge 5cc50355148dfc53b3e773bb87b07025d7e94b96
+22:14:09Z service: active, pid 161117, restarts 0, release e458f7cb34904d85127779a3700c26b376ab4a80
+22:14:09Z E6: check out 5cc50355148dfc53b3e773bb87b07025d7e94b96 and prepare its release beside the running one
+memory: 7913 MB (the life needs 7000 MB; heap 2560 MB)
+release: 5cc50355148dfc53b3e773bb87b07025d7e94b96 (already built)
+prepared /opt/bethesda-life/releases/5cc50355148dfc53b3e773bb87b07025d7e94b96; the running release and individual were not changed
+22:14:10Z E6: prepared; service: active, pid 161117, restarts 0, release e458f7cb34904d85127779a3700c26b376ab4a80
+22:14:10Z E5: live state before the window: head checkpoint 3552; last backup record:
+{"schema":"bethesda-life-backup/v1","attempt":{"utc":"2026-11-07T22:05:17Z","result":"kept","detail":null,"offsite":"uploaded"},"kept":{"utc":"2026-11-07T22:05:17Z","archive":"bethesda-life-20261107T220517Z-e458f7cb3490.tar.gz","sha256":"60daa6f499419f6f7fa0ec48523802f7ac8fcf68528a37219595fae2908085eb","bytes":23916827,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","checkpoint":3552,"tick":10631707,"release":"e458f7cb34904d85127779a3700c26b376ab4a80","digest":"f04760ee0cfa84dccbe48d1530ef32e6cf3a1b9015e5097e5eb9af558911d95c","committed":"2026-11-07T22:05:08.492Z"},"offsite":{"utc":"2026-11-07T22:06:11Z","archive":"bethesda-life-20261107T220517Z-e458f7cb3490.tar.gz"}}
+
+22:14:10Z E8 window opens: stopping bethesda-life (it commits a last checkpoint and releases its lease)
+22:14:53Z stopped; head checkpoint 3553
+22:14:53Z E4: back up the stopped store (backup.sh restores and checks it, then uploads it off site)
+individual 04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921, checkpoint 3553, tick 10633342, digest e85dd183b716a74be1cf23548b222c26930b7670775dbc874a2f33e6f1e3c50b
+kept /var/backups/bethesda-life/bethesda-life-20261107T221453Z-e458f7cb3490.tar.gz (23M), written by release e458f7cb34904d85127779a3700c26b376ab4a80
+deleted /var/backups/bethesda-life/bethesda-life-20261106T060333Z-e458f7cb3490.tar.gz (keeping the newest 8)
+off-site copy: uploaded
+22:15:48Z E4: bethesda-life-20261107T221453Z-e458f7cb3490.tar.gz, sha256 3f9ba1b149142293ef11c4823addbb2ba1e233a0c94db8ebfc575e29dd8d3743, checkpoint 3553, tick 10633342, uploaded off site
+22:15:48Z E7: the continuation's --check on a copy of that backup, read-only to bethesda-life
+22:20:11Z E7: exit 0 in 261 s
+{"mode":"--check","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","sourceRelease":"e458f7cb34904d85127779a3700c26b376ab4a80","tick":10633342,"sequence":3554,"parent":"e85dd183b716a74be1cf23548b222c26930b7670775dbc874a2f33e6f1e3c50b","preservedGraphDigest":"0b92541970d18e71e61910776bc83bc49b95ceabeecc7c984e46cbf76af02ef4","sourceGraphDigest":"0b92541970d18e71e61910776bc83bc49b95ceabeecc7c984e46cbf76af02ef4","sameEngineTicks":600,"shadowTicks":600,"shadowUnchanged":true,"recoveryTicks":611,"startMode":"shadow","committedUtc":null}
+validate --check: ECHO 04f8c797, checkpoint 3554 at tick 10633342, graph kept 0b92541970d18e71e61910776bc83bc49b95ceabeecc7c984e46cbf76af02ef4, shadow unchanged, starts in shadow
+22:20:11Z E8: commit the continuation on the live store
+22:26:08Z E8: exit 0 in 357 s; head now 3554
+{"mode":"--commit","individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","sourceRelease":"e458f7cb34904d85127779a3700c26b376ab4a80","tick":10633342,"sequence":3554,"parent":"e85dd183b716a74be1cf23548b222c26930b7670775dbc874a2f33e6f1e3c50b","preservedGraphDigest":"0b92541970d18e71e61910776bc83bc49b95ceabeecc7c984e46cbf76af02ef4","sourceGraphDigest":"0b92541970d18e71e61910776bc83bc49b95ceabeecc7c984e46cbf76af02ef4","sameEngineTicks":600,"shadowTicks":600,"shadowUnchanged":true,"recoveryTicks":611,"startMode":"shadow","committedUtc":"2026-11-07T22:25:05.653Z"}
+validate --commit: ECHO 04f8c797, checkpoint 3554 at tick 10633342, graph kept 0b92541970d18e71e61910776bc83bc49b95ceabeecc7c984e46cbf76af02ef4, shadow unchanged, starts in shadow, committed 2026-11-07T22:25:05.653Z
+22:26:08Z E9: switch to 5cc50355148dfc53b3e773bb87b07025d7e94b96 and start (install.sh first checks that the release resumes the store)
+memory: 7913 MB (the life needs 7000 MB; heap 2560 MB)
+release: 5cc50355148dfc53b3e773bb87b07025d7e94b96 (already built)
+check: can 5cc50355148dfc53b3e773bb87b07025d7e94b96 resume this individual? (every seal and link, then the head restored)
+{"schema":"bethesda-headless-life/v2","cityVersion":"bethesda-city/4","flyVersion":"digital-fly/9","tick":10633342,"simulatedSeconds":1063334.2,"cityHash":"a7f520ef98867ac7","flyHash":"50bf4b689d6070ed:ef10e8cc65375d2a","flyController":"echo","selfModel":{"echoVersion":"echo-self-model/v3","inquiries":1400,"episodes":24,"legGain":0.9977671080785613,"trustInSense":1,"attending":{"source":"routine","what":"resting","since":1063276.1,"shielded":false,"expectsNext":"hazard"},"lastConclusion":{"t":1062899.5,"explanation":"none","candidate":"none","confidence":0.4744903476706622,"resolved":false,"checked":null},"openInquiry":null},"fly":{"position":[141.31684064349884,3.8090266750508,428.56326653264756],"mode":"rest","energyFraction":0.3658428973327488,"meals":263,"escapes":2},"organism":{"version":"bethesda-echo-organism/v1","physiology":{"atp":0.9790493866631376,"water":0.7391014119087852,"fatigue":0.019795421046461096,"sleepPressure":0.030881072593696126,"stress":3.903888201603459e-154,"protective":false,"sleeping":false,"recoveryBouts":100,"maintenanceJ":39.07399999996229},"mushroomBody":{"trials":29,"fruitless":0,"inheritedPlaces":0},"olfaction":{"on":1.8e-322,"off":1.042e-321,"modulatedDecisions":2699522,"searchTurns":28},"archivePending":0,"classification":"model variables of a simulated fly: not measured biology, and not evidence of awareness","plasticity":{"version":"echo-embodied-plasticity/v2","mode":"shadow","samples":0,"discarded":0,"adaptations":0,"shadowWouldAdapt":0,"contexts":{"low":{"n":0,"failure":0.5,"failureLower":0,"cautious":false},"normal":{"n":0,"failure":0.5,"failureLower":0,"cautious":false}},"lastAdaptation":null}},"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","checkpoint":3554,"restored":true}
+kept release 3db627bc125415093d6507988a2d8f61949f5240: pinned for historical replay
+kept release bdb7c02a5cf0b9040be81e0435ae49c8ec9e90b1: pinned for historical replay
+kept release d25e1f3b9e40c5ded3f8ce1f435365d5c6c80592: pinned for historical replay
+started bethesda-life on /opt/bethesda-life/releases/5cc50355148dfc53b3e773bb87b07025d7e94b96; watching it for 90 s
+bethesda-life is living. Follow it with: journalctl -u bethesda-life -f
+Starting bethesda-life.service - Bethesda headless life (one city, one digital fly)...
+Started bethesda-life.service - Bethesda headless life (one city, one digital fly).
+bethesda-life-observer: live
+22:28:54Z E9: service: active, pid 164540, restarts 0, release 5cc50355148dfc53b3e773bb87b07025d7e94b96
+22:28:55Z E10 (first look): waiting up to 10 min for the first checkpoint lived on 5cc50355148dfc53b3e773bb87b07025d7e94b96
+{"sequence":3555,"tick":10636342,"individual":"04f8c797b6971a46138dabc3fdfde5baae2aa224d3a8f9c0099a7c207dec1921","plasticity":"echo-embodied-plasticity/v2","fly":"digital-fly/9"}
+22:34:18Z service: active, pid 164540, restarts 0, release 5cc50355148dfc53b3e773bb87b07025d7e94b96
+22:34:18Z DONE

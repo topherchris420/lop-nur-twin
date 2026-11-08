@@ -1,0 +1,22 @@
+Eva: eva-install.sh as the owner ran it on 2026-11-07 (output as printed)
+
+/tmp/eva-plasticity-f18ebb2/install.sh: OK
+/tmp/eva-plasticity-f18ebb2/server.py: OK
+/tmp/eva-plasticity-f18ebb2/eva_plasticity.py: OK
+/opt/bethesda-fly/server.py: OK
+restarting bethesda-fly at 2026-11-07T22:04:04Z
+healthy at 2026-11-07T22:04:06Z
+5cf42cd6-fd0a-474d-882c-4cb70e0357e8 1792908400.321717 236128 shadow ok
+
+Her service log after the restart (journalctl -u bethesda-fly):
+
+2026-11-07 22:04:05,120 INFO The garden is running; life=5cf42cd6-fd0a-474d-882c-4cb70e0357e8
+2026-11-07 22:04:05,120 INFO Embodied plasticity: shadow, ok
+
+/state at about 22:23Z (read only):
+
+ticks 236187, place window ("The warm windowsill"), activity sleeping, travel null,
+journeys 1859, moments_count 7283
+adaptive: version eva-embodied-plasticity/v1, mode shadow, status ok,
+life_id 5cf42cd6-fd0a-474d-882c-4cb70e0357e8, since_tick 236128, last_tick null,
+samples 0, discarded 0, duplicates 0, overrides 0, would_override 0
