@@ -13,7 +13,7 @@
 
 _Recorded ECHO observation, 28 October 2026, displayed at 2× speed. The animation is not proof of biological life._
 
-[Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Visit Eva's garden](https://150-136-49-49.sslip.io/) · [Open the twin](https://lop-nur-twin.vercel.app/) · [Inspect claims](docs/RESEARCH_CLAIMS.md) · [Reproduce](#reproduce-the-work)
+[Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Visit Eva's garden](https://150-136-49-49.sslip.io/) · [Open the twin](https://lop-nur-twin.vercel.app/) · [Inspect claims](docs/RESEARCH_CLAIMS.md) · [Reproduce](#07-reproduce-the-work)
 
 </div>
 
