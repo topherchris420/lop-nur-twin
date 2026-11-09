@@ -39,32 +39,33 @@ Three boundaries hold for every entry:
 
 ## Summary
 
-| #   | Claim                                                                                                                                                                                                         | Class                              | Outcome                              |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------ |
-| 1   | [ECHO's recent history can be recomputed independently](#1-echos-recent-history-can-be-recomputed-independently)                                                                                              | Observation of the original        | 361 of 361 seals, #2,566–#2,927      |
-| 2   | [Engine changes reached ECHO without replacing it](#2-engine-changes-reached-echo-without-replacing-it)                                                                                                       | Observation of the original; tests | 4 recorded continuations             |
-| 3   | [The old physics trapped flies in buildings; `digital-fly/9` fixes it](#3-the-old-physics-trapped-flies-in-buildings-digital-fly9-fixes-it)                                                                   | Seeded comparison                  | 9 of 12 trapped → 0 of 12            |
-| 4   | [The repaired physics let the deployed ECHO out](#4-the-repaired-physics-let-the-deployed-echo-out)                                                                                                           | Observation of the original        | Left; first meal 8 h later           |
-| 5   | [The self-model compensates for a hidden impairment (ECHO-01)](#5-the-self-model-compensates-for-a-hidden-impairment-echo-01)                                                                                 | Registered; held-out conditions    | Supported                            |
-| 6   | [The self-model attributes hidden changes better than simpler rules (ECHO-02)](#6-the-self-model-attributes-hidden-changes-better-than-simpler-rules-echo-02)                                                 | Registered; held-out conditions    | Supported, still overconfident       |
-| 7   | [Memory, workspace and second look help the self-model (ECHO-03–05)](#7-memory-workspace-and-second-look-help-the-self-model-echo-0305)                                                                       | Registered                         | Inconclusive (all three)             |
-| 8   | [Individuals from one genesis acquire distinct, persistent preferences](#8-individuals-from-one-genesis-acquire-distinct-persistent-preferences)                                                              | Seeded study                       | Supported in the yard                |
-| 9   | [Memory helps where food keeps moving](#9-memory-helps-where-food-keeps-moving)                                                                                                                               | Seeded study; held-out             | Negative                             |
-| 10  | [A learning circuit makes behaviour depend on the fly's own history](#10-a-learning-circuit-makes-behaviour-depend-on-the-flys-own-history)                                                                   | Seeded study (after a pilot)       | Supported for extinction only        |
-| 11  | [A learned search preference transfers and pays](#11-a-learned-search-preference-transfers-and-pays)                                                                                                          | Held-out (sealed); development     | Transfers; benefit not shown         |
-| 12  | [Learning when to search widely beats a fixed search](#12-learning-when-to-search-widely-beats-a-fixed-search)                                                                                                | Development                        | Negative: fixed wins                 |
-| 13  | [The simulated fly matches published recordings of real flies](#13-the-simulated-fly-matches-published-recordings-of-real-flies)                                                                              | Held-out (sealed observations)     | Narrow pass for v2                   |
-| 14  | [Commanded walking survives physical simulation](#14-commanded-walking-survives-physical-simulation)                                                                                                          | Engineering benchmark              | Failed (on `digital-fly/4`)          |
-| 15  | [Published connectome predictions reproduce](#15-published-connectome-predictions-reproduce-fafb-v783)                                                                                                        | Registered; dev and held-out seeds | 10 of 12 criteria                    |
-| 16  | [Connectome-level learning, discrimination and control](#16-connectome-level-learning-discrimination-and-control)                                                                                             | Registered                         | Mixed; two negatives                 |
-| 17  | [Flies in separate worlds perceive and recognise each other](#17-flies-in-separate-worlds-perceive-and-recognise-each-other)                                                                                  | Seeded studies, frozen protocols   | Perception yes; recognition negative |
-| 18  | [Research infrastructure results (R.A.I.N., Noeterra)](#18-research-infrastructure-results)                                                                                                                   | Model-assisted; scripted           | Inconclusive; simulator-only         |
-| 19  | [Every claim in the Lop Nur twin carries its evidence](#19-every-claim-in-the-lop-nur-twin-carries-its-evidence)                                                                                              | Build-enforced rules               | 37 rules, each tested                |
-| 20  | [Seeing looming from an image beats sensing it from geometry](#20-seeing-looming-from-an-image-beats-sensing-it-from-geometry)                                                                                | Held-out (two frozen protocols)    | Negative overall; selective          |
-| 21  | [A world that lives on its own, changed by a fly only through records](#21-a-world-that-lives-on-its-own-changed-by-a-fly-only-through-records)                                                               | Tests; seeded reference            | Passed (deterministic; books close)  |
-| 22  | [Homeostatic feedback keeps a mortal research fly hydrated](#22-homeostatic-feedback-keeps-a-mortal-research-fly-hydrated)                                                                                    | Held-out (frozen protocol)         | Primary failed; 3 of 6               |
-| 23  | [A 496-neuron circuit cut from the FlyWire brain feeds exactly as the whole brain does](#23-a-496-neuron-circuit-cut-from-the-flywire-brain-feeds-exactly-as-the-whole-brain-does)                            | Held-out (frozen config)           | Passed (3 of 3)                      |
-| 24  | [Embodied plasticity can join the two originals without changing them, and does not yet improve them](#24-embodied-plasticity-can-join-the-two-originals-without-changing-them-and-does-not-yet-improve-them) | Held-out (fixed in code); tests    | Shadow identical; no benefit         |
+| #   | Claim                                                                                                                                                                                                         | Class                              | Outcome                                    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------ |
+| 1   | [ECHO's recent history can be recomputed independently](#1-echos-recent-history-can-be-recomputed-independently)                                                                                              | Observation of the original        | 361 of 361 seals, #2,566–#2,927            |
+| 2   | [Engine changes reached ECHO without replacing it](#2-engine-changes-reached-echo-without-replacing-it)                                                                                                       | Observation of the original; tests | 4 recorded continuations                   |
+| 3   | [The old physics trapped flies in buildings; `digital-fly/9` fixes it](#3-the-old-physics-trapped-flies-in-buildings-digital-fly9-fixes-it)                                                                   | Seeded comparison                  | 9 of 12 trapped → 0 of 12                  |
+| 4   | [The repaired physics let the deployed ECHO out](#4-the-repaired-physics-let-the-deployed-echo-out)                                                                                                           | Observation of the original        | Left; first meal 8 h later                 |
+| 5   | [The self-model compensates for a hidden impairment (ECHO-01)](#5-the-self-model-compensates-for-a-hidden-impairment-echo-01)                                                                                 | Registered; held-out conditions    | Supported                                  |
+| 6   | [The self-model attributes hidden changes better than simpler rules (ECHO-02)](#6-the-self-model-attributes-hidden-changes-better-than-simpler-rules-echo-02)                                                 | Registered; held-out conditions    | Supported, still overconfident             |
+| 7   | [Memory, workspace and second look help the self-model (ECHO-03–05)](#7-memory-workspace-and-second-look-help-the-self-model-echo-0305)                                                                       | Registered                         | Inconclusive (all three)                   |
+| 8   | [Individuals from one genesis acquire distinct, persistent preferences](#8-individuals-from-one-genesis-acquire-distinct-persistent-preferences)                                                              | Seeded study                       | Supported in the yard                      |
+| 9   | [Memory helps where food keeps moving](#9-memory-helps-where-food-keeps-moving)                                                                                                                               | Seeded study; held-out             | Negative                                   |
+| 10  | [A learning circuit makes behaviour depend on the fly's own history](#10-a-learning-circuit-makes-behaviour-depend-on-the-flys-own-history)                                                                   | Seeded study (after a pilot)       | Supported for extinction only              |
+| 11  | [A learned search preference transfers and pays](#11-a-learned-search-preference-transfers-and-pays)                                                                                                          | Held-out (sealed); development     | Transfers; benefit not shown               |
+| 12  | [Learning when to search widely beats a fixed search](#12-learning-when-to-search-widely-beats-a-fixed-search)                                                                                                | Development                        | Negative: fixed wins                       |
+| 13  | [The simulated fly matches published recordings of real flies](#13-the-simulated-fly-matches-published-recordings-of-real-flies)                                                                              | Held-out (sealed observations)     | Narrow pass for v2                         |
+| 14  | [Commanded walking survives physical simulation](#14-commanded-walking-survives-physical-simulation)                                                                                                          | Engineering benchmark              | Failed (on `digital-fly/4`)                |
+| 15  | [Published connectome predictions reproduce](#15-published-connectome-predictions-reproduce-fafb-v783)                                                                                                        | Registered; dev and held-out seeds | 10 of 12 criteria                          |
+| 16  | [Connectome-level learning, discrimination and control](#16-connectome-level-learning-discrimination-and-control)                                                                                             | Registered                         | Mixed; two negatives                       |
+| 17  | [Flies in separate worlds perceive and recognise each other](#17-flies-in-separate-worlds-perceive-and-recognise-each-other)                                                                                  | Seeded studies, frozen protocols   | Perception yes; recognition negative       |
+| 18  | [Research infrastructure results (R.A.I.N., Noeterra)](#18-research-infrastructure-results)                                                                                                                   | Model-assisted; scripted           | Inconclusive; simulator-only               |
+| 19  | [Every claim in the Lop Nur twin carries its evidence](#19-every-claim-in-the-lop-nur-twin-carries-its-evidence)                                                                                              | Build-enforced rules               | 37 rules, each tested                      |
+| 20  | [Seeing looming from an image beats sensing it from geometry](#20-seeing-looming-from-an-image-beats-sensing-it-from-geometry)                                                                                | Held-out (two frozen protocols)    | Negative overall; selective                |
+| 21  | [A world that lives on its own, changed by a fly only through records](#21-a-world-that-lives-on-its-own-changed-by-a-fly-only-through-records)                                                               | Tests; seeded reference            | Passed (deterministic; books close)        |
+| 22  | [Homeostatic feedback keeps a mortal research fly hydrated](#22-homeostatic-feedback-keeps-a-mortal-research-fly-hydrated)                                                                                    | Held-out (frozen protocol)         | Primary failed; 3 of 6                     |
+| 23  | [A 496-neuron circuit cut from the FlyWire brain feeds exactly as the whole brain does](#23-a-496-neuron-circuit-cut-from-the-flywire-brain-feeds-exactly-as-the-whole-brain-does)                            | Held-out (frozen config)           | Passed (3 of 3)                            |
+| 24  | [Embodied plasticity can join the two originals without changing them, and does not yet improve them](#24-embodied-plasticity-can-join-the-two-originals-without-changing-them-and-does-not-yet-improve-them) | Held-out (fixed in code); tests    | Shadow identical; no benefit               |
+| 25  | [Embodied plasticity helps a research fly with impaired legs eat (metrology bench)](#25-embodied-plasticity-helps-a-research-fly-with-impaired-legs-eat-metrology-bench)                                      | Held-out (frozen protocol)         | Inconclusive; small regression when severe |
 
 ## Persistence and continuity of the original
 
@@ -505,10 +506,50 @@ are unavailable and zero-filled.
   [ECHO held-out](benchmarks/echo-plasticity/heldout/README.md);
   [Eva held-out](benchmarks/eva-plasticity/heldout/README.md).
 
+### 25. Embodied plasticity helps a research fly with impaired legs eat (metrology bench)
+
+- **Claim.** ECHO's embodied plasticity (`echo-embodied-plasticity/v2`, active
+  mode) makes a research fly with impaired legs take in more energy than the
+  deployed controller does, beyond what slowing down alone achieves, including in
+  conditions its development never met.
+- **Test.** The ECHO Intelligence Metrology Bench's protocol
+  `plasticity-locomotor-v1` (digest `da8270ae…`), frozen before its dev split and
+  unchanged after it:
+  - 9 conditions (2 the candidate had met, 7 it had not); the organism, the
+    plasticity in active, shadow and disabled modes, and a fixed slow gait.
+  - Minimum meaningful effects of 0.128 J of energy and 1 meal; Bonferroni per
+    family.
+  - Dev: 6 seeds, 186 runs. Held-out: 40 seeds derived from the protocol digest,
+    1240 runs from a clean commit, run once.
+- **Outcome.** Held-out: **inconclusive**.
+  - Energy, weak legs: −0.011 J (97.5% −0.043 to 0.020), no demonstrated
+    improvement. Meals: −0.68 (97.5% −1.68 to 0.28), inconclusive.
+  - No better than the fixed slow gait, or than learning without acting.
+  - A corrected regression under severe weak legs: −0.043 J (99.7% −0.077 to
+    −0.008), smaller than δ.
+  - Shadow and disabled were identical to the baseline in 160 of 160 runs. All
+    validity checks passed, and 12 of 12 replayed runs were byte-identical.
+  - Claim 24's held-out runs reproduced byte for byte (96 of 96), with the same
+    primary result.
+- **Limitations.**
+  - Weak legs cost the baseline only 0.038 J (95% 0.006 to 0.069), below δ, and
+    five of the eight impairments cost it nothing measurable, which leaves
+    little room to show compensation.
+  - 2-hour runs in the individuality yard; one narrow policy (slow a walk).
+  - Byte-exact replay holds only on the platform that made the records.
+- **Record.** [ECHO_INTELLIGENCE_METROLOGY.md](ECHO_INTELLIGENCE_METROLOGY.md#the-first-question-answered);
+  [held-out](benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/README.md);
+  [dev](benchmarks/echo-metrology/plasticity-locomotor-v1/dev/README.md);
+  [reproduction](benchmarks/echo-metrology/reproduction-288b3a8/README.md).
+
 ## Weaknesses worth a better experiment
 
 Found while compiling this register; each is a proposal, not a result.
 
+- **The metrology bench's first protocol (25)** used impairments that cost the
+  baseline less than its minimum meaningful effect. A new protocol whose
+  impairment is shown in dev to cost the baseline at least δ, run on new seeds,
+  would give compensation room to show.
 - **The acquired preference's city test (11)** should be rerun on `digital-fly/9`
   with new seeds, now that the trap that may have masked a benefit is gone.
 - **Memory in a changing world (9)** is tested only where food relocates faster
