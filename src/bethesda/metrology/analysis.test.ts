@@ -16,7 +16,10 @@ import { both, moved, noEffect, syntheticRecords, type Shift } from "./testkit.j
 
 // The frozen protocol with fewer resamples, so the suite stays quick; the
 // decision rules are the same.
-const p: Protocol = parseProtocol({ ...source, analysis: { ...source.analysis, resamples: 2000 } });
+const p: Protocol = parseProtocol({
+  ...source,
+  analysis: { ...source.analysis, resamples: 2000 },
+});
 const A = "plasticity-active";
 const sum = (shift: Shift = noEffect, edit?: (r: RunRecord[]) => RunRecord[]) => {
   const records = syntheticRecords(p, "dev", shift);
@@ -132,7 +135,8 @@ describe("the rest of the summary", () => {
   it("corrects for multiplicity: Bonferroni over each family", () => {
     const s = sum(improves);
     expect(s.confirmatory[0]!.interval.level).toBeCloseTo(1 - 0.05 / 2, 12);
-    const fam = p.endpoints.boundary.contrasts.length * p.endpoints.boundary.conditions.length;
+    const fam =
+      p.endpoints.boundary.contrasts.length * p.endpoints.boundary.conditions.length;
     expect(s.boundary[0]!.interval.level).toBeCloseTo(1 - 0.05 / fam, 12);
     expect(s.mechanism).toHaveLength(p.endpoints.mechanism.contrasts.length);
   });
@@ -149,9 +153,13 @@ describe("the rest of the summary", () => {
     expect(s.impairmentCost.every((c) => c.sensitive)).toBe(true);
     // Lift the baseline back under one impairment: the assay can no longer show compensation there.
     const lifted: Shift = (u, m, base) =>
-      m === "fedJ" && u.condition === "weak-legs" && u.controller === "organism" ? base + 0.1 : base;
+      m === "fedJ" && u.condition === "weak-legs" && u.controller === "organism"
+        ? base + 0.1
+        : base;
     const t = sum(lifted);
-    expect(t.impairmentCost.find((c) => c.condition === "weak-legs")!.sensitive).toBe(false);
+    expect(t.impairmentCost.find((c) => c.condition === "weak-legs")!.sensitive).toBe(
+      false,
+    );
     expect(t.answers[5]!.answer).toMatch(/not detected in: weak-legs/);
   });
 

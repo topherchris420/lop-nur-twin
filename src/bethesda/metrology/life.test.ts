@@ -18,7 +18,12 @@ const protocol = parseProtocol(source);
 const weakLegs = conditionOf(protocol, "weak-legs");
 const unimpaired = conditionOf(protocol, "unimpaired");
 
-function bench(seed: number, controller: ControllerId, condition = weakLegs, subject?: string) {
+function bench(
+  seed: number,
+  controller: ControllerId,
+  condition = weakLegs,
+  subject?: string,
+) {
   return new MetrologyLife({
     seed,
     condition,
@@ -53,7 +58,8 @@ describe("the bench's life against the plasticity study's", () => {
       expect(canonicalJson(a.world.food)).toBe(canonicalJson(b.world.food));
       expect(a.tally.latencies).toEqual(b.tally.latencies);
       expect(a.tally.walkingBlocks).toBe(b.tally.walkingBlocks);
-      if (controller === "plasticity-active") expect(a.plasticity!.status().adaptations).toBeGreaterThan(0);
+      if (controller === "plasticity-active")
+        expect(a.plasticity!.status().adaptations).toBeGreaterThan(0);
     }, 120_000);
 
   it("places food on the study's schedule at the compass sites", () => {
@@ -81,7 +87,10 @@ describe("the instrument's conditions", () => {
   it("knows when an impairment begins and ends", () => {
     expect(onsetOf(unimpaired)).toEqual({ onsetS: null, untilS: null });
     expect(onsetOf(weakLegs)).toEqual({ onsetS: 600, untilS: null });
-    expect(onsetOf(conditionOf(protocol, "weak-legs-recovers"))).toEqual({ onsetS: 600, untilS: 3000 });
+    expect(onsetOf(conditionOf(protocol, "weak-legs-recovers"))).toEqual({
+      onsetS: 600,
+      untilS: 3000,
+    });
   });
 });
 
@@ -89,7 +98,9 @@ describe("research subjects only", () => {
   it("refuses either original's id, and any id that is not a research subject's", () => {
     for (const o of ORIGINALS) {
       expect(() => bench(1, "organism", weakLegs, o.id)).toThrow(OriginalRefused);
-      expect(() => bench(1, "organism", weakLegs, `research-eimb-${o.id}`)).toThrow(OriginalRefused);
+      expect(() => bench(1, "organism", weakLegs, `research-eimb-${o.id}`)).toThrow(
+        OriginalRefused,
+      );
     }
     expect(() => bench(1, "organism", weakLegs, "eimb-subject-1")).toThrow(/research-/);
   });

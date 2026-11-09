@@ -15,7 +15,8 @@ const slash = (p: string) => p.split("\\").join("/");
 function files(dir: string, keep = /\.(ts|tsx|mjs|js)$/): string[] {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
-    if (statSync(path).isDirectory()) return name === "node_modules" ? [] : files(path, keep);
+    if (statSync(path).isDirectory())
+      return name === "node_modules" ? [] : files(path, keep);
     return keep.test(name) && !/\.test\.tsx?$/.test(name) ? [slash(path)] : [];
   });
 }
@@ -54,7 +55,9 @@ describe("the metrology bench's boundary", () => {
     );
     expect(outside).toEqual([]);
     for (const f of modules)
-      expect(readFileSync(f, "utf8"), f).not.toMatch(/LifeStore|bethesdaStore|fetch\(|WebSocket/);
+      expect(readFileSync(f, "utf8"), f).not.toMatch(
+        /LifeStore|bethesdaStore|fetch\(|WebSocket/,
+      );
   });
 
   it("draws no randomness and reads no clock: the runner is handed its clock", () => {

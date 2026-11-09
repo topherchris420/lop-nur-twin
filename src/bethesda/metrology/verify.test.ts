@@ -5,14 +5,25 @@
  */
 import { describe, expect, it } from "vitest";
 import { canonicalJson, sha256 } from "../../rain/sha256.js";
-import { buildArchive, manifestText, parseRecords, recordsText, type Manifest } from "./archive.js";
+import {
+  buildArchive,
+  manifestText,
+  parseRecords,
+  recordsText,
+  type Manifest,
+} from "./archive.js";
 import { parseProtocol, type Protocol, type Split } from "./protocol.js";
 import source from "./protocols/plasticity-locomotor-v1.json" with { type: "json" };
 import type { MachineRecord } from "./report.js";
 import { moved, syntheticRecords } from "./testkit.js";
 import { replaySample, statusOf, verifyStatic, type ReplayResult } from "./verify.js";
 
-const sourceText = JSON.stringify({ ...source, analysis: { ...source.analysis, resamples: 2000 } }, null, 2) + "\n";
+const sourceText =
+  JSON.stringify(
+    { ...source, analysis: { ...source.analysis, resamples: 2000 } },
+    null,
+    2,
+  ) + "\n";
 const p: Protocol = parseProtocol(JSON.parse(sourceText));
 
 const machine = (cleanSources: boolean): MachineRecord => ({
@@ -28,12 +39,26 @@ const machine = (cleanSources: boolean): MachineRecord => ({
 });
 
 function archive(split: Split = "dev", clean = split === "heldout") {
-  const records = syntheticRecords(p, split, moved("plasticity-active", "fedJ", 0.3, 0.02));
+  const records = syntheticRecords(
+    p,
+    split,
+    moved("plasticity-active", "fedJ", 0.3, 0.02),
+  );
   const { files, manifest } = buildArchive(sourceText, p, split, records, machine(clean));
-  return { files: { ...files, "manifest.json": manifestText(manifest) } as Record<string, string>, manifest };
+  return {
+    files: { ...files, "manifest.json": manifestText(manifest) } as Record<
+      string,
+      string
+    >,
+    manifest,
+  };
 }
 
-const failed = (files: Record<string, string | undefined>, split: Split = "dev", frozen = p) =>
+const failed = (
+  files: Record<string, string | undefined>,
+  split: Split = "dev",
+  frozen = p,
+) =>
   verifyStatic(frozen, split, files)
     .checks.filter((c) => !c.passed)
     .map((c) => c.id);
@@ -71,25 +96,40 @@ describe("the verifier fails", () => {
 
   it("when the verdict is edited and re-sealed", () => {
     const { files } = archive();
-    const text = files["summary.json"]!.replace('"overall": "IMPROVEMENT"', '"overall": "REGRESSION"');
+    const text = files["summary.json"]!.replace(
+      '"overall": "IMPROVEMENT"',
+      '"overall": "REGRESSION"',
+    );
     expect(text).not.toBe(files["summary.json"]);
     expect(failed(reseal(files, "summary.json", text))).toEqual(["summary-rederived"]);
   });
 
   it("when the report is edited and re-sealed", () => {
     const { files } = archive();
-    const text = files["README.md"]!.replace("IMPROVEMENT", "NO_DEMONSTRATED_IMPROVEMENT");
+    const text = files["README.md"]!.replace(
+      "IMPROVEMENT",
+      "NO_DEMONSTRATED_IMPROVEMENT",
+    );
     expect(failed(reseal(files, "README.md", text))).toEqual(["report-rerendered"]);
   });
 
   it("when the protocol changed after the run (in the archive or in the repository)", () => {
     const { files } = archive("heldout");
-    const tightened = parseProtocol({ ...JSON.parse(sourceText), stopping: `${source.stopping} (edited)` });
+    const tightened = parseProtocol({
+      ...JSON.parse(sourceText),
+      stopping: `${source.stopping} (edited)`,
+    });
     expect(failed(files, "heldout", tightened)).toEqual(
       expect.arrayContaining(["protocol-frozen", "seeds"]),
     );
-    const archived = JSON.stringify({ ...JSON.parse(sourceText), durationS: 3600, lateFromS: 1800 });
-    expect(failed(reseal(files, "protocol.json", archived), "heldout")).toContain("protocol-frozen");
+    const archived = JSON.stringify({
+      ...JSON.parse(sourceText),
+      durationS: 3600,
+      lateFromS: 1800,
+    });
+    expect(failed(reseal(files, "protocol.json", archived), "heldout")).toContain(
+      "protocol-frozen",
+    );
   });
 
   it("when a held-out split was made from a working tree with uncommitted changes", () => {
@@ -102,14 +142,20 @@ describe("the verifier fails", () => {
   it("when records are not canonical, not sorted, or a file is missing or extra", () => {
     const { files } = archive();
     const lines = files["records.jsonl"]!.split("\n").filter(Boolean);
-    const pretty = lines.map((l, i) => (i === 0 ? JSON.stringify(JSON.parse(l), null, 1).replace(/\n/g, "") : l));
-    expect(failed(reseal(files, "records.jsonl", pretty.join("\n") + "\n"))).toContain("records-parse");
+    const pretty = lines.map((l, i) =>
+      i === 0 ? JSON.stringify(JSON.parse(l), null, 1).replace(/\n/g, "") : l,
+    );
+    expect(failed(reseal(files, "records.jsonl", pretty.join("\n") + "\n"))).toContain(
+      "records-parse",
+    );
     const swapped = [lines[1], lines[0], ...lines.slice(2)].join("\n") + "\n";
     expect(failed(reseal(files, "records.jsonl", swapped))).toContain("records-parse");
     expect(failed({ ...files, "machine.json": undefined })).toContain("file-digests");
     const m = JSON.parse(files["manifest.json"]!) as Manifest;
     (m.files as Record<string, string>)["extra.txt"] = sha256("x");
-    expect(failed({ ...files, "extra.txt": "x", "manifest.json": manifestText(m) })).toContain("file-digests");
+    expect(
+      failed({ ...files, "extra.txt": "x", "manifest.json": manifestText(m) }),
+    ).toContain("file-digests");
   });
 
   it("when the manifest is missing or unreadable", () => {
@@ -133,7 +179,12 @@ describe("replay and status", () => {
   it("is VERIFIED only with a matched replay, and FAILED on a mismatch or a failed check", () => {
     const ok = [{ id: "x", passed: true, detail: "" }];
     const bad = [{ id: "x", passed: false, detail: "" }];
-    const r = (status: ReplayResult["status"]): ReplayResult => ({ status, detail: "", units: [], mismatched: [] });
+    const r = (status: ReplayResult["status"]): ReplayResult => ({
+      status,
+      detail: "",
+      units: [],
+      mismatched: [],
+    });
     expect(statusOf(ok, r("matched"))).toBe("VERIFIED");
     expect(statusOf(ok, r("skipped"))).toBe("VERIFIED_WITHOUT_REPLAY");
     expect(statusOf(ok, r("not-comparable"))).toBe("VERIFIED_WITHOUT_REPLAY");

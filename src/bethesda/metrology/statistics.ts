@@ -84,7 +84,13 @@ const EPS = 1e-12;
  */
 export function pairedInterval(
   diffs: readonly number[],
-  opts: { resamples: number; seed: number; label: string; level: number; direction: Direction },
+  opts: {
+    resamples: number;
+    seed: number;
+    label: string;
+    level: number;
+    direction: Direction;
+  },
 ): Interval {
   const n = diffs.length;
   const m = mean(diffs);
@@ -134,10 +140,7 @@ export function pairedInterval(
 }
 
 export type ComparisonVerdict =
-  | "IMPROVEMENT"
-  | "NO_DEMONSTRATED_IMPROVEMENT"
-  | "REGRESSION"
-  | "INCONCLUSIVE";
+  "IMPROVEMENT" | "NO_DEMONSTRATED_IMPROVEMENT" | "REGRESSION" | "INCONCLUSIVE";
 
 export interface Decision {
   verdict: ComparisonVerdict;

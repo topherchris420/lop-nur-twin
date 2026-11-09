@@ -1,0 +1,79 @@
+{
+  "schema": "eimb-verification/v1",
+  "protocol": "plasticity-locomotor-v1",
+  "split": "dev",
+  "manifestDigest": "175d97920f7566e4ab54ab0481cbff1b8c1dd11c804136bda5cb2c8ce730315b",
+  "status": "VERIFIED",
+  "checks": [
+    {
+      "id": "manifest",
+      "passed": true,
+      "detail": "manifest 175d97920f7566e4ab54ab0481cbff1b8c1dd11c804136bda5cb2c8ce730315b"
+    },
+    {
+      "id": "file-digests",
+      "passed": true,
+      "detail": "5 files match their SHA-256 digests"
+    },
+    {
+      "id": "protocol-frozen",
+      "passed": true,
+      "detail": "the archived protocol is the frozen one (da8270ae2d903642…)"
+    },
+    {
+      "id": "records-parse",
+      "passed": true,
+      "detail": "186 records (manifest says 186); canonical true; sorted true"
+    },
+    {
+      "id": "seeds",
+      "passed": true,
+      "detail": "dev seeds as listed: 6 of 6 match"
+    },
+    {
+      "id": "machine",
+      "passed": true,
+      "detail": "made from clean commit 73b4f2012eeca117d71eae69fe51a86b5defbd6f"
+    },
+    {
+      "id": "summary-rederived",
+      "passed": true,
+      "detail": "the summary recomputed from the raw records matches byte for byte"
+    },
+    {
+      "id": "report-rerendered",
+      "passed": true,
+      "detail": "the report re-rendered from the recomputed summary matches byte for byte"
+    },
+    {
+      "id": "verdict",
+      "passed": true,
+      "detail": "recomputed verdict: INCONCLUSIVE"
+    }
+  ],
+  "replay": {
+    "status": "matched",
+    "detail": "12 of 12 sampled runs re-simulated byte for byte (compute block excluded) on win32 arm64, Node v24.22.1",
+    "units": [
+      "weak-legs-low-reserve|0000009205|plasticity-active",
+      "weak-legs|0000009203|fixed-slow",
+      "unimpaired|0000009205|plasticity-disabled",
+      "unimpaired|0000009206|plasticity-active",
+      "weak-legs-recovers|0000009205|plasticity-active",
+      "weak-legs|0000009205|plasticity-active",
+      "weak-legs-recovers|0000009205|organism",
+      "asymmetric-gait|0000009206|fixed-slow",
+      "weak-legs-severe|0000009201|fixed-slow",
+      "weak-legs-severe|0000009203|organism",
+      "weak-legs-mild|0000009204|organism",
+      "unimpaired|0000009206|fixed-slow"
+    ],
+    "mismatched": []
+  },
+  "verifier": {
+    "commit": "73b4f2012eeca117d71eae69fe51a86b5defbd6f",
+    "platform": "win32 arm64",
+    "node": "v24.22.1"
+  },
+  "verifiedAt": "2026-11-09T03:04:27.612Z"
+}

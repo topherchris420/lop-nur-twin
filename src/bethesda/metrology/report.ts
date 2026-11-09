@@ -21,7 +21,8 @@ export interface MachineRecord {
 
 const f = (x: number | null | undefined, d = 3) =>
   x === null || x === undefined || !Number.isFinite(x) ? "n/a" : x.toFixed(d);
-const pct = (x: number | null | undefined) => (x === null || x === undefined ? "n/a" : `${f(x * 100, 0)}%`);
+const pct = (x: number | null | undefined) =>
+  x === null || x === undefined ? "n/a" : `${f(x * 100, 0)}%`;
 const ci = (c: { interval: { low: number; high: number; level: number } }, d = 3) =>
   `${f(c.interval.level * 100, 1)}% ${f(c.interval.low, d)} to ${f(c.interval.high, d)}`;
 
@@ -94,7 +95,9 @@ export function renderReport(s: Summary, p: Protocol, m: MachineRecord): string 
             : p.validity.identicalToBaseline.includes(id)
               ? "ablation, validity"
               : "ablation";
-    L.push(`| \`${id}\` | ${role} | ${c.learns ? "yes" : "no"} | ${c.acts} | ${c.addedParameters} | ${c.source} |`);
+    L.push(
+      `| \`${id}\` | ${role} | ${c.learns ? "yes" : "no"} | ${c.acts} | ${c.addedParameters} | ${c.source} |`,
+    );
   }
   L.push(
     "",
@@ -102,7 +105,9 @@ export function renderReport(s: Summary, p: Protocol, m: MachineRecord): string 
     "",
     "| check | passed | detail |",
     "| --- | --- | --- |",
-    ...s.validity.checks.map((c) => `| ${c.id} | ${c.passed ? "yes" : "**NO**"} | ${c.detail} |`),
+    ...s.validity.checks.map(
+      (c) => `| ${c.id} | ${c.passed ? "yes" : "**NO**"} | ${c.detail} |`,
+    ),
     "",
     "## Confirmatory endpoints (fixed before the held-out run)",
     "",
@@ -110,7 +115,10 @@ export function renderReport(s: Summary, p: Protocol, m: MachineRecord): string 
     "",
     ...comparisonRows(s.confirmatory, novel),
     "",
-    ...s.confirmatory.map((c) => `- ${c.id}: ${c.reason}. δ: ${p.endpoints.confirmatory.find((e) => e.id === c.id)?.mmeRule ?? ""}`),
+    ...s.confirmatory.map(
+      (c) =>
+        `- ${c.id}: ${c.reason}. δ: ${p.endpoints.confirmatory.find((e) => e.id === c.id)?.mmeRule ?? ""}`,
+    ),
     "",
     "## Guardrails",
     "",
@@ -194,7 +202,8 @@ export function renderReport(s: Summary, p: Protocol, m: MachineRecord): string 
     "| condition | seed | candidate | baseline | difference | candidate's slowed walks |",
     "| --- | ---: | ---: | ---: | ---: | ---: |",
     ...s.failureCases.map(
-      (x) => `| ${x.condition} | ${x.seed} | ${f(x.candidate)} | ${f(x.baseline)} | ${f(x.diff)} | ${x.adaptations ?? "—"} |`,
+      (x) =>
+        `| ${x.condition} | ${x.seed} | ${f(x.candidate)} | ${f(x.baseline)} | ${f(x.diff)} | ${x.adaptations ?? "—"} |`,
     ),
     "",
     s.design.failed.length
@@ -208,7 +217,8 @@ export function renderReport(s: Summary, p: Protocol, m: MachineRecord): string 
     "| controller | runs | median wall s | median CPU s | median ticks per wall s |",
     "| --- | ---: | ---: | ---: | ---: |",
     ...Object.entries(s.compute.byController).map(
-      ([id, c]) => `| ${id} | ${c.runs} | ${f(c.wallSMedian, 1)} | ${f(c.cpuSMedian, 1)} | ${f(c.ticksPerWallSMedian, 0)} |`,
+      ([id, c]) =>
+        `| ${id} | ${c.runs} | ${f(c.wallSMedian, 1)} | ${f(c.cpuSMedian, 1)} | ${f(c.ticksPerWallSMedian, 0)} |`,
     ),
     "",
     "## Limits",

@@ -22,7 +22,15 @@
  * from a clean commit and commit what each step writes.
  */
 import { execFileSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { arch, platform } from "node:os";
 import { join } from "node:path";
 import { canonicalJson, sha256 } from "../src/rain/sha256.js";
@@ -38,8 +46,14 @@ import {
   type Protocol,
   type Split,
 } from "../src/bethesda/metrology/protocol.js";
-import { CONTROLLERS, type ControllerId } from "../src/bethesda/metrology/controllers.js";
-import { behaviouralPart, runUnit, subjectOf, type Clock, type RunRecord } from "../src/bethesda/metrology/runner.js";
+import { CONTROLLERS } from "../src/bethesda/metrology/controllers.js";
+import {
+  behaviouralPart,
+  runUnit,
+  subjectOf,
+  type Clock,
+  type RunRecord,
+} from "../src/bethesda/metrology/runner.js";
 import {
   buildArchive,
   manifestText,
@@ -51,23 +65,48 @@ import {
   VERIFICATION_SCHEMA,
 } from "../src/bethesda/metrology/archive.js";
 import type { MachineRecord } from "../src/bethesda/metrology/report.js";
-import { replaySample, statusOf, verifyStatic, type ReplayResult, type Verification } from "../src/bethesda/metrology/verify.js";
+import {
+  replaySample,
+  statusOf,
+  verifyStatic,
+  type ReplayResult,
+  type Verification,
+} from "../src/bethesda/metrology/verify.js";
 import { MetrologyLife } from "../src/bethesda/metrology/life.js";
-import { computeReport, renderCompute, type ComputeRow } from "../src/bethesda/metrology/compute.js";
-import { neuralReport, renderNeural, type NeuralReport } from "./echo-metrology-connectome.js";
-import { reproductionSummary, studyKey, type ReproductionSummary } from "../src/bethesda/metrology/legacy.js";
+import {
+  computeReport,
+  renderCompute,
+  type ComputeRow,
+} from "../src/bethesda/metrology/compute.js";
+import {
+  neuralReport,
+  renderNeural,
+  type NeuralReport,
+} from "./echo-metrology-connectome.js";
+import {
+  reproductionSummary,
+  studyKey,
+  type ReproductionSummary,
+} from "../src/bethesda/metrology/legacy.js";
 import { renderReproduction } from "../src/bethesda/metrology/legacyReport.js";
-import { execute as studyExecute, type RunRecord as StudyRecord } from "../src/bethesda/plasticity/study.js";
+import {
+  execute as studyExecute,
+  type RunRecord as StudyRecord,
+} from "../src/bethesda/plasticity/study.js";
 import type { Interval as StudyInterval } from "../src/bethesda/plasticity/analysis.js";
 
-const args = process.argv.slice(process.argv.findIndex((a) => a.endsWith("echo-metrology.ts")) + 1);
+const args = process.argv.slice(
+  process.argv.findIndex((a) => a.endsWith("echo-metrology.ts")) + 1,
+);
 const mode = args[0];
 const option = (name: string) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : undefined;
 };
 const positional = () =>
-  args.slice(1).filter((a, k, all) => !a.startsWith("--") && !(all[k - 1] ?? "").startsWith("--"));
+  args
+    .slice(1)
+    .filter((a, k, all) => !a.startsWith("--") && !(all[k - 1] ?? "").startsWith("--"));
 
 const ROOT = join("docs", "benchmarks", "echo-metrology");
 const clock: Clock = {
@@ -85,10 +124,15 @@ function write(path: string, text: string): void {
 
 function loadProtocol(): { protocol: Protocol; source: string } {
   const id = option("protocol");
-  if (!id || !/^[a-z0-9-]+$/.test(id)) throw new Error("--protocol ID (a file in src/bethesda/metrology/protocols/)");
-  const source = readFileSync(join("src", "bethesda", "metrology", "protocols", `${id}.json`), "utf8");
+  if (!id || !/^[a-z0-9-]+$/.test(id))
+    throw new Error("--protocol ID (a file in src/bethesda/metrology/protocols/)");
+  const source = readFileSync(
+    join("src", "bethesda", "metrology", "protocols", `${id}.json`),
+    "utf8",
+  );
   const protocol = parseProtocol(JSON.parse(source));
-  if (protocol.id !== id) throw new Error(`the file ${id}.json holds protocol ${protocol.id}`);
+  if (protocol.id !== id)
+    throw new Error(`the file ${id}.json holds protocol ${protocol.id}`);
   return { protocol, source };
 }
 
@@ -100,7 +144,8 @@ function splitArg(): Split {
 
 function shardArg(): [number, number] {
   const [i, n] = (option("shard") ?? "0/1").split("/").map(Number);
-  if (!Number.isInteger(i) || !Number.isInteger(n) || i! < 0 || i! >= n!) throw new Error("--shard I/N");
+  if (!Number.isInteger(i) || !Number.isInteger(n) || i! < 0 || i! >= n!)
+    throw new Error("--shard I/N");
   return [i!, n!];
 }
 
@@ -121,6 +166,29 @@ function machineRecord(shards: number): MachineRecord {
     shards,
     collectedAt: new Date().toISOString(),
   };
+}
+
+/** Mains or battery, where the platform says (Windows only; elsewhere unknown). */
+function powerSource(): "mains" | "battery" | "unknown" {
+  if (platform() !== "win32") return "unknown";
+  try {
+    const out = execFileSync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-Command",
+        "(Get-CimInstance Win32_Battery | Select-Object -First 1).BatteryStatus",
+      ],
+      { encoding: "utf8" },
+    ).trim();
+    if (out === "") return "mains"; // no battery at all
+    // Win32_Battery.BatteryStatus: 2 on AC, 3 fully charged, 6-9 charging; 1 discharging, 4 low, 5 critical.
+    if (["2", "3", "6", "7", "8", "9"].includes(out)) return "mains";
+    if (["1", "4", "5"].includes(out)) return "battery";
+    return "unknown";
+  } catch {
+    return "unknown";
+  }
 }
 
 const folderOf = (p: Protocol, split: Split) => join(ROOT, p.id, split);
@@ -165,13 +233,18 @@ if (mode === "protocol") {
   // refuse records the collecting commit did not make.
   const machine = machineRecord(n);
   if (split === "heldout" && !machine.cleanSources)
-    throw new Error("a held-out split runs only from a clean commit: commit src/ and scripts/ first");
+    throw new Error(
+      "a held-out split runs only from a clean commit: commit src/ and scripts/ first",
+    );
   const sidecar = `${out}.machine.json`;
   if (existsSync(sidecar)) {
     const before = JSON.parse(readFileSync(sidecar, "utf8")) as MachineRecord;
     if (before.commit !== machine.commit || before.cleanSources !== machine.cleanSources)
-      throw new Error(`${out} was started at ${before.commit} (clean ${before.cleanSources}); this is ${machine.commit} (clean ${machine.cleanSources})`);
-  } else if (existsSync(out)) throw new Error(`${out} has records but no ${sidecar}: provenance unknown`);
+      throw new Error(
+        `${out} was started at ${before.commit} (clean ${before.cleanSources}); this is ${machine.commit} (clean ${machine.cleanSources})`,
+      );
+  } else if (existsSync(out))
+    throw new Error(`${out} has records but no ${sidecar}: provenance unknown`);
   else write(sidecar, machineText(machine));
   const done = new Set(existsSync(out) ? readJsonl<RunRecord>(out).map(unitKey) : []);
   const units = unitsOf(protocol, split)
@@ -200,16 +273,26 @@ if (mode === "protocol") {
     if (got.has(k)) throw new Error(`two records for ${k}`);
     got.set(k, r);
   }
-  if (got.size !== want.size) throw new Error(`expected ${want.size} records, have ${got.size}`);
+  if (got.size !== want.size)
+    throw new Error(`expected ${want.size} records, have ${got.size}`);
   const now = machineRecord(files.length);
   for (const f of files) {
     const sidecar = `${f}.machine.json`;
-    if (!existsSync(sidecar)) throw new Error(`${f}: no ${sidecar}, so which code made it is unknown`);
+    if (!existsSync(sidecar))
+      throw new Error(`${f}: no ${sidecar}, so which code made it is unknown`);
     const m = JSON.parse(readFileSync(sidecar, "utf8")) as MachineRecord;
-    if (m.commit !== now.commit || m.cleanSources !== now.cleanSources || m.platform !== now.platform || m.arch !== now.arch)
-      throw new Error(`${f} was made at ${m.commit} on ${m.platform} ${m.arch} (clean ${m.cleanSources}); collecting at ${now.commit} on ${now.platform} ${now.arch} (clean ${now.cleanSources})`);
+    if (
+      m.commit !== now.commit ||
+      m.cleanSources !== now.cleanSources ||
+      m.platform !== now.platform ||
+      m.arch !== now.arch
+    )
+      throw new Error(
+        `${f} was made at ${m.commit} on ${m.platform} ${m.arch} (clean ${m.cleanSources}); collecting at ${now.commit} on ${now.platform} ${now.arch} (clean ${now.cleanSources})`,
+      );
   }
-  if (split === "heldout" && !now.cleanSources) throw new Error("collect a held-out split from the clean commit that ran it");
+  if (split === "heldout" && !now.cleanSources)
+    throw new Error("collect a held-out split from the clean commit that ran it");
   const folder = folderOf(protocol, split);
   mkdirSync(folder, { recursive: true });
   write(join(folder, "protocol.json"), source);
@@ -221,13 +304,27 @@ if (mode === "protocol") {
   const split = splitArg();
   const folder = folderOf(protocol, split);
   const records = parseRecords(readFileSync(join(folder, "records.jsonl"), "utf8"));
-  const machine = JSON.parse(readFileSync(join(folder, "machine.json"), "utf8")) as MachineRecord;
+  const machine = JSON.parse(
+    readFileSync(join(folder, "machine.json"), "utf8"),
+  ) as MachineRecord;
   const archived = readFileSync(join(folder, "protocol.json"), "utf8");
-  if (archived !== source) throw new Error("the archived protocol differs from the repository's: a protocol changed after its run");
-  const { files, manifest, summary } = buildArchive(source, protocol, split, records, machine);
-  for (const name of ["summary.json", "README.md"] as const) write(join(folder, name), files[name]);
+  if (archived !== source)
+    throw new Error(
+      "the archived protocol differs from the repository's: a protocol changed after its run",
+    );
+  const { files, manifest, summary } = buildArchive(
+    source,
+    protocol,
+    split,
+    records,
+    machine,
+  );
+  for (const name of ["summary.json", "README.md"] as const)
+    write(join(folder, name), files[name]);
   write(join(folder, "manifest.json"), manifestText(manifest));
-  process.stdout.write(`${folder}: ${summary.verdict.overall}; manifest ${manifestDigest(manifest)}\n`);
+  process.stdout.write(
+    `${folder}: ${summary.verdict.overall}; manifest ${manifestDigest(manifest)}\n`,
+  );
 } else if (mode === "verify") {
   const { protocol } = loadProtocol();
   const split = splitArg();
@@ -235,7 +332,12 @@ if (mode === "protocol") {
   const files = readArchive(folder);
   const st = verifyStatic(protocol, split, files);
   const k = option("replay") === "all" ? Infinity : Number(option("replay") ?? 0);
-  let replay: ReplayResult = { status: "skipped", detail: "no replay requested", units: [], mismatched: [] };
+  let replay: ReplayResult = {
+    status: "skipped",
+    detail: "no replay requested",
+    units: [],
+    mismatched: [],
+  };
   if (k > 0 && st.records && st.manifestDigest && st.machine) {
     const m = st.machine;
     if (m.platform !== platform() || m.arch !== arch())
@@ -246,12 +348,17 @@ if (mode === "protocol") {
         mismatched: [],
       };
     else {
-      const sample = replaySample(st.records, st.manifestDigest, Number.isFinite(k) ? k : st.records.length);
+      const sample = replaySample(
+        st.records,
+        st.manifestDigest,
+        Number.isFinite(k) ? k : st.records.length,
+      );
       const mismatched: string[] = [];
       for (const r of sample) {
         process.stderr.write(`replaying ${unitKey(r)}\n`);
         const again = runUnit(protocol, split, r, clock);
-        if (canonicalJson(behaviouralPart(again)) !== canonicalJson(behaviouralPart(r))) mismatched.push(unitKey(r));
+        if (canonicalJson(behaviouralPart(again)) !== canonicalJson(behaviouralPart(r)))
+          mismatched.push(unitKey(r));
       }
       replay = {
         status: mismatched.length ? "mismatch" : "matched",
@@ -270,18 +377,30 @@ if (mode === "protocol") {
     status,
     checks: st.checks,
     replay,
-    verifier: { commit: git("rev-parse", "HEAD"), platform: `${platform()} ${arch()}`, node: process.version },
+    verifier: {
+      commit: git("rev-parse", "HEAD"),
+      platform: `${platform()} ${arch()}`,
+      node: process.version,
+    },
     verifiedAt: new Date().toISOString(),
   };
-  for (const c of st.checks) process.stdout.write(`${c.passed ? "ok  " : "FAIL"} ${c.id}: ${c.detail}\n`);
+  for (const c of st.checks)
+    process.stdout.write(`${c.passed ? "ok  " : "FAIL"} ${c.id}: ${c.detail}\n`);
   process.stdout.write(`replay ${replay.status}: ${replay.detail}\n${status}\n`);
-  if (args.includes("--write")) write(join(folder, "verification.json"), JSON.stringify(result, null, 2) + "\n");
+  if (args.includes("--write"))
+    write(join(folder, "verification.json"), JSON.stringify(result, null, 2) + "\n");
   if (status === "FAILED") process.exitCode = 1;
 } else if (mode === "compute") {
   const { protocol } = loadProtocol();
   const reps = Number(option("reps") ?? 2);
   const condition = conditionOf(protocol, protocol.endpoints.confirmatory[0]!.condition);
-  const controllers = [...new Set(unitsOf(protocol, "dev").filter((u) => u.condition === condition.id).map((u) => u.controller))];
+  const controllers = [
+    ...new Set(
+      unitsOf(protocol, "dev")
+        .filter((u) => u.condition === condition.id)
+        .map((u) => u.controller),
+    ),
+  ];
   const seeds = protocol.splits.dev.seeds.slice(0, 3);
   const durationS = 1800;
   const rows: ComputeRow[] = [];
@@ -289,12 +408,14 @@ if (mode === "protocol") {
     for (const seed of seeds)
       controllers.forEach((_, j) => {
         // Rotate the order every seed and rep, so drift in the machine's speed falls on every controller alike.
-        const controller = controllers[(j + seed + rep) % controllers.length]! as ControllerId;
+        const controller = controllers[(j + seed + rep) % controllers.length]!;
         const life = new MetrologyLife({
           seed,
           condition,
           controller,
-          subject: subjectOf(protocol, "dev", { seed, condition: condition.id, controller }) + "-compute",
+          subject:
+            subjectOf(protocol, "dev", { seed, condition: condition.id, controller }) +
+            "-compute",
           durationS,
           blockS: protocol.blockS,
           sampleEveryTicks: protocol.sampleEveryTicks,
@@ -330,11 +451,17 @@ if (mode === "protocol") {
           plasticityStateBytes: plasticity ? canonicalJson(plasticity.state).length : 0,
           addedParameters: CONTROLLERS[controller].addedParameters,
         });
-        process.stderr.write(`compute ${controller} ${seed} rep ${rep}: ${wallS.toFixed(2)} s\n`);
+        process.stderr.write(
+          `compute ${controller} ${seed} rep ${rep}: ${wallS.toFixed(2)} s\n`,
+        );
       });
   const folder = join(ROOT, protocol.id, "compute");
   mkdirSync(folder, { recursive: true });
-  const report = computeReport(protocol, rows, { ...machineRecord(1), condition: condition.id });
+  const report = computeReport(protocol, rows, {
+    ...machineRecord(1),
+    power: powerSource(),
+    condition: condition.id,
+  });
   write(join(folder, "compute.json"), JSON.stringify(report, null, 2) + "\n");
   write(join(folder, "README.md"), renderCompute(report));
   process.stdout.write(`${folder}: ${rows.length} runs\n`);
@@ -343,16 +470,24 @@ if (mode === "protocol") {
   const out = option("out");
   if (!out) throw new Error("reproduce needs --out FILE");
   refuseProductionHost(out, existsSync);
-  const archived = readJsonl<StudyRecord>(join("docs", "benchmarks", "echo-plasticity", "heldout", "records.jsonl"));
+  const archived = readJsonl<StudyRecord>(
+    join("docs", "benchmarks", "echo-plasticity", "heldout", "records.jsonl"),
+  );
   const done = new Set(existsSync(out) ? readJsonl<StudyRecord>(out).map(studyKey) : []);
   const runs = archived
     .filter((r) => r.condition === "weak-legs")
     .filter((_, k) => k % n === i)
     .filter((r) => !done.has(studyKey(r)));
   runs.forEach((r, k) => {
-    const again = studyExecute("heldout", { seed: r.seed, arm: r.arm, condition: "weak-legs" });
+    const again = studyExecute("heldout", {
+      seed: r.seed,
+      arm: r.arm,
+      condition: "weak-legs",
+    });
     appendFileSync(out, `${canonicalJson(again)}\n`);
-    process.stderr.write(`${k + 1}/${runs.length} ${r.seed} ${r.arm}: ${canonicalJson(again) === canonicalJson(r) ? "identical" : "DIFFERS"}\n`);
+    process.stderr.write(
+      `${k + 1}/${runs.length} ${r.seed} ${r.arm}: ${canonicalJson(again) === canonicalJson(r) ? "identical" : "DIFFERS"}\n`,
+    );
   });
 } else if (mode === "reproduce-report") {
   const files = positional();
@@ -362,15 +497,24 @@ if (mode === "protocol") {
   const archivedSummary = JSON.parse(readFileSync(join(src, "summary.json"), "utf8")) as {
     primary: { contrast: { interval: StudyInterval } };
   };
-  const sourceMachine = JSON.parse(readFileSync(join(src, "machine.json"), "utf8")) as { commit: string };
+  const sourceMachine = JSON.parse(readFileSync(join(src, "machine.json"), "utf8")) as {
+    commit: string;
+  };
   const want = archived.filter((r) => r.condition === "weak-legs").length;
-  if (reproduced.length !== want) throw new Error(`expected ${want} reproduced records, have ${reproduced.length}`);
+  if (reproduced.length !== want)
+    throw new Error(`expected ${want} reproduced records, have ${reproduced.length}`);
   const { protocol } = loadProtocol();
-  const summary: ReproductionSummary = reproductionSummary(archived, reproduced, archivedSummary.primary.contrast.interval, protocol, {
-    source: src.split("\\").join("/"),
-    sourceCommit: sourceMachine.commit,
-    condition: "weak-legs",
-  });
+  const summary: ReproductionSummary = reproductionSummary(
+    archived,
+    reproduced,
+    archivedSummary.primary.contrast.interval,
+    protocol,
+    {
+      source: src.split("\\").join("/"),
+      sourceCommit: sourceMachine.commit,
+      condition: "weak-legs",
+    },
+  );
   const folder = join(ROOT, `reproduction-${sourceMachine.commit.slice(0, 7)}`);
   mkdirSync(folder, { recursive: true });
   const sorted = [...reproduced].sort((a, b) => (studyKey(a) < studyKey(b) ? -1 : 1));
@@ -386,20 +530,34 @@ if (mode === "protocol") {
   write(
     join(folder, "manifest.json"),
     JSON.stringify(
-      { schema: "eimb-reproduction-manifest/v1", files: Object.fromEntries(Object.entries(filesOut).map(([k, v]) => [k, sha256(v)])) },
+      {
+        schema: "eimb-reproduction-manifest/v1",
+        files: Object.fromEntries(
+          Object.entries(filesOut).map(([k, v]) => [k, sha256(v)]),
+        ),
+      },
       null,
       2,
     ) + "\n",
   );
-  process.stdout.write(`${folder}: ${summary.identical} of ${summary.runs} identical; primary same: ${summary.primary.same}\n`);
+  process.stdout.write(
+    `${folder}: ${summary.identical} of ${summary.runs} identical; primary same: ${summary.primary.same}\n`,
+  );
 } else if (mode === "neural") {
   const base = join("docs", "benchmarks", "fly-neural");
   const walk = (dir: string): string[] =>
     readdirSync(dir).flatMap((name) => {
       const path = join(dir, name);
-      return statSync(path).isDirectory() ? walk(path) : name.endsWith(".json") ? [path] : [];
+      return statSync(path).isDirectory()
+        ? walk(path)
+        : name.endsWith(".json")
+          ? [path]
+          : [];
     });
-  const files = walk(base).map((path) => ({ path: path.split("\\").join("/"), text: readFileSync(path, "utf8") }));
+  const files = walk(base).map((path) => ({
+    path: path.split("\\").join("/"),
+    text: readFileSync(path, "utf8"),
+  }));
   const licences = [
     { dataset: "FAFB v783 (FlyWire)", file: `${base}/LICENSE.md`.split("\\").join("/") },
     { dataset: "BANC v888", file: `${base}/banc/LICENSE.md`.split("\\").join("/") },
@@ -409,7 +567,11 @@ if (mode === "protocol") {
   mkdirSync(folder, { recursive: true });
   write(join(folder, "report.json"), JSON.stringify(report, null, 2) + "\n");
   write(join(folder, "README.md"), renderNeural(report));
-  process.stdout.write(`${folder}: ${report.results.length} results, ${report.results.filter((r) => r.seal === "verified").length} seals verified, ${report.results.filter((r) => r.seal === "broken").length} broken\n`);
+  process.stdout.write(
+    `${folder}: ${report.results.length} results, ${report.results.filter((r) => r.seal === "verified").length} seals verified, ${report.results.filter((r) => r.seal === "broken").length} broken\n`,
+  );
 } else {
-  throw new Error("mode is protocol, run, collect, report, verify, compute, reproduce, reproduce-report or neural");
+  throw new Error(
+    "mode is protocol, run, collect, report, verify, compute, reproduce, reproduce-report or neural",
+  );
 }

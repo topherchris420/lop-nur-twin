@@ -10,11 +10,21 @@ import { parseProtocol, unitsOf, type Protocol, type Unit } from "./protocol.js"
 import source from "./protocols/plasticity-locomotor-v1.json" with { type: "json" };
 import { behaviouralPart, runUnit, subjectOf, type Clock } from "./runner.js";
 
-const short: Protocol = parseProtocol({ ...source, durationS: 900, lateFromS: 450, blockS: 300 });
+const short: Protocol = parseProtocol({
+  ...source,
+  durationS: 900,
+  lateFromS: 450,
+  blockS: 300,
+});
 const real = parseProtocol(source);
 // Weak legs begin at 600 s and plasticity needs evidence after that: measured on
 // dev seeds 9201 and 9204, it first adapts 270 to 467 s after onset.
-const longer: Protocol = parseProtocol({ ...source, durationS: 1800, lateFromS: 900, blockS: 300 });
+const longer: Protocol = parseProtocol({
+  ...source,
+  durationS: 1800,
+  lateFromS: 900,
+  blockS: 300,
+});
 
 let t = 0;
 const clock: Clock = { wallMs: () => (t += 1), cpuMs: () => null };
@@ -22,7 +32,11 @@ const run = (u: Unit, p = short) => runUnit(p, "dev", u, clock);
 
 describe("the runner", () => {
   it("is deterministic: the same unit gives the same behavioural record", () => {
-    const u: Unit = { seed: 9201, condition: "weak-legs", controller: "plasticity-active" };
+    const u: Unit = {
+      seed: 9201,
+      condition: "weak-legs",
+      controller: "plasticity-active",
+    };
     const a = run(u),
       b = run(u);
     expect(a.status).toBe("complete");
@@ -56,7 +70,12 @@ describe("the runner", () => {
 
   it("records a run over its wall limit as a timeout, with no behaviour", () => {
     const slow: Clock = { wallMs: () => (t += 1e6), cpuMs: () => null };
-    const r = runUnit(short, "dev", { seed: 9205, condition: "unimpaired", controller: "organism" }, slow);
+    const r = runUnit(
+      short,
+      "dev",
+      { seed: 9205, condition: "unimpaired", controller: "organism" },
+      slow,
+    );
     expect(r.status).toBe("timeout");
     expect(r.error).toMatch(/over 900 s of wall time/);
     expect(r.ticks).toBe(1000);
@@ -73,6 +92,8 @@ describe("the runner", () => {
 
   it("names every subject research-eimb-…, never an original", () => {
     for (const u of unitsOf(real, "heldout").slice(0, 50))
-      expect(subjectOf(real, "heldout", u)).toMatch(/^research-eimb-plasticity-locomotor-v1-heldout-\d+-/);
+      expect(subjectOf(real, "heldout", u)).toMatch(
+        /^research-eimb-plasticity-locomotor-v1-heldout-\d+-/,
+      );
   });
 });

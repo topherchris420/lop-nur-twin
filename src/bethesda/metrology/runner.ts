@@ -221,7 +221,10 @@ export function runUnit(p: Protocol, split: Split, u: Unit, clock: Clock): RunRe
     const chunk = 1000;
     while (life.tick < total) {
       life.step(Math.min(chunk, total - life.tick));
-      if ((clock.wallMs() - wall0) / 1000 > p.limits.maxWallSPerRun && life.tick < total) {
+      if (
+        (clock.wallMs() - wall0) / 1000 > p.limits.maxWallSPerRun &&
+        life.tick < total
+      ) {
         status = "timeout";
         error = `stopped at tick ${life.tick} of ${total}: over ${p.limits.maxWallSPerRun} s of wall time`;
         break;

@@ -59,7 +59,7 @@ export function parseKeepingNumbers(text: string): Node {
       i++;
       const entries: [string, Node][] = [];
       ws();
-      if (text[i] === "}") return i++, { t: "obj", entries };
+      if (text[i] === "}") return (i++, { t: "obj", entries });
       for (;;) {
         ws();
         const k = str();
@@ -69,7 +69,7 @@ export function parseKeepingNumbers(text: string): Node {
         entries.push([k, value()]);
         ws();
         if (text[i] === ",") i++;
-        else if (text[i] === "}") return i++, { t: "obj", entries };
+        else if (text[i] === "}") return (i++, { t: "obj", entries });
         else fail("expected , or }");
       }
     }
@@ -77,17 +77,19 @@ export function parseKeepingNumbers(text: string): Node {
       i++;
       const items: Node[] = [];
       ws();
-      if (text[i] === "]") return i++, { t: "arr", items };
+      if (text[i] === "]") return (i++, { t: "arr", items });
       for (;;) {
         items.push(value());
         ws();
         if (text[i] === ",") i++;
-        else if (text[i] === "]") return i++, { t: "arr", items };
+        else if (text[i] === "]") return (i++, { t: "arr", items });
         else fail("expected , or ]");
       }
     }
     if (ch === '"') return { t: "str", v: str() };
-    const m = /^(-?Infinity|NaN|true|false|null|-?\d+(\.\d+)?([eE][+-]?\d+)?)/.exec(text.slice(i, i + 64));
+    const m = /^(-?Infinity|NaN|true|false|null|-?\d+(\.\d+)?([eE][+-]?\d+)?)/.exec(
+      text.slice(i, i + 64),
+    );
     if (!m) return fail("unexpected token");
     i += m[0].length;
     return { t: "raw", v: m[0] };
@@ -190,7 +192,11 @@ export interface NeuralResult {
   neurons: number | null;
   synapses: number | null;
   resources: { wallS: number | null; cpuS: number | null; peakRssMb: number | null };
-  cost: { fullWallSPerSimS: number | null; reducedWallSPerSimS: number | null; speedup: number | null } | null;
+  cost: {
+    fullWallSPerSimS: number | null;
+    reducedWallSPerSimS: number | null;
+    speedup: number | null;
+  } | null;
   code: { commit: string | null; dirty: boolean | null };
 }
 
@@ -198,13 +204,17 @@ export interface NeuralReport {
   schema: typeof NEURAL_REPORT_SCHEMA;
   scope: string;
   results: NeuralResult[];
-  byEvaluation: Record<string, { results: number; criteriaPassed: number; criteriaTotal: number }>;
+  byEvaluation: Record<
+    string,
+    { results: number; criteriaPassed: number; criteriaTotal: number }
+  >;
   licences: { dataset: string; file: string; terms: string }[];
   notRun: string[];
   limits: string[];
 }
 
-const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+const num = (v: unknown): number | null =>
+  typeof v === "number" && Number.isFinite(v) ? v : null;
 const obj = (v: unknown): Record<string, unknown> | null =>
   v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 const CONTROL = /shuffl|rewir|random|permut|degree-preserving|sign/i;
@@ -239,11 +249,12 @@ export function readNeuralResult(file: string, text: string): NeuralResult {
   const cost = obj(d.cost);
   const criteria = criteriaOf(d);
   const text0 = JSON.stringify(d.connectome ?? d.source ?? d.config ?? "").toLowerCase();
-  const dataset = file.includes("/banc/") || text0.includes("banc")
-    ? "BANC v888"
-    : text0.includes("v783") || file.includes("v783")
-      ? "FAFB v783"
-      : "unknown";
+  const dataset =
+    file.includes("/banc/") || text0.includes("banc")
+      ? "BANC v888"
+      : text0.includes("v783") || file.includes("v783")
+        ? "FAFB v783"
+        : "unknown";
   return {
     file,
     fileSha256: sha256(text),
@@ -285,10 +296,16 @@ export function neuralReport(
   const results = files
     .map((f) => readNeuralResult(f.path, f.text))
     .sort((a, b) => (a.file < b.file ? -1 : 1));
-  const costed = results.find((r) => r.cost?.fullWallSPerSimS !== null && r.cost?.fullWallSPerSimS !== undefined);
+  const costed = results.find(
+    (r) => r.cost?.fullWallSPerSimS !== null && r.cost?.fullWallSPerSimS !== undefined,
+  );
   const byEvaluation: NeuralReport["byEvaluation"] = {};
   for (const r of results) {
-    const e = (byEvaluation[r.evaluation] ??= { results: 0, criteriaPassed: 0, criteriaTotal: 0 });
+    const e = (byEvaluation[r.evaluation] ??= {
+      results: 0,
+      criteriaPassed: 0,
+      criteriaTotal: 0,
+    });
     e.results++;
     e.criteriaPassed += r.passed;
     e.criteriaTotal += r.total;
@@ -366,7 +383,10 @@ export function renderNeural(r: NeuralReport): string {
     ...r.results.flatMap((x) =>
       x.criteria
         .filter((c) => c.passed === false)
-        .map((c) => `- \`${x.file.replace("docs/benchmarks/fly-neural/", "")}\` ${c.id}${c.control ? " (control wiring)" : ""}: ${c.claim}`),
+        .map(
+          (c) =>
+            `- \`${x.file.replace("docs/benchmarks/fly-neural/", "")}\` ${c.id}${c.control ? " (control wiring)" : ""}: ${c.claim}`,
+        ),
     ),
     "",
     "## Not run",

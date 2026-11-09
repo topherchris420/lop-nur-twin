@@ -19,9 +19,11 @@ const all = readFileSync(`${dir}/records.jsonl`, "utf8")
   .filter(Boolean)
   .map((l) => JSON.parse(l) as StudyRecord);
 const weak = all.filter((r) => r.condition === "weak-legs");
-const archived = (JSON.parse(readFileSync(`${dir}/summary.json`, "utf8")) as {
-  primary: { contrast: { interval: StudyInterval } };
-}).primary.contrast.interval;
+const archived = (
+  JSON.parse(readFileSync(`${dir}/summary.json`, "utf8")) as {
+    primary: { contrast: { interval: StudyInterval } };
+  }
+).primary.contrast.interval;
 const p = parseProtocol({ ...source, analysis: { ...source.analysis, resamples: 2000 } });
 const meta = { source: dir, sourceCommit: "288b3a8", condition: "weak-legs" };
 

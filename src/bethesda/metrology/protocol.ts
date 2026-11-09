@@ -235,7 +235,11 @@ const isController = (v: unknown): v is ControllerId =>
 const isMetric = (v: unknown): v is BehaviourMetric =>
   typeof v === "string" && (BEHAVIOUR_METRICS as readonly string[]).includes(v);
 
-function unknownKeys(o: Record<string, unknown>, allowed: string[], at: string): string[] {
+function unknownKeys(
+  o: Record<string, unknown>,
+  allowed: string[],
+  at: string,
+): string[] {
   return Object.keys(o)
     .filter((k) => !allowed.includes(k))
     .map((k) => `${at}: unknown field ${k}`);
@@ -251,7 +255,15 @@ const NESTED_KEYS: Record<string, string[]> = {
   confirmatory: ["id", "metric", "condition", "contrast", "mme", "mmeRule"],
   guardrails: ["metric", "condition", "contrast"],
   family: ["metric", "mme", "contrasts", "conditions"],
-  analysis: ["estimator", "interval", "resamples", "seed", "alpha", "multiplicity", "guardrailAlpha"],
+  analysis: [
+    "estimator",
+    "interval",
+    "resamples",
+    "seed",
+    "alpha",
+    "multiplicity",
+    "guardrailAlpha",
+  ],
   decision: ["maxFailedFraction", "rules"],
   limits: ["maxWallSPerRun"],
 };
@@ -274,9 +286,13 @@ function nestedKeyErrors(p: Record<string, unknown>): string[] {
   if (isObj(p.endpoints)) {
     const ep = p.endpoints;
     if (Array.isArray(ep.confirmatory))
-      ep.confirmatory.forEach((c, i) => check(c, "confirmatory", `endpoints.confirmatory ${i}`));
+      ep.confirmatory.forEach((c, i) =>
+        check(c, "confirmatory", `endpoints.confirmatory ${i}`),
+      );
     if (Array.isArray(ep.guardrails))
-      ep.guardrails.forEach((g, i) => check(g, "guardrails", `endpoints.guardrails ${i}`));
+      ep.guardrails.forEach((g, i) =>
+        check(g, "guardrails", `endpoints.guardrails ${i}`),
+      );
     check(ep.boundary, "family", "endpoints.boundary");
     check(ep.mechanism, "family", "endpoints.mechanism");
   }
@@ -305,12 +321,12 @@ export function protocolErrors(p: unknown): string[] {
     if (!Array.isArray(p[k]) || !(p[k] as unknown[]).every(isController))
       e.push(`${k}: a list of known controllers`);
   for (const k of ["durationS", "blockS", "lateFromS"] as const)
-    if (!isNum(p[k]) || (p[k] as number) <= 0) e.push(`${k}: a positive number`);
+    if (!isNum(p[k]) || p[k] <= 0) e.push(`${k}: a positive number`);
   if (isNum(p.durationS) && isNum(p.blockS) && p.durationS % p.blockS !== 0)
     e.push("durationS must be a whole number of blocks");
   if (isNum(p.durationS) && isNum(p.lateFromS) && p.lateFromS >= p.durationS)
     e.push("lateFromS must fall inside the run");
-  if (!isInt(p.sampleEveryTicks) || (p.sampleEveryTicks as number) < 1)
+  if (!isInt(p.sampleEveryTicks) || p.sampleEveryTicks < 1)
     e.push("sampleEveryTicks: a positive integer");
 
   const ids = new Set<string>();
@@ -335,10 +351,12 @@ export function protocolErrors(p: unknown): string[] {
         !["moves", "steady"].includes(f.kind as string) ||
         !["compass", "diagonal"].includes(f.layout as string) ||
         !isNum(f.everyS) ||
-        (f.everyS as number) <= 0 ||
+        f.everyS <= 0 ||
         Object.keys(f).some((k) => !["kind", "everyS", "layout"].includes(k))
       )
-        e.push(`${at}: food is {kind: moves|steady, everyS > 0, layout: compass|diagonal}`);
+        e.push(
+          `${at}: food is {kind: moves|steady, everyS > 0, layout: compass|diagonal}`,
+        );
       if (!isNum(c.startReserve) || c.startReserve <= 0 || c.startReserve > 1)
         e.push(`${at}: startReserve in (0, 1]`);
       if (!Array.isArray(c.episodes)) e.push(`${at}: episodes is a list`);
@@ -371,11 +389,15 @@ export function protocolErrors(p: unknown): string[] {
     !Array.isArray(v.conditions) ||
     !v.conditions.every((c) => typeof c === "string" && ids.has(c))
   )
-    e.push("validity: {identicalToBaseline: controllers, conditions: known condition ids}");
+    e.push(
+      "validity: {identicalToBaseline: controllers, conditions: known condition ids}",
+    );
   else if (v.identicalToBaseline.some((c) => c === p.baseline || c === p.candidate))
     // A validity check compares a controller with the baseline; the baseline
     // against itself proves nothing, and the candidate is expected to differ.
-    e.push("validity.identicalToBaseline may name neither the baseline nor the candidate");
+    e.push(
+      "validity.identicalToBaseline may name neither the baseline nor the candidate",
+    );
 
   const s = p.splits;
   if (
@@ -386,7 +408,7 @@ export function protocolErrors(p: unknown): string[] {
     new Set(s.dev.seeds).size !== s.dev.seeds.length ||
     !isObj(s.heldout) ||
     !isInt(s.heldout.count) ||
-    (s.heldout.count as number) < 2 ||
+    s.heldout.count < 2 ||
     !isStr(s.heldout.salt)
   )
     e.push("splits: {dev: {seeds: distinct integers}, heldout: {count ≥ 2, salt}}");
@@ -394,7 +416,7 @@ export function protocolErrors(p: unknown): string[] {
     e.push("reservedSeeds: a list of integers");
   else if (isObj(s) && isObj(s.dev) && Array.isArray(s.dev.seeds))
     for (const x of s.dev.seeds)
-      if ((p.reservedSeeds as number[]).includes(x as number))
+      if (p.reservedSeeds.includes(x as number))
         e.push(`dev seed ${String(x)} is reserved`);
 
   const ep = p.endpoints;
@@ -415,7 +437,7 @@ export function protocolErrors(p: unknown): string[] {
           !condOk(c.condition) ||
           !pairOk(c.contrast) ||
           !isNum(c.mme) ||
-          (c.mme as number) <= 0 ||
+          c.mme <= 0 ||
           !isStr(c.mmeRule)
         )
           e.push(
@@ -432,7 +454,9 @@ export function protocolErrors(p: unknown): string[] {
           !condOk(g.condition) ||
           !pairOk(g.contrast)
         )
-          e.push(`endpoints.guardrails ${i}: {metric with a direction, condition, contrast}`);
+          e.push(
+            `endpoints.guardrails ${i}: {metric with a direction, condition, contrast}`,
+          );
       });
     for (const k of ["boundary", "mechanism"] as const) {
       const f = ep[k];
@@ -441,7 +465,7 @@ export function protocolErrors(p: unknown): string[] {
         !isMetric(f.metric) ||
         METRIC_DIRECTION[f.metric] === "neutral" ||
         !isNum(f.mme) ||
-        (f.mme as number) <= 0 ||
+        f.mme <= 0 ||
         !Array.isArray(f.contrasts) ||
         f.contrasts.length === 0 ||
         !f.contrasts.every(pairOk) ||
@@ -449,7 +473,9 @@ export function protocolErrors(p: unknown): string[] {
         f.conditions.length === 0 ||
         !f.conditions.every(condOk)
       )
-        e.push(`endpoints.${k}: {metric with a direction, mme > 0, contrasts, conditions}`);
+        e.push(
+          `endpoints.${k}: {metric with a direction, mme > 0, contrasts, conditions}`,
+        );
     }
   }
 
@@ -459,15 +485,15 @@ export function protocolErrors(p: unknown): string[] {
     !isStr(a.estimator) ||
     a.interval !== "percentile-bootstrap" ||
     !isInt(a.resamples) ||
-    (a.resamples as number) < 1000 ||
+    a.resamples < 1000 ||
     !isInt(a.seed) ||
     !isNum(a.alpha) ||
-    (a.alpha as number) <= 0 ||
-    (a.alpha as number) >= 0.5 ||
+    a.alpha <= 0 ||
+    a.alpha >= 0.5 ||
     a.multiplicity !== "bonferroni" ||
     !isNum(a.guardrailAlpha) ||
-    (a.guardrailAlpha as number) <= 0 ||
-    (a.guardrailAlpha as number) >= 0.5
+    a.guardrailAlpha <= 0 ||
+    a.guardrailAlpha >= 0.5
   )
     e.push(
       "analysis: {estimator, interval: percentile-bootstrap, resamples ≥ 1000, seed, alpha, multiplicity: bonferroni, guardrailAlpha}",
@@ -476,14 +502,14 @@ export function protocolErrors(p: unknown): string[] {
   if (
     !isObj(d) ||
     !isNum(d.maxFailedFraction) ||
-    (d.maxFailedFraction as number) < 0 ||
-    (d.maxFailedFraction as number) >= 1 ||
+    d.maxFailedFraction < 0 ||
+    d.maxFailedFraction >= 1 ||
     !Array.isArray(d.rules) ||
     !d.rules.every(isStr)
   )
     e.push("decision: {maxFailedFraction in [0, 1), rules}");
   const l = p.limits;
-  if (!isObj(l) || !isNum(l.maxWallSPerRun) || (l.maxWallSPerRun as number) <= 0)
+  if (!isObj(l) || !isNum(l.maxWallSPerRun) || l.maxWallSPerRun <= 0)
     e.push("limits: {maxWallSPerRun > 0}");
   return e;
 }

@@ -52,13 +52,15 @@ export function parseRecords(text: string): RunRecord[] {
     .filter(Boolean)
     .map((line, i) => {
       const r = JSON.parse(line) as RunRecord;
-      if (r.schema !== RECORD_SCHEMA) throw new Error(`record ${i + 1}: not ${RECORD_SCHEMA}`);
+      if (r.schema !== RECORD_SCHEMA)
+        throw new Error(`record ${i + 1}: not ${RECORD_SCHEMA}`);
       return r;
     });
 }
 
 export const summaryText = (s: Summary): string => JSON.stringify(s, null, 2) + "\n";
-export const machineText = (m: MachineRecord): string => JSON.stringify(m, null, 2) + "\n";
+export const machineText = (m: MachineRecord): string =>
+  JSON.stringify(m, null, 2) + "\n";
 export const manifestText = (m: Manifest): string => JSON.stringify(m, null, 2) + "\n";
 
 /** Every evidence file of a split, derived from the protocol source, the records and the machine record. */

@@ -171,7 +171,12 @@ export interface Summary {
     note: string;
     byController: Record<
       string,
-      { runs: number; wallSMedian: number | null; cpuSMedian: number | null; ticksPerWallSMedian: number | null }
+      {
+        runs: number;
+        wallSMedian: number | null;
+        cpuSMedian: number | null;
+        ticksPerWallSMedian: number | null;
+      }
     >;
   };
   answers: { id: string; question: string; answer: string }[];
@@ -183,7 +188,8 @@ const median = (xs: readonly number[]): number | null => {
   const mid = s.length >> 1;
   return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2;
 };
-const meanOrNull = (xs: readonly number[]): number | null => (xs.length ? mean(xs) : null);
+const meanOrNull = (xs: readonly number[]): number | null =>
+  xs.length ? mean(xs) : null;
 const fmt = (x: number | null | undefined, d = 3) =>
   x === null || x === undefined || !Number.isFinite(x) ? "n/a" : x.toFixed(d);
 
@@ -201,7 +207,8 @@ function finite<T>(v: T): T {
 
 type Index = Map<string, RunRecord>;
 
-const complete = (r: RunRecord | undefined): r is RunRecord => !!r && r.status === "complete";
+const complete = (r: RunRecord | undefined): r is RunRecord =>
+  !!r && r.status === "complete";
 
 function diffs(
   idx: Index,
@@ -224,7 +231,11 @@ function diffs(
   return { points, missing };
 }
 
-export function summarize(p: Protocol, split: Split, records: readonly RunRecord[]): Summary {
+export function summarize(
+  p: Protocol,
+  split: Split,
+  records: readonly RunRecord[],
+): Summary {
   const digest = protocolDigest(p);
   const seeds = seedsOf(p, split);
   const units = unitsOf(p, split);
@@ -434,7 +445,11 @@ export function summarize(p: Protocol, split: Split, records: readonly RunRecord
     const contrasts: [ControllerId, ControllerId][] = [];
     for (const x of runs) if (x !== p.baseline) contrasts.push([x, p.baseline]);
     for (const x of runs)
-      if (x !== p.baseline && x !== p.candidate && !p.validity.identicalToBaseline.includes(x))
+      if (
+        x !== p.baseline &&
+        x !== p.candidate &&
+        !p.validity.identicalToBaseline.includes(x)
+      )
         contrasts.push([p.candidate, x]);
     for (const contrast of contrasts)
       for (const metric of BEHAVIOUR_METRICS) {
@@ -469,7 +484,9 @@ export function summarize(p: Protocol, split: Split, records: readonly RunRecord
         .filter(complete);
       means[c.id]![controller] = Object.fromEntries(
         BEHAVIOUR_METRICS.map((m) => {
-          const v = rows.map((r) => r.behaviour[m]).filter((x): x is number => x !== null);
+          const v = rows
+            .map((r) => r.behaviour[m])
+            .filter((x): x is number => x !== null);
           return [m, meanOrNull(v)];
         }),
       );
@@ -479,7 +496,9 @@ export function summarize(p: Protocol, split: Split, records: readonly RunRecord
         const at = rows.map((r) => r.blocks[b]).filter((x) => x !== undefined);
         const caut = at.map((x) => x.cautious).filter((x): x is boolean => x !== null);
         const beliefs = at.map((x) => x.belief).filter((x): x is number => x !== null);
-        const dist = at.map((x) => x.foodDistanceM).filter((x): x is number => x !== null);
+        const dist = at
+          .map((x) => x.foodDistanceM)
+          .filter((x): x is number => x !== null);
         traj.push({
           t: at[0]!.t,
           fedJ: mean(at.map((x) => x.fedJ)),
@@ -507,8 +526,11 @@ export function summarize(p: Protocol, split: Split, records: readonly RunRecord
               detectedShare: detected.length / pl.length,
               detectionMeanS: meanOrNull(detected.map((x) => x.detectionS!)),
               falseAlarmShare: pl.filter((x) => x.cautiousBeforeOnset).length / pl.length,
-              releasedShare: releasable && detected.length ? released.length / detected.length : null,
-              releaseMeanS: releasable ? meanOrNull(released.map((x) => x.releaseS!)) : null,
+              releasedShare:
+                releasable && detected.length ? released.length / detected.length : null,
+              releaseMeanS: releasable
+                ? meanOrNull(released.map((x) => x.releaseS!))
+                : null,
               adaptationsMean: mean(pl.map((x) => x.adaptations)),
               samplesMean: mean(pl.map((x) => x.samples)),
               failureNormalMean: mean(pl.map((x) => x.failureNormal)),
@@ -540,7 +562,10 @@ export function summarize(p: Protocol, split: Split, records: readonly RunRecord
 
   const distributions: Summary["distributions"] = [];
   const plotMetrics = [
-    ...new Set([...p.endpoints.confirmatory.map((e) => e.metric), p.endpoints.boundary.metric]),
+    ...new Set([
+      ...p.endpoints.confirmatory.map((e) => e.metric),
+      p.endpoints.boundary.metric,
+    ]),
   ];
   for (const c of p.conditions)
     for (const metric of plotMetrics)
@@ -561,11 +586,17 @@ export function summarize(p: Protocol, split: Split, records: readonly RunRecord
     const metric = p.endpoints.boundary.metric;
     const sign = METRIC_DIRECTION[metric] === "lower" ? -1 : 1;
     const pts = diffs(idx, seeds, c.id, [p.candidate, p.baseline], metric).points;
-    const worst = [...pts].sort((x, y) => sign * x.diff - sign * y.diff || x.seed - y.seed);
+    const worst = [...pts].sort(
+      (x, y) => sign * x.diff - sign * y.diff || x.seed - y.seed,
+    );
     for (const w of worst.slice(0, 3)) {
       if (sign * w.diff >= 0) continue;
-      const rc = idx.get(unitKey({ seed: w.seed, condition: c.id, controller: p.candidate }))!;
-      const rb = idx.get(unitKey({ seed: w.seed, condition: c.id, controller: p.baseline }))!;
+      const rc = idx.get(
+        unitKey({ seed: w.seed, condition: c.id, controller: p.candidate }),
+      )!;
+      const rb = idx.get(
+        unitKey({ seed: w.seed, condition: c.id, controller: p.baseline }),
+      )!;
       failureCases.push({
         condition: c.id,
         seed: w.seed,
@@ -600,27 +631,36 @@ export function summarize(p: Protocol, split: Split, records: readonly RunRecord
   const harm = guardrails.filter((g) => g.regression);
   if (!valid) {
     overall = "INVALID";
-    for (const c of checks.filter((x) => !x.passed)) reasons.push(`validity check ${c.id} failed: ${c.detail}`);
+    for (const c of checks.filter((x) => !x.passed))
+      reasons.push(`validity check ${c.id} failed: ${c.detail}`);
   } else if (conf.includes("REGRESSION")) {
     overall = "REGRESSION";
     reasons.push("a confirmatory endpoint regressed");
   } else if (conf.includes("IMPROVEMENT")) {
     if (harm.length) {
       overall = "INCONCLUSIVE";
-      reasons.push("a confirmatory endpoint improved, but a guardrail regressed: a trade-off, not an improvement");
+      reasons.push(
+        "a confirmatory endpoint improved, but a guardrail regressed: a trade-off, not an improvement",
+      );
     } else {
       overall = "IMPROVEMENT";
-      reasons.push("a confirmatory endpoint improved by at least its minimum meaningful effect, none regressed, and no guardrail regressed");
+      reasons.push(
+        "a confirmatory endpoint improved by at least its minimum meaningful effect, none regressed, and no guardrail regressed",
+      );
     }
   } else if (harm.length) {
     overall = "REGRESSION";
     reasons.push("no confirmatory endpoint improved and a guardrail regressed");
   } else if (conf.every((v) => v === "NO_DEMONSTRATED_IMPROVEMENT")) {
     overall = "NO_DEMONSTRATED_IMPROVEMENT";
-    reasons.push("every confirmatory interval lies inside its minimum meaningful effect: any effect is too small to matter");
+    reasons.push(
+      "every confirmatory interval lies inside its minimum meaningful effect: any effect is too small to matter",
+    );
   } else {
     overall = "INCONCLUSIVE";
-    reasons.push("at least one confirmatory interval is too wide to decide, and none improved or regressed");
+    reasons.push(
+      "at least one confirmatory interval is too wide to decide, and none improved or regressed",
+    );
   }
   for (const c of confirmatory)
     reasons.push(
@@ -673,7 +713,8 @@ function answer(p: Protocol, s: Summary): Summary["answers"] {
   const v = s.verdict.overall;
   out.push({
     id: "Q1",
-    question: "Does the proposed controller outperform the existing controller under controlled conditions?",
+    question:
+      "Does the proposed controller outperform the existing controller under controlled conditions?",
     answer:
       v === "IMPROVEMENT"
         ? `Yes, within this protocol: ${s.verdict.reasons[0]}.`
@@ -694,7 +735,10 @@ function answer(p: Protocol, s: Summary): Summary["answers"] {
   const novel = new Set(p.conditions.filter((c) => c.novelToCandidate).map((c) => c.id));
   const bound = s.boundary
     .filter((b) => b.contrast[0] === p.candidate && b.contrast[1] === p.baseline)
-    .map((b) => `${b.condition}${novel.has(b.condition) ? " (unseen by the candidate)" : ""}: ${b.verdict}`);
+    .map(
+      (b) =>
+        `${b.condition}${novel.has(b.condition) ? " (unseen by the candidate)" : ""}: ${b.verdict}`,
+    );
   out.push({
     id: "Q3",
     question: "Does the improvement generalize to previously unseen conditions?",
@@ -720,9 +764,15 @@ function answer(p: Protocol, s: Summary): Summary["answers"] {
     question: "How much additional computation does the improvement require?",
     answer: `Per-run CPU, median on this machine under concurrent shards: ${p.candidate} ${fmt(cb?.cpuSMedian ?? null, 1)} s vs ${p.baseline} ${fmt(bb?.cpuSMedian ?? null, 1)} s for ${p.durationS} simulated s. The compute benchmark (single process, interleaved) is the controlled measurement; neither is hardware-independent.`,
   });
-  const reverse = s.boundary.filter((b) => b.verdict === "REGRESSION").map((b) => `${b.contrast.join(" − ")} in ${b.condition}`);
-  const inert = acted.filter((l) => l.plasticity!.adaptationsMean === 0).map((l) => l.condition);
-  const insensitive = s.impairmentCost.filter((c) => !c.sensitive).map((c) => c.condition);
+  const reverse = s.boundary
+    .filter((b) => b.verdict === "REGRESSION")
+    .map((b) => `${b.contrast.join(" − ")} in ${b.condition}`);
+  const inert = acted
+    .filter((l) => l.plasticity!.adaptationsMean === 0)
+    .map((l) => l.condition);
+  const insensitive = s.impairmentCost
+    .filter((c) => !c.sensitive)
+    .map((c) => c.condition);
   out.push({
     id: "Q6",
     question: "Under what conditions does the apparent improvement disappear or reverse?",

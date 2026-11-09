@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { decide, mean, pairedInterval, reading, sd, signTestP, streamSeed } from "./statistics.js";
+import {
+  decide,
+  mean,
+  pairedInterval,
+  reading,
+  sd,
+  signTestP,
+  streamSeed,
+} from "./statistics.js";
 
-const opts = { resamples: 4000, seed: 7, label: "t", level: 0.95, direction: "higher" as const };
+const opts = {
+  resamples: 4000,
+  seed: 7,
+  label: "t",
+  level: 0.95,
+  direction: "higher" as const,
+};
 
 describe("the paired interval", () => {
   it("is the bootstrap of the mean paired difference, reproducible from its seed and label", () => {
@@ -26,7 +40,10 @@ describe("the paired interval", () => {
 
   it("counts better and worse by the metric's direction", () => {
     const d = [1, 2, -1];
-    expect(pairedInterval(d, { ...opts, direction: "lower" })).toMatchObject({ better: 1, worse: 2 });
+    expect(pairedInterval(d, { ...opts, direction: "lower" })).toMatchObject({
+      better: 1,
+      worse: 2,
+    });
   });
 
   it("is empty, never invented, with no paired units", () => {
@@ -78,8 +95,12 @@ describe("the decision against the minimum meaningful effect", () => {
     expect(decide(at(0.05, 0.6, 0.2), "higher", 0.3).verdict).toBe("INCONCLUSIVE");
   });
   it("calls an interval inside ±δ no demonstrated improvement", () => {
-    expect(decide(at(-0.1, 0.1), "higher", 0.3).verdict).toBe("NO_DEMONSTRATED_IMPROVEMENT");
-    expect(decide(at(0.01, 0.1), "higher", 0.3).verdict).toBe("NO_DEMONSTRATED_IMPROVEMENT");
+    expect(decide(at(-0.1, 0.1), "higher", 0.3).verdict).toBe(
+      "NO_DEMONSTRATED_IMPROVEMENT",
+    );
+    expect(decide(at(0.01, 0.1), "higher", 0.3).verdict).toBe(
+      "NO_DEMONSTRATED_IMPROVEMENT",
+    );
   });
   it("calls an interval wholly on the worse side a regression, even a small one", () => {
     expect(decide(at(-0.6, -0.2), "higher", 0.3).verdict).toBe("REGRESSION");

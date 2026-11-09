@@ -17,7 +17,7 @@ import { summarize, type Check } from "./analysis.js";
 import {
   EVIDENCE_FILES,
   MANIFEST_SCHEMA,
-  VERIFICATION_SCHEMA,
+  type VERIFICATION_SCHEMA,
   manifestDigest,
   parseRecords,
   summaryText,
@@ -82,10 +82,15 @@ export function verifyStatic(
   files: Record<string, string | undefined>,
 ): StaticVerification {
   const checks: Check[] = [];
-  const add = (id: string, passed: boolean, detail: string) => checks.push({ id, passed, detail });
+  const add = (id: string, passed: boolean, detail: string) =>
+    checks.push({ id, passed, detail });
   const manifest = tryJson<Manifest>(files["manifest.json"]);
   if (!manifest || manifest.schema !== MANIFEST_SCHEMA) {
-    add("manifest", false, "manifest.json is missing, unreadable or not eimb-manifest/v1");
+    add(
+      "manifest",
+      false,
+      "manifest.json is missing, unreadable or not eimb-manifest/v1",
+    );
     return { checks, manifest: null, manifestDigest: null, records: null, machine: null };
   }
   const digest = manifestDigest(manifest);
@@ -97,13 +102,17 @@ export function verifyStatic(
   for (const name of EVIDENCE_FILES) {
     const text = files[name];
     if (text === undefined) bad.push(`${name} missing`);
-    else if (sha256(text) !== manifest.files[name]) bad.push(`${name} does not match its digest`);
+    else if (sha256(text) !== manifest.files[name])
+      bad.push(`${name} does not match its digest`);
   }
-  if (canonicalJson(listed) !== canonicalJson(required)) bad.push("the manifest lists other files");
+  if (canonicalJson(listed) !== canonicalJson(required))
+    bad.push("the manifest lists other files");
   add(
     "file-digests",
     bad.length === 0,
-    bad.length ? bad.join("; ") : `${EVIDENCE_FILES.length} files match their SHA-256 digests`,
+    bad.length
+      ? bad.join("; ")
+      : `${EVIDENCE_FILES.length} files match their SHA-256 digests`,
   );
 
   const frozenDigest = protocolDigest(frozen);
@@ -111,7 +120,11 @@ export function verifyStatic(
   try {
     archived = parseProtocol(tryJson(files["protocol.json"]));
   } catch (e) {
-    add("protocol-frozen", false, `protocol.json does not parse: ${(e as Error).message}`);
+    add(
+      "protocol-frozen",
+      false,
+      `protocol.json does not parse: ${(e as Error).message}`,
+    );
   }
   if (archived) {
     const d = protocolDigest(archived);
@@ -133,8 +146,10 @@ export function verifyStatic(
   if (records) {
     const text = files["records.jsonl"] ?? "";
     const lines = text.split("\n").filter(Boolean);
-    const canonical = lines.every((l, i) => l === canonicalJson(records![i]));
-    const sorted = records.every((r, i) => i === 0 || unitKey(records![i - 1]!) < unitKey(r));
+    const canonical = lines.every((l, i) => l === canonicalJson(records[i]));
+    const sorted = records.every(
+      (r, i) => i === 0 || unitKey(records[i - 1]!) < unitKey(r),
+    );
     add(
       "records-parse",
       records.length === manifest.records && canonical && sorted,
@@ -191,7 +206,11 @@ export function verifyStatic(
 }
 
 /** Pick `k` units to re-simulate, spread over controllers and conditions, fixed by the manifest digest. */
-export function replaySample(records: readonly RunRecord[], digest: string, k: number): RunRecord[] {
+export function replaySample(
+  records: readonly RunRecord[],
+  digest: string,
+  k: number,
+): RunRecord[] {
   const scored = records
     .filter((r) => r.status === "complete")
     .map((r) => ({ r, h: sha256(`${digest}:${unitKey(r)}`) }))

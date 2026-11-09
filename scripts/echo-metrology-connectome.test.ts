@@ -19,7 +19,11 @@ const BASE = "docs/benchmarks/fly-neural";
 const walk = (d: string): string[] =>
   readdirSync(d).flatMap((n) => {
     const p = join(d, n);
-    return statSync(p).isDirectory() ? walk(p) : n.endsWith(".json") ? [p.split("\\").join("/")] : [];
+    return statSync(p).isDirectory()
+      ? walk(p)
+      : n.endsWith(".json")
+        ? [p.split("\\").join("/")]
+        : [];
   });
 const results = walk(BASE).map((path) => ({ path, text: readFileSync(path, "utf8") }));
 
@@ -35,7 +39,9 @@ describe("Python's canonical JSON, without Python", () => {
 describe("the committed sealed results", () => {
   it("all verify, except the two that carry no seal", () => {
     expect(results.length).toBeGreaterThanOrEqual(30);
-    const states = results.map((r) => [r.path.slice(BASE.length + 1), checkFlyNeuralSeal(r.text)] as const);
+    const states = results.map(
+      (r) => [r.path.slice(BASE.length + 1), checkFlyNeuralSeal(r.text)] as const,
+    );
     expect(states.filter(([, s]) => s === false)).toEqual([]);
     expect(states.filter(([, s]) => s === null).map(([f]) => f)).toEqual([
       "adaptive/echo-mb-v2-dev.json",

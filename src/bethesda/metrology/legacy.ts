@@ -74,7 +74,9 @@ export function reproductionSummary(
     const out: number[] = [];
     const seeds = [...new Set(reproduced.map((r) => r.seed))].sort((x, y) => x - y);
     for (const seed of seeds) {
-      const x = reproduced.find((r) => r.seed === seed && r.arm === arm && r.condition === meta.condition);
+      const x = reproduced.find(
+        (r) => r.seed === seed && r.arm === arm && r.condition === meta.condition,
+      );
       const o = reproduced.find(
         (r) => r.seed === seed && r.arm === "original" && r.condition === meta.condition,
       );

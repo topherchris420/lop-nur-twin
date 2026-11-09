@@ -37,7 +37,10 @@ import type { ConditionSpec } from "./protocol.js";
 
 /** Food positions between the compass sites, 6.5 m out: away from every pole. */
 const DIAGONAL_R = 6.5;
-export function foodAt(site: SiteName, layout: ConditionSpec["food"]["layout"]): [number, number] {
+export function foodAt(
+  site: SiteName,
+  layout: ConditionSpec["food"]["layout"],
+): [number, number] {
   const [x, z] = SITES[site];
   if (layout === "compass") return [x, z];
   const c = Math.SQRT1_2;
@@ -46,7 +49,11 @@ export function foodAt(site: SiteName, layout: ConditionSpec["food"]["layout"]):
 }
 
 /** The site the food is at, at a tick: a fixed rotation from the seed's site, as the plasticity study's. */
-export function siteAt(seed: number, food: ConditionSpec["food"], tick: number): SiteName {
+export function siteAt(
+  seed: number,
+  food: ConditionSpec["food"],
+  tick: number,
+): SiteName {
   const first = seed % SITE_NAMES.length;
   const moves = food.kind === "steady" ? 0 : Math.floor((tick * TICK_S) / food.everyS);
   return SITE_NAMES[(first + moves) % SITE_NAMES.length]!;
@@ -59,7 +66,10 @@ export function perturbationOf(condition: ConditionSpec): Perturbation | undefin
 }
 
 /** When the condition's first episode begins and, if every episode ends, when the last ends. */
-export function onsetOf(condition: ConditionSpec): { onsetS: number | null; untilS: number | null } {
+export function onsetOf(condition: ConditionSpec): {
+  onsetS: number | null;
+  untilS: number | null;
+} {
   if (!condition.episodes.length) return { onsetS: null, untilS: null };
   const onsetS = Math.min(...condition.episodes.map((e) => e.from));
   const ends = condition.episodes.map((e) => e.until);
@@ -245,7 +255,8 @@ export class MetrologyLife {
         if (fly.state.counts.meals === t.mealsAtMove) t.censored++;
         t.placements.push({
           windowS: (this.tick - t.movedAtTick) * TICK_S,
-          latencyS: fly.state.counts.meals > t.mealsAtMove ? t.latencies.at(-1)! * TICK_S : null,
+          latencyS:
+            fly.state.counts.meals > t.mealsAtMove ? t.latencies.at(-1)! * TICK_S : null,
         });
         t.foodSite = site;
         t.movedAtTick = this.tick;
@@ -258,7 +269,8 @@ export class MetrologyLife {
         reserve: Math.min(fly.state.reserve, capacity),
         capacity,
       });
-      if (supplied > 0) fly.state.reserve = Math.min(capacity, fly.state.reserve + supplied);
+      if (supplied > 0)
+        fly.state.reserve = Math.min(capacity, fly.state.reserve + supplied);
       const meals = fly.state.counts.meals;
       fly.advance(TICK_S);
       this.tick++;
@@ -314,7 +326,12 @@ export class MetrologyLife {
       )
         t.releaseS = now - this.untilS;
     }
-    if (this.target && this.onsetS !== null && now >= this.onsetS && t.convergedS === null) {
+    if (
+      this.target &&
+      this.onsetS !== null &&
+      now >= this.onsetS &&
+      t.convergedS === null
+    ) {
       const b = this.belief();
       if (b !== null && Math.abs(b - this.truthAt(now)) <= this.target.tolerance)
         t.convergedS = now - this.onsetS;
@@ -345,7 +362,10 @@ export class MetrologyLife {
 
   /** The body and the controller with any plasticity removed, hashed: equal across controllers exactly when behaviour was. */
   bodyHash(): string {
-    const state = JSON.parse(JSON.stringify(this.organism.state)) as Record<string, unknown>;
+    const state = JSON.parse(JSON.stringify(this.organism.state)) as Record<
+      string,
+      unknown
+    >;
     delete state.plasticity;
     return sha256(
       canonicalJson({

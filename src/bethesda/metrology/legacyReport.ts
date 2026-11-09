@@ -11,7 +11,11 @@ import type { MachineRecord } from "./report.js";
 const f = (x: number | null | undefined, d = 3) =>
   x === null || x === undefined || !Number.isFinite(x) ? "n/a" : x.toFixed(d);
 
-export function renderReproduction(s: ReproductionSummary, m: MachineRecord, p: Protocol): string {
+export function renderReproduction(
+  s: ReproductionSummary,
+  m: MachineRecord,
+  p: Protocol,
+): string {
   const a = s.primary.archived,
     r = s.primary.reproduced;
   return [

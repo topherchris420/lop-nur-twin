@@ -24,7 +24,9 @@ import { RECORD_SCHEMA, type RunRecord } from "./runner.js";
 
 /** The value every controller of a unit would show with no effect: shared, so pairing is exact. */
 function baseValue(seed: number, condition: string, metric: BehaviourMetric): number {
-  const rng = mulberry32(parseInt(sha256(`${seed}:${condition}:${metric}`).slice(0, 8), 16));
+  const rng = mulberry32(
+    parseInt(sha256(`${seed}:${condition}:${metric}`).slice(0, 8), 16),
+  );
   const noise = rng() - 0.5;
   const impaired = condition === "unimpaired" ? 0 : 1;
   switch (metric) {
@@ -46,7 +48,11 @@ export type Shift = (u: Unit, metric: BehaviourMetric, base: number) => number;
 export const noEffect: Shift = (_u, _m, base) => base;
 
 /** One synthetic record per unit of the split, each shifted from the shared base by `shift`. */
-export function syntheticRecords(p: Protocol, split: Split, shift: Shift = noEffect): RunRecord[] {
+export function syntheticRecords(
+  p: Protocol,
+  split: Split,
+  shift: Shift = noEffect,
+): RunRecord[] {
   const digest = protocolDigest(p);
   const out: RunRecord[] = [];
   for (const seed of seedsOf(p, split))
@@ -57,7 +63,8 @@ export function syntheticRecords(p: Protocol, split: Split, shift: Shift = noEff
           BEHAVIOUR_METRICS.map((m) => [m, shift(u, m, baseValue(seed, c.id, m))]),
         ) as Record<BehaviourMetric, number>;
         const sameBody =
-          controller === p.baseline || p.validity.identicalToBaseline.includes(controller);
+          controller === p.baseline ||
+          p.validity.identicalToBaseline.includes(controller);
         const learns = controller.startsWith("plasticity-");
         out.push({
           schema: RECORD_SCHEMA,
@@ -91,8 +98,8 @@ export function syntheticRecords(p: Protocol, split: Split, shift: Shift = noEff
             : null,
           blocks: [p.durationS / 2, p.durationS].map((t, i) => ({
             t,
-            meals: behaviour.meals * (i + 1) / 2,
-            fedJ: behaviour.fedJ * (i + 1) / 2,
+            meals: (behaviour.meals * (i + 1)) / 2,
+            fedJ: (behaviour.fedJ * (i + 1)) / 2,
             spentJ: 1,
             walkedM: 10,
             flownM: 0,
@@ -112,10 +119,17 @@ export function syntheticRecords(p: Protocol, split: Split, shift: Shift = noEff
 }
 
 /** A shift that moves one controller's metric by `by`, plus optional per-seed noise of half-width `jitter`. */
-export function moved(controller: string, metric: BehaviourMetric, by: number, jitter = 0): Shift {
+export function moved(
+  controller: string,
+  metric: BehaviourMetric,
+  by: number,
+  jitter = 0,
+): Shift {
   return (u, m, base) => {
     if (u.controller !== controller || m !== metric) return base;
-    const rng = mulberry32(parseInt(sha256(`jitter:${u.seed}:${u.condition}`).slice(0, 8), 16));
+    const rng = mulberry32(
+      parseInt(sha256(`jitter:${u.seed}:${u.condition}`).slice(0, 8), 16),
+    );
     return base + by + (rng() - 0.5) * 2 * jitter;
   };
 }

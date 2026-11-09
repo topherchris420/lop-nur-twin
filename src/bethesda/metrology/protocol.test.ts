@@ -13,7 +13,8 @@ import {
 } from "./protocol.js";
 import source from "./protocols/plasticity-locomotor-v1.json" with { type: "json" };
 
-const clone = () => JSON.parse(JSON.stringify(source)) as Record<string, unknown> & typeof source;
+const clone = () =>
+  JSON.parse(JSON.stringify(source)) as Record<string, unknown> & typeof source;
 
 describe("the protocol schema", () => {
   it("accepts the committed protocol", () => {
@@ -34,9 +35,12 @@ describe("the protocol schema", () => {
       (p: ReturnType<typeof clone>) => delete (p as Record<string, unknown>).baseline,
       (p: ReturnType<typeof clone>) => (p.schema = "eimb-protocol/v0" as never),
       (p: ReturnType<typeof clone>) => (p.endpoints.confirmatory[0]!.mme = 0),
-      (p: ReturnType<typeof clone>) => (p.endpoints.confirmatory[0]!.metric = "walkedM" as never),
-      (p: ReturnType<typeof clone>) => (p.conditions[0]!.controllers = ["organism"] as never),
-      (p: ReturnType<typeof clone>) => (p.validity.identicalToBaseline = ["plasticity-active"] as never),
+      (p: ReturnType<typeof clone>) =>
+        (p.endpoints.confirmatory[0]!.metric = "walkedM" as never),
+      (p: ReturnType<typeof clone>) =>
+        (p.conditions[0]!.controllers = ["organism"] as never),
+      (p: ReturnType<typeof clone>) =>
+        (p.validity.identicalToBaseline = ["plasticity-active"] as never),
       (p: ReturnType<typeof clone>) => (p.splits.dev.seeds = [9201, 9201] as never),
       (p: ReturnType<typeof clone>) => (p.splits.dev.seeds = [9101] as never),
       (p: ReturnType<typeof clone>) => (p.analysis.alpha = 0.5),
@@ -77,10 +81,18 @@ describe("the frozen design", () => {
     expect(new Set(units.map(unitKey)).size).toBe(units.length);
     expect(unitsOf(p, "heldout")).toHaveLength(40 * 31);
     for (const c of p.conditions)
-      for (const id of [p.baseline, p.candidate, ...p.controls]) expect(c.controllers).toContain(id);
+      for (const id of [p.baseline, p.candidate, ...p.controls])
+        expect(c.controllers).toContain(id);
     for (const id of p.validity.identicalToBaseline)
-      expect(units.filter((u) => u.controller === id).map((u) => u.condition).sort()).toEqual(
-        seedsOf(p, "dev").flatMap(() => [...p.validity.conditions]).sort(),
+      expect(
+        units
+          .filter((u) => u.controller === id)
+          .map((u) => u.condition)
+          .sort(),
+      ).toEqual(
+        seedsOf(p, "dev")
+          .flatMap(() => [...p.validity.conditions])
+          .sort(),
       );
   });
 
@@ -90,10 +102,17 @@ describe("the frozen design", () => {
       expect(e.mme).toBeGreaterThan(0);
       expect(e.mmeRule.length).toBeGreaterThan(40);
     }
-    for (const g of p.endpoints.guardrails) expect(METRIC_DIRECTION[g.metric]).not.toBe("neutral");
+    for (const g of p.endpoints.guardrails)
+      expect(METRIC_DIRECTION[g.metric]).not.toBe("neutral");
     expect(BEHAVIOUR_METRICS).toContain(p.endpoints.boundary.metric);
     expect([...CONTROLLER_IDS].sort()).toEqual(
-      [...new Set(p.conditions.flatMap((c) => c.controllers).concat(p.validity.identicalToBaseline))].sort(),
+      [
+        ...new Set(
+          p.conditions
+            .flatMap((c) => c.controllers)
+            .concat(p.validity.identicalToBaseline),
+        ),
+      ].sort(),
     );
   });
 
