@@ -752,7 +752,7 @@ function answer(p: Protocol, s: Summary): Summary["answers"] {
       ? `The candidate's learned state changed what it did only where it became cautious: ${acted
           .map(
             (l) =>
-              `${l.condition}: detected in ${fmt(l.plasticity!.detectedShare * 100, 0)}% of subjects, ${fmt(l.plasticity!.adaptationsMean, 0)} slowed walks per run`,
+              `${l.condition}: detected in ${fmt(l.plasticity!.detectedShare * 100, 0)}% of subjects, ${fmt(l.plasticity!.adaptationsMean, 0)} walking decisions slowed per run`,
           )
           .join("; ")}. Whether that change helped is Q1 and Q3, not this.`
       : "The candidate carries no learned state the bench can read.",

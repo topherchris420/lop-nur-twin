@@ -159,7 +159,7 @@ export function renderReport(s: Summary, p: Protocol, m: MachineRecord): string 
     "",
     "The plasticity's change detection and ECHO's self-model accuracy. These are what the mechanisms compute about themselves; whether they help is decided by the behavioural tables above, never by these.",
     "",
-    "| condition | controller | plasticity detected | mean detection s | false alarms | released after recovery | slowed walks / run | self-model belief | converged | mean converge s | end error | calibration 90% (nominal 0.90) | noticed after onset |",
+    "| condition | controller | plasticity detected | mean detection s | false alarms | released after recovery | walking decisions slowed / run | self-model belief | converged | mean converge s | end error | calibration 90% (nominal 0.90) | noticed after onset |",
     "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |",
   );
   for (const l of s.learning) {
@@ -199,7 +199,7 @@ export function renderReport(s: Summary, p: Protocol, m: MachineRecord): string 
     "",
     `The research subjects on which the candidate did worst against the baseline (${p.endpoints.boundary.metric}), per condition.`,
     "",
-    "| condition | seed | candidate | baseline | difference | candidate's slowed walks |",
+    "| condition | seed | candidate | baseline | difference | candidate's walking decisions slowed |",
     "| --- | ---: | ---: | ---: | ---: | ---: |",
     ...s.failureCases.map(
       (x) =>

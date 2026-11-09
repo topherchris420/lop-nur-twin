@@ -76,7 +76,32 @@ describe("the metrology bench's boundary", () => {
     ]
       .filter((p) => !p.startsWith(`${BENCH}/`))
       .filter((p) => specifiers(p).some((s) => /(^|\/)metrology\//.test(s)));
-    expect(users.sort()).toEqual(["scripts/echo-metrology.ts"]);
+    expect(users.sort()).toEqual([
+      "scripts/echo-metrology.ts",
+      "src/routes/metrology.tsx",
+    ]);
+  });
+
+  it("keeps the simulation out of the browser: the research view imports bench modules as types only", () => {
+    const view = files(`${BENCH}/view`, /\.tsx?$/);
+    expect(view.length).toBeGreaterThanOrEqual(3);
+    const RUNTIME: readonly RegExp[] = [
+      /^react$/,
+      /^lucide-react$/,
+      /^\.\/[A-Za-z]+(\.js)?$/,
+      /^\.\.\/\.\.\/\.\.\/rain\/sha256(\.js)?$/,
+    ];
+    for (const f of view) {
+      const text = readFileSync(f, "utf8");
+      const runtime = [
+        ...text.matchAll(/^import\s+(?!type\s)[^;]*?from\s+"([^"]+)"/gm),
+      ].map((m) => m[1]!);
+      expect(
+        runtime.filter((s) => !RUNTIME.some((r) => r.test(s))),
+        f,
+      ).toEqual([]);
+      expect(text, f).not.toMatch(/fetch\(|XMLHttpRequest|WebSocket|localStorage/);
+    }
   });
 
   it("keeps its synthetic records in tests: only a test imports the testkit", () => {
