@@ -241,11 +241,54 @@ function unknownKeys(o: Record<string, unknown>, allowed: string[], at: string):
     .map((k) => `${at}: unknown field ${k}`);
 }
 
+/** Every nested object's fields, so nothing rides along unvalidated at any depth. */
+const NESTED_KEYS: Record<string, string[]> = {
+  validity: ["identicalToBaseline", "conditions"],
+  splits: ["dev", "heldout"],
+  "splits.dev": ["seeds"],
+  "splits.heldout": ["count", "salt"],
+  endpoints: ["confirmatory", "guardrails", "boundary", "mechanism"],
+  confirmatory: ["id", "metric", "condition", "contrast", "mme", "mmeRule"],
+  guardrails: ["metric", "condition", "contrast"],
+  family: ["metric", "mme", "contrasts", "conditions"],
+  analysis: ["estimator", "interval", "resamples", "seed", "alpha", "multiplicity", "guardrailAlpha"],
+  decision: ["maxFailedFraction", "rules"],
+  limits: ["maxWallSPerRun"],
+};
+
+/** Unknown and missing fields of the nested objects (shape only; values are checked below). */
+function nestedKeyErrors(p: Record<string, unknown>): string[] {
+  const e: string[] = [];
+  const check = (o: unknown, kind: string, at: string) => {
+    if (!isObj(o)) return;
+    const allowed = NESTED_KEYS[kind]!;
+    e.push(...unknownKeys(o, allowed, at));
+    for (const k of allowed) if (!(k in o)) e.push(`${at}: missing ${k}`);
+  };
+  for (const k of ["validity", "splits", "endpoints", "analysis", "decision", "limits"])
+    check(p[k], k, k);
+  if (isObj(p.splits)) {
+    check(p.splits.dev, "splits.dev", "splits.dev");
+    check(p.splits.heldout, "splits.heldout", "splits.heldout");
+  }
+  if (isObj(p.endpoints)) {
+    const ep = p.endpoints;
+    if (Array.isArray(ep.confirmatory))
+      ep.confirmatory.forEach((c, i) => check(c, "confirmatory", `endpoints.confirmatory ${i}`));
+    if (Array.isArray(ep.guardrails))
+      ep.guardrails.forEach((g, i) => check(g, "guardrails", `endpoints.guardrails ${i}`));
+    check(ep.boundary, "family", "endpoints.boundary");
+    check(ep.mechanism, "family", "endpoints.mechanism");
+  }
+  return e;
+}
+
 /** Why a value is not a runnable protocol; empty when it is. */
 export function protocolErrors(p: unknown): string[] {
   if (!isObj(p)) return ["a protocol is an object"];
   const e: string[] = unknownKeys(p, TOP_KEYS, "protocol");
   for (const k of TOP_KEYS) if (!(k in p)) e.push(`protocol: missing ${k}`);
+  e.push(...nestedKeyErrors(p));
   if (e.length) return e;
   if (p.schema !== PROTOCOL_SCHEMA) e.push(`schema must be ${PROTOCOL_SCHEMA}`);
   if (!isStr(p.id) || !/^[a-z0-9][a-z0-9-]{2,60}$/.test(p.id))
@@ -329,6 +372,10 @@ export function protocolErrors(p: unknown): string[] {
     !v.conditions.every((c) => typeof c === "string" && ids.has(c))
   )
     e.push("validity: {identicalToBaseline: controllers, conditions: known condition ids}");
+  else if (v.identicalToBaseline.some((c) => c === p.baseline || c === p.candidate))
+    // A validity check compares a controller with the baseline; the baseline
+    // against itself proves nothing, and the candidate is expected to differ.
+    e.push("validity.identicalToBaseline may name neither the baseline nor the candidate");
 
   const s = p.splits;
   if (

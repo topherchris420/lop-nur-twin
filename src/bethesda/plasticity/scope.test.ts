@@ -20,13 +20,22 @@ const importsOf = (path: string) =>
   [...readFileSync(path, "utf8").matchAll(/from\s+"([^"]+)"/g)].map((m) => m[1]!);
 
 describe("the plasticity study's boundary", () => {
-  it("is imported by nothing outside itself but its own script", () => {
+  it("is imported by nothing outside itself but its own script and the metrology bench", () => {
     const users = [...files("src"), ...files("scripts"), ...files("server")]
       .filter((p) => !p.startsWith("src/bethesda/plasticity/"))
       .filter((p) =>
         importsOf(p).some((i) => /(^|\/)plasticity\/(study|analysis)(\.js)?$/.test(i)),
       );
-    expect(users).toEqual(["scripts/echo-plasticity-evaluate.ts"]);
+    // The metrology bench (research subjects only, docs/ECHO_INTELLIGENCE_METROLOGY.md)
+    // reuses the study's fixed-slow control and reproduces its archive; its own
+    // scope test (src/bethesda/metrology/scope.test.ts) keeps the bench out of
+    // everything the deployed life runs, so this boundary still holds there.
+    expect(users.sort()).toEqual([
+      "scripts/echo-metrology.ts",
+      "scripts/echo-plasticity-evaluate.ts",
+      "src/bethesda/metrology/controllers.ts",
+      "src/bethesda/metrology/legacy.ts",
+    ]);
   });
 
   it("never opens a store, a release or the network", () => {

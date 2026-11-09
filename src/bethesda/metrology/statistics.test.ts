@@ -14,7 +14,14 @@ describe("the paired interval", () => {
     expect(a.low).toBeLessThan(a.mean);
     expect(a.high).toBeGreaterThan(a.mean);
     expect([a.better, a.worse, a.tied]).toEqual([6, 1, 1]);
-    expect(pairedInterval(d, { ...opts, label: "other" })).not.toEqual(a);
+    // The label picks the resampling stream. (On the diffs above every mean is a
+    // multiple of 1/80, so two streams can land on the same quantiles; values
+    // with no common grid make the stream visible.)
+    const e = [0.131, 0.307, -0.219, 0.443, 0.017, 0.229, 0.113, 0.587, -0.061, 0.271];
+    const x = pairedInterval(e, opts),
+      y = pairedInterval(e, { ...opts, label: "other" });
+    expect([x.mean, x.sd]).toEqual([y.mean, y.sd]);
+    expect([x.low, x.high]).not.toEqual([y.low, y.high]);
   });
 
   it("counts better and worse by the metric's direction", () => {

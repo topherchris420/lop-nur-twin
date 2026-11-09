@@ -12,6 +12,9 @@ import { behaviouralPart, runUnit, subjectOf, type Clock } from "./runner.js";
 
 const short: Protocol = parseProtocol({ ...source, durationS: 900, lateFromS: 450, blockS: 300 });
 const real = parseProtocol(source);
+// Weak legs begin at 600 s and plasticity needs evidence after that: measured on
+// dev seeds 9201 and 9204, it first adapts 270 to 467 s after onset.
+const longer: Protocol = parseProtocol({ ...source, durationS: 1800, lateFromS: 900, blockS: 300 });
 
 let t = 0;
 const clock: Clock = { wallMs: () => (t += 1), cpuMs: () => null };
@@ -39,7 +42,7 @@ describe("the runner", () => {
 
   it("finds shadow and disabled plasticity identical to the baseline, and active different", () => {
     const of = (controller: Unit["controller"]) =>
-      behaviouralPart(run({ seed: 9204, condition: "weak-legs", controller }));
+      behaviouralPart(run({ seed: 9204, condition: "weak-legs", controller }, longer));
     const base = of("organism");
     for (const c of ["plasticity-shadow", "plasticity-disabled"] as const) {
       const r = of(c);

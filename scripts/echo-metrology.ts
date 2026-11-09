@@ -54,9 +54,9 @@ import type { MachineRecord } from "../src/bethesda/metrology/report.js";
 import { replaySample, statusOf, verifyStatic, type ReplayResult, type Verification } from "../src/bethesda/metrology/verify.js";
 import { MetrologyLife } from "../src/bethesda/metrology/life.js";
 import { computeReport, renderCompute, type ComputeRow } from "../src/bethesda/metrology/compute.js";
-import { neuralReport, type NeuralReport } from "../src/bethesda/metrology/connectome.js";
+import { neuralReport, renderNeural, type NeuralReport } from "./echo-metrology-connectome.js";
 import { reproductionSummary, studyKey, type ReproductionSummary } from "../src/bethesda/metrology/legacy.js";
-import { renderNeural, renderReproduction } from "../src/bethesda/metrology/legacyReport.js";
+import { renderReproduction } from "../src/bethesda/metrology/legacyReport.js";
 import { execute as studyExecute, type RunRecord as StudyRecord } from "../src/bethesda/plasticity/study.js";
 import type { Interval as StudyInterval } from "../src/bethesda/plasticity/analysis.js";
 
