@@ -160,6 +160,19 @@ if (mode === "protocol") {
   const out = option("out");
   if (!out) throw new Error("run needs --out FILE");
   refuseProductionHost(out, existsSync);
+  // Which code made these records: a sidecar written before the first run and
+  // checked on every resume, so a shard never mixes commits and `collect` can
+  // refuse records the collecting commit did not make.
+  const machine = machineRecord(n);
+  if (split === "heldout" && !machine.cleanSources)
+    throw new Error("a held-out split runs only from a clean commit: commit src/ and scripts/ first");
+  const sidecar = `${out}.machine.json`;
+  if (existsSync(sidecar)) {
+    const before = JSON.parse(readFileSync(sidecar, "utf8")) as MachineRecord;
+    if (before.commit !== machine.commit || before.cleanSources !== machine.cleanSources)
+      throw new Error(`${out} was started at ${before.commit} (clean ${before.cleanSources}); this is ${machine.commit} (clean ${machine.cleanSources})`);
+  } else if (existsSync(out)) throw new Error(`${out} has records but no ${sidecar}: provenance unknown`);
+  else write(sidecar, machineText(machine));
   const done = new Set(existsSync(out) ? readJsonl<RunRecord>(out).map(unitKey) : []);
   const units = unitsOf(protocol, split)
     .filter((_, k) => k % n === i)
@@ -188,11 +201,20 @@ if (mode === "protocol") {
     got.set(k, r);
   }
   if (got.size !== want.size) throw new Error(`expected ${want.size} records, have ${got.size}`);
+  const now = machineRecord(files.length);
+  for (const f of files) {
+    const sidecar = `${f}.machine.json`;
+    if (!existsSync(sidecar)) throw new Error(`${f}: no ${sidecar}, so which code made it is unknown`);
+    const m = JSON.parse(readFileSync(sidecar, "utf8")) as MachineRecord;
+    if (m.commit !== now.commit || m.cleanSources !== now.cleanSources || m.platform !== now.platform || m.arch !== now.arch)
+      throw new Error(`${f} was made at ${m.commit} on ${m.platform} ${m.arch} (clean ${m.cleanSources}); collecting at ${now.commit} on ${now.platform} ${now.arch} (clean ${now.cleanSources})`);
+  }
+  if (split === "heldout" && !now.cleanSources) throw new Error("collect a held-out split from the clean commit that ran it");
   const folder = folderOf(protocol, split);
   mkdirSync(folder, { recursive: true });
   write(join(folder, "protocol.json"), source);
   write(join(folder, "records.jsonl"), recordsText(records));
-  write(join(folder, "machine.json"), machineText(machineRecord(files.length)));
+  write(join(folder, "machine.json"), machineText(now));
   process.stdout.write(`${folder}: ${records.length} records\n`);
 } else if (mode === "report") {
   const { protocol, source } = loadProtocol();
