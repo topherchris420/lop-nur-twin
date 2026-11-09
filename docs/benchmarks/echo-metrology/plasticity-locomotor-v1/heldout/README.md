@@ -144,7 +144,7 @@ Per condition, plasticity-active − organism on fedJ, corrected over the family
 
 **Q4. Does experience produce measurable changes in subsequent behaviour?**
 
-The candidate's learned state changed what it did only where it became cautious: unimpaired: detected in 0% of subjects, 0 slowed walks per run; weak-legs: detected in 100% of subjects, 22938 slowed walks per run; weak-legs-mild: detected in 0% of subjects, 0 slowed walks per run; weak-legs-severe: detected in 100% of subjects, 25621 slowed walks per run; asymmetric-gait: detected in 0% of subjects, 0 slowed walks per run; weak-legs-noisy-sense: detected in 100% of subjects, 43655 slowed walks per run; weak-legs-recovers: detected in 100% of subjects, 7993 slowed walks per run; weak-legs-low-reserve: detected in 100% of subjects, 23592 slowed walks per run; weak-legs-diagonal-food: detected in 100% of subjects, 23002 slowed walks per run. Whether that change helped is Q1 and Q3, not this.
+The candidate's learned state changed what it did only where it became cautious: unimpaired: detected in 0% of subjects, 0 walking decisions slowed per run; weak-legs: detected in 100% of subjects, 22938 walking decisions slowed per run; weak-legs-mild: detected in 0% of subjects, 0 walking decisions slowed per run; weak-legs-severe: detected in 100% of subjects, 25621 walking decisions slowed per run; asymmetric-gait: detected in 0% of subjects, 0 walking decisions slowed per run; weak-legs-noisy-sense: detected in 100% of subjects, 43655 walking decisions slowed per run; weak-legs-recovers: detected in 100% of subjects, 7993 walking decisions slowed per run; weak-legs-low-reserve: detected in 100% of subjects, 23592 walking decisions slowed per run; weak-legs-diagonal-food: detected in 100% of subjects, 23002 walking decisions slowed per run. Whether that change helped is Q1 and Q3, not this.
 
 **Q5. How much additional computation does the improvement require?**
 
@@ -158,7 +158,7 @@ Regressions (corrected): plasticity-active − organism in weak-legs-severe. The
 
 The plasticity's change detection and ECHO's self-model accuracy. These are what the mechanisms compute about themselves; whether they help is decided by the behavioural tables above, never by these.
 
-| condition | controller | plasticity detected | mean detection s | false alarms | released after recovery | slowed walks / run | self-model belief | converged | mean converge s | end error | calibration 90% (nominal 0.90) | noticed after onset |
+| condition | controller | plasticity detected | mean detection s | false alarms | released after recovery | walking decisions slowed / run | self-model belief | converged | mean converge s | end error | calibration 90% (nominal 0.90) | noticed after onset |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |
 | unimpaired | organism | — | — | — | — | — | leg speed gain | 0% | n/a | 0.003 | 0.934 | 0.0 |
 | unimpaired | plasticity-active | 0% | n/a | 0% | — | 0 | leg speed gain | 0% | n/a | 0.003 | 0.934 | 0.0 |
@@ -289,7 +289,7 @@ The plasticity's change detection and ECHO's self-model accuracy. These are what
 
 The research subjects on which the candidate did worst against the baseline (fedJ), per condition.
 
-| condition | seed | candidate | baseline | difference | candidate's slowed walks |
+| condition | seed | candidate | baseline | difference | candidate's walking decisions slowed |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | weak-legs | 1045082712 | 1.147 | 1.329 | -0.182 | 22834 |
 | weak-legs | 617763266 | 1.244 | 1.418 | -0.174 | 22221 |
