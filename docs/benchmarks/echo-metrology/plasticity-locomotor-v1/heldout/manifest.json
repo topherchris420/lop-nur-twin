@@ -1,0 +1,14 @@
+{
+  "schema": "eimb-manifest/v1",
+  "protocol": "plasticity-locomotor-v1",
+  "protocolDigest": "da8270ae2d9036420e3a3799e03b394c21ee5a2d0af2fe9b1771694253a8eaec",
+  "split": "heldout",
+  "records": 1240,
+  "files": {
+    "protocol.json": "1483c1bdf4095dcfe7b5578d9f4f9d5f430e1c83cf70a65f55047213d9742013",
+    "records.jsonl": "e1bc9316ad4329e62fd297c5b8f0313a9858c5f92434695da3479c506acec268",
+    "machine.json": "4f626d1e7f0dcdadb0e394bae3581e1bc5755595edbc7d0d6c63cdabcdd66b0e",
+    "summary.json": "0d5293e08685cbaf5a4a5cd90134148f16b1686f041e6ce83c4b6a21837b234a",
+    "README.md": "d4063207a25f932b047b63f8834f8e787f3473b48dd043e553de1cae6b32af41"
+  }
+}

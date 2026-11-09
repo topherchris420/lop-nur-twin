@@ -514,7 +514,8 @@ of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 scripts. Individual continuity adds the files its own section lists. Its autonomous researcher adds `src/rain/autonomy/`,
 `tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`. The unlisted
 `/live` page adds `src/routes/live.tsx` and the observer's origin in the
-`connect-src` of all three CSP copies.
+`connect-src` of all three CSP copies. The unlisted `/metrology` page adds
+`src/routes/metrology.tsx` (the bench's section lists the rest).
 
 - **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
   pedestrian graphs; `data/streetscape.json` holds storefront names, monuments,
@@ -1109,6 +1110,49 @@ keeping their individual histories across updates and restarts. Read
   README and summary still follow from the records byte for byte; never edit the
   folder by hand. `scope.test.ts` keeps the suite to what its benchmarks need, and
   `isolation.test.ts` keeps production from importing it.
+
+### The ECHO Intelligence Metrology Bench (`src/bethesda/metrology/`)
+
+An instrument that measures whether a controller change improves adaptive
+behaviour, and where it does not. Read `docs/ECHO_INTELLIGENCE_METROLOGY.md`
+first. Outside the folder it adds `scripts/echo-metrology.ts`,
+`scripts/echo-metrology-connectome.ts` (with its test),
+`docs/ECHO_INTELLIGENCE_METROLOGY.md`, `docs/benchmarks/echo-metrology/` (and
+its `.prettierignore` line), the `echo:metrology` script, the unlisted
+`/metrology` page (`src/routes/metrology.tsx`, its `tools/a11y.mjs` entry and
+its line in `routeTree.gen.ts`), two names in
+`src/bethesda/plasticity/scope.test.ts`, claim 25 in `docs/RESEARCH_CLAIMS.md`,
+a row in README section 04 and one in `docs/README.md`.
+
+- **A protocol is frozen before its held-out run.** `protocols/*.json` holds the
+  conditions, endpoints, minimum meaningful effects (each with the rule that set
+  it), analysis and decision rules; held-out seeds come from its digest. Any
+  change makes a new protocol id with new seeds. Never edit a protocol, an
+  endpoint or a δ after its held-out records exist, and never relax a rule to
+  turn a verdict into a pass: INCONCLUSIVE and NO_DEMONSTRATED_IMPROVEMENT are
+  findings.
+- **Real controllers, research subjects.** Controllers are the deployed ones
+  (`controllers.ts`); subjects are `research-eimb-…`, refused if they name an
+  original. The library imports no store, file, network or clock
+  (`scope.test.ts`); nothing deployed imports it. No result promotes anything to
+  Eva or ECHO.
+- **Archives are generated and verified.** Run held-out splits from a clean
+  commit (`run` writes a provenance sidecar; `collect` refuses records from other
+  code), then `report`, then `verify --replay K --write` on the platform that made
+  the records, and commit what each step writes. `archives.test.ts` re-verifies
+  every archive in CI; a change to `analysis.ts` or `report.ts` that changes a
+  committed summary or report fails it, by design: re-render with `report` from
+  the unchanged records, re-verify, and say so in the commit. Never edit the
+  folder by hand, and never re-run a spent held-out split.
+- **The research view shows only what the browser can check.** `view/` re-hashes
+  an archive's summary and protocol against its manifest and requires a
+  VERIFIED verification of that manifest (`archiveGate.ts`); otherwise it shows
+  the reasons and no numbers. It imports bench modules as types only, so no
+  simulation reaches the browser (`scope.test.ts`). Green means a criterion
+  passed, nothing else; every chart has its table.
+- **The connectome adapter stays in `scripts/`.** Nothing under `src/` may name
+  that backend (`scripts/echo-neural-shadow.test.ts`). It reads sealed results,
+  runs nothing, and never gives a behavioural verdict.
 
 ### The research compound eye (`src/bethesda/vision/`)
 

@@ -159,6 +159,21 @@ const ROUTES = [
       await page.waitForSelector('section[id$="-inspector"]', { timeout: 15000 });
     },
   },
+  // The metrology bench's research view draws positioned HTML, not a canvas:
+  // gated. It shows an archive only after checking it in the browser, so the
+  // setup waits for the verdict; an archive that fails its check is a setup
+  // failure here, not an empty page for axe to pass.
+  {
+    path: "/metrology",
+    label: "ECHO Intelligence Metrology Bench",
+    gate: true,
+    settle: 1500,
+    prepare: async (page) => {
+      await page.waitForSelector('section[aria-labelledby="verdict"]', {
+        timeout: 30000,
+      });
+    },
+  },
   { path: "/", label: "3D analytical twin", gate: false, settle: 6000 },
   { path: "/play", label: "Blacksite simulation menu", gate: false, settle: 6000 },
 ];

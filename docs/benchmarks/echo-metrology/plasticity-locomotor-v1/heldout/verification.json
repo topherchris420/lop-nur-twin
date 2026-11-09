@@ -1,0 +1,79 @@
+{
+  "schema": "eimb-verification/v1",
+  "protocol": "plasticity-locomotor-v1",
+  "split": "heldout",
+  "manifestDigest": "cf873bdb74762c9939f0755606b04a6336bd7f791e8ec7896c388e3c257a6f49",
+  "status": "VERIFIED",
+  "checks": [
+    {
+      "id": "manifest",
+      "passed": true,
+      "detail": "manifest cf873bdb74762c9939f0755606b04a6336bd7f791e8ec7896c388e3c257a6f49"
+    },
+    {
+      "id": "file-digests",
+      "passed": true,
+      "detail": "5 files match their SHA-256 digests"
+    },
+    {
+      "id": "protocol-frozen",
+      "passed": true,
+      "detail": "the archived protocol is the frozen one (da8270ae2d903642…)"
+    },
+    {
+      "id": "records-parse",
+      "passed": true,
+      "detail": "1240 records (manifest says 1240); canonical true; sorted true"
+    },
+    {
+      "id": "seeds",
+      "passed": true,
+      "detail": "held-out seeds re-derived from the protocol digest: 40 of 40 match"
+    },
+    {
+      "id": "machine",
+      "passed": true,
+      "detail": "made from clean commit 7a00efe08bb7e68e283d7e9d23dca7f06b7dab5f"
+    },
+    {
+      "id": "summary-rederived",
+      "passed": true,
+      "detail": "the summary recomputed from the raw records matches byte for byte"
+    },
+    {
+      "id": "report-rerendered",
+      "passed": true,
+      "detail": "the report re-rendered from the recomputed summary matches byte for byte"
+    },
+    {
+      "id": "verdict",
+      "passed": true,
+      "detail": "recomputed verdict: INCONCLUSIVE"
+    }
+  ],
+  "replay": {
+    "status": "matched",
+    "detail": "12 of 12 sampled runs re-simulated byte for byte (compute block excluded) on win32 arm64, Node v24.22.1",
+    "units": [
+      "weak-legs-low-reserve|1771286028|organism",
+      "weak-legs-recovers|1708902689|fixed-slow",
+      "weak-legs-mild|1040263842|organism",
+      "weak-legs-severe|1708902689|plasticity-active",
+      "weak-legs-diagonal-food|0409166977|fixed-slow",
+      "weak-legs-low-reserve|1799436376|fixed-slow",
+      "unimpaired|1357632669|organism",
+      "weak-legs-noisy-sense|0409166977|fixed-slow",
+      "weak-legs-low-reserve|0442709719|plasticity-active",
+      "weak-legs-recovers|1045082712|plasticity-active",
+      "unimpaired|2136702417|plasticity-disabled",
+      "weak-legs|1799436376|fixed-slow"
+    ],
+    "mismatched": []
+  },
+  "verifier": {
+    "commit": "05239c1aff73e963ba4c8f0d226c5800a4d21367",
+    "platform": "win32 arm64",
+    "node": "v24.22.1"
+  },
+  "verifiedAt": "2026-11-09T04:01:27.906Z"
+}

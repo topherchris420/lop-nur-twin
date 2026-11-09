@@ -14,6 +14,7 @@ import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as EvaluationRouteImport } from './routes/evaluation'
 import { Route as LiveRouteImport } from './routes/live'
+import { Route as MetrologyRouteImport } from './routes/metrology'
 import { Route as NoeterraRouteImport } from './routes/noeterra'
 import { Route as PlayRouteImport } from './routes/play'
 
@@ -42,6 +43,11 @@ const LiveRoute = LiveRouteImport.update({
   path: '/live',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MetrologyRoute = MetrologyRouteImport.update({
+  id: '/metrology',
+  path: '/metrology',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NoeterraRoute = NoeterraRouteImport.update({
   id: '/noeterra',
   path: '/noeterra',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/evaluation': typeof EvaluationRoute
   '/live': typeof LiveRoute
+  '/metrology': typeof MetrologyRoute
   '/noeterra': typeof NoeterraRoute
   '/play': typeof PlayRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/compare': typeof CompareRoute
   '/evaluation': typeof EvaluationRoute
   '/live': typeof LiveRoute
+  '/metrology': typeof MetrologyRoute
   '/noeterra': typeof NoeterraRoute
   '/play': typeof PlayRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/evaluation': typeof EvaluationRoute
   '/live': typeof LiveRoute
+  '/metrology': typeof MetrologyRoute
   '/noeterra': typeof NoeterraRoute
   '/play': typeof PlayRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/evaluation'
     | '/live'
+    | '/metrology'
     | '/noeterra'
     | '/play'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/evaluation'
     | '/live'
+    | '/metrology'
     | '/noeterra'
     | '/play'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/evaluation'
     | '/live'
+    | '/metrology'
     | '/noeterra'
     | '/play'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   CompareRoute: typeof CompareRoute
   EvaluationRoute: typeof EvaluationRoute
   LiveRoute: typeof LiveRoute
+  MetrologyRoute: typeof MetrologyRoute
   NoeterraRoute: typeof NoeterraRoute
   PlayRoute: typeof PlayRoute
 }
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LiveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/metrology': {
+      id: '/metrology'
+      path: '/metrology'
+      fullPath: '/metrology'
+      preLoaderRoute: typeof MetrologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/noeterra': {
       id: '/noeterra'
       path: '/noeterra'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompareRoute: CompareRoute,
   EvaluationRoute: EvaluationRoute,
   LiveRoute: LiveRoute,
+  MetrologyRoute: MetrologyRoute,
   NoeterraRoute: NoeterraRoute,
   PlayRoute: PlayRoute,
 }

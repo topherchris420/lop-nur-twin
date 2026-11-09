@@ -1,0 +1,79 @@
+{
+  "schema": "eimb-verification/v1",
+  "protocol": "plasticity-locomotor-v1",
+  "split": "dev",
+  "manifestDigest": "b06d47548c9575606a8a2cdd57cae35a024e7172de57016a8256aa086dcfc264",
+  "status": "VERIFIED",
+  "checks": [
+    {
+      "id": "manifest",
+      "passed": true,
+      "detail": "manifest b06d47548c9575606a8a2cdd57cae35a024e7172de57016a8256aa086dcfc264"
+    },
+    {
+      "id": "file-digests",
+      "passed": true,
+      "detail": "5 files match their SHA-256 digests"
+    },
+    {
+      "id": "protocol-frozen",
+      "passed": true,
+      "detail": "the archived protocol is the frozen one (da8270ae2d903642…)"
+    },
+    {
+      "id": "records-parse",
+      "passed": true,
+      "detail": "186 records (manifest says 186); canonical true; sorted true"
+    },
+    {
+      "id": "seeds",
+      "passed": true,
+      "detail": "dev seeds as listed: 6 of 6 match"
+    },
+    {
+      "id": "machine",
+      "passed": true,
+      "detail": "made from clean commit 73b4f2012eeca117d71eae69fe51a86b5defbd6f"
+    },
+    {
+      "id": "summary-rederived",
+      "passed": true,
+      "detail": "the summary recomputed from the raw records matches byte for byte"
+    },
+    {
+      "id": "report-rerendered",
+      "passed": true,
+      "detail": "the report re-rendered from the recomputed summary matches byte for byte"
+    },
+    {
+      "id": "verdict",
+      "passed": true,
+      "detail": "recomputed verdict: INCONCLUSIVE"
+    }
+  ],
+  "replay": {
+    "status": "matched",
+    "detail": "12 of 12 sampled runs re-simulated byte for byte (compute block excluded) on win32 arm64, Node v24.22.1",
+    "units": [
+      "weak-legs-recovers|0000009205|fixed-slow",
+      "weak-legs-mild|0000009203|organism",
+      "unimpaired|0000009206|organism",
+      "weak-legs-diagonal-food|0000009204|organism",
+      "weak-legs-diagonal-food|0000009201|fixed-slow",
+      "weak-legs-low-reserve|0000009201|fixed-slow",
+      "weak-legs-severe|0000009204|plasticity-active",
+      "weak-legs-diagonal-food|0000009205|plasticity-active",
+      "weak-legs|0000009203|plasticity-disabled",
+      "weak-legs-noisy-sense|0000009204|fixed-slow",
+      "unimpaired|0000009204|plasticity-shadow",
+      "weak-legs-noisy-sense|0000009201|plasticity-active"
+    ],
+    "mismatched": []
+  },
+  "verifier": {
+    "commit": "05239c1aff73e963ba4c8f0d226c5800a4d21367",
+    "platform": "win32 arm64",
+    "node": "v24.22.1"
+  },
+  "verifiedAt": "2026-11-09T03:59:48.288Z"
+}

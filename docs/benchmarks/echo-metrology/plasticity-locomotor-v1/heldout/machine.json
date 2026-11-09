@@ -1,0 +1,11 @@
+{
+  "schema": "eimb-machine/v1",
+  "commit": "7a00efe08bb7e68e283d7e9d23dca7f06b7dab5f",
+  "cleanSources": true,
+  "platform": "win32",
+  "arch": "arm64",
+  "node": "v24.22.1",
+  "flySourceDigest": "3a440f60616f2e78515dcf03a3cc689b54316140fb08d659c5310f63a4a83500",
+  "shards": 7,
+  "collectedAt": "2026-11-09T03:42:51.794Z"
+}

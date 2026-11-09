@@ -65,22 +65,23 @@ On 4 November the corrected physics was delivered by a recorded continuation. EC
 
 The table below contains **reported results, not universal performance claims**. Every comparison belongs to a specified simulator, protocol, input set, and software revision. Consult the [claims register](docs/RESEARCH_CLAIMS.md) for the complete definitions and evidence classes.
 
-| Test                                           | Recorded outcome                                         | What it does **not** establish                   |
-| ---------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------ |
-| ECHO checkpoint replay                         | 361 / 361 seals reproduced in the audited interval       | Full lifetime replay or biological identity      |
-| Collision correction                           | 9 / 12 subjects trapped before; 0 / 12 after             | Correct collision handling in every geometry     |
-| Self-model under concealed impairment, ECHO-01 | Path error 0.073 vs 0.370 in registered conditions       | General motor intelligence                       |
-| Hidden-change attribution, ECHO-02             | 0.919 vs 0.537; overconfidence remains                   | Calibrated certainty in all conditions           |
-| Memory and place preference                    | Distinct preferences develop in seeded research subjects | Open-ended animal learning                       |
-| Memory with continuously moving food           | Negative: 1.2 fewer meals per life                       | That memory necessarily improves fitness         |
-| ECHO-03 through ECHO-05                        | Inconclusive                                             | That the added mechanisms help                   |
-| FlyWire FAFB v783 reproduction                 | 10 / 12 registered criteria met                          | Full fly-neural equivalence                      |
-| Connectome odor learning                       | Negative in the tested design                            | Functional biological mushroom-body learning     |
-| Cross-world individual recognition             | Negative                                                 | That the two original flies perceive one another |
+| Test                                                 | Recorded outcome                                                                        | What it does **not** establish                   |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| ECHO checkpoint replay                               | 361 / 361 seals reproduced in the audited interval                                      | Full lifetime replay or biological identity      |
+| Collision correction                                 | 9 / 12 subjects trapped before; 0 / 12 after                                            | Correct collision handling in every geometry     |
+| Self-model under concealed impairment, ECHO-01       | Path error 0.073 vs 0.370 in registered conditions                                      | General motor intelligence                       |
+| Hidden-change attribution, ECHO-02                   | 0.919 vs 0.537; overconfidence remains                                                  | Calibrated certainty in all conditions           |
+| Memory and place preference                          | Distinct preferences develop in seeded research subjects                                | Open-ended animal learning                       |
+| Memory with continuously moving food                 | Negative: 1.2 fewer meals per life                                                      | That memory necessarily improves fitness         |
+| ECHO-03 through ECHO-05                              | Inconclusive                                                                            | That the added mechanisms help                   |
+| FlyWire FAFB v783 reproduction                       | 10 / 12 registered criteria met                                                         | Full fly-neural equivalence                      |
+| Connectome odor learning                             | Negative in the tested design                                                           | Functional biological mushroom-body learning     |
+| Cross-world individual recognition                   | Negative                                                                                | That the two original flies perceive one another |
+| Embodied plasticity under weak legs, metrology bench | Inconclusive on 40 held-out subjects; small corrected regression under severe weak legs | That plasticity cannot help under any impairment |
 
-A 7 November extension added bounded embodied plasticity to the original ECHO and Eva, with owner-approved shadow-mode activation followed by active mode. On held-out **research subjects**, shadow mode preserved baseline behavior, but **active mode demonstrated no established performance advantage**. The fact that an addition is active is not evidence that it helped.
+A 7 November extension added bounded embodied plasticity to the original ECHO and Eva, with owner-approved shadow-mode activation followed by active mode. On held-out **research subjects**, shadow mode preserved baseline behavior, but **active mode demonstrated no established performance advantage**. The fact that an addition is active is not evidence that it helped. The intelligence metrology bench reproduced that finding byte for byte, then asked it again on 40 new research subjects in nine conditions: inconclusive, with a small, corrected regression under severe weak legs. Neither original was touched.
 
-[Activation record](docs/EVA_ECHO_ACTIVATION.md) · [Plasticity study](docs/EVA_ECHO_BRAIN_PLASTICITY.md)
+[Activation record](docs/EVA_ECHO_ACTIVATION.md) · [Plasticity study](docs/EVA_ECHO_BRAIN_PLASTICITY.md) · [Intelligence metrology bench](docs/ECHO_INTELLIGENCE_METROLOGY.md)
 
 ## 05. The brain boundary
 

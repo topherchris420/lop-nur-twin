@@ -1,0 +1,295 @@
+{
+  "schema": "eimb-protocol/v1",
+  "id": "plasticity-locomotor-v1",
+  "title": "Does ECHO's embodied plasticity improve adaptive behaviour under locomotor impairment, and where?",
+  "question": "Under a walking impairment, does a research fly running echo-embodied-plasticity/v2 in active mode take in more energy, or feed more often, than the same organism without it, by at least the minimum meaningful effect; can any difference be attributed to learning rather than to slowing as such; and where, across unseen impairments, food layouts and energy states, does any effect hold, vanish or reverse?",
+  "hypotheses": [
+    "Confirmatory (two-sided): in weak-legs, plasticity-active minus organism differs from zero in energy taken in (fedJ) and in feeding bouts (meals). The decision rule, not the sign, decides what is claimed.",
+    "Mechanism: if the plasticity helps, it helps through learned timing, so in weak-legs plasticity-active should beat fixed-slow (the same slowing always) as well as the organism.",
+    "Boundary: where the plasticity never becomes cautious (unimpaired, mild impairment, asymmetric gait) it cannot act, so plasticity-active should equal the organism exactly there.",
+    "Stated before any run of this protocol: given the 2026-11-07 held-out study, the expected outcome is NO_DEMONSTRATED_IMPROVEMENT or INCONCLUSIVE. The protocol is built to measure that accurately, not to overturn it."
+  ],
+  "priorKnowledge": [
+    "The 2026-11-07 held-out study (docs/benchmarks/echo-plasticity/heldout, commit 288b3a8, 24 seeds): in weak-legs, active minus original meals +0.17 (95% CI -1.00 to 1.33), fedJ -0.012 J (95% CI -0.056 to 0.031): no difference established. Active mode acted in every weak-legs run and in no other condition. Shadow mode was identical to the organism in 144 of 144 runs.",
+    "That study's dev split (seeds 9001-9008) set the minimum meaningful effects below: the organism's mean in weak-legs was 1.283 J taken in and 10.0 meals.",
+    "Sample size: with the earlier held-out's standard deviation of paired differences (fedJ 0.112 J, meals 2.93), 40 subjects give a 97.5% interval half-width near 0.04 J for fedJ (a third of its minimum meaningful effect) and near 1.0 for meals (equal to its minimum meaningful effect), so meals may stay INCONCLUSIVE whatever the truth.",
+    "Weak legs (speedGain 0.35) also slow flight (perturbation.ts), and the fly travels mostly by air: in the earlier study the organism's intake fell only from 1.280 J (moving food) to 1.227 J (weak legs). The assay-sensitivity check below measures whether each impairment costs the baseline anything at all.",
+    "The candidate is not tuned here: echo-embodied-plasticity/v2 is evaluated exactly as merged in PR #178. Nothing in the controllers changes between the dev and held-out splits."
+  ],
+  "baseline": "organism",
+  "candidate": "plasticity-active",
+  "controls": ["fixed-slow"],
+  "ablations": ["plasticity-shadow", "plasticity-disabled"],
+  "validity": {
+    "identicalToBaseline": ["plasticity-shadow", "plasticity-disabled"],
+    "conditions": ["unimpaired", "weak-legs"]
+  },
+  "durationS": 7200,
+  "blockS": 600,
+  "sampleEveryTicks": 10,
+  "lateFromS": 3600,
+  "experimentalUnit": "A research subject: one seed in one condition, born once per controller from the same genesis (seed, start heading, food schedule, perturbation schedule and the fly's random streams), so every comparison is a paired difference per subject. Simulation ticks are never units.",
+  "conditions": [
+    {
+      "id": "unimpaired",
+      "family": "unimpaired",
+      "description": "Food moves to the next compass site every 20 simulated minutes; no perturbation. The reference for every assay-sensitivity check.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.5,
+      "episodes": [],
+      "novelToCandidate": false,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "weak-legs",
+      "family": "motor",
+      "description": "From minute 10 the body advances 35% as far as its legs step (and its wings hold 35% of the commanded speed): the 2026-11-07 study's weak-legs, on new subjects.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.5,
+      "episodes": [
+        {
+          "id": "weak legs",
+          "cause": "self",
+          "from": 600,
+          "until": null,
+          "speedGain": 0.35
+        }
+      ],
+      "novelToCandidate": false,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "weak-legs-mild",
+      "family": "generalization",
+      "description": "A milder impairment: speedGain 0.6, above the plasticity's 0.4 progress share, so its walks should still count as effective.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.5,
+      "episodes": [
+        {
+          "id": "mild weak legs",
+          "cause": "self",
+          "from": 600,
+          "until": null,
+          "speedGain": 0.6
+        }
+      ],
+      "novelToCandidate": true,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "weak-legs-severe",
+      "family": "generalization",
+      "description": "A severe impairment: speedGain 0.15.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.5,
+      "episodes": [
+        {
+          "id": "severe weak legs",
+          "cause": "self",
+          "from": 600,
+          "until": null,
+          "speedGain": 0.15
+        }
+      ],
+      "novelToCandidate": true,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "asymmetric-gait",
+      "family": "motor",
+      "description": "Asymmetric movement: from minute 10 every walking and flying turn is biased by 0.8 rad/s (turnBias), with full speed.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.5,
+      "episodes": [
+        {
+          "id": "turning bias",
+          "cause": "self",
+          "from": 600,
+          "until": null,
+          "turnBias": 0.8
+        }
+      ],
+      "novelToCandidate": true,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "weak-legs-noisy-sense",
+      "family": "generalization",
+      "description": "An unseen combination: weak legs (0.35) and, at the same time, a self-motion sense four times as noisy, which corrupts the evidence the plasticity learns from.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.5,
+      "episodes": [
+        {
+          "id": "weak legs",
+          "cause": "self",
+          "from": 600,
+          "until": null,
+          "speedGain": 0.35
+        },
+        {
+          "id": "noisy sense",
+          "cause": "sensor",
+          "from": 600,
+          "until": null,
+          "flowNoise": 4
+        }
+      ],
+      "novelToCandidate": true,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "weak-legs-recovers",
+      "family": "generalization",
+      "description": "The impairment ends: weak legs (0.35) from minute 10 to minute 50, then a sound body for 70 minutes. Tests whether learned caution outlives its cause.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.5,
+      "episodes": [
+        {
+          "id": "weak legs",
+          "cause": "self",
+          "from": 600,
+          "until": 3000,
+          "speedGain": 0.35
+        }
+      ],
+      "novelToCandidate": true,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "weak-legs-low-reserve",
+      "family": "generalization",
+      "description": "Weak legs (0.35) in a fly that starts at 20% of its reserve, so its walks are first judged in the plasticity's low-energy context.",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "compass" },
+      "startReserve": 0.2,
+      "episodes": [
+        {
+          "id": "weak legs",
+          "cause": "self",
+          "from": 600,
+          "until": null,
+          "speedGain": 0.35
+        }
+      ],
+      "novelToCandidate": true,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    },
+    {
+      "id": "weak-legs-diagonal-food",
+      "family": "generalization",
+      "description": "Different geometry: food between the compass sites, 6.5 m out and away from every pole, with weak legs (0.35).",
+      "food": { "kind": "moves", "everyS": 1200, "layout": "diagonal" },
+      "startReserve": 0.5,
+      "episodes": [
+        {
+          "id": "weak legs",
+          "cause": "self",
+          "from": 600,
+          "until": null,
+          "speedGain": 0.35
+        }
+      ],
+      "novelToCandidate": true,
+      "controllers": ["organism", "plasticity-active", "fixed-slow"]
+    }
+  ],
+  "splits": {
+    "dev": { "seeds": [9201, 9202, 9203, 9204, 9205, 9206] },
+    "heldout": { "count": 40, "salt": "eimb-plasticity-locomotor-v1-heldout" }
+  },
+  "reservedSeeds": [
+    9001, 9002, 9003, 9004, 9005, 9006, 9007, 9008, 9101, 9102, 9103, 9104, 9105, 9106,
+    9107, 9108, 9109, 9110, 9111, 9112, 9113, 9114, 9115, 9116, 9117, 9118, 9119, 9120,
+    9121, 9122, 9123, 9124
+  ],
+  "endpoints": {
+    "confirmatory": [
+      {
+        "id": "C1-energy",
+        "metric": "fedJ",
+        "condition": "weak-legs",
+        "contrast": ["plasticity-active", "organism"],
+        "mme": 0.128,
+        "mmeRule": "10% of the organism's mean energy taken in under weak legs in the 2026-11-07 dev split (1.283 J), rounded down to 0.128 J: the smallest change in two hours' intake this protocol treats as meaningful. A model choice, fixed before any run."
+      },
+      {
+        "id": "C2-meals",
+        "metric": "meals",
+        "condition": "weak-legs",
+        "contrast": ["plasticity-active", "organism"],
+        "mme": 1,
+        "mmeRule": "10% of the organism's mean meals under weak legs in the 2026-11-07 dev split (10.0): one feeding bout in two hours. The 2026-11-07 study's own primary endpoint, replicated on new subjects. A model choice, fixed before any run."
+      }
+    ],
+    "guardrails": [
+      {
+        "metric": "collisions",
+        "condition": "weak-legs",
+        "contrast": ["plasticity-active", "organism"]
+      },
+      {
+        "metric": "placementsMissed",
+        "condition": "weak-legs",
+        "contrast": ["plasticity-active", "organism"]
+      },
+      {
+        "metric": "restrictedLatencyS",
+        "condition": "weak-legs",
+        "contrast": ["plasticity-active", "organism"]
+      },
+      {
+        "metric": "walkingBlocks",
+        "condition": "weak-legs",
+        "contrast": ["plasticity-active", "organism"]
+      }
+    ],
+    "boundary": {
+      "metric": "fedJ",
+      "mme": 0.128,
+      "contrasts": [
+        ["plasticity-active", "organism"],
+        ["fixed-slow", "organism"]
+      ],
+      "conditions": [
+        "unimpaired",
+        "weak-legs",
+        "weak-legs-mild",
+        "weak-legs-severe",
+        "asymmetric-gait",
+        "weak-legs-noisy-sense",
+        "weak-legs-recovers",
+        "weak-legs-low-reserve",
+        "weak-legs-diagonal-food"
+      ]
+    },
+    "mechanism": {
+      "metric": "fedJ",
+      "mme": 0.128,
+      "contrasts": [
+        ["plasticity-active", "organism"],
+        ["plasticity-active", "fixed-slow"],
+        ["fixed-slow", "organism"],
+        ["plasticity-active", "plasticity-shadow"]
+      ],
+      "conditions": ["weak-legs"]
+    }
+  },
+  "analysis": {
+    "estimator": "mean paired difference over research subjects (candidate minus reference), with dz and an exact sign test",
+    "interval": "percentile-bootstrap",
+    "resamples": 10000,
+    "seed": 20261109,
+    "alpha": 0.05,
+    "multiplicity": "bonferroni",
+    "guardrailAlpha": 0.05
+  },
+  "decision": {
+    "maxFailedFraction": 0,
+    "rules": [
+      "Per comparison: REGRESSION when the interval lies wholly on the worse side of zero; IMPROVEMENT when it lies wholly on the better side and the mean reaches the minimum meaningful effect δ; NO_DEMONSTRATED_IMPROVEMENT when it lies wholly inside (-δ, +δ); otherwise INCONCLUSIVE.",
+      "Overall: INVALID if any validity check fails (incomplete design, a record bound to another protocol, any failed run, an unpaired environment, a validity controller that differs from the baseline, or a subject that is not a research subject). Else REGRESSION if a confirmatory endpoint regresses; IMPROVEMENT if one improves and no confirmatory endpoint or guardrail regresses; INCONCLUSIVE if one improves while a guardrail regresses; REGRESSION if none improves and a guardrail regresses; NO_DEMONSTRATED_IMPROVEMENT if every confirmatory endpoint is NO_DEMONSTRATED_IMPROVEMENT; otherwise INCONCLUSIVE.",
+      "Secondary contrasts carry no claims. Internal measures (detection, self-model accuracy) never decide a behavioural verdict."
+    ]
+  },
+  "stopping": "Every unit of a split runs once. The held-out split runs once, from a clean commit, after the dev split's records are committed; no interim look, no rerun, no replacement of a failed run. A failed or inconclusive held-out result stays in the record.",
+  "limits": { "maxWallSPerRun": 900 }
+}

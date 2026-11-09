@@ -77,6 +77,12 @@ docs/benchmarks/fly-behavior/
 docs/benchmarks/echo-plasticity/
 docs/benchmarks/eva-plasticity/
 
+# The ECHO Intelligence Metrology Bench's archives: records, summaries,
+# reports and manifests whose exact bytes are hashed and re-derived by
+# scripts/echo-metrology.ts and src/bethesda/metrology/archives.test.ts,
+# never written by hand.
+docs/benchmarks/echo-metrology/
+
 # Digital-fly pilots: exploratory sizing runs, never evidence, written by
 # `npm run rain:fly -- --pilot` and checked byte for byte by `--pilot --check`.
 docs/benchmarks/fly-pilots/
