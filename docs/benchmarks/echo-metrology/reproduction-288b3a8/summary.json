@@ -1,0 +1,85 @@
+{
+  "schema": "eimb-reproduction/v1",
+  "adapter": "eimb-legacy/echo-plasticity-study-v1",
+  "source": "docs/benchmarks/echo-plasticity/heldout",
+  "sourceCommit": "288b3a87e532c00d3ec0497219f2bb54d90c41a9",
+  "condition": "weak-legs",
+  "runs": 96,
+  "identical": 96,
+  "differing": [],
+  "primary": {
+    "archived": {
+      "n": 24,
+      "mean": 0.16666666666666666,
+      "low": -1,
+      "high": 1.3333333333333333,
+      "better": 11,
+      "worse": 10,
+      "tied": 3
+    },
+    "reproduced": {
+      "n": 24,
+      "mean": 0.16666666666666666,
+      "low": -1,
+      "high": 1.3333333333333333,
+      "better": 11,
+      "worse": 10,
+      "tied": 3
+    },
+    "same": true
+  },
+  "benchReading": [
+    {
+      "metric": "meals",
+      "contrast": [
+        "plasticity-active",
+        "organism"
+      ],
+      "interval": {
+        "n": 24,
+        "mean": 0.16666666666666666,
+        "sd": 2.929114225312413,
+        "dz": 0.056900022957926934,
+        "level": 0.975,
+        "low": -1.125,
+        "high": 1.5,
+        "better": 11,
+        "worse": 10,
+        "tied": 3,
+        "signP": 0.9999999999999996
+      },
+      "mme": 1,
+      "decision": {
+        "verdict": "INCONCLUSIVE",
+        "practical": false,
+        "reason": "the 97.5% interval spans zero and reaches beyond ±1: these units cannot tell"
+      }
+    },
+    {
+      "metric": "fedJ",
+      "contrast": [
+        "plasticity-active",
+        "organism"
+      ],
+      "interval": {
+        "n": 24,
+        "mean": -0.012107812500019577,
+        "sd": 0.1124857204594253,
+        "dz": -0.10763866249482736,
+        "level": 0.975,
+        "low": -0.06336093750010245,
+        "high": 0.03851718750006228,
+        "better": 9,
+        "worse": 15,
+        "tied": 0,
+        "signP": 0.3074562549591072
+      },
+      "mme": 0.128,
+      "decision": {
+        "verdict": "NO_DEMONSTRATED_IMPROVEMENT",
+        "practical": false,
+        "reason": "the 97.5% interval lies inside ±0.128: any effect is smaller than the minimum meaningful effect"
+      }
+    }
+  ]
+}

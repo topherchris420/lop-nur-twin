@@ -319,7 +319,12 @@ export function neuralReport(
     licences: licences.map((l) => ({
       dataset: l.dataset,
       file: l.file,
-      terms: (l.text.split("\n").find((x) => /CC BY/i.test(x)) ?? "see file").trim(),
+      // The licence file's own line, without its list marker, bold or trailing comma.
+      terms: (l.text.split("\n").find((x) => /CC BY/i.test(x)) ?? "see file")
+        .trim()
+        .replace(/^[-*]\s*/, "")
+        .replaceAll("**", "")
+        .replace(/,$/, ""),
     })),
     notRun: [
       `A behavioural comparison of a connectome-driven research fly against the organism under the bench's protocol: not run. ${

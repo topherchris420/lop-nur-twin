@@ -1,0 +1,9 @@
+{
+  "schema": "eimb-reproduction-manifest/v1",
+  "files": {
+    "reproduced.jsonl": "400118ede172bdb324b4864d550b796d45e7304220a4a1944a939f41f6f29478",
+    "summary.json": "8407f6b0a210e0807a0cbe139f0646a4d480a736bdc23947b63991da54ccc5ff",
+    "machine.json": "f8fcdb48f0d5dde10a15ccf28c9d8eb2b15bcdea5b44733550afeb16c6b61350",
+    "README.md": "e9d36a8e60100e47685a51a86eb2fd7d44afc026274a436a863b09c8af26e0f9"
+  }
+}

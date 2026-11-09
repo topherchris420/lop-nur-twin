@@ -1,0 +1,1719 @@
+{
+  "schema": "eimb-neural-report/v1",
+  "scope": "Sealed fly-neural results already in this repository, read and checked; none re-run. Neural-model validation only: no controller, no behavioural verdict, no original individual.",
+  "results": [
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/adaptive-life-v783-dev.json",
+      "fileSha256": "efe2ae37163fdc969f660d6a9f85b660546aaf4e9c04b568d27ade9f089d4cb6",
+      "schema": "fly-neural-result/v1",
+      "kind": "adaptive-life",
+      "split": "dev",
+      "dataset": "FAFB v783",
+      "evaluation": "behavioural-use",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "XD",
+          "claim": "Development: everything reported, nothing judged",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 1,
+      "total": 1,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 86.74,
+        "cpuS": 86.52,
+        "peakRssMb": 78.016
+      },
+      "cost": null,
+      "code": {
+        "commit": "53f4ff177fd89d3e9102677063c49da8da8b41d6",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/adaptive-life-v783-heldout.json",
+      "fileSha256": "40e70c83ef0ce15f90469bd7e769573cab99dd2097b6c419380795f68f449478",
+      "schema": "fly-neural-result/v1",
+      "kind": "adaptive-life",
+      "split": "heldout",
+      "dataset": "FAFB v783",
+      "evaluation": "behavioural-use",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "A1",
+          "claim": "Learning helps: after relocation the full subject reaches criterion sooner than one that cannot learn",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "A2",
+          "claim": "and sooner than the existing connectome mechanism (v1 on the dense code)",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "A3",
+          "claim": "and eats more per visit than the existing connectome mechanism",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "D1",
+          "claim": "It reverses faster than the merged rule on the same code, which can only depress",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "D2",
+          "claim": "At least 80% of full subjects reach criterion after all three reversals",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "E1",
+          "claim": "After 100 visits elsewhere the trained site is still preferred more than by a subject that never learned",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "E2",
+          "claim": "with at least 60% of the first 5 probe visits to it on average",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "M1",
+          "claim": "Dopamine is needed: silencing it removes the gain",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "M2",
+          "claim": "Dopamine must follow the meal: uncoupled from it, the gain goes",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "M3",
+          "claim": "The code matters: v2 on the dense code relearns more slowly",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "M4",
+          "claim": "The antennal-lobe change matters: v2 on the threshold-only code relearns more slowly",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "P1",
+          "claim": "Persistence: every full subject restored from its checkpoint after each block makes exactly the choices it makes uninterrupted; the checkpoints chain by hash; the state holds as many numbers after every block",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "P2",
+          "claim": "The same for ECHO's mushroom body",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "P3",
+          "claim": "No degradation: over 12 relocations the full subject's trials to criterion in the last four blocks are on average at most 2 visits more than in the first four",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "X1",
+          "claim": "Exploratory: ECHO's mushroom body, the bookkeeping heuristic, random codes, no dopamine threshold and a random forager, on every metric",
+          "passed": true,
+          "control": true
+        }
+      ],
+      "passed": 12,
+      "total": 15,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 309.93,
+        "cpuS": 308.81,
+        "peakRssMb": 80.801
+      },
+      "cost": null,
+      "code": {
+        "commit": "169c3daeea92a131975537690c28672260f3bfbe",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/baseline-reproduction.json",
+      "fileSha256": "3bbd280569e82ec35d385d7fa212e05d468e521dba1437ab46d1322bad283e5c",
+      "schema": "fly-neural-result/v1",
+      "kind": "reproduction",
+      "split": null,
+      "dataset": "unknown",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 3732.859,
+        "cpuS": 3614.234,
+        "peakRssMb": 650.02
+      },
+      "cost": null,
+      "code": {
+        "commit": "0252eaa38cb6e28b24f1663901fc89936aeac74d",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/closed-loop-v783-dev.json",
+      "fileSha256": "68c38505c71debbbd04a9d1856e35a3d22a23187f1e6dcbbd2ce209ee811af76",
+      "schema": "fly-neural-result/v1",
+      "kind": "closed-loop",
+      "split": "dev",
+      "dataset": "FAFB v783",
+      "evaluation": "behavioural-use",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "XD",
+          "claim": "Development: everything reported, nothing judged",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 1,
+      "total": 1,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 0.001,
+        "cpuS": 0,
+        "peakRssMb": 96.391
+      },
+      "cost": null,
+      "code": {
+        "commit": "287f9894019499d57dabb8a4a7e0b1c5760739dd",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/closed-loop-v783-heldout.json",
+      "fileSha256": "5511cfd3aa6e57941f9c853131d225f696d6ba4c7deb6fed477dc9d42a83de48",
+      "schema": "fly-neural-result/v1",
+      "kind": "closed-loop",
+      "split": "heldout",
+      "dataset": "FAFB v783",
+      "evaluation": "behavioural-use",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "CL1",
+          "claim": "Safety: every neural run completes its 30 s without being stopped",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "CL2",
+          "claim": "and ECHO decides at most 1% of its samples (fallbacks)",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "CL3",
+          "claim": "Escape is produced, not only predicted: at least 90% of neural-selected escape commands in the looms become escapes",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "CL4",
+          "claim": "Feeding is produced: at least 90% of neural-selected feeding commands on the fruit become feeding bouts",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "CL5",
+          "claim": "Discrimination in closed loop: the selected readout escapes harmless objects no more often than the merged one",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "CL6",
+          "claim": "and still escapes at least 75% of the threats that begin while it is perched",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "X1",
+          "claim": "Exploratory: every arm against ECHO alone on escapes, false alarms, feeding time and meals",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 6,
+      "total": 7,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 0.002,
+        "cpuS": 0,
+        "peakRssMb": 96.516
+      },
+      "cost": null,
+      "code": {
+        "commit": "169c3daeea92a131975537690c28672260f3bfbe",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/echo-mb-v2-dev.json",
+      "fileSha256": "4aac40c2056bf6f85cdbd7ab40f71b727e550684dd7fa01f00c91afeb4ba635d",
+      "schema": "fly-neural-echo-mb/v2",
+      "kind": null,
+      "split": null,
+      "dataset": "unknown",
+      "evaluation": "unclassified",
+      "seal": "absent",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": null,
+        "cpuS": null,
+        "peakRssMb": null
+      },
+      "cost": null,
+      "code": {
+        "commit": null,
+        "dirty": null
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/echo-mb-v2-heldout.json",
+      "fileSha256": "fb25b162eebebd6d17b56e76efb85571abd654341610f8e7aaf4fec4bcaccfe1",
+      "schema": "fly-neural-echo-mb/v2",
+      "kind": null,
+      "split": null,
+      "dataset": "unknown",
+      "evaluation": "unclassified",
+      "seal": "absent",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": null,
+        "cpuS": null,
+        "peakRssMb": null
+      },
+      "cost": null,
+      "code": {
+        "commit": null,
+        "dirty": null
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-cut.json",
+      "fileSha256": "845a3fee3731c92faa85357cf0a6348d4ea692b202aa11e95fdbf110bf3f9418",
+      "schema": "fly-neural-result/v1",
+      "kind": "reduced-circuit",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "efficiency",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": 139255,
+      "synapses": 54492922,
+      "resources": {
+        "wallS": 607.626,
+        "cpuS": 600.2,
+        "peakRssMb": 326.969
+      },
+      "cost": null,
+      "code": {
+        "commit": "404815bd572ea30f09f4d188d384cb9c6fccd50f",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json",
+      "fileSha256": "5c640a22f5b8f879e1524a2257b36520d6dd7b78c98b8280e2bc6be11622f7d0",
+      "schema": "fly-neural-result/v1",
+      "kind": "reduced-circuit-check",
+      "split": "heldout",
+      "dataset": "FAFB v783",
+      "evaluation": "efficiency",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "R1",
+          "claim": "primary: on every held-out condition, the reduced circuit's mean MN9 rate is within the readout tolerance of the whole brain's (2% of the whole brain's rate or 1 Hz, whichever is larger), under the same random draws",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "R2",
+          "claim": "at least min_exact_share of held-out trials equal the whole brain's spike counts on every kept neuron",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "R3",
+          "claim": "every held-out trial in which no neuron outside the cut spikes is exact (the cut's exactness argument holds)",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 3,
+      "total": 3,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 392.745,
+        "cpuS": 391.3,
+        "peakRssMb": 647.969
+      },
+      "cost": {
+        "fullWallSPerSimS": 3.2731,
+        "reducedWallSPerSimS": 0.29664,
+        "speedup": 11
+      },
+      "code": {
+        "commit": "404815bd572ea30f09f4d188d384cb9c6fccd50f",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/mb-representation-al-v783.json",
+      "fileSha256": "be289aa2e7081ac2490486f4a4e5c324fabfd1fbdc0de2bd4b9f756b3475d176",
+      "schema": "fly-neural-result/v1",
+      "kind": "mb-representation",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "learning-selectivity",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 1319.765,
+        "cpuS": 1275,
+        "peakRssMb": 643.43
+      },
+      "cost": null,
+      "code": {
+        "commit": "eb59b1d8d059d9ab5f7c23a4abfc74e077257b0e",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/mb-representation-v783.json",
+      "fileSha256": "e4acb063f34fa8e55c678cdfa8f6030752bbc88a48561f825d7cf14ad7124fed",
+      "schema": "fly-neural-result/v1",
+      "kind": "mb-representation",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "learning-selectivity",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 1378.844,
+        "cpuS": 1336.25,
+        "peakRssMb": 626.145
+      },
+      "cost": null,
+      "code": {
+        "commit": "3b4cdfad278d832ef4fff14a314746dff07c1f9c",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/plasticity-v2-v783-calibration.json",
+      "fileSha256": "c8a60e423fb7f766e30c9206dc9c5650ce5e82969ef0c56efe77bcd64d96c3c2",
+      "schema": "fly-neural-result/v1",
+      "kind": "plasticity-v2-calibration",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "learning-selectivity",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 183.312,
+        "cpuS": 176.406,
+        "peakRssMb": 655.125
+      },
+      "cost": null,
+      "code": {
+        "commit": "5403964dca32091d98b5b27a77ea1c7ad0c58ca3",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/plasticity-v2-v783-dev.json",
+      "fileSha256": "1ca43de1014d3fedb847ec96a2c8e0c40680f1f701f34168f6d6fd6bf0c95586",
+      "schema": "fly-neural-result/v1",
+      "kind": "plasticity-v2",
+      "split": "dev",
+      "dataset": "FAFB v783",
+      "evaluation": "learning-selectivity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "XD",
+          "claim": "Development: every arm's indices (3 subjects; nothing judged)",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 1,
+      "total": 1,
+      "partial": false,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 0.413,
+        "cpuS": 0.41,
+        "peakRssMb": 332.492
+      },
+      "cost": null,
+      "code": {
+        "commit": "cefae10c498dd7b8e4b3b5f75f0677c89589fb3d",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/plasticity-v2-v783-heldout.json",
+      "fileSha256": "c19111c84ae808db24369b9c16a0bfd1c0c36c0080addb3fcd114dc54ded2f19",
+      "schema": "fly-neural-result/v1",
+      "kind": "plasticity-v2",
+      "split": "heldout",
+      "dataset": "FAFB v783",
+      "evaluation": "learning-selectivity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "L0",
+          "claim": "Precondition: each odour reaches the readout MBONs before training (fixed weights, sparse code)",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L0",
+          "claim": "Precondition: each odour reaches the readout MBONs before training",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L1",
+          "claim": "With rule v2 on the sparse code, the paired odour's response falls more than the unpaired one's, in every subject, by at least 0.10 on average",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L1",
+          "claim": "The same on the second held-out pair",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L2",
+          "claim": "Fixed weights learn less",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L2",
+          "claim": "Fixed weights learn less",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L3",
+          "claim": "Silencing the DANs abolishes it",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L3",
+          "claim": "Silencing the DANs abolishes it",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L4",
+          "claim": "It depends on which odour was rewarded: shuffling rewards within a phase removes it",
+          "passed": false,
+          "control": true
+        },
+        {
+          "id": "L4",
+          "claim": "Shuffling rewards removes it",
+          "passed": false,
+          "control": true
+        },
+        {
+          "id": "L5",
+          "claim": "v2 on the sparse code is more odour-specific than the merged mechanism (v1 on the dense code)",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L5",
+          "claim": "More odour-specific than the merged mechanism",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L6",
+          "claim": "It spares the unpaired odour more than the merged mechanism does (less nonspecific depression of B)",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L6",
+          "claim": "It spares the unpaired odour more",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L7",
+          "claim": "The memory survives an unrelated, unrewarded odour: the index after the distractor is negative in every subject and at least half the acquisition index on average",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L8",
+          "claim": "Unrewarded re-exposure to A extinguishes the memory: A's response recovers in every subject",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L9",
+          "claim": "and recovers more than under the merged rule, which can only depress",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L10",
+          "claim": "Reversal: after B is rewarded and A not, B's response falls below A's in every subject",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "L11",
+          "claim": "With a 200 ms gap between odour and reward, the eligibility trace carries the association",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L12",
+          "claim": "The dopamine threshold matters: counting odour-evoked PAM activity as reward makes learning less specific",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L13",
+          "claim": "The sparse code matters: rule v2 on the dense code is less specific",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "L14",
+          "claim": "The antennal-lobe change matters beyond sparseness: rule v2 on the threshold-only code is less specific",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "X1",
+          "claim": "Exploratory: rule v2 with PN->KC targets permuted; generalization to Asim; every arm's indices",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "X1",
+          "claim": "Exploratory: every arm's indices",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 12,
+      "total": 24,
+      "partial": false,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 0.662,
+        "cpuS": 0.73,
+        "peakRssMb": 337.16
+      },
+      "cost": null,
+      "code": {
+        "commit": "b6ac7e1885e3ee1562c90356b7cd43c379528f5e",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/threat-v783-dev.json",
+      "fileSha256": "a99cfc90dcbb354a1064ddb99fe0c300484751e44d140bf73cf44c7e7b0a3618",
+      "schema": "fly-neural-result/v1",
+      "kind": "threat",
+      "split": "dev",
+      "dataset": "FAFB v783",
+      "evaluation": "behavioural-use",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 0.013,
+        "cpuS": 0.01,
+        "peakRssMb": 347.859
+      },
+      "cost": null,
+      "code": {
+        "commit": "5bf6d9927e0fe40c43e4158b468bc1ea5630c78e",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/adaptive/threat-v783-heldout.json",
+      "fileSha256": "3b78797ed7910b8898af6352802720a068b818a82324e88333c17d8aa25574d7",
+      "schema": "fly-neural-result/v1",
+      "kind": "threat",
+      "split": "heldout",
+      "dataset": "FAFB v783",
+      "evaluation": "behavioural-use",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "T0",
+          "claim": "The merged readout (v1 mapping, any spike) still over-fires on the held-out battery: its false alarms per simulated minute are at least 5",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "T1",
+          "claim": "The selected readout cuts false alarms per minute by at least 80% from the merged readout",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "T2",
+          "claim": "without an unacceptable rise in misses: recall at least 0.75 and no more than 0.10 below the merged readout's",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "T3",
+          "claim": "and without escaping too late: median lead time over its hits at least 50 ms before collision",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "T4",
+          "claim": "The selected readout's F1 is at least that of each threshold heuristic tuned on the development battery",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "T5",
+          "claim": "The selected readout's F1 is at least ECHO's giant-fiber proxy's",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "X1",
+          "claim": "Exploratory: per stimulus kind, how often each readout escapes",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 3,
+      "total": 7,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 0.018,
+        "cpuS": 0.02,
+        "peakRssMb": 353.355
+      },
+      "cost": null,
+      "code": {
+        "commit": "287f9894019499d57dabb8a4a7e0b1c5760739dd",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/banc/banc-cord-v888-calibrated-dev.json",
+      "fileSha256": "a1abb694d25dceae79546399e2907310a14f9c047d095ae486e426ca5cd18fe8",
+      "schema": "fly-neural-result/v1",
+      "kind": "experiment",
+      "split": "dev",
+      "dataset": "BANC v888",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "B1",
+          "claim": "Sugar on the legs drives the proboscis motor neuron MN9, through the ventral nerve cord",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B2",
+          "claim": "Shuffling the connectome's weights abolishes leg-sugar-evoked MN9 activation",
+          "passed": false,
+          "control": true
+        },
+        {
+          "id": "B3",
+          "claim": "Labellar sugar GRNs at 100 Hz activate MN9 in every simulation, in a second animal's connectome",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B4",
+          "claim": "Bitter GRN activity inhibits sugar-evoked MN9 firing, in a second animal's connectome",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B5",
+          "claim": "A giant-fiber spike train drives the jump motor neuron TTMn",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B6",
+          "claim": "A giant-fiber spike train drives the DLM wing power motor neurons",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B7",
+          "claim": "Looming input to LPLC2 and LC4 drives the giant fiber",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B8",
+          "claim": "Looming input reaches the jump motor neuron, eye to leg in one connectome",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B9",
+          "claim": "The antennal-grooming descending neurons drive front-leg motor neurons",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B10",
+          "claim": "The antennal-grooming descending neurons drive the front legs more than the hind legs",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 9,
+      "total": 10,
+      "partial": false,
+      "neurons": 158262,
+      "synapses": 23556214,
+      "resources": {
+        "wallS": 3590.328,
+        "cpuS": 3366.812,
+        "peakRssMb": 397.574
+      },
+      "cost": null,
+      "code": {
+        "commit": "f0cd344709d5c479af4a2a0213cc10a7e2499353",
+        "dirty": true
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/banc/banc-cord-v888-calibrated-heldout.json",
+      "fileSha256": "05ae2a40657989a2878394c19694c2cea093039eb6288ce9859dbf99fd7a372d",
+      "schema": "fly-neural-result/v1",
+      "kind": "experiment",
+      "split": "heldout",
+      "dataset": "BANC v888",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "B1",
+          "claim": "Sugar on the legs drives the proboscis motor neuron MN9, through the ventral nerve cord",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B2",
+          "claim": "Shuffling the connectome's weights abolishes leg-sugar-evoked MN9 activation",
+          "passed": false,
+          "control": true
+        },
+        {
+          "id": "B3",
+          "claim": "Labellar sugar GRNs at 100 Hz activate MN9 in every simulation, in a second animal's connectome",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B4",
+          "claim": "Bitter GRN activity inhibits sugar-evoked MN9 firing, in a second animal's connectome",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B5",
+          "claim": "A giant-fiber spike train drives the jump motor neuron TTMn",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B6",
+          "claim": "A giant-fiber spike train drives the DLM wing power motor neurons",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B7",
+          "claim": "Looming input to LPLC2 and LC4 drives the giant fiber",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B8",
+          "claim": "Looming input reaches the jump motor neuron, eye to leg in one connectome",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B9",
+          "claim": "The antennal-grooming descending neurons drive front-leg motor neurons",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B10",
+          "claim": "The antennal-grooming descending neurons drive the front legs more than the hind legs",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 9,
+      "total": 10,
+      "partial": false,
+      "neurons": 158262,
+      "synapses": 23556214,
+      "resources": {
+        "wallS": 5127.297,
+        "cpuS": 2450.984,
+        "peakRssMb": 392.008
+      },
+      "cost": null,
+      "code": {
+        "commit": "4e44d26bb643deb4909525ca6edca1c50c8ede4d",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/banc/banc-cord-v888-dev.json",
+      "fileSha256": "a7b93b3b406ec32f8a3804f960b0fbea1dda89a6e9ca50fd352902e92665a38b",
+      "schema": "fly-neural-result/v1",
+      "kind": "experiment",
+      "split": "dev",
+      "dataset": "BANC v888",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "B1",
+          "claim": "Sugar on the legs drives the proboscis motor neuron MN9, through the ventral nerve cord",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B2",
+          "claim": "Shuffling the connectome's weights abolishes leg-sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "B3",
+          "claim": "Labellar sugar GRNs at 100 Hz activate MN9 in every simulation, in a second animal's connectome",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B4",
+          "claim": "Bitter GRN activity inhibits sugar-evoked MN9 firing, in a second animal's connectome",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B5",
+          "claim": "A giant-fiber spike train drives the jump motor neuron TTMn",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B6",
+          "claim": "A giant-fiber spike train drives the DLM wing power motor neurons",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B7",
+          "claim": "Looming input to LPLC2 and LC4 drives the giant fiber",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B8",
+          "claim": "Looming input reaches the jump motor neuron, eye to leg in one connectome",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B9",
+          "claim": "The antennal-grooming descending neurons drive front-leg motor neurons",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B10",
+          "claim": "The antennal-grooming descending neurons drive the front legs more than the hind legs",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 4,
+      "total": 10,
+      "partial": false,
+      "neurons": 158262,
+      "synapses": 23556214,
+      "resources": {
+        "wallS": 232.218,
+        "cpuS": 227.25,
+        "peakRssMb": 386.859
+      },
+      "cost": null,
+      "code": {
+        "commit": "f0cd344709d5c479af4a2a0213cc10a7e2499353",
+        "dirty": true
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/banc/banc-cord-v888-heldout.json",
+      "fileSha256": "4762ef3a278760a798959e564cf877cf6868d3c0028158877add1251805e7edf",
+      "schema": "fly-neural-result/v1",
+      "kind": "experiment",
+      "split": "heldout",
+      "dataset": "BANC v888",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "B1",
+          "claim": "Sugar on the legs drives the proboscis motor neuron MN9, through the ventral nerve cord",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B2",
+          "claim": "Shuffling the connectome's weights abolishes leg-sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "B3",
+          "claim": "Labellar sugar GRNs at 100 Hz activate MN9 in every simulation, in a second animal's connectome",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B4",
+          "claim": "Bitter GRN activity inhibits sugar-evoked MN9 firing, in a second animal's connectome",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B5",
+          "claim": "A giant-fiber spike train drives the jump motor neuron TTMn",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B6",
+          "claim": "A giant-fiber spike train drives the DLM wing power motor neurons",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B7",
+          "claim": "Looming input to LPLC2 and LC4 drives the giant fiber",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B8",
+          "claim": "Looming input reaches the jump motor neuron, eye to leg in one connectome",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "B9",
+          "claim": "The antennal-grooming descending neurons drive front-leg motor neurons",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "B10",
+          "claim": "The antennal-grooming descending neurons drive the front legs more than the hind legs",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 4,
+      "total": 10,
+      "partial": false,
+      "neurons": 158262,
+      "synapses": 23556214,
+      "resources": {
+        "wallS": 654.141,
+        "cpuS": 599.188,
+        "peakRssMb": 382.824
+      },
+      "cost": null,
+      "code": {
+        "commit": "4e44d26bb643deb4909525ca6edca1c50c8ede4d",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/benchmark.json",
+      "fileSha256": "2f4502ea5d78b8ec342e33fb5a4a4329fc2a805538f28056a3d1429498c11927",
+      "schema": "fly-neural-result/v1",
+      "kind": "benchmark",
+      "split": null,
+      "dataset": "unknown",
+      "evaluation": "efficiency",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": null,
+        "cpuS": null,
+        "peakRssMb": null
+      },
+      "cost": null,
+      "code": {
+        "commit": "8df2e3b82b908448c66767a62f693389b8b27dd7",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/brian2-reference.json",
+      "fileSha256": "77153b5739cbfde457a4121f4772f9969b4b8a5135091bc2eec537ff4b6e191f",
+      "schema": "fly-neural-result/v1",
+      "kind": "reference",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "R1",
+          "claim": "MN9's rate is the same in both simulators",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "R2",
+          "claim": "Every neuron's mean rate agrees",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "R3",
+          "claim": "The same neurons respond",
+          "passed": true,
+          "control": false
+        }
+      ],
+      "passed": 3,
+      "total": 3,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": null,
+        "cpuS": null,
+        "peakRssMb": null
+      },
+      "cost": null,
+      "code": {
+        "commit": "7d87e82276dbda4c9f8142be4feea248e58c03ca",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json",
+      "fileSha256": "ff385955f9e0fbb3b1071403e26272f8d2abd9af34a6795a3c61192a7aee921c",
+      "schema": "fly-neural-result/v1",
+      "kind": "import",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "provenance",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 5.515,
+        "cpuS": 5.672,
+        "peakRssMb": 751.918
+      },
+      "cost": null,
+      "code": {
+        "commit": "a206910f94fe8d5cbfa4555fbc169b346865f551",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/import-fafb-v783-synapse-weighted.json",
+      "fileSha256": "c50d1cf3fa47b322a1a7fdbc1165a1752fe1b9dc5a5afb2c9158422907842aea",
+      "schema": "fly-neural-result/v1",
+      "kind": "import",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "provenance",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 5.313,
+        "cpuS": 5.641,
+        "peakRssMb": 817.145
+      },
+      "cost": null,
+      "code": {
+        "commit": "a206910f94fe8d5cbfa4555fbc169b346865f551",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/plasticity-v783-dev-partial.json",
+      "fileSha256": "c1e5ce5ebfcde86410958171dbc8ed6239f3535236a0d88d8054acbdee92c9d7",
+      "schema": "fly-neural-result/v1",
+      "kind": "plasticity",
+      "split": "dev",
+      "dataset": "FAFB v783",
+      "evaluation": "learning-selectivity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "P0",
+          "claim": "The odours reach the readout: the PAM-innervated MBONs respond to each odour before training",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "P1",
+          "claim": "With the rule, the paired odour's MBON response falls more than the unpaired odour's",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "P2",
+          "claim": "Fixed weights learn nothing",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "P3",
+          "claim": "Blocking the DANs' output abolishes the learning",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "P4",
+          "claim": "The repository's mushroom-body rate model learns the paired cue: its prediction for A rises above B's, and not when the reward is omitted",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "X1",
+          "claim": "Exploratory: the rule on a degree-preserving rewired connectome",
+          "passed": true,
+          "control": true
+        }
+      ],
+      "passed": 3,
+      "total": 6,
+      "partial": true,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 1879.438,
+        "cpuS": 1587.422,
+        "peakRssMb": 1738.348
+      },
+      "cost": null,
+      "code": {
+        "commit": "ffe066a273b106ed83e773f5307475e1976f6d38",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/plasticity-v783-heldout.json",
+      "fileSha256": "6df6ab7f749d2d2f28175e2d17b0a7e84c4ece96ebe0d44f6914055b445e962e",
+      "schema": "fly-neural-result/v1",
+      "kind": "plasticity",
+      "split": "heldout",
+      "dataset": "FAFB v783",
+      "evaluation": "learning-selectivity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "P0",
+          "claim": "The odours reach the readout: the PAM-innervated MBONs respond to each odour before training",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "P1",
+          "claim": "With the rule, the paired odour's MBON response falls more than the unpaired odour's",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "P2",
+          "claim": "Fixed weights learn nothing",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "P3",
+          "claim": "Blocking the DANs' output abolishes the learning",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "P4",
+          "claim": "The repository's mushroom-body rate model learns the paired cue: its prediction for A rises above B's, and not when the reward is omitted",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "X1",
+          "claim": "Exploratory: the rule on a degree-preserving rewired connectome",
+          "passed": true,
+          "control": true
+        }
+      ],
+      "passed": 3,
+      "total": 6,
+      "partial": false,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 658.14,
+        "cpuS": 646.188,
+        "peakRssMb": 1758.477
+      },
+      "cost": null,
+      "code": {
+        "commit": "8051eef555464ce3fa78b226e44a0025266b57b7",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/shadow-food-101-neural-shadow.json",
+      "fileSha256": "06ebe7e8b6023b90179639c2e6db9e3c25088b67f604adb1364f17f66933c2cc",
+      "schema": "fly-neural-result/v1",
+      "kind": "shadow",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "prediction",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 984.063,
+        "cpuS": 958.797,
+        "peakRssMb": 456.012
+      },
+      "cost": null,
+      "code": {
+        "commit": "0ed5036a395d74eb75e8a683a42528fe26fc2217",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/shadow-looms-101-neural-shadow.json",
+      "fileSha256": "0da97dd45bf3856b70d6b4acf497de7670925b98feb34023e0c1739e0e7a5292",
+      "schema": "fly-neural-result/v1",
+      "kind": "shadow",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "prediction",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 456.781,
+        "cpuS": 447.375,
+        "peakRssMb": 456.078
+      },
+      "cost": null,
+      "code": {
+        "commit": "062fa1168d38c2d4f947abb214c84fe2afbe7a53",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/shadow-wind-101-neural-shadow.json",
+      "fileSha256": "cd7ad4e2b6cd7689f7399b0fddd153e9943b61f94e77f3ffdc36dce5cf972ab2",
+      "schema": "fly-neural-result/v1",
+      "kind": "shadow",
+      "split": null,
+      "dataset": "FAFB v783",
+      "evaluation": "prediction",
+      "seal": "verified",
+      "criteria": [],
+      "passed": 0,
+      "total": 0,
+      "partial": null,
+      "neurons": null,
+      "synapses": null,
+      "resources": {
+        "wallS": 320.75,
+        "cpuS": 310.25,
+        "peakRssMb": 456.492
+      },
+      "cost": null,
+      "code": {
+        "commit": "0ed5036a395d74eb75e8a683a42528fe26fc2217",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/shiu2024-v783-dev.json",
+      "fileSha256": "f630ecfc90c0d5ba9ccb288fdd8d24ecf820864fbd074bf36c4127561d85bdf5",
+      "schema": "fly-neural-result/v1",
+      "kind": "experiment",
+      "split": "dev",
+      "dataset": "FAFB v783",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "S1",
+          "claim": "Sugar GRNs at 100 Hz activate MN9 in every simulation",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S2",
+          "claim": "More neurons respond to stronger sugar GRN activation",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S3",
+          "claim": "Shuffling the connectome's weights abolishes sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "S4",
+          "claim": "Bitter GRN activity inhibits sugar-evoked MN9 firing",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S5",
+          "claim": "Ir94e GRN activity inhibits sugar-evoked MN9 firing",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S6",
+          "claim": "Water GRN activation activates MN9",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "G1",
+          "claim": "JO-CE neurons drive aBN1 robustly and JO-F neurons do not, despite synapsing onto it",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "G2",
+          "claim": "Silencing the inhibitory neurons between JO-F and aBN1 lets JO-F drive aBN1",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "G3",
+          "claim": "JON activation activates the antennal grooming neurons aBN1, aDN1 and aDN2",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "C1",
+          "claim": "Degree-preserving rewiring abolishes sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "C2",
+          "claim": "A random graph of the same size and weights does not produce sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "C3",
+          "claim": "Permuting neuron signs disrupts sugar-evoked MN9 activation",
+          "passed": false,
+          "control": true
+        }
+      ],
+      "passed": 10,
+      "total": 12,
+      "partial": false,
+      "neurons": 139255,
+      "synapses": 54492922,
+      "resources": {
+        "wallS": 5363.89,
+        "cpuS": 4692.562,
+        "peakRssMb": 1969.453
+      },
+      "cost": null,
+      "code": {
+        "commit": "411ac535028a03c0890b541803c495788137505f",
+        "dirty": false
+      }
+    },
+    {
+      "file": "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json",
+      "fileSha256": "185aedfc06af6f4eedab9a6a2025de8d1d56c4fd72de05a6af111a367cc62d12",
+      "schema": "fly-neural-result/v1",
+      "kind": "experiment",
+      "split": "heldout",
+      "dataset": "FAFB v783",
+      "evaluation": "fidelity",
+      "seal": "verified",
+      "criteria": [
+        {
+          "id": "S1",
+          "claim": "Sugar GRNs at 100 Hz activate MN9 in every simulation",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S2",
+          "claim": "More neurons respond to stronger sugar GRN activation",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S3",
+          "claim": "Shuffling the connectome's weights abolishes sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "S4",
+          "claim": "Bitter GRN activity inhibits sugar-evoked MN9 firing",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S5",
+          "claim": "Ir94e GRN activity inhibits sugar-evoked MN9 firing",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "S6",
+          "claim": "Water GRN activation activates MN9",
+          "passed": false,
+          "control": false
+        },
+        {
+          "id": "G1",
+          "claim": "JO-CE neurons drive aBN1 robustly and JO-F neurons do not, despite synapsing onto it",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "G2",
+          "claim": "Silencing the inhibitory neurons between JO-F and aBN1 lets JO-F drive aBN1",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "G3",
+          "claim": "JON activation activates the antennal grooming neurons aBN1, aDN1 and aDN2",
+          "passed": true,
+          "control": false
+        },
+        {
+          "id": "C1",
+          "claim": "Degree-preserving rewiring abolishes sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "C2",
+          "claim": "A random graph of the same size and weights does not produce sugar-evoked MN9 activation",
+          "passed": true,
+          "control": true
+        },
+        {
+          "id": "C3",
+          "claim": "Permuting neuron signs disrupts sugar-evoked MN9 activation",
+          "passed": false,
+          "control": true
+        }
+      ],
+      "passed": 10,
+      "total": 12,
+      "partial": false,
+      "neurons": 139255,
+      "synapses": 54492922,
+      "resources": {
+        "wallS": 106.688,
+        "cpuS": 103.75,
+        "peakRssMb": 445.113
+      },
+      "cost": null,
+      "code": {
+        "commit": "a27844a43e51139b1c14dc394f25843faaa5db21",
+        "dirty": false
+      }
+    }
+  ],
+  "byEvaluation": {
+    "behavioural-use": {
+      "results": 6,
+      "criteriaPassed": 23,
+      "criteriaTotal": 31
+    },
+    "fidelity": {
+      "results": 8,
+      "criteriaPassed": 49,
+      "criteriaTotal": 67
+    },
+    "unclassified": {
+      "results": 2,
+      "criteriaPassed": 0,
+      "criteriaTotal": 0
+    },
+    "efficiency": {
+      "results": 3,
+      "criteriaPassed": 3,
+      "criteriaTotal": 3
+    },
+    "learning-selectivity": {
+      "results": 7,
+      "criteriaPassed": 19,
+      "criteriaTotal": 37
+    },
+    "provenance": {
+      "results": 2,
+      "criteriaPassed": 0,
+      "criteriaTotal": 0
+    },
+    "prediction": {
+      "results": 3,
+      "criteriaPassed": 0,
+      "criteriaTotal": 0
+    }
+  },
+  "licences": [
+    {
+      "dataset": "FAFB v783 (FlyWire)",
+      "file": "docs/benchmarks/fly-neural/LICENSE.md",
+      "terms": "FlyWire data: CC BY-NC 4.0 (https://creativecommons.org/licenses/by-nc/4.0/)"
+    },
+    {
+      "dataset": "BANC v888",
+      "file": "docs/benchmarks/fly-neural/banc/LICENSE.md",
+      "terms": "BANC v888 data: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)"
+    }
+  ],
+  "notRun": [
+    "A behavioural comparison of a connectome-driven research fly against the organism under the bench's protocol: not run. The whole-brain model costs 3.2731 wall seconds per simulated second (docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json, on the machine it names), so one 2-hour run would take about 6.5 hours, and a protocol needs hundreds.",
+    "Re-running any fly-neural experiment: not run here; their seals and criteria are read as reference cases."
+  ],
+  "limits": [
+    "A criterion passing means a model output met a threshold against a published observation, not that the model is the fly's nervous system.",
+    "FAFB v783 and BANC v888 are different animals; their results are listed apart and never pooled.",
+    "Resources were measured on the machines each result names; they are not comparable across results run on different hardware."
+  ]
+}
