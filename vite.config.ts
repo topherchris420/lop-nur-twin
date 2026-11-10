@@ -332,14 +332,33 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     chunkSizeWarningLimit: 1200,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id: string) {
-          if (id.includes("node_modules/three/")) return "three";
-          if (id.includes("@react-three/fiber") || id.includes("@react-three/drei")) {
-            return "r3f";
-          }
-          return undefined;
+        // Three vendor chunks, so a release that changes only this project's
+        // code leaves them cached. A group also takes what its modules depend
+        // on, so the order matters: without the first group, React landed in
+        // the chunk with three.js, the entry imported that chunk to get React,
+        // and every route (the two that exist for a machine without WebGL
+        // included) downloaded and compiled the renderer. `framework` is
+        // everything the entry shares with the scene, and has the highest
+        // priority so that neither later group can claim any of it.
+        // `tools/front-door.mjs` fails the build if the renderer comes back.
+        codeSplitting: {
+          groups: [
+            {
+              name: "framework",
+              test: /node_modules[\\/](?:react|react-dom|scheduler|zustand|use-sync-external-store)[\\/]/,
+              priority: 30,
+            },
+            { name: "three", test: /node_modules[\\/]three[\\/]/, priority: 20 },
+            // Not @react-three/postprocessing: the effects are loaded on the top
+            // quality tier only, and would otherwise ride in with every scene.
+            {
+              name: "r3f",
+              test: /node_modules[\\/]@react-three[\\/](?:fiber|drei)[\\/]/,
+              priority: 10,
+            },
+          ],
         },
       },
     },

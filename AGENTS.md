@@ -181,6 +181,14 @@ props run on active tiers, keep their geometry cheap and treat motion as illustr
 - `npm run twin:startup` measures the first seconds of `/` against a running
   server: blocking, first frame, input and FPS, with `--attribute` to name the slow
   GL calls. It prints the renderer it got; a software result is not comparable.
+- **Every route pays for what the entry imports statically.** `index.html`
+  serves all of them, so `tools/front-door.mjs` ends `bun run build` by adding
+  up that set and failing if the WebGL renderer is in it or it outgrows its
+  ceiling. A vendor chunk group in `vite.config.ts` also takes whatever its
+  modules depend on: a package the entry uses must be in the `framework` group,
+  or it lands beside three.js and `/analysis` downloads the renderer to get it.
+  Load a heavy module where a route decides to use it, with `import()`; raise
+  the ceiling only on purpose, in the commit that needs it.
 - Instancing is only warranted when a structure type has >5 instances; none
   do today.
 - Textures are generated once and cached by `useMemo` — keep new generators

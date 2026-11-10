@@ -21,6 +21,15 @@ of any provider credential (`TYPESAFE_API_KEY`, `FASTINO_API_KEY`,
 `LLM_API_KEY`, `RAIN_LLM_API_KEY`), anything shaped like one of their keys, or a
 configured key's value when it is present in the build environment.
 
+Last, `tools/front-door.mjs` reads the bundle it was just given and adds up what
+every route loads before it can show anything: the scripts `index.html` names
+and everything they import statically. It fails if the WebGL renderer is among
+them, or if the set outgrows its ceiling. `/analysis` and `/compare` are the
+routes that work without WebGL, and they once downloaded and compiled three.js
+all the same, because React had been grouped into its chunk: 403 kB of
+compressed script for `/analysis` where 163 kB does. The ceiling is a tripwire
+with room in it, not a target.
+
 `bun run check` composes the full quality gate:
 
 ```sh
@@ -28,7 +37,7 @@ bun run format:check   # Prettier
 bun run lint           # ESLint
 bun run test:run       # Vitest
 bun run test:evidence  # the validator's own negative tests
-bun run build          # validate (twin, Bethesda) → manifest → model history → bundle → strict typecheck → secret scan
+bun run build          # validate (twin, Bethesda) → manifest → model history → bundle → strict typecheck → secret scan → front door
 ```
 
 Nothing in that list re-runs a build operation the build already performs.
