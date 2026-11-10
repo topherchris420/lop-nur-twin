@@ -171,6 +171,10 @@ person who uses the technology daily:
 - Blacksite requires a mouse and keyboard, and fast reactions. It is a
   demonstration of simulation technique, not an accessible experience; the same
   underlying model is fully available through `/analysis`.
+- Every view needs JavaScript, `/analysis` included: the table is drawn by
+  scripts from the model, not served as a document. With scripts off or blocked
+  the page says so in a `<noscript>` notice and links the project's documents;
+  it cannot show the model.
 - There is no high-contrast theme. The interface is dark-only.
 - No captions or transcripts exist because there is no speech or recorded
   audio; all sound is synthesised, non-verbal feedback that duplicates
