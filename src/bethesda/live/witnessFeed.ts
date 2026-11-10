@@ -26,6 +26,8 @@ export interface Sample {
   at: number;
   tick: number;
   x: number;
+  /** Height in city metres (`model.ts`): the ground's own height where it stands, more in the air. */
+  y: number;
   z: number;
   yaw: number;
 }
@@ -39,14 +41,22 @@ export function addSample(
 ): Sample[] {
   const last = samples.at(-1);
   if (last && o.tick <= last.tick) return [...samples];
-  const [x, , z] = o.fly.position;
-  return [...samples, { at, tick: o.tick, x, z, yaw: o.fly.yaw }].slice(-keep);
+  const [x, y, z] = o.fly.position;
+  return [...samples, { at, tick: o.tick, x, y, z, yaw: o.fly.yaw }].slice(-keep);
 }
 
 /** The shorter way round from `a` to `b`, `t` of the way. */
 function turn(a: number, b: number, t: number): number {
   const d = Math.atan2(Math.sin(b - a), Math.cos(b - a));
   return a + d * t;
+}
+
+/** Where the fly is drawn: city metres and its heading. */
+export interface PresentedPose {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
 }
 
 /**
@@ -58,21 +68,23 @@ export function presentPose(
   samples: readonly Sample[],
   now: number,
   delay = PRESENT_DELAY_MS,
-): { x: number; z: number; yaw: number } | null {
+): PresentedPose | null {
   if (!samples.length) return null;
   const when = now - delay;
   const first = samples[0]!,
     last = samples.at(-1)!;
-  if (when <= first.at) return { x: first.x, z: first.z, yaw: first.yaw };
-  if (when >= last.at) return { x: last.x, z: last.z, yaw: last.yaw };
+  const held = (s: Sample): PresentedPose => ({ x: s.x, y: s.y, z: s.z, yaw: s.yaw });
+  if (when <= first.at) return held(first);
+  if (when >= last.at) return held(last);
   const i = samples.findIndex((s) => s.at > when);
   const a = samples[i - 1]!,
     b = samples[i]!;
   if (b.tick - a.tick > JUMP_TICKS || Math.hypot(b.x - a.x, b.z - a.z) > JUMP_M)
-    return { x: b.x, z: b.z, yaw: b.yaw };
+    return held(b);
   const t = (when - a.at) / (b.at - a.at);
   return {
     x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
     z: a.z + (b.z - a.z) * t,
     yaw: turn(a.yaw, b.yaw, t),
   };

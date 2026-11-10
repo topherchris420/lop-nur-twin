@@ -227,6 +227,51 @@ a new name means changing both. A cloud firewall
 in front of the VM must allow them too: on Oracle, two stateful ingress rules
 in the subnet's security list, TCP 80 and TCP 443 from `0.0.0.0/0`.
 
+#### The picture
+
+`/live` draws the witness as a clay model of the fly's city on a workbench,
+photographed in stop motion the way [Eva's garden](LIVE_GARDEN.md) is: the
+same plasticine material, two-cascade key light and camera chain
+(`src/garden/scene/`), on twelve frames a second. The model and its lens live
+in `src/bethesda/live/diorama/`.
+
+| The flat map it replaces                        | The clay model, on the live witness               |
+| ----------------------------------------------- | ------------------------------------------------- |
+| ![The flat map](media/live-fly/before-map.webp) | ![The clay model](media/live-fly/clay-model.webp) |
+| **Close up, resting by a shopfront**            | **In flight over Wisconsin Avenue**               |
+| ![Close up](media/live-fly/clay-close.webp)     | ![In flight](media/live-fly/clay-flight.webp)     |
+
+The first three pictures are the page on the live witness on 2026-11-09. The
+flight is a local render on a crafted observation (a development-only stand-in
+observer), to show the wings, the figures and the path together.
+
+What the picture may and may not do:
+
+- **It is the same imported city.** Buildings stand on their mapped
+  footprints at their modelled heights, streets at their modelled widths, on
+  the bare-earth terrain, with the trees, awnings and rooftop units the fly
+  itself lands on (`furniture.ts`). Where the imported city ends the slab
+  ends, and the picture shows the table.
+- **The scale is 1 : 400, and the fly is not to scale.** The puppet is the
+  garden's clay fly (FlyBody's shape and skeleton) enlarged until it can be
+  seen, never longer than a bus. Its legs and wings are posed from the mode
+  the life reports; the life sends no joint angles. In the air it is held
+  clear of the model so that flying reads as flying. People and vehicles are
+  plain figures, larger than the model's scale, set where the witness says.
+- **The light is the city's own.** Bethesda has no day or night: the model is
+  lit from the direction of the one sun in `furniture.ts`, at its clear and
+  storm intensities, so the picture never shows an hour the fly's world does
+  not have.
+- **The colours and the windows are the sculptor's.** The model records
+  neither; window rows are pressed at the 3.3 m storey the city model assumes.
+- **The lens only looks.** It follows the fly and comes round a building
+  that hides it; when the fly is under a roof, a ring marks its place. No
+  lens, zoom or frame rate is sent anywhere.
+- **Without an observation no fly is drawn**, as before.
+
+The flat map is still there: a button swaps to it, and the page falls back to
+it by itself where WebGL 2 is unavailable.
+
 Caddy also serves `GET /v1/backup`, the newest backup's record
 ([below](#backup)), and nothing else of the machine. After an upgrade that
 changes the `Caddyfile`, run `public.sh` again: it validates the new file
