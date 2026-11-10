@@ -94,6 +94,32 @@ responses and RFC 7946 coordinate/ring validity. `validate:data` gates catalog
 completeness, evidence linkage, finite closed rings, live-entity exclusion and
 representative repeated-query equality.
 
+## The documents' own numbers
+
+```sh
+bun run claims        # every binding, and how much of each document it covers
+bun run claims:check  # docs/claims/ is what the bindings give
+```
+
+The [claims register](RESEARCH_CLAIMS.md) and the README state numbers that
+were copied from records, and a copied number can drift without anything
+failing. A _binding_ (`scripts/claims/`) rebuilds one of their sentences from
+the committed records: the words are quoted, and every number is computed from
+the record that holds it. `scripts/claims/claims.test.ts`, part of the unit
+suite, fails when a document stops saying what its records give. It also runs
+each binding against a copy of its document with one computed number altered
+and requires the check to notice, because a binding that cannot fail is not a
+check.
+
+[`docs/claims/`](claims/README.md) is the generated account: each sentence
+with the records it read and their SHA-256, and for each entry of the register
+how many of its quantities are recomputed and how many are still copied by
+hand. What counts as a quantity is a rule in `scripts/claims/numerals.ts`, so
+the denominators are a count and not a judgement.
+
+This holds a document to its records. It says nothing about whether a record
+is right or a claim follows from its numbers.
+
 ## Manifest reproducibility
 
 ```sh

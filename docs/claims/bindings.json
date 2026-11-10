@@ -1,0 +1,2128 @@
+{
+  "schema": "claim-bindings/v1",
+  "generated_by": "node scripts/run-ts.mjs scripts/claim-bindings.ts --write",
+  "note": "A binding rebuilds one sentence of a document from committed records. `computed` lists the parts of the sentence the records produced; everything else in it is quoted. Never edit this file.",
+  "documents": [
+    {
+      "path": "docs/RESEARCH_CLAIMS.md",
+      "quantities": 352,
+      "recomputed": 200,
+      "sections": [
+        {
+          "section": "summary",
+          "title": "Summary",
+          "quantities": 18,
+          "recomputed": 10
+        },
+        {
+          "section": "1",
+          "title": "ECHO's recent history can be recomputed independently",
+          "quantities": 13,
+          "recomputed": 0
+        },
+        {
+          "section": "2",
+          "title": "Engine changes reached ECHO without replacing it",
+          "quantities": 3,
+          "recomputed": 0
+        },
+        {
+          "section": "3",
+          "title": "The old physics trapped flies in buildings; `digital-fly/9` fixes it",
+          "quantities": 31,
+          "recomputed": 29
+        },
+        {
+          "section": "4",
+          "title": "The repaired physics let the deployed ECHO out",
+          "quantities": 5,
+          "recomputed": 0
+        },
+        {
+          "section": "5",
+          "title": "The self-model compensates for a hidden impairment (ECHO-01)",
+          "quantities": 14,
+          "recomputed": 14
+        },
+        {
+          "section": "6",
+          "title": "The self-model attributes hidden changes better than simpler rules (ECHO-02)",
+          "quantities": 14,
+          "recomputed": 14
+        },
+        {
+          "section": "7",
+          "title": "Memory, workspace and second look help the self-model (ECHO-03–05)",
+          "quantities": 15,
+          "recomputed": 15
+        },
+        {
+          "section": "8",
+          "title": "Individuals from one genesis acquire distinct, persistent preferences",
+          "quantities": 12,
+          "recomputed": 10
+        },
+        {
+          "section": "9",
+          "title": "Memory helps where food keeps moving",
+          "quantities": 6,
+          "recomputed": 3
+        },
+        {
+          "section": "10",
+          "title": "A learning circuit makes behaviour depend on the fly's own history",
+          "quantities": 11,
+          "recomputed": 0
+        },
+        {
+          "section": "11",
+          "title": "A learned search preference transfers and pays",
+          "quantities": 21,
+          "recomputed": 0
+        },
+        {
+          "section": "12",
+          "title": "Learning when to search widely beats a fixed search",
+          "quantities": 6,
+          "recomputed": 0
+        },
+        {
+          "section": "13",
+          "title": "The simulated fly matches published recordings of real flies",
+          "quantities": 9,
+          "recomputed": 5
+        },
+        {
+          "section": "14",
+          "title": "Commanded walking survives physical simulation",
+          "quantities": 8,
+          "recomputed": 0
+        },
+        {
+          "section": "15",
+          "title": "Published connectome predictions reproduce (FAFB v783)",
+          "quantities": 8,
+          "recomputed": 2
+        },
+        {
+          "section": "16",
+          "title": "Connectome-level learning, discrimination and control",
+          "quantities": 25,
+          "recomputed": 0
+        },
+        {
+          "section": "17",
+          "title": "Flies in separate worlds perceive and recognise each other",
+          "quantities": 4,
+          "recomputed": 0
+        },
+        {
+          "section": "18",
+          "title": "Research infrastructure results",
+          "quantities": 3,
+          "recomputed": 0
+        },
+        {
+          "section": "19",
+          "title": "Every claim in the Lop Nur twin carries its evidence",
+          "quantities": 4,
+          "recomputed": 3
+        },
+        {
+          "section": "20",
+          "title": "Seeing looming from an image beats sensing it from geometry",
+          "quantities": 25,
+          "recomputed": 23
+        },
+        {
+          "section": "21",
+          "title": "A world that lives on its own, changed by a fly only through records",
+          "quantities": 3,
+          "recomputed": 0
+        },
+        {
+          "section": "22",
+          "title": "Homeostatic feedback keeps a mortal research fly hydrated",
+          "quantities": 23,
+          "recomputed": 17
+        },
+        {
+          "section": "23",
+          "title": "A 496-neuron circuit cut from the FlyWire brain feeds exactly as the whole brain does",
+          "quantities": 14,
+          "recomputed": 6
+        },
+        {
+          "section": "24",
+          "title": "Embodied plasticity can join the two originals without changing them, and does not yet improve them",
+          "quantities": 24,
+          "recomputed": 18
+        },
+        {
+          "section": "25",
+          "title": "Embodied plasticity helps a research fly with impaired legs eat (metrology bench)",
+          "quantities": 33,
+          "recomputed": 31
+        }
+      ]
+    },
+    {
+      "path": "README.md",
+      "quantities": 33,
+      "recomputed": 22,
+      "sections": [
+        {
+          "section": "01",
+          "title": "The question",
+          "quantities": 0,
+          "recomputed": 0
+        },
+        {
+          "section": "02",
+          "title": "The operating systems",
+          "quantities": 0,
+          "recomputed": 0
+        },
+        {
+          "section": "03",
+          "title": "A machine must be able to verify the history",
+          "quantities": 9,
+          "recomputed": 5
+        },
+        {
+          "section": "04",
+          "title": "The test results, including the ones that did not work",
+          "quantities": 17,
+          "recomputed": 15
+        },
+        {
+          "section": "05",
+          "title": "The brain boundary",
+          "quantities": 2,
+          "recomputed": 2
+        },
+        {
+          "section": "06",
+          "title": "The engineering arrangement",
+          "quantities": 0,
+          "recomputed": 0
+        },
+        {
+          "section": "07",
+          "title": "Reproduce the work",
+          "quantities": 3,
+          "recomputed": 0
+        },
+        {
+          "section": "08",
+          "title": "The laboratory procedure",
+          "quantities": 0,
+          "recomputed": 0
+        },
+        {
+          "section": "09",
+          "title": "The rest of the laboratory",
+          "quantities": 1,
+          "recomputed": 0
+        },
+        {
+          "section": "10",
+          "title": "License and research use",
+          "quantities": 1,
+          "recomputed": 0
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "id": "3.seeds",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "3",
+      "statement": "on the same new seeds (301–312)",
+      "computed": [
+        "301",
+        "312"
+      ],
+      "evidence_sha256": "96d404eec0eda72a423c14478a99aee9043cbf8a0b0892a82b32ce44f8908a80",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl"
+      ]
+    },
+    {
+      "id": "3.trapped",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "3",
+      "statement": "Trapped: 9 of 12 on the old physics, 0 of 12 on the new (and 0 of 12 on each of two further seed sets)",
+      "computed": [
+        "9",
+        "12",
+        "0",
+        "12",
+        "0",
+        "12"
+      ],
+      "evidence_sha256": "ce58ec54714bf703b484518463f93ec1ab62f8d112e448b75f13e350d7b2e393",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "3.meals",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "3",
+      "statement": "Mean meals in 96 h: 83.5 → 120.0; fewest 17 → 83",
+      "computed": [
+        "83.5",
+        "120.0",
+        "17",
+        "83"
+      ],
+      "evidence_sha256": "ce58ec54714bf703b484518463f93ec1ab62f8d112e448b75f13e350d7b2e393",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "3.paired",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "3",
+      "statement": "The paired difference is +36.5 meals; more in 7 seeds, equal in 5, fewer in none (exact two-sided sign test on the 7 untied seeds, p = 0.016)",
+      "computed": [
+        "+36.5",
+        "7",
+        "5",
+        "7",
+        "0.016"
+      ],
+      "evidence_sha256": "ce58ec54714bf703b484518463f93ec1ab62f8d112e448b75f13e350d7b2e393",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "3.ties",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "3",
+      "statement": "The 5 ties are the 3 flies the defect never reached (301, 306, 312) and the 2 it reached only after their last meal (307 at 69 h, 308 at 89 h)",
+      "computed": [
+        "5",
+        "3",
+        "301",
+        "306",
+        "312",
+        "2",
+        "307",
+        "69",
+        "308",
+        "89"
+      ],
+      "evidence_sha256": "ce58ec54714bf703b484518463f93ec1ab62f8d112e448b75f13e350d7b2e393",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "3.hungry-days",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "3",
+      "statement": "3 of 144 fly-days held no meal",
+      "computed": [
+        "3",
+        "144"
+      ],
+      "evidence_sha256": "5b467c6c96fee7f0e9fd713f3f6d917b93311bb1c2774eb6bb55d269258a86fe",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "3.summary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "summary",
+      "statement": "9 of 12 trapped → 0 of 12",
+      "computed": [
+        "9",
+        "12",
+        "0",
+        "12"
+      ],
+      "evidence_sha256": "ce58ec54714bf703b484518463f93ec1ab62f8d112e448b75f13e350d7b2e393",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "readme.03.collision",
+      "document": "README.md",
+      "section": "03",
+      "statement": "In a 12-seed comparison, **9 of 12** subjects were trapped under the old physics and **0 of 12** under",
+      "computed": [
+        "12",
+        "9",
+        "12",
+        "0",
+        "12"
+      ],
+      "evidence_sha256": "ce58ec54714bf703b484518463f93ec1ab62f8d112e448b75f13e350d7b2e393",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "readme.04.collision",
+      "document": "README.md",
+      "section": "04",
+      "statement": "| Collision correction | 9 / 12 subjects trapped before; 0 / 12 after |",
+      "computed": [
+        "9",
+        "12",
+        "0",
+        "12"
+      ],
+      "evidence_sha256": "ce58ec54714bf703b484518463f93ec1ab62f8d112e448b75f13e350d7b2e393",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "collision.table.old",
+      "document": "docs/ECHO_COLLISION.md",
+      "section": null,
+      "statement": "| `digital-fly/8` | 301–312 | 9 of 12 | 1,347,336 | 83.5 | 17 |",
+      "computed": [
+        "`digital-fly/8`",
+        "301",
+        "312",
+        "9",
+        "12",
+        "1,347,336",
+        "83.5",
+        "17"
+      ],
+      "evidence_sha256": "96d404eec0eda72a423c14478a99aee9043cbf8a0b0892a82b32ce44f8908a80",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl"
+      ]
+    },
+    {
+      "id": "collision.table.repaired",
+      "document": "docs/ECHO_COLLISION.md",
+      "section": null,
+      "statement": "| `digital-fly/9` | 301–312 | 0 of 12 | 0 | 120.0 | 83 |",
+      "computed": [
+        "`digital-fly/9`",
+        "301",
+        "312",
+        "0",
+        "12",
+        "0",
+        "120.0",
+        "83"
+      ],
+      "evidence_sha256": "5b467c6c96fee7f0e9fd713f3f6d917b93311bb1c2774eb6bb55d269258a86fe",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "collision.table.repaired-181",
+      "document": "docs/ECHO_COLLISION.md",
+      "section": null,
+      "statement": "| `digital-fly/9` | 181–192 | 0 of 12 | 0 | 118.7 | 97 |",
+      "computed": [
+        "`digital-fly/9`",
+        "181",
+        "192",
+        "0",
+        "12",
+        "0",
+        "118.7",
+        "97"
+      ],
+      "evidence_sha256": "5b467c6c96fee7f0e9fd713f3f6d917b93311bb1c2774eb6bb55d269258a86fe",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "collision.table.repaired-201",
+      "document": "docs/ECHO_COLLISION.md",
+      "section": null,
+      "statement": "| `digital-fly/9` | 201–212 | 0 of 12 | 0 | 133.1 | 95 |",
+      "computed": [
+        "`digital-fly/9`",
+        "201",
+        "212",
+        "0",
+        "12",
+        "0",
+        "133.1",
+        "95"
+      ],
+      "evidence_sha256": "5b467c6c96fee7f0e9fd713f3f6d917b93311bb1c2774eb6bb55d269258a86fe",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "collision.buildings",
+      "document": "docs/ECHO_COLLISION.md",
+      "section": null,
+      "statement": "**Seven buildings trapped the old flies,**",
+      "computed": [
+        "Seven"
+      ],
+      "evidence_sha256": "96d404eec0eda72a423c14478a99aee9043cbf8a0b0892a82b32ce44f8908a80",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl"
+      ]
+    },
+    {
+      "id": "collision.hungry-days",
+      "document": "docs/ECHO_COLLISION.md",
+      "section": null,
+      "statement": "3 of the 144 repaired fly-days held no meal",
+      "computed": [
+        "3",
+        "144"
+      ],
+      "evidence_sha256": "5b467c6c96fee7f0e9fd713f3f6d917b93311bb1c2774eb6bb55d269258a86fe",
+      "records": [
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl"
+      ]
+    },
+    {
+      "id": "5.registered",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "5",
+      "statement": "Path error 0.073 with it, 0.370 without (+0.297; 9 of 9 seeds; p = 0.002): **supported**",
+      "computed": [
+        "0.073",
+        "0.370",
+        "+0.297",
+        "9",
+        "9",
+        "0.002",
+        "supported"
+      ],
+      "evidence_sha256": "b0c8ccaa6a8c5560209a3d239bf06fa62fc78d9129710a7b22b24984675ecfee",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-3dedfd1e08238befa3a2cd09/registry-run.json"
+      ]
+    },
+    {
+      "id": "5.report",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "5",
+      "statement": "Evaluation report: 0.083 [0.047, 0.125] against 0.385 [0.303, 0.463], 24 of 24 seeds",
+      "computed": [
+        "0.083",
+        "0.047",
+        "0.125",
+        "0.385",
+        "0.303",
+        "0.463",
+        "24",
+        "24"
+      ],
+      "evidence_sha256": "96ba3068416f50ff9ccaf3713b43daf33355959fdf560ac2590ea4aab2eea064",
+      "records": [
+        "docs/benchmarks/fly-echo/report.json"
+      ]
+    },
+    {
+      "id": "6.registered",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "6",
+      "statement": "0.919 correct against 0.537 (−0.381; 10 of 10 untied seeds; p = 0.001), beyond the pilot-sized minimum effect: **supported**",
+      "computed": [
+        "0.919",
+        "0.537",
+        "−0.381",
+        "10",
+        "10",
+        "0.001",
+        "supported"
+      ],
+      "evidence_sha256": "f083aa5731fa8163a5d74475aba523758a5c95bd6a6bed07863d2f4114987ede",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-ea1f81b92313cd532b36b4a8/registry-run.json"
+      ]
+    },
+    {
+      "id": "6.report",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "6",
+      "statement": "Report: 0.89 [0.83, 0.94] against 0.42, 0.34 and 0.32",
+      "computed": [
+        "0.89",
+        "0.83",
+        "0.94",
+        "0.42",
+        "0.34",
+        "0.32"
+      ],
+      "evidence_sha256": "96ba3068416f50ff9ccaf3713b43daf33355959fdf560ac2590ea4aab2eea064",
+      "records": [
+        "docs/benchmarks/fly-echo/report.json"
+      ]
+    },
+    {
+      "id": "6.calibration",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "6",
+      "statement": "expected calibration error 0.12 against 0.013 on development data",
+      "computed": [
+        "0.12",
+        "0.013"
+      ],
+      "evidence_sha256": "96ba3068416f50ff9ccaf3713b43daf33355959fdf560ac2590ea4aab2eea064",
+      "records": [
+        "docs/benchmarks/fly-echo/report.json"
+      ]
+    },
+    {
+      "id": "7.echo-03",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "7",
+      "statement": "a reset memory concluded 1.60 s later (below a 3 s minimum)",
+      "computed": [
+        "1.60",
+        "3"
+      ],
+      "evidence_sha256": "26bd667176176bff38aa2948f70c3712903469192682186d913718479b00601e",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-aff10dec2ec287b28e76c74e/registry-run.json"
+      ]
+    },
+    {
+      "id": "7.echo-04",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "7",
+      "statement": "without the workspace the busy fly concluded 0.69 s _sooner_ (p = 0.81; 30 s minimum)",
+      "computed": [
+        "0.69",
+        "0.81",
+        "30"
+      ],
+      "evidence_sha256": "a5cb7926fd413fdee6ceda1cf302f28b9caae10fadb22e71caf86e2626bac2da",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json"
+      ]
+    },
+    {
+      "id": "7.echo-05",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "7",
+      "statement": "without the second look the Brier score rose 0.099 → 0.132 (p = 0.105; 0.2 minimum)",
+      "computed": [
+        "0.099",
+        "0.132",
+        "0.105",
+        "0.2"
+      ],
+      "evidence_sha256": "b431d164fe051e78f6720c0572deeb2596ba23fefeb46930c260b02546aca3b8",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-bdfb8327413f5007cc987738/registry-run.json"
+      ]
+    },
+    {
+      "id": "7.report",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "7",
+      "statement": "(Brier +0.088 [0.022, 0.163]) and a 1.00 s [0.29, 1.79] workspace effect",
+      "computed": [
+        "+0.088",
+        "0.022",
+        "0.163",
+        "1.00",
+        "0.29",
+        "1.79"
+      ],
+      "evidence_sha256": "96ba3068416f50ff9ccaf3713b43daf33355959fdf560ac2590ea4aab2eea064",
+      "records": [
+        "docs/benchmarks/fly-echo/report.json"
+      ]
+    },
+    {
+      "id": "readme.04.echo-01",
+      "document": "README.md",
+      "section": "04",
+      "statement": "| Self-model under concealed impairment, ECHO-01 | Path error 0.073 vs 0.370 in registered conditions |",
+      "computed": [
+        "0.073",
+        "0.370"
+      ],
+      "evidence_sha256": "b0c8ccaa6a8c5560209a3d239bf06fa62fc78d9129710a7b22b24984675ecfee",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-3dedfd1e08238befa3a2cd09/registry-run.json"
+      ]
+    },
+    {
+      "id": "readme.04.echo-02",
+      "document": "README.md",
+      "section": "04",
+      "statement": "| Hidden-change attribution, ECHO-02 | 0.919 vs 0.537; overconfidence remains |",
+      "computed": [
+        "0.919",
+        "0.537"
+      ],
+      "evidence_sha256": "f083aa5731fa8163a5d74475aba523758a5c95bd6a6bed07863d2f4114987ede",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-ea1f81b92313cd532b36b4a8/registry-run.json"
+      ]
+    },
+    {
+      "id": "readme.04.echo-03-05",
+      "document": "README.md",
+      "section": "04",
+      "statement": "| ECHO-03 through ECHO-05 | Inconclusive |",
+      "computed": [
+        "Inconclusive"
+      ],
+      "evidence_sha256": "d26c1779eb4cd6830a7999f8dbe2505dea3c7b38f6b4001a1141d123c80009ea",
+      "records": [
+        "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json",
+        "docs/benchmarks/fly-behavior/FLY-aff10dec2ec287b28e76c74e/registry-run.json",
+        "docs/benchmarks/fly-behavior/FLY-bdfb8327413f5007cc987738/registry-run.json"
+      ]
+    },
+    {
+      "id": "24.designs",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "24",
+      "statement": "ECHO: 24 seeds × 4 arms (original, shadow, active, fixed-slow ablation) × 5 conditions plus a restart",
+      "computed": [
+        "24",
+        "4",
+        "5"
+      ],
+      "evidence_sha256": "a72a1d26879f952ed1bf7db02de2c29c482c6a2d05b944c8d80368e61157f70f",
+      "records": [
+        "docs/benchmarks/echo-plasticity/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "24.designs-eva",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "24",
+      "statement": "Eva: 12 seeds × 4 arms (original, shadow, active, no-learning ablation) × 5 conditions plus a restart",
+      "computed": [
+        "12",
+        "4",
+        "5"
+      ],
+      "evidence_sha256": "6f0bd97cd0d8aaf543d4668fabd1a46fd3c71784d6918040dbe0e03e51af7c48",
+      "records": [
+        "docs/benchmarks/eva-plasticity/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "24.shadow",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "24",
+      "statement": "Shadow identical to the original: ECHO 144 of 144, Eva 72 of 72",
+      "computed": [
+        "144",
+        "144",
+        "72",
+        "72"
+      ],
+      "evidence_sha256": "0cae26303b19f0d91ce9e5febf1edc7fe9582873c24694ab267cdef76f072a9d",
+      "records": [
+        "docs/benchmarks/echo-plasticity/heldout/summary.json",
+        "docs/benchmarks/eva-plasticity/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "24.restart",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "24",
+      "statement": "Restart exact: ECHO 96 of 96 (learning kept in all)",
+      "computed": [
+        "96",
+        "96"
+      ],
+      "evidence_sha256": "a72a1d26879f952ed1bf7db02de2c29c482c6a2d05b944c8d80368e61157f70f",
+      "records": [
+        "docs/benchmarks/echo-plasticity/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "24.restart-eva",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "24",
+      "statement": "45 of 48 overall",
+      "computed": [
+        "45",
+        "48"
+      ],
+      "evidence_sha256": "6f0bd97cd0d8aaf543d4668fabd1a46fd3c71784d6918040dbe0e03e51af7c48",
+      "records": [
+        "docs/benchmarks/eva-plasticity/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "24.primary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "24",
+      "statement": "Primary, ECHO (weak legs, meals): **no difference established**, +0.17 (95% CI −1.00 to 1.33)",
+      "computed": [
+        "no difference established",
+        "+0.17",
+        "−1.00",
+        "1.33"
+      ],
+      "evidence_sha256": "a72a1d26879f952ed1bf7db02de2c29c482c6a2d05b944c8d80368e61157f70f",
+      "records": [
+        "docs/benchmarks/echo-plasticity/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "24.primary-eva",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "24",
+      "statement": "Primary, Eva (weak wings, journeys): **no difference established**, exactly 0",
+      "computed": [
+        "0"
+      ],
+      "evidence_sha256": "6f0bd97cd0d8aaf543d4668fabd1a46fd3c71784d6918040dbe0e03e51af7c48",
+      "records": [
+        "docs/benchmarks/eva-plasticity/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "25.design",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "9 conditions (2 the candidate had met, 7 it had not)",
+      "computed": [
+        "9",
+        "2",
+        "7"
+      ],
+      "evidence_sha256": "6c969afd4428c003e133bbde1a1f0a549507d45264e28fedbe3c7b103a70f6f3",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/protocol.json"
+      ]
+    },
+    {
+      "id": "25.minimum-effects",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Minimum meaningful effects of 0.128 J of energy and 1 meal",
+      "computed": [
+        "0.128",
+        "1"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "25.sizes",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Dev: 6 seeds, 186 runs. Held-out: 40 seeds derived from the protocol digest, 1240 runs",
+      "computed": [
+        "6",
+        "186",
+        "40",
+        "1240"
+      ],
+      "evidence_sha256": "8657e0ad94a7adf07a36ec5d573b2fb049f3c753050cf02baff39ffb00c64c70",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/dev/summary.json",
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "25.verdict",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Held-out: **inconclusive**",
+      "computed": [
+        "inconclusive"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "25.energy",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Energy, weak legs: −0.011 J (97.5% −0.043 to 0.020), no demonstrated improvement",
+      "computed": [
+        "−0.011",
+        "97.5",
+        "−0.043",
+        "0.020",
+        "no demonstrated improvement"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "25.meals",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Meals: −0.68 (97.5% −1.68 to 0.28), inconclusive",
+      "computed": [
+        "−0.68",
+        "97.5",
+        "−1.68",
+        "0.28",
+        "inconclusive"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "25.regression",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "A corrected regression under severe weak legs: −0.043 J (99.7% −0.077 to −0.008), smaller than δ",
+      "computed": [
+        "−0.043",
+        "99.7",
+        "−0.077",
+        "−0.008"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "25.validity",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Shadow and disabled were identical to the baseline in 160 of 160 runs. All validity checks passed, and 12 of 12 replayed runs were byte-identical",
+      "computed": [
+        "160",
+        "160",
+        "12",
+        "12"
+      ],
+      "evidence_sha256": "2e4355747453a717eb33efe12ff7d141d9462c277451ac118545efae521a737b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json",
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/verification.json"
+      ]
+    },
+    {
+      "id": "25.reproduction",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Claim 24's held-out runs reproduced byte for byte (96 of 96), with the same primary result",
+      "computed": [
+        "96",
+        "96"
+      ],
+      "evidence_sha256": "c606de03baa21fca1a2456298fdff2937136fe28b65729042eff550064d9ee06",
+      "records": [
+        "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json"
+      ]
+    },
+    {
+      "id": "25.impairment-cost",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "25",
+      "statement": "Weak legs cost the baseline only 0.038 J (95% 0.006 to 0.069), below δ",
+      "computed": [
+        "0.038",
+        "95",
+        "0.006",
+        "0.069"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "readme.04.metrology",
+      "document": "README.md",
+      "section": "04",
+      "statement": "| Embodied plasticity under weak legs, metrology bench | Inconclusive on 40 held-out subjects;",
+      "computed": [
+        "Inconclusive",
+        "40"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "readme.04.metrology-prose",
+      "document": "README.md",
+      "section": "04",
+      "statement": "then asked it again on 40 new research subjects in nine conditions: inconclusive",
+      "computed": [
+        "40",
+        "inconclusive"
+      ],
+      "evidence_sha256": "155d6f3b8132ab48a1b71836a1dc56c165f0b0389973666e2ec3db5c4bdc1e2b",
+      "records": [
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json"
+      ]
+    },
+    {
+      "id": "20.trials",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "20",
+      "statement": "248 trials each, live escapes through the body's gate",
+      "computed": [
+        "248"
+      ],
+      "evidence_sha256": "8180debcf2cb1c399f6c166bfa9a2cab4ca68a9493c145f75c878d245ed14d6d",
+      "records": [
+        "docs/benchmarks/fly-vision/looming-v1-heldout.json",
+        "docs/benchmarks/fly-vision/looming-v2-heldout.json"
+      ]
+    },
+    {
+      "id": "20.primary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "20",
+      "statement": "live F1 0.677 against 0.739 (−0.062 [−0.217, 0.084]), then 0.825 against 0.800 (+0.025 [−0.105, 0.162])",
+      "computed": [
+        "0.677",
+        "0.739",
+        "−0.062",
+        "−0.217",
+        "0.084",
+        "0.825",
+        "0.800",
+        "+0.025",
+        "−0.105",
+        "0.162"
+      ],
+      "evidence_sha256": "8180debcf2cb1c399f6c166bfa9a2cab4ca68a9493c145f75c878d245ed14d6d",
+      "records": [
+        "docs/benchmarks/fly-vision/looming-v1-heldout.json",
+        "docs/benchmarks/fly-vision/looming-v2-heldout.json"
+      ]
+    },
+    {
+      "id": "20.near-miss",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "20",
+      "statement": "no near miss escaped from (0/48 against 16/48 and 20/48)",
+      "computed": [
+        "0",
+        "48",
+        "16",
+        "48",
+        "20",
+        "48"
+      ],
+      "evidence_sha256": "8180debcf2cb1c399f6c166bfa9a2cab4ca68a9493c145f75c878d245ed14d6d",
+      "records": [
+        "docs/benchmarks/fly-vision/looming-v1-heldout.json",
+        "docs/benchmarks/fly-vision/looming-v2-heldout.json"
+      ]
+    },
+    {
+      "id": "20.ablations",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "20",
+      "statement": "each cost 0.21–0.35 F1 with intervals above 0",
+      "computed": [
+        "0.21",
+        "0.35"
+      ],
+      "evidence_sha256": "8180debcf2cb1c399f6c166bfa9a2cab4ca68a9493c145f75c878d245ed14d6d",
+      "records": [
+        "docs/benchmarks/fly-vision/looming-v1-heldout.json",
+        "docs/benchmarks/fly-vision/looming-v2-heldout.json"
+      ]
+    },
+    {
+      "id": "20.lead",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "20",
+      "statement": "a 110 ms median lead against 38 ms in v2",
+      "computed": [
+        "110",
+        "38"
+      ],
+      "evidence_sha256": "c58ff9da30fff29e583305651c8cf9f6a8fff9a4076b71b6c9c38eb29797399e",
+      "records": [
+        "docs/benchmarks/fly-vision/looming-v2-heldout.json"
+      ]
+    },
+    {
+      "id": "20.tau",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "20",
+      "statement": "A τ rule on the deployed senses scored 0.917 and 0.824",
+      "computed": [
+        "0.917",
+        "0.824"
+      ],
+      "evidence_sha256": "8180debcf2cb1c399f6c166bfa9a2cab4ca68a9493c145f75c878d245ed14d6d",
+      "records": [
+        "docs/benchmarks/fly-vision/looming-v1-heldout.json",
+        "docs/benchmarks/fly-vision/looming-v2-heldout.json"
+      ]
+    },
+    {
+      "id": "22.design",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "22",
+      "statement": "8 held-out yards × 2 flies × 6 arms",
+      "computed": [
+        "8",
+        "2",
+        "6"
+      ],
+      "evidence_sha256": "fd9c62276e2d104a664cab264a0534e96c2e0ad9f14cb4f5a59af9e82a0932e2",
+      "records": [
+        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json"
+      ]
+    },
+    {
+      "id": "22.primary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "22",
+      "statement": "**The primary criterion failed:** +0.07 [−0.05, +0.16]",
+      "computed": [
+        "+0.07",
+        "−0.05",
+        "+0.16"
+      ],
+      "evidence_sha256": "fd9c62276e2d104a664cab264a0534e96c2e0ad9f14cb4f5a59af9e82a0932e2",
+      "records": [
+        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json"
+      ]
+    },
+    {
+      "id": "22.passed",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "22",
+      "statement": "Passed: H2 (full − heat only, +0.11 [+0.05, +0.18]), H3 (full − displaced humidity, +0.09 [+0.02, +0.17]) and H6 (median hydrated share 0.80). Failed: H4 (survival) and H5 (heat)",
+      "computed": [
+        "+0.11",
+        "+0.05",
+        "+0.18",
+        "+0.09",
+        "+0.02",
+        "+0.17",
+        "0.80"
+      ],
+      "evidence_sha256": "fd9c62276e2d104a664cab264a0534e96c2e0ad9f14cb4f5a59af9e82a0932e2",
+      "records": [
+        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json"
+      ]
+    },
+    {
+      "id": "22.alive",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "22",
+      "statement": "thirst alone kept 15 of 16 flies alive against 10 of 16 with none",
+      "computed": [
+        "15",
+        "16",
+        "10",
+        "16"
+      ],
+      "evidence_sha256": "fd9c62276e2d104a664cab264a0534e96c2e0ad9f14cb4f5a59af9e82a0932e2",
+      "records": [
+        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json"
+      ]
+    },
+    {
+      "id": "22.summary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "summary",
+      "statement": "Primary failed; 3 of 6",
+      "computed": [
+        "3",
+        "6"
+      ],
+      "evidence_sha256": "fd9c62276e2d104a664cab264a0534e96c2e0ad9f14cb4f5a59af9e82a0932e2",
+      "records": [
+        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json"
+      ]
+    },
+    {
+      "id": "23.outcome",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "23",
+      "statement": "**Passed, 3 of 3.**",
+      "computed": [
+        "3",
+        "3"
+      ],
+      "evidence_sha256": "08dd99ff607962cfa925b580c3b4130506faf4aaff173a3bff18405253fa1eee",
+      "records": [
+        "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json"
+      ]
+    },
+    {
+      "id": "23.exact",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "23",
+      "statement": "109 of 110 trials exact on every kept neuron",
+      "computed": [
+        "109",
+        "110"
+      ],
+      "evidence_sha256": "08dd99ff607962cfa925b580c3b4130506faf4aaff173a3bff18405253fa1eee",
+      "records": [
+        "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json"
+      ]
+    },
+    {
+      "id": "23.trials",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "23",
+      "statement": "with new seeds, 110 trials, run once from the clean commit `404815b`",
+      "computed": [
+        "110",
+        "404815b"
+      ],
+      "evidence_sha256": "08dd99ff607962cfa925b580c3b4130506faf4aaff173a3bff18405253fa1eee",
+      "records": [
+        "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json"
+      ]
+    },
+    {
+      "id": "23.summary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "summary",
+      "statement": "Passed (3 of 3)",
+      "computed": [
+        "3",
+        "3"
+      ],
+      "evidence_sha256": "08dd99ff607962cfa925b580c3b4130506faf4aaff173a3bff18405253fa1eee",
+      "records": [
+        "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json"
+      ]
+    },
+    {
+      "id": "8.preference",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "8",
+      "statement": "Preference for the fed site 0.28 [0.14, 0.45], against −0.01 [−0.05, 0.01] erased and 0 for the copy",
+      "computed": [
+        "0.28",
+        "0.14",
+        "0.45",
+        "−0.01",
+        "−0.05",
+        "0.01"
+      ],
+      "evidence_sha256": "8843200a9fa19e06af2f0c161116d050470bb1102073aa3519ad3943434d0d66",
+      "records": [
+        "docs/benchmarks/fly-individuality/report.json"
+      ]
+    },
+    {
+      "id": "8.continuity",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "8",
+      "statement": "byte-identical in 24 of 24",
+      "computed": [
+        "24",
+        "24"
+      ],
+      "evidence_sha256": "8843200a9fa19e06af2f0c161116d050470bb1102073aa3519ad3943434d0d66",
+      "records": [
+        "docs/benchmarks/fly-individuality/report.json"
+      ]
+    },
+    {
+      "id": "8.no-site",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "8",
+      "statement": "in 69% of probes the fly reached no site in 300 s",
+      "computed": [
+        "69",
+        "300"
+      ],
+      "evidence_sha256": "8843200a9fa19e06af2f0c161116d050470bb1102073aa3519ad3943434d0d66",
+      "records": [
+        "docs/benchmarks/fly-individuality/report.json"
+      ]
+    },
+    {
+      "id": "9.meals",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "9",
+      "statement": "Memory-bearing flies ate 1.2 fewer meals per life [−2.25, −0.08] (Study B)",
+      "computed": [
+        "1.2",
+        "−2.25",
+        "−0.08"
+      ],
+      "evidence_sha256": "8843200a9fa19e06af2f0c161116d050470bb1102073aa3519ad3943434d0d66",
+      "records": [
+        "docs/benchmarks/fly-individuality/report.json"
+      ]
+    },
+    {
+      "id": "readme.04.memory",
+      "document": "README.md",
+      "section": "04",
+      "statement": "| Memory with continuously moving food | Negative: 1.2 fewer meals per life |",
+      "computed": [
+        "1.2"
+      ],
+      "evidence_sha256": "8843200a9fa19e06af2f0c161116d050470bb1102073aa3519ad3943434d0d66",
+      "records": [
+        "docs/benchmarks/fly-individuality/report.json"
+      ]
+    },
+    {
+      "id": "13.set",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "13",
+      "statement": "The 2026-11 held-out set: 16 observations from nine papers",
+      "computed": [
+        "16"
+      ],
+      "evidence_sha256": "5980583ce97419045a963a7929f3ffaa48fc943b5d40d805c1144566e8df1782",
+      "records": [
+        "docs/benchmarks/fly-calibration/holdout-2026-11.json"
+      ]
+    },
+    {
+      "id": "13.within-spread",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "13",
+      "statement": "within the flies' spread on 4 of 6 observations with an interval",
+      "computed": [
+        "4",
+        "6"
+      ],
+      "evidence_sha256": "79d0b6df8907bd9d1f3ec189d801a252e40823f00ec55340962c65ad5b4f9534",
+      "records": [
+        "docs/benchmarks/fly-calibration/report.json"
+      ]
+    },
+    {
+      "id": "13.ablated",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "13",
+      "statement": "Both gains come from one paper and one mechanism; without it, 2 of 6",
+      "computed": [
+        "2",
+        "6"
+      ],
+      "evidence_sha256": "79d0b6df8907bd9d1f3ec189d801a252e40823f00ec55340962c65ad5b4f9534",
+      "records": [
+        "docs/benchmarks/fly-calibration/report.json"
+      ]
+    },
+    {
+      "id": "15.criteria",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "15",
+      "statement": "10 of 12 criteria pass on both seed sets",
+      "computed": [
+        "10",
+        "12"
+      ],
+      "evidence_sha256": "65a3e8af5169614b168673716b0a24814119c6c6953507432a20e711c8fbd608",
+      "records": [
+        "docs/benchmarks/fly-neural/shiu2024-v783-dev.json",
+        "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json"
+      ]
+    },
+    {
+      "id": "15.summary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "summary",
+      "statement": "| 10 of 12 criteria |",
+      "computed": [
+        "10",
+        "12"
+      ],
+      "evidence_sha256": "65a3e8af5169614b168673716b0a24814119c6c6953507432a20e711c8fbd608",
+      "records": [
+        "docs/benchmarks/fly-neural/shiu2024-v783-dev.json",
+        "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json"
+      ]
+    },
+    {
+      "id": "readme.04.connectome",
+      "document": "README.md",
+      "section": "04",
+      "statement": "| FlyWire FAFB v783 reproduction | 10 / 12 registered criteria met |",
+      "computed": [
+        "10",
+        "12"
+      ],
+      "evidence_sha256": "65a3e8af5169614b168673716b0a24814119c6c6953507432a20e711c8fbd608",
+      "records": [
+        "docs/benchmarks/fly-neural/shiu2024-v783-dev.json",
+        "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json"
+      ]
+    },
+    {
+      "id": "readme.05.connectome",
+      "document": "README.md",
+      "section": "05",
+      "statement": "contains **139,255 neurons** and **54,492,922 synapses**",
+      "computed": [
+        "139,255",
+        "54,492,922"
+      ],
+      "evidence_sha256": "e2df3fda5dd264815facb262cb0cf4a4ae8d44209f72a060a914e995a363c885",
+      "records": [
+        "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json"
+      ]
+    },
+    {
+      "id": "23.neurons",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "23",
+      "statement": "496 of 139,255, reproduce",
+      "computed": [
+        "139,255"
+      ],
+      "evidence_sha256": "e2df3fda5dd264815facb262cb0cf4a4ae8d44209f72a060a914e995a363c885",
+      "records": [
+        "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json"
+      ]
+    },
+    {
+      "id": "19.structures",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "19",
+      "statement": "Each of the 45 structures and the pavements",
+      "computed": [
+        "45"
+      ],
+      "model": "src/lib/layout.ts, src/lib/evidence.ts and src/lib/siteData.ts",
+      "evidence_sha256": null,
+      "records": []
+    },
+    {
+      "id": "19.ledger",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "19",
+      "statement": "derives the ledger (101 records, 12 sources)",
+      "computed": [
+        "101",
+        "12"
+      ],
+      "model": "src/lib/layout.ts, src/lib/evidence.ts and src/lib/siteData.ts",
+      "evidence_sha256": null,
+      "records": []
+    },
+    {
+      "id": "readme.04.recomputed",
+      "document": "README.md",
+      "section": "04",
+      "statement": "**200 of the 352 quantities**",
+      "computed": [
+        "200",
+        "352"
+      ],
+      "model": "scripts/claims/check.ts",
+      "evidence_sha256": "c31ed7952eb036dcc8c8da04ae29e43a5d1b427ba332b4180e69f9b53cb743b9",
+      "records": [
+        "README.md",
+        "docs/ECHO_COLLISION.md",
+        "docs/RESEARCH_CLAIMS.md",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl",
+        "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl",
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/dev/summary.json",
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/protocol.json",
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json",
+        "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/verification.json",
+        "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json",
+        "docs/benchmarks/echo-plasticity/heldout/summary.json",
+        "docs/benchmarks/eva-plasticity/heldout/summary.json",
+        "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json",
+        "docs/benchmarks/fly-behavior/FLY-3dedfd1e08238befa3a2cd09/registry-run.json",
+        "docs/benchmarks/fly-behavior/FLY-aff10dec2ec287b28e76c74e/registry-run.json",
+        "docs/benchmarks/fly-behavior/FLY-bdfb8327413f5007cc987738/registry-run.json",
+        "docs/benchmarks/fly-behavior/FLY-ea1f81b92313cd532b36b4a8/registry-run.json",
+        "docs/benchmarks/fly-calibration/holdout-2026-11.json",
+        "docs/benchmarks/fly-calibration/report.json",
+        "docs/benchmarks/fly-echo/report.json",
+        "docs/benchmarks/fly-individuality/report.json",
+        "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json",
+        "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json",
+        "docs/benchmarks/fly-neural/shiu2024-v783-dev.json",
+        "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json",
+        "docs/benchmarks/fly-vision/looming-v1-heldout.json",
+        "docs/benchmarks/fly-vision/looming-v2-heldout.json",
+        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json"
+      ]
+    }
+  ],
+  "records": {
+    "README.md": "4f4e98a50758b71ef4bb44b3f81cfdc8b655fa0f663e6355968be1938bdac0e4",
+    "docs/ECHO_COLLISION.md": "8b7f74f11e56442915e750e175e2ca0938572a1f4e9445b4318ea5dd0ac6a264",
+    "docs/RESEARCH_CLAIMS.md": "2c6907e050d136ac576d03d5e9b8a21a757dc614b7b4b4729cc9a787c263753f",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl": "04b2391da901d5b13d8ade7f4bd5f484c3b124f5c6261c65cad96628f1fbde2a",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl": "0a64e2a9982f18ccdf6bdf917c058856c6567cab07b9564f96c9b0413374217d",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl": "b6d9372f4ddd50d909af324ec68dd369e41f72a510a4a461ef6b7353c5fed28a",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-304.jsonl": "5ed86a1f02877842c5ead6c9c32a27d27b9fca31813206f91a4e34340d363497",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-305.jsonl": "dc976b466299ca0f7fbfd233700349783cf51c85d76cb121d9341e149a28ce65",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-306.jsonl": "902ca440c53564cb895194939d368274071d3a0093dad78d1655406568001206",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-307.jsonl": "b2d4012e6aca84ae6e4992df51fb6ada7f8255eae103913d98cbd9eea4c900df",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-308.jsonl": "70ab53476a6996b61fe5e346f03e258e447630cc66a9b926f8c4fe86c3cd40b4",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-309.jsonl": "309f800a4c84f0307464fe1b66273d374ca8926671c3c91db507414d63d82010",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-310.jsonl": "cf943cf34192b595748166715da6dcc5ebf53fd6a1f928e2cdbb41aab87f28fa",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-311.jsonl": "98b187f950d9a9e8b0ae9affb5c7b5a801cd5c71daadeaff19c8970f44933fc3",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/control-312.jsonl": "4cf0a5188de6cc68930e120355483be55d1a9c1b8e415ac6f46556a55421d3ac",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-181.jsonl": "7a25c3281f5250bd40420e7a2347db571cae67c4b5558ea0d7db030855dd1f1d",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-182.jsonl": "eb9346a8d5fac885de4972ee85d07ab9683f8ebed4b43e46fc04ac3344aa8a31",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-183.jsonl": "74ec8f46e7458a7472073afd70ea30d26c44fb35f4f5f7517ac46ae8182ee07d",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-184.jsonl": "0b2de0d5bc817f04b25c3c1583ea60fc355fe512d210fde8df5351043f3e5453",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-185.jsonl": "0ef98ce62c1270ddfa0a1368772ebb0cdfe830a3050d4a6c800e08ef7895dc3b",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-186.jsonl": "fb77e47732228227356f22999f1f0f9ef3f953fab5cee66932b8f9eeb5ec24e1",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-187.jsonl": "2f553050aeb8ac0c092df1f04602a521c2a941c21d455021bab3b7af6f3ebb9e",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-188.jsonl": "e2c54e7d9e77b3311fcde5da7ae97123e48857d502b1222257cafbe4658af7fd",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-189.jsonl": "8b1bd56ccbfdcddd1de82e989ceeaae98db4dcac6a9d9a335307402088a58c8c",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-190.jsonl": "bc4cb390cd4592b4faa87ab1b70f3fdf98916fed664b3efede563b1aa15715d7",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-191.jsonl": "051d64aaad2e56f3b3c59ce50530cc334c560692bf6d597d3fa6744bbf45282d",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-192.jsonl": "63159bb51ac48d9947e138149d4e59e05a91dd5d83da20f8044826df55c0b0e1",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-201.jsonl": "7be1d452a8a9f3518c78c2e5df5ba1743b57a7a1bd791d8739221342aede2c53",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-202.jsonl": "567d002d830f7a0978597d6be5780c0d4f942ef501986437334510405d791f40",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-203.jsonl": "99eb87b8350824abf8ce6699cd44fbb8e18a4f50b1efb98ff9acafbcd31b121c",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-204.jsonl": "884b979f095bcca6ad9eec6be69ca427257c5ff3a01556620bce3068903ad008",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-205.jsonl": "c224a6d8a7ffa9379c48440d98fca405286f6fa595f8e1c1b709f1af1e5cd85d",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-206.jsonl": "d5619ad04b48585281bbffef179b5706d27fe7a94e3375e8bc46881d2758c48d",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-207.jsonl": "63a7879e589330250ef44c9e39684edd449b7da8fd95a9d792949c6b2a2319b3",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-208.jsonl": "6a854a73f500a1df6930b08f0687ae4a23503094849bda6566581e7b9acb1647",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-209.jsonl": "97a197978696f98a7ee04309abea50dc04655f63174df4dd7bb7d694d63f4c16",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-210.jsonl": "9a6bd1fce95a1e994b9af5ce3ec73fac8ac5c8e9271fa3d93e8d17da3128e424",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-211.jsonl": "f821b6b21394361de6750b3442388320fe77ab92b9f25582495d63b11de7e623",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-212.jsonl": "3fd29fce338e0798fc1e802cec52417c1cc50e411224d9070cd92eb154f19ed1",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-301.jsonl": "04b2391da901d5b13d8ade7f4bd5f484c3b124f5c6261c65cad96628f1fbde2a",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-302.jsonl": "77635acf28b3241d07c23e18b1c8ef7ceb1884e79182529b3caa5d8973249be6",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-303.jsonl": "dd2f16be72c96abe45a7dd01293b9595ed8afb59ef08adce8bbc46186060b019",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-304.jsonl": "a69b68015f43100ce4397825980c9a6a3e7c5a6f8fbc26bd06dca8d4a5483328",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-305.jsonl": "cee3d72eaf6fcfc09df2803a8c46dc44d3b9c4d401151608026b586aa626026b",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-306.jsonl": "902ca440c53564cb895194939d368274071d3a0093dad78d1655406568001206",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-307.jsonl": "bf6aac1c2efa8971005c700ffdf1ddc33c4f38a1a8cd422bf74994bfda4470a5",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-308.jsonl": "92c719ad14e93f8de9e7288440e264d7381008757d6a8be071d2d4eb415bd0f7",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-309.jsonl": "a4a3aa57148c8d95cccff9b297972faac801d62b725ae57d7c8ef3def268cc43",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-310.jsonl": "a756367eb9da2882baa1364f6a8f7a6d9f6a0350d17bed86d5cff1e256a6ebe3",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-311.jsonl": "cd7675868a0d7c8cddc7fd9f66468a88f6c1382f52771bb434ab74779bf15551",
+    "docs/benchmarks/echo-collision/2026-11-03/flies/repaired-312.jsonl": "4cf0a5188de6cc68930e120355483be55d1a9c1b8e415ac6f46556a55421d3ac",
+    "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/dev/summary.json": "dfaeac9b346b45874c713629e1a1d0384682aeae579ebb7b951b86ca567f4d2e",
+    "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/protocol.json": "1483c1bdf4095dcfe7b5578d9f4f9d5f430e1c83cf70a65f55047213d9742013",
+    "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json": "0d5293e08685cbaf5a4a5cd90134148f16b1686f041e6ce83c4b6a21837b234a",
+    "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/verification.json": "f341a0d85287cf2834d3514fb92404482fd17d2691e0703e623574fb8c281a42",
+    "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json": "8407f6b0a210e0807a0cbe139f0646a4d480a736bdc23947b63991da54ccc5ff",
+    "docs/benchmarks/echo-plasticity/heldout/summary.json": "7b5bcba947f1f21eecd3243cf7460c2e429c4bfb58bd506dd4e3379e0d88a0c3",
+    "docs/benchmarks/eva-plasticity/heldout/summary.json": "0c947d0f3926d245c999220dff6378ac23d370a71f7fd0c8229692cb03104d66",
+    "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json": "dfd3e17d1fc7a88d40d18bc5318cc1de078d470eaf51883842308dd24a4ef0fe",
+    "docs/benchmarks/fly-behavior/FLY-3dedfd1e08238befa3a2cd09/registry-run.json": "a13b18720804d068f6da81554ef942e47396e8e0872d49d6c8b566968734dc88",
+    "docs/benchmarks/fly-behavior/FLY-aff10dec2ec287b28e76c74e/registry-run.json": "c092321277b4f592d3d588c04127286f076d3d93d01d5651c61c051c5e03e586",
+    "docs/benchmarks/fly-behavior/FLY-bdfb8327413f5007cc987738/registry-run.json": "3045f3b1c5011a402821cac6992b22f5e2f66da44e8afdcfee73da86ff6cfec7",
+    "docs/benchmarks/fly-behavior/FLY-ea1f81b92313cd532b36b4a8/registry-run.json": "03ef81bbf0b7722f84e2d996e75c51655582d41fb3615de4a4d852c2cf32ef7e",
+    "docs/benchmarks/fly-calibration/holdout-2026-11.json": "55a38e20a341a6212971255c1b7bc88339de31053bc034b082e708aaea3ba13c",
+    "docs/benchmarks/fly-calibration/report.json": "eacdce07f99443f4aaf0eda75c9909413776b8139089d60fd9057072eb81d22f",
+    "docs/benchmarks/fly-echo/report.json": "fb374eea08a60dfeaff8fb11052c5b2a0873d5dac440bb7efa93f3afd3e2debf",
+    "docs/benchmarks/fly-individuality/report.json": "166886bdabe11aed300c1e05127feb52af2293695f7c56edb649b59e6938bb06",
+    "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json": "5c640a22f5b8f879e1524a2257b36520d6dd7b78c98b8280e2bc6be11622f7d0",
+    "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json": "ff385955f9e0fbb3b1071403e26272f8d2abd9af34a6795a3c61192a7aee921c",
+    "docs/benchmarks/fly-neural/shiu2024-v783-dev.json": "f630ecfc90c0d5ba9ccb288fdd8d24ecf820864fbd074bf36c4127561d85bdf5",
+    "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json": "185aedfc06af6f4eedab9a6a2025de8d1d56c4fd72de05a6af111a367cc62d12",
+    "docs/benchmarks/fly-vision/looming-v1-heldout.json": "e00585a8321c4a949f7b59d26454ff0f97e2cd1c0a72ba773014e51a2e86f0c4",
+    "docs/benchmarks/fly-vision/looming-v2-heldout.json": "58ab6daf49dd3cb3e3757e629f9f6e3749973c50f81b7bff2191af2f84908421",
+    "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json": "755534c5561bd87fc908d5c335e1cf05fb9054ddb649e05cbefe7cb7db0f3758"
+  }
+}
