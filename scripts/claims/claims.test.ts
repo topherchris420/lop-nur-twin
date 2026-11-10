@@ -76,6 +76,9 @@ describe("printing and arithmetic", () => {
     expect(signed(0.1667, 2)).toBe("+0.17");
     expect(signed(-0.381, 3)).toBe("−0.381");
     expect(grouped(54492922)).toBe("54,492,922");
+    // The lift that restores a tie never reaches the next whole number.
+    expect(fixed(600_000_000_000, 0)).toBe("600000000000");
+    expect(fixed(2.4999999, 0)).toBe("2");
   });
 
   it("computes exact sign tests", () => {

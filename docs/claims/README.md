@@ -5,7 +5,7 @@
 
 The [claims register](../../docs/RESEARCH_CLAIMS.md) and the [README](../../README.md) state numbers
 that were copied from records. A copied number can drift from its record and nothing
-fails. The 80 sentences on this page cannot: each is rebuilt from committed
+fails. The 85 sentences on this page cannot: each is rebuilt from committed
 records by a function in [`scripts/claims/`](../../scripts/claims/), and the test suite
 fails when a document and its records disagree.
 
@@ -18,10 +18,10 @@ wrong, and nothing checks them.
 
 | Document | Quantities stated | Recomputed from records | Share |
 | :-- | --: | --: | --: |
-| [Claims register](../../docs/RESEARCH_CLAIMS.md) | 352 | 210 | 60% |
+| [Claims register](../../docs/RESEARCH_CLAIMS.md) | 352 | 232 | 66% |
 | [README](../../README.md) | 33 | 22 | 67% |
 
-80 sentences, 79 record files. A quantity is a number written in
+85 sentences, 82 record files. A quantity is a number written in
 digits in a document's prose ([what counts](#what-counts-as-a-quantity)). It is
 recomputed only when it lies inside text that a function of the records produced, in a
 sentence the document was found to contain. A number that a binding merely quotes is
@@ -42,8 +42,8 @@ not counted.
 | [8. Individuals from one genesis acquire distinct, persistent preferences](../../docs/RESEARCH_CLAIMS.md#8-individuals-from-one-genesis-acquire-distinct-persistent-preferences) | 12 | 10 | 83% |
 | [9. Memory helps where food keeps moving](../../docs/RESEARCH_CLAIMS.md#9-memory-helps-where-food-keeps-moving) | 6 | 3 | 50% |
 | [10. A learning circuit makes behaviour depend on the fly's own history](../../docs/RESEARCH_CLAIMS.md#10-a-learning-circuit-makes-behaviour-depend-on-the-flys-own-history) | 11 | 0 | 0% |
-| [11. A learned search preference transfers and pays](../../docs/RESEARCH_CLAIMS.md#11-a-learned-search-preference-transfers-and-pays) | 21 | 0 | 0% |
-| [12. Learning when to search widely beats a fixed search](../../docs/RESEARCH_CLAIMS.md#12-learning-when-to-search-widely-beats-a-fixed-search) | 6 | 0 | 0% |
+| [11. A learned search preference transfers and pays](../../docs/RESEARCH_CLAIMS.md#11-a-learned-search-preference-transfers-and-pays) | 21 | 16 | 76% |
+| [12. Learning when to search widely beats a fixed search](../../docs/RESEARCH_CLAIMS.md#12-learning-when-to-search-widely-beats-a-fixed-search) | 6 | 6 | 100% |
 | [13. The simulated fly matches published recordings of real flies](../../docs/RESEARCH_CLAIMS.md#13-the-simulated-fly-matches-published-recordings-of-real-flies) | 9 | 5 | 56% |
 | [14. Commanded walking survives physical simulation](../../docs/RESEARCH_CLAIMS.md#14-commanded-walking-survives-physical-simulation) | 8 | 4 | 50% |
 | [15. Published connectome predictions reproduce (FAFB v783)](../../docs/RESEARCH_CLAIMS.md#15-published-connectome-predictions-reproduce-fafb-v783) | 8 | 2 | 25% |
@@ -57,7 +57,7 @@ not counted.
 | [23. A 496-neuron circuit cut from the FlyWire brain feeds exactly as the whole brain does](../../docs/RESEARCH_CLAIMS.md#23-a-496-neuron-circuit-cut-from-the-flywire-brain-feeds-exactly-as-the-whole-brain-does) | 14 | 6 | 43% |
 | [24. Embodied plasticity can join the two originals without changing them, and does not yet improve them](../../docs/RESEARCH_CLAIMS.md#24-embodied-plasticity-can-join-the-two-originals-without-changing-them-and-does-not-yet-improve-them) | 24 | 18 | 75% |
 | [25. Embodied plasticity helps a research fly with impaired legs eat (metrology bench)](../../docs/RESEARCH_CLAIMS.md#25-embodied-plasticity-helps-a-research-fly-with-impaired-legs-eat-metrology-bench) | 33 | 31 | 94% |
-| **All** | **352** | **210** | **60%** |
+| **All** | **352** | **232** | **66%** |
 
 Entries with nothing recomputed, and why:
 
@@ -65,8 +65,6 @@ Entries with nothing recomputed, and why:
 - **2. Engine changes reached ECHO without replacing it.** Its evidence is the deployed individual's own checkpoint chain, which is not in this repository, and the era table that describes it.
 - **4. The repaired physics let the deployed ECHO out.** The exit's tick and checkpoint are quoted from the deployed individual's checkpoint 2,563, which no file here holds. The figure drawn from the recorded positions is held to them by `scripts/echo-exit-figure.test.ts`.
 - **10. A learning circuit makes behaviour depend on the fly's own history.** Not bound yet. Its record is `docs/benchmarks/fly-mushroom-body/report.json`.
-- **11. A learned search preference transfers and pays.** Not bound yet. Its records are in `docs/benchmarks/echo-acquired/2026-11-02/`.
-- **12. Learning when to search widely beats a fixed search.** Not bound yet. Its records are in `docs/benchmarks/echo-ranging/2026-11-03/`.
 - **16. Connectome-level learning, discrimination and control.** Not bound yet. Its six results are spread over `docs/benchmarks/fly-neural/` and its `adaptive/` and `banc/` folders.
 - **21. A world that lives on its own, changed by a fly only through records.** Not bound yet. Its records are in `docs/benchmarks/ecology/`; the entry's three quantities count tests and days.
 
@@ -135,6 +133,17 @@ changes that digest, so evidence cannot move under a claim unseen.
 #### 9. Memory helps where food keeps moving
 
 - Memory-bearing flies ate <b>1.2</b> fewer meals per life [<b>−2.25</b>, <b>−0.08</b>] (Study B)<br><sub>`9.meals` · [`docs/benchmarks/fly-individuality/report.json`](../../docs/benchmarks/fly-individuality/report.json) · evidence `8843200a9fa1`</sub>
+
+#### 11. A learned search preference transfers and pays
+
+- Transfers, **on the sealed test** (<b>24</b> seeds): <b>+0.42</b> [<b>0.30</b>, <b>0.53</b>] against <b>−0.04</b> [<b>−0.19</b>, <b>0.13</b>]<br><sub>`11.transfers` · [`docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json`](../../docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json) · evidence `960a1ea4a15d`</sub>
+- first meal <b>−9</b> s [<b>−174</b>, <b>155</b>]; an 8 h stay <b>+0.00</b> J [<b>−0.17</b>, <b>0.19</b>]<br><sub>`11.pays` · [`docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json`](../../docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json) · evidence `960a1ea4a15d`</sub>
+- In the city, in development: <b>−1.0</b> meals [<b>−9.5</b>, <b>+6.4</b>]<br><sub>`11.city` · [`docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json`](../../docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json) · evidence `1c3f4301745c`</sub>
+
+#### 12. Learning when to search widely beats a fixed search
+
+- The learner lost to simply always searching widely: <b>−31.0</b> meals [<b>−47.4</b>, <b>−16.0</b>]<br><sub>`12.learner` · [`docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json`](../../docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json) · evidence `5fafdf33644d`</sub>
+- The wider search itself paid (<b>+53.8</b> meals [<b>31.1</b>, <b>76.8</b>] over the default)<br><sub>`12.wide` · [`docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json`](../../docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json) · evidence `5fafdf33644d`</sub>
 
 #### 13. The simulated fly matches published recordings of real flies
 
@@ -225,7 +234,7 @@ changes that digest, so evidence cannot move under a claim unseen.
 - then asked it again on <b>40</b> new research subjects in nine conditions: <b>inconclusive</b><br><sub>`readme.04.metrology-prose` · [`docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json`](../../docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json) · evidence `155d6f3b8132`</sub>
 - | Memory with continuously moving food | Negative: <b>1.2</b> fewer meals per life |<br><sub>`readme.04.memory` · [`docs/benchmarks/fly-individuality/report.json`](../../docs/benchmarks/fly-individuality/report.json) · evidence `8843200a9fa1`</sub>
 - | FlyWire FAFB v783 reproduction | <b>10</b> / <b>12</b> registered criteria met |<br><sub>`readme.04.connectome` · 2 records in [`docs/benchmarks/fly-neural/`](../../docs/benchmarks/fly-neural/) · evidence `65a3e8af5169`</sub>
-- **<b>210</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 79 records in 23 folders under `/`, with `scripts/claims/check.ts` · evidence `aef509600c7d`</sub>
+- **<b>232</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 82 records in 25 folders under `/`, with `scripts/claims/check.ts` · evidence `2eba97da8243`</sub>
 
 #### 05. The brain boundary
 

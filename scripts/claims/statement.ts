@@ -68,8 +68,10 @@ export function fixed(x: number, digits: number): string {
   if (!Number.isFinite(x)) throw new Error(`${x} cannot be printed`);
   if (!Number.isInteger(digits) || digits < 0 || digits > 12)
     throw new Error(`${digits} is not a number of decimals`);
-  // The factor lifts a written tie (302.49999999999994) back onto its half.
-  const scaled = Math.round(Math.abs(x) * 10 ** digits * (1 + 1e-12));
+  // A written tie arrives a hair under its half (0.3025 * 1000 is
+  // 302.49999999999994): lift it back, by less than could move any other value.
+  const exact = Math.abs(x) * 10 ** digits;
+  const scaled = Math.round(exact + Math.min(exact * 1e-12, 1e-6));
   if (!Number.isSafeInteger(scaled))
     throw new Error(`${x} is too large to print exactly`);
   const padded = String(scaled).padStart(digits + 1, "0");

@@ -6,7 +6,7 @@
     {
       "path": "docs/RESEARCH_CLAIMS.md",
       "quantities": 352,
-      "recomputed": 210,
+      "recomputed": 232,
       "sections": [
         {
           "section": "summary",
@@ -78,13 +78,13 @@
           "section": "11",
           "title": "A learned search preference transfers and pays",
           "quantities": 21,
-          "recomputed": 0
+          "recomputed": 16
         },
         {
           "section": "12",
           "title": "Learning when to search widely beats a fixed search",
           "quantities": 6,
-          "recomputed": 0
+          "recomputed": 6
         },
         {
           "section": "13",
@@ -2009,20 +2009,104 @@
       ]
     },
     {
+      "id": "11.transfers",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "11",
+      "statement": "Transfers, **on the sealed test** (24 seeds): +0.42 [0.30, 0.53] against −0.04 [−0.19, 0.13]",
+      "computed": [
+        "24",
+        "+0.42",
+        "0.30",
+        "0.53",
+        "−0.04",
+        "−0.19",
+        "0.13"
+      ],
+      "evidence_sha256": "960a1ea4a15d29be87a974a5d74d3d6fb819f3f60abb0e1e948fa4d830c5ab24",
+      "records": [
+        "docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json"
+      ]
+    },
+    {
+      "id": "11.pays",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "11",
+      "statement": "first meal −9 s [−174, 155]; an 8 h stay +0.00 J [−0.17, 0.19]",
+      "computed": [
+        "−9",
+        "−174",
+        "155",
+        "+0.00",
+        "−0.17",
+        "0.19"
+      ],
+      "evidence_sha256": "960a1ea4a15d29be87a974a5d74d3d6fb819f3f60abb0e1e948fa4d830c5ab24",
+      "records": [
+        "docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json"
+      ]
+    },
+    {
+      "id": "11.city",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "11",
+      "statement": "In the city, in development: −1.0 meals [−9.5, +6.4]",
+      "computed": [
+        "−1.0",
+        "−9.5",
+        "+6.4"
+      ],
+      "evidence_sha256": "1c3f4301745c0f55c1b8b85115a8c2fb3f848785b047546944d0a1d0ab8b431c",
+      "records": [
+        "docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json"
+      ]
+    },
+    {
+      "id": "12.learner",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "12",
+      "statement": "The learner lost to simply always searching widely: −31.0 meals [−47.4, −16.0]",
+      "computed": [
+        "−31.0",
+        "−47.4",
+        "−16.0"
+      ],
+      "evidence_sha256": "5fafdf33644db866477a953a56ae3a7c6d6f587d936b0a39f24ce2263b2d9a40",
+      "records": [
+        "docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json"
+      ]
+    },
+    {
+      "id": "12.wide",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "12",
+      "statement": "The wider search itself paid (+53.8 meals [31.1, 76.8] over the default)",
+      "computed": [
+        "+53.8",
+        "31.1",
+        "76.8"
+      ],
+      "evidence_sha256": "5fafdf33644db866477a953a56ae3a7c6d6f587d936b0a39f24ce2263b2d9a40",
+      "records": [
+        "docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json"
+      ]
+    },
+    {
       "id": "readme.04.recomputed",
       "document": "README.md",
       "section": "04",
-      "statement": "**210 of the 352 quantities**",
+      "statement": "**232 of the 352 quantities**",
       "computed": [
-        "210",
+        "232",
         "352"
       ],
       "model": "scripts/claims/check.ts",
-      "evidence_sha256": "aef509600c7d015052d9edd1a30a9fe6631066480539c1b666b84d87a88f6da6",
+      "evidence_sha256": "2eba97da8243d74d6d5404c129056bf18e83c4bd7ad9a16679225290e15e9673",
       "records": [
         "README.md",
         "docs/ECHO_COLLISION.md",
         "docs/RESEARCH_CLAIMS.md",
+        "docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json",
+        "docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json",
         "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl",
         "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl",
         "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl",
@@ -2077,6 +2161,7 @@
         "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/verification.json",
         "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json",
         "docs/benchmarks/echo-plasticity/heldout/summary.json",
+        "docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json",
         "docs/benchmarks/eva-plasticity/heldout/summary.json",
         "docs/benchmarks/first-contact/encounter.json",
         "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json",
@@ -2103,9 +2188,11 @@
     }
   ],
   "records": {
-    "README.md": "930c75d3b3beae8233a95ec98011f7ef6ad49497c0878425de9fef2cc93523d2",
+    "README.md": "3368d2adbf936d0575e13cdfea4e27789fbe0b4485dbe2d87b46b478c740a3aa",
     "docs/ECHO_COLLISION.md": "8b7f74f11e56442915e750e175e2ca0938572a1f4e9445b4318ea5dd0ac6a264",
     "docs/RESEARCH_CLAIMS.md": "2c6907e050d136ac576d03d5e9b8a21a757dc614b7b4b4729cc9a787c263753f",
+    "docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json": "c54f261d0b382e7ad388f790fab6d40b5976fca48696011338a2db4ec6f6fc40",
+    "docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json": "e4e8560bf293c551442bcb9cf2177963c072d9a3c738e9952c334dce8a953ade",
     "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl": "04b2391da901d5b13d8ade7f4bd5f484c3b124f5c6261c65cad96628f1fbde2a",
     "docs/benchmarks/echo-collision/2026-11-03/flies/control-302.jsonl": "0a64e2a9982f18ccdf6bdf917c058856c6567cab07b9564f96c9b0413374217d",
     "docs/benchmarks/echo-collision/2026-11-03/flies/control-303.jsonl": "b6d9372f4ddd50d909af324ec68dd369e41f72a510a4a461ef6b7353c5fed28a",
@@ -2160,6 +2247,7 @@
     "docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/verification.json": "f341a0d85287cf2834d3514fb92404482fd17d2691e0703e623574fb8c281a42",
     "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json": "8407f6b0a210e0807a0cbe139f0646a4d480a736bdc23947b63991da54ccc5ff",
     "docs/benchmarks/echo-plasticity/heldout/summary.json": "7b5bcba947f1f21eecd3243cf7460c2e429c4bfb58bd506dd4e3379e0d88a0c3",
+    "docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json": "61c32bf3b99015ec3110a525ec7dcdfc6823a425d9501a66ffec49560269e91a",
     "docs/benchmarks/eva-plasticity/heldout/summary.json": "0c947d0f3926d245c999220dff6378ac23d370a71f7fd0c8229692cb03104d66",
     "docs/benchmarks/first-contact/encounter.json": "da48d6cd2fae0223bf9bd5a58094845215023ec2842a0df49958d843bc2f50b6",
     "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json": "dfd3e17d1fc7a88d40d18bc5318cc1de078d470eaf51883842308dd24a4ef0fe",

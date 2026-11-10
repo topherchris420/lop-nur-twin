@@ -11,6 +11,7 @@ import type { Binding } from "./check.js";
 import { collision } from "./bound/collision.js";
 import { coverage } from "./bound/coverage.js";
 import { echo } from "./bound/echo.js";
+import { foraging } from "./bound/foraging.js";
 import { genesis } from "./bound/genesis.js";
 import { metrology } from "./bound/metrology.js";
 import { research } from "./bound/research.js";
@@ -23,6 +24,7 @@ const RECORDS: readonly Binding[] = [
   ...genesis,
   ...research,
   ...worlds,
+  ...foraging,
 ];
 
 export const BINDINGS: readonly Binding[] = [...RECORDS, ...coverage(RECORDS)];
@@ -41,8 +43,6 @@ export const NOT_RECOMPUTED: Readonly<Record<string, string>> = {
   "2": "Its evidence is the deployed individual's own checkpoint chain, which is not in this repository, and the era table that describes it.",
   "4": "The exit's tick and checkpoint are quoted from the deployed individual's checkpoint 2,563, which no file here holds. The figure drawn from the recorded positions is held to them by `scripts/echo-exit-figure.test.ts`.",
   "10": "Not bound yet. Its record is `docs/benchmarks/fly-mushroom-body/report.json`.",
-  "11": "Not bound yet. Its records are in `docs/benchmarks/echo-acquired/2026-11-02/`.",
-  "12": "Not bound yet. Its records are in `docs/benchmarks/echo-ranging/2026-11-03/`.",
   "16": "Not bound yet. Its six results are spread over `docs/benchmarks/fly-neural/` and its `adaptive/` and `banc/` folders.",
   // 18 is bound for Noeterra; its live model-assisted experiment is not.
   "21": "Not bound yet. Its records are in `docs/benchmarks/ecology/`; the entry's three quantities count tests and days.",
