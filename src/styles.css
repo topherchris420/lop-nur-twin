@@ -575,3 +575,79 @@ body {
     animation: none;
   }
 }
+
+/* /live: the marks laid over the clay model (src/bethesda/live/diorama/). */
+.diorama-mark,
+.diorama-edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgb(246 240 226);
+}
+.diorama-ring {
+  position: absolute;
+  width: var(--ring, 30px);
+  height: var(--ring, 30px);
+  margin: calc(var(--ring, 30px) / -2) 0 0 calc(var(--ring, 30px) / -2);
+  border: 1.5px solid rgb(246 240 226 / 92%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
+}
+.diorama-mark[data-live="1"] .diorama-ring::after {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border: 1.5px solid rgb(232 184 96 / 80%);
+  border-radius: 50%;
+  animation: diorama-pulse 2s ease-out infinite;
+}
+.diorama-mark[data-live="0"] .diorama-ring {
+  border-color: rgb(170 174 170 / 85%);
+  border-style: dashed;
+}
+.diorama-tag {
+  position: absolute;
+  left: calc(var(--ring, 30px) / 2 + 8px);
+  top: -9px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  background: rgb(24 22 19 / 82%);
+  border-radius: 2px;
+}
+.diorama-edge {
+  margin: 8px 0 0 -90px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  background: rgb(24 22 19 / 72%);
+  border-radius: 2px;
+}
+/* A needle that points up the page until the picture turns it. */
+.diorama-needle {
+  width: 14px;
+  height: 14px;
+  background: rgb(246 240 226 / 95%);
+  clip-path: polygon(50% 0, 82% 100%, 50% 76%, 18% 100%);
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 60%));
+}
+.diorama-wind {
+  background: rgb(170 205 220 / 95%);
+}
+@keyframes diorama-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diorama-mark[data-live="1"] .diorama-ring::after {
+    animation: none;
+  }
+}

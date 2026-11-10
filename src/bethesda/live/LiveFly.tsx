@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Box, Map as MapIcon, Minus, Plus, RotateCcw, RotateCw } from "lucide-react";
 import type { LifeObservation, ObservedWeather, Witness } from "../life/observation";
 import { NEARBY_M } from "../life/observation";
 import {
@@ -19,6 +19,8 @@ import {
   standing,
   type PublicRecord,
 } from "./publicRecord";
+import { canRender } from "../webgl";
+import { ZOOM, clampZoom } from "./diorama/stage";
 import {
   addSample,
   followWitness,
@@ -29,19 +31,32 @@ import {
   type Sample,
 } from "./witnessFeed";
 
+/** The clay model and its renderer load after the page's words (`diorama/`). */
+const Diorama = lazy(() => import("./diorama/Diorama"));
+
+/** The flat map never went closer than this (CSS px per city metre). */
+const FLAT_ZOOM_MAX = 16;
+
 /**
  * `/live`: the one Bethesda fly that lives continuously on a server, as its
  * read-only observer serves it (docs/BETHESDA_CONTINUOUS_LIFE.md, "Witnessing
- * it"). Everything here is drawn from the witness: the map is the city's
- * imported geometry, and the fly, the people near it and every number come
- * from the last observation. When the witness is not live the page says so;
- * it never draws a fly of its own.
+ * it"). Everything here is drawn from the witness: the picture is the city's
+ * imported geometry, as a clay model photographed in stop motion or, where
+ * the browser cannot draw that or the visitor prefers it, as a flat map; the
+ * fly, the people near it and every number come from the last observation.
+ * When the witness is not live the page says so; it never draws a fly of its
+ * own.
  */
 export default function LiveFly() {
   const [feed, setFeed] = useState<Feed>({ kind: "connecting" });
   const [now, setNow] = useState(() => performance.now());
   const samples = useRef<Sample[]>([]);
-  const [zoom, setZoom] = useState(3);
+  const [zoom, setZoom] = useState<number>(ZOOM.start);
+  // The clay model needs WebGL 2; without it, or if it fails, the flat map is the picture.
+  const [modelFailed, setModelFailed] = useState(() => !canRender());
+  const [preferFlat, setPreferFlat] = useState(false);
+  const [turn, setTurn] = useState(0);
+  const flat = modelFailed || preferFlat;
 
   useEffect(() => {
     document.title = "The Bethesda fly, live";
@@ -72,8 +87,27 @@ export default function LiveFly() {
   return (
     <div className="bg-background text-foreground flex h-full w-full flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
       <section className="relative h-[58vh] min-h-[320px] shrink-0 lg:h-full lg:flex-1">
-        <WitnessMap samples={samples} observation={o} status={view.status} zoom={zoom} />
-        <div className="absolute top-3 left-3 flex items-center gap-2">
+        {flat ? (
+          <WitnessMap
+            samples={samples}
+            observation={o}
+            status={view.status}
+            zoom={Math.min(FLAT_ZOOM_MAX, zoom)}
+          />
+        ) : (
+          <Suspense fallback={null}>
+            <Diorama
+              samples={samples}
+              observation={o}
+              status={view.status}
+              zoom={zoom}
+              onZoom={setZoom}
+              turn={turn}
+              onUnavailable={() => setModelFailed(true)}
+            />
+          </Suspense>
+        )}
+        <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
           <StatusPill status={view.status} />
           {o?.checkpointing ? (
             <span className="hud-panel px-2 py-1 font-mono text-[10px] tracking-widest uppercase">
@@ -82,11 +116,47 @@ export default function LiveFly() {
           ) : null}
         </div>
         <div className="absolute right-3 bottom-3 flex flex-col gap-1">
+          {modelFailed ? null : (
+            <button
+              type="button"
+              aria-label={flat ? "Show the clay model" : "Show the flat map"}
+              title={flat ? "Clay model" : "Flat map"}
+              aria-pressed={flat}
+              className="hud-panel grid h-8 w-8 place-items-center"
+              onClick={() => setPreferFlat((f) => !f)}
+            >
+              {flat ? <Box className="h-4 w-4" /> : <MapIcon className="h-4 w-4" />}
+            </button>
+          )}
+          {flat ? null : (
+            <>
+              <button
+                type="button"
+                aria-label="Turn the model left"
+                className="hud-panel grid h-8 w-8 place-items-center"
+                onClick={() => setTurn((t) => t - 1)}
+              >
+                <RotateCcw className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Turn the model right"
+                className="hud-panel grid h-8 w-8 place-items-center"
+                onClick={() => setTurn((t) => t + 1)}
+              >
+                <RotateCw className="h-4 w-4" />
+              </button>
+            </>
+          )}
           <button
             type="button"
             aria-label="Zoom in"
             className="hud-panel grid h-8 w-8 place-items-center"
-            onClick={() => setZoom((z) => Math.min(16, z * 1.5))}
+            onClick={() =>
+              setZoom((z) =>
+                Math.min(flat ? FLAT_ZOOM_MAX : ZOOM.max, clampZoom(z * ZOOM.step)),
+              )
+            }
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -94,7 +164,7 @@ export default function LiveFly() {
             type="button"
             aria-label="Zoom out"
             className="hud-panel grid h-8 w-8 place-items-center"
-            onClick={() => setZoom((z) => Math.max(1, z / 1.5))}
+            onClick={() => setZoom((z) => clampZoom(z / ZOOM.step))}
           >
             <Minus className="h-4 w-4" />
           </button>
@@ -140,6 +210,13 @@ export default function LiveFly() {
             This page only reads: it cannot step, steer or restart the fly, and watching
             it changes nothing. The fly between two observations is interpolated for
             drawing; every number is the server&apos;s.
+          </p>
+          <p>
+            The picture is a clay model of the fly&apos;s city at 1 : 400, built from the
+            same imported map and lit by the one sun that city has: it has no night. The
+            fly is a puppet enlarged many times so it can be seen, its legs and wings
+            posed from the mode it reports, and held clear of the model while it flies.
+            The buildings&apos; colours and windows are the sculptor&apos;s.
           </p>
           <p>
             It shows a program&apos;s state as it runs. A continuous history and a

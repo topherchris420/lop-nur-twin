@@ -281,6 +281,35 @@ const toThree = (q: readonly number[], out: THREE.Quaternion) =>
 
 export type FlyStatus = "loading" | "ready" | "unavailable";
 
+/**
+ * What the puppet is posed from: the part of a presented pose its joints,
+ * wings and contact shadow read. The garden passes its whole `FlyPose`; any
+ * other stage (the clay model of the city on `/live`) passes just these.
+ */
+export type FlyPosture = Pick<
+  FlyPose,
+  | "position"
+  | "forward"
+  | "up"
+  | "mode"
+  | "groom"
+  | "legs"
+  | "wingsOpen"
+  | "beating"
+  | "walkSpeed"
+  | "gaitClock"
+  | "yawRate"
+  | "proboscis"
+  | "drowsy"
+  | "headYaw"
+  | "headPitch"
+  | "antenna"
+  | "breath"
+  | "support"
+  | "ground"
+  | "altitude"
+>;
+
 export interface FlyFrame {
   /** Animation frame index (stop motion) and the presented time it shows. */
   index: number;
@@ -425,7 +454,7 @@ export class ClayFly {
    * screen: below about two pixels it is not drawn (the observation view's
    * locator shows where it is), below about sixty the light mesh is used.
    */
-  update(pose: FlyPose, frame: FlyFrame, pixels: number, inView: boolean): void {
+  update(pose: FlyPosture, frame: FlyFrame, pixels: number, inView: boolean): void {
     const footZ = this.solver.footZ;
     const up = new THREE.Vector3(...pose.up);
     const fwd = new THREE.Vector3(...pose.forward);
