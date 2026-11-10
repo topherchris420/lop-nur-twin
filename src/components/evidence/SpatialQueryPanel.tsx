@@ -5,6 +5,7 @@ import {
   type EvidenceClassification,
 } from "@/lib/evidence";
 import { formatDistanceM } from "@/lib/measure";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 import { SPATIAL_SUBJECTS, type SpatialSubjectKind } from "@/lib/spatialCatalog";
 import {
   spatialResultsToCsv,
@@ -408,7 +409,7 @@ export function SpatialQueryPanel({
           <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
             {successful.derivation}
           </p>
-          <div className="relative mt-3 overflow-x-auto">
+          <ScrollRegion label="Spatial query results" className="mt-3 overflow-x-auto">
             <table
               id="spatial-query-results"
               tabIndex={-1}
@@ -503,7 +504,7 @@ export function SpatialQueryPanel({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         </>
       )}
     </section>

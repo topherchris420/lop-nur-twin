@@ -54,6 +54,7 @@ import { ClaimInspector } from "@/components/evidence/ClaimInspector";
 import { inspectClaim, isClaimSubject } from "@/lib/claims";
 import { ClaimList } from "@/components/evidence/ClaimList";
 import { MeasureBetween } from "@/components/evidence/MeasureBetween";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 import {
   parseBooleanValue,
   parseBoundedFloatValue,
@@ -322,7 +323,7 @@ function AnalysisView() {
   };
 
   return (
-    <div className="bg-background text-foreground h-full overflow-y-auto">
+    <main className="bg-background text-foreground h-full overflow-y-auto">
       <a
         href="#spatial-query-results"
         className="bg-primary text-primary-foreground focus:ring-ring sr-only rounded px-4 py-2 text-sm font-semibold focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:ring-2"
@@ -588,7 +589,10 @@ function AnalysisView() {
           </p>
 
           {snapshot === null ? null : (
-            <div className="relative mt-4 overflow-x-auto">
+            <ScrollRegion
+              label="Modeled state at the selected date"
+              className="mt-4 overflow-x-auto"
+            >
               <table className="w-full min-w-[54rem] border-collapse text-left text-xs">
                 <caption className="text-muted-foreground pb-2 text-left text-xs">
                   Modeled state at {snapshot.date}. &ldquo;Established&rdquo; means a
@@ -658,7 +662,7 @@ function AnalysisView() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRegion>
           )}
 
           {comparison === null ? null : (
@@ -672,7 +676,10 @@ function AnalysisView() {
                   : `${comparison.changes.length} change${comparison.changes.length === 1 ? "" : "s"}, ${comparison.addedSourceIds.length} newly published source${comparison.addedSourceIds.length === 1 ? "" : "s"}, ${comparison.eventsInWindow.length} temporal event${comparison.eventsInWindow.length === 1 ? "" : "s"} in the window.`}
               </p>
               {comparison.empty ? null : (
-                <div className="relative mt-3 overflow-x-auto">
+                <ScrollRegion
+                  label="Differences between the two snapshots"
+                  className="mt-3 overflow-x-auto"
+                >
                   <table className="w-full min-w-[54rem] border-collapse text-left text-xs">
                     <caption className="text-muted-foreground pb-2 text-left text-xs">
                       Differences between the two snapshots, ordered by subject identifier
@@ -721,7 +728,7 @@ function AnalysisView() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </ScrollRegion>
               )}
             </div>
           )}
@@ -731,7 +738,7 @@ function AnalysisView() {
             {TEMPORAL_LEDGER.length} events. Each is scoped so a site claim, a publication
             and a model-only note can never be read as the same kind of statement.
           </p>
-          <div className="relative mt-3 overflow-x-auto">
+          <ScrollRegion label="Temporal events" className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[62rem] border-collapse text-left text-xs">
               <caption className="text-muted-foreground pb-2 text-left text-xs">
                 Every temporal event this model holds, ordered by date with undated events
@@ -800,7 +807,7 @@ function AnalysisView() {
                 })}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
 
           <h3 className="mt-6 text-base font-semibold">Temporal coverage gaps</h3>
           <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
@@ -935,10 +942,10 @@ function AnalysisView() {
             Showing {rows.length} of {STRUCTURES.length} modeled structures.
           </p>
 
-          <div
+          <ScrollRegion
             id="structure-table"
-            tabIndex={-1}
-            className="relative mt-3 overflow-x-auto"
+            label="Table of modeled structures"
+            className="mt-3 overflow-x-auto"
           >
             <table className="w-full min-w-[72rem] border-collapse text-left text-xs">
               <caption className="text-muted-foreground pb-3 text-left text-xs">
@@ -1197,7 +1204,7 @@ function AnalysisView() {
                 No structures match this search and filter combination.
               </p>
             ) : null}
-          </div>
+          </ScrollRegion>
         </section>
 
         <section aria-labelledby="claims-heading" className="mt-10">
@@ -1279,6 +1286,6 @@ function AnalysisView() {
           </p>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }

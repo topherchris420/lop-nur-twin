@@ -14,7 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { Comparison, Summary } from "../analysis.js";
-import { fmt, IntervalChart, type IntervalRow } from "./IntervalChart.js";
+import { fmt, IntervalChart, Scrollable, type IntervalRow } from "./IntervalChart.js";
 import { gateArchive, type Gate } from "./archiveGate.js";
 
 const FILES = import.meta.glob<string>(
@@ -153,7 +153,7 @@ function Table({
   rows: ReactNode[][];
 }) {
   return (
-    <div className="overflow-x-auto">
+    <Scrollable label={caption}>
       <table className="w-full min-w-[40rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-2 text-left">{caption}</caption>
         <thead>
@@ -187,7 +187,7 @@ function Table({
           ))}
         </tbody>
       </table>
-    </div>
+    </Scrollable>
   );
 }
 

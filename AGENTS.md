@@ -50,7 +50,11 @@ Guidance for coding agents (and humans) working on this repo.
   analytical field belongs in the table as well as the dossier, and every new
   analytical _capability_ needs a semantic representation there, not only a
   control in the HUD. `bun run a11y` gates both routes on serious/critical axe
-  violations. The claim inspector answers for every subject the ledger claims
+  violations, at a desktop width and again at a phone's, which is also a
+  desktop zoomed in. A table wider than its column goes in `ScrollRegion`
+  (`src/components/ui/`), never a bare `overflow-x-auto` box: a scroll container
+  with nothing focusable in it cannot be scrolled from a keyboard. Every route
+  renders one `<main>` and one `<h1>`. The claim inspector answers for every subject the ledger claims
   anything about (`CLAIM_SUBJECT_IDS`), not only structures, and the ruler has
   a form (`MeasureBetween`) that offers exactly the vertices it would snap to.
 - **A measurement states only the error its own evidence documents.** Each

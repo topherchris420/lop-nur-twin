@@ -6,7 +6,7 @@ import type { AxisConfidence, DecisionRecord } from "../records";
 import { disjointWindows, overlapCounts, windowSpans } from "../windows";
 import { VIZ, formatValue } from "./charts";
 import { DecisionInspector, changedAxes } from "./DecisionInspector";
-import { ScrollRegion } from "./ScrollRegion";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 
 /**
  * One episode's decisions, row by row: what was chosen, with what stated

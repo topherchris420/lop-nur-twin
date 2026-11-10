@@ -19,21 +19,21 @@ canvas, no animation and no timers.
 
 ## What `/analysis` implements
 
-| Requirement                    | How                                                                                                                                                  |
-| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Skip navigation                | First focusable element is a "Skip to spatial query results" link, visually hidden until focused; a second link reaches the structure table          |
-| Descriptive page title         | Set on mount: "Structure analysis table — Lop Nur Twin (public-source model)"                                                                        |
-| Semantic headings              | One `<h1>`, `<h2>` per section, no level skipped                                                                                                     |
-| Landmarks                      | `<header>`, `<nav aria-label>`, `<section aria-labelledby>`, `<footer>`                                                                              |
-| Proper table markup            | `<caption>`, `<thead>`, `<th scope="col">`, row headers as `<th scope="row">`                                                                        |
-| Full keyboard navigation       | Native controls only — no custom widgets, no keyboard traps, no positive `tabindex`                                                                  |
-| Logical tab order              | DOM order matches visual order                                                                                                                       |
-| Visible focus indicators       | `focus-visible:ring-2` on every link, button, input and checkbox, including the spatial query controls                                               |
-| Screen-reader labels           | `<label for>` on the search field and every filter checkbox; `aria-describedby` hint; external links append a visually-hidden "(opens in a new tab)" |
-| Status messages                | Result count and manifest state use `role="status"`                                                                                                  |
-| No information by colour alone | Evidence status pairs a glyph and a word with its tint; confidence is a number and a rank in text                                                    |
-| Reduced motion                 | The deep-link scroll uses `behavior: "auto"` when `prefers-reduced-motion: reduce` is set; the page has no other motion                              |
-| Responsive / zoom              | Single-column stacking, wide table scrolls inside its own container, page body never scrolls horizontally                                            |
+| Requirement                    | How                                                                                                                                                          |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Skip navigation                | First focusable element is a "Skip to spatial query results" link, visually hidden until focused; a second link reaches the structure table                  |
+| Descriptive page title         | Set on mount: "Structure analysis table — Lop Nur Twin (public-source model)"                                                                                |
+| Semantic headings              | One `<h1>`, `<h2>` per section, no level skipped                                                                                                             |
+| Landmarks                      | `<header>`, `<nav aria-label>`, `<section aria-labelledby>`, `<footer>`                                                                                      |
+| Proper table markup            | `<caption>`, `<thead>`, `<th scope="col">`, row headers as `<th scope="row">`                                                                                |
+| Full keyboard navigation       | Native controls only — no custom widgets, no keyboard traps, no positive `tabindex`                                                                          |
+| Logical tab order              | DOM order matches visual order                                                                                                                               |
+| Visible focus indicators       | `focus-visible:ring-2` on every link, button, input and checkbox, including the spatial query controls                                                       |
+| Screen-reader labels           | `<label for>` on the search field and every filter checkbox; `aria-describedby` hint; external links append a visually-hidden "(opens in a new tab)"         |
+| Status messages                | Result count and manifest state use `role="status"`                                                                                                          |
+| No information by colour alone | Evidence status pairs a glyph and a word with its tint; confidence is a number and a rank in text                                                            |
+| Reduced motion                 | The deep-link scroll uses `behavior: "auto"` when `prefers-reduced-motion: reduce` is set; the page has no other motion                                      |
+| Responsive / zoom              | Single-column stacking; a wide table scrolls inside its own labelled region, which a keyboard can reach and scroll; the page body never scrolls horizontally |
 
 ## What the 3D routes implement
 
@@ -80,8 +80,10 @@ be operable:
 
 `tools/a11y.mjs` runs axe-core 4.12 against the **production build** served by
 `vite preview` with the deployed security headers, across every route and the
-fullest state of each document route. It also records Content-Security-Policy
-violations and page errors in the same pass.
+fullest state of each document route, at two widths: 1440 px, then 390 px. The
+second is a phone, and it is also what a desktop shows zoomed to 370%, which is
+how many people with low vision read a page. It also records
+Content-Security-Policy violations and page errors in the same pass.
 
 ```sh
 npm run build
@@ -114,6 +116,26 @@ Two real defects were found and fixed while building this: a `<dl>` containing
 a status `<div>` that was neither a term nor a definition, and a dimmed
 `text-muted-foreground/70` on the boot overlay that fell below the 4.5:1
 contrast threshold.
+
+Run on 2026-11-10 against a preview of this build, at both widths: all thirteen
+passes (the routes above, `/noeterra` and a game in it, and `/metrology`)
+reported 0 axe violations, 0 CSP violations and 0 page errors.
+
+That run followed a scan with every axe rule, best practices included, at both
+widths, which the gate does not do. It found what the 1440 px pass could not
+see, and all of it is fixed:
+
+- at 390 px, a table on `/analysis` and five on `/metrology` scrolled sideways
+  in a box no keyboard could reach (serious). Every wide table is now in a
+  labelled, focusable region (`src/components/ui/ScrollRegion.tsx`), and the
+  gate's second width is there so the next one fails;
+- `/`, `/analysis`, `/compare`, `/evaluation`, `/noeterra` and `/live` had no
+  `<main>` landmark, so content sat outside every landmark, and so did
+  `/play`'s notice and links;
+- the twin had no level-one heading: its list of headings opened at "Evidence
+  timeline".
+
+The same scan now reports nothing on any of the eight routes at either width.
 
 **Automated testing catches roughly 30–40% of WCAG issues.** A clean axe run
 means the markup-level checks pass. It does not mean the site is accessible.

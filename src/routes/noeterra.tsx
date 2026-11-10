@@ -46,8 +46,8 @@ function NoeterraPage() {
     document.title = "Noeterra — autonomous civilizations · illustrative simulation";
   }, []);
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <main className="relative h-full w-full overflow-hidden">
       <NoeterraApp scenario={search.scenario} play={search.play} seed={search.seed} />
-    </div>
+    </main>
   );
 }

@@ -9,7 +9,7 @@ import {
   summarizeShadow,
   type ShadowSummary,
 } from "../shadow";
-import { ScrollRegion } from "./ScrollRegion";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 
 /**
  * "Same observations, other minds", as tables.

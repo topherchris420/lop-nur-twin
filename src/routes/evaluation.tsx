@@ -10,7 +10,7 @@ import {
 import { decisionType } from "@/game/eval/outcomeContracts";
 import { pct, usd } from "@/game/eval/report";
 import type { SampleSummary } from "@/game/eval/stats";
-import { ScrollRegion } from "@/game/eval/ui/ScrollRegion";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 import {
   LatencyHistogram,
   Legend,
@@ -1159,7 +1159,7 @@ function EvaluationView() {
   );
 
   return (
-    <div className="bg-background text-foreground h-full overflow-y-auto">
+    <main className="bg-background text-foreground h-full overflow-y-auto">
       <div className="mx-auto max-w-[100rem] px-4 py-8 sm:px-8">
         <header>
           <p className="font-mono text-[11px] tracking-[0.3em] text-amber-100 uppercase">
@@ -1287,6 +1287,6 @@ function EvaluationView() {
           </p>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }

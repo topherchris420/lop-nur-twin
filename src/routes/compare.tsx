@@ -21,6 +21,7 @@ import {
   type ModelRevision,
 } from "@/lib/modelHistory";
 import { parseRevisionValue } from "@/lib/params";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 
 /**
  * `/compare` — two model manifests, side by side.
@@ -290,7 +291,10 @@ function DifferenceTable({
       <p className="text-muted-foreground mt-1 max-w-3xl text-sm leading-relaxed">
         {meta.description}
       </p>
-      <div className="relative mt-3 overflow-x-auto">
+      <ScrollRegion
+        label="Differences between the two manifests"
+        className="mt-3 overflow-x-auto"
+      >
         <table className="w-full min-w-[52rem] border-collapse text-left text-xs">
           <caption className="text-muted-foreground pb-2 text-left text-xs">
             {meta.label} differences between the two manifests, ordered by subject
@@ -333,7 +337,7 @@ function DifferenceTable({
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
     </section>
   );
 }
@@ -368,7 +372,10 @@ function RecordedRevisions({
           ? null
           : ` The latest change is ${revisionLabel(LATEST_REVISION)}; compare it with the revision before.`}
       </p>
-      <div className="border-border relative mt-3 overflow-x-auto rounded-md border">
+      <ScrollRegion
+        label="Recorded model revisions"
+        className="border-border mt-3 overflow-x-auto rounded-md border"
+      >
         <table className="w-full text-left text-sm">
           <caption className="sr-only">
             Recorded model revisions, oldest first, with their commit and date
@@ -434,7 +441,7 @@ function RecordedRevisions({
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       {previous === undefined ? null : (
         <button
           type="button"
@@ -589,7 +596,7 @@ function CompareView() {
   );
 
   return (
-    <div className="bg-background text-foreground h-full overflow-y-auto">
+    <main className="bg-background text-foreground h-full overflow-y-auto">
       <a
         href="#comparison"
         className="bg-primary text-primary-foreground focus:ring-ring sr-only rounded px-4 py-2 text-sm font-semibold focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:ring-2"
@@ -786,6 +793,6 @@ function CompareView() {
           </p>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }
