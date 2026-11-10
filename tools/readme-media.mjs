@@ -5,14 +5,16 @@
  * The README shows the app working rather than describing it: an orbit of the
  * Lop Nur compound while night falls, the evidence timeline rewinding, the
  * hidden city resolving, the shared Bethesda fly as `/live` serves it, and fifty
- * simulated years in each of Noeterra's two worlds. Like the stills
+ * simulated years in each of Noeterra's two worlds, with stills of Eva's garden
+ * and the metrology bench. Like the stills
  * `tools/shots.mjs` writes, they go stale the moment anything visible changes,
  * so they are captured by script: fixed cameras, fixed framing, fixed timing,
  * one command.
  *
  *   node tools/readme-media.mjs                  -> all of them, in order
- *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | noeterra | noeterra-tarim | gallery)
+ *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | garden | metrology | noeterra | noeterra-tarim | gallery)
  *   node tools/readme-media.mjs --origin http://localhost:5199 --site https://lop-nur-twin.vercel.app
+ *   node tools/readme-media.mjs --only garden --garden https://150-136-49-49.sslip.io
  *
  * It writes docs/media/readme/*.gif and the gallery thumbnails in
  * docs/media/readme/gallery/. Frames go to shots/readme/, which is gitignored.
@@ -32,12 +34,16 @@
  * second before it is photographed. The GIF plays at the app's own speed
  * however long each frame took.
  *
- * `live` and the two Noeterra worlds are recorded in real time from the
- * deployed site (`--site`). `/live` follows the one server-side fly, which no
- * local server can show, and the dev server only has Noeterra's WebAssembly
- * engine after `bun run noeterra:wasm`. The fly does whatever it is doing when
- * this runs — rerun `--only live` if it slept through the recording — and the
- * README's caption names the date of the recording, so update it with the GIF.
+ * `live`, `garden`, `metrology` and the two Noeterra worlds are taken in real
+ * time from the deployed site (`--site`) and Eva's garden (`--garden`). `/live` follows
+ * the one server-side fly and the garden follows Eva, which no local server can
+ * show, and the dev server only has Noeterra's WebAssembly engine after
+ * `bun run noeterra:wasm`. A fly does whatever it is doing when this runs —
+ * rerun `--only live` if it slept through the recording. The README's caption
+ * names the date of the recording and how much faster than life it plays, and
+ * both are printed here: a photograph of a WebGL page
+ * takes half a second on a graphics card and several on software rendering, so
+ * the speed is measured, never assumed. Update the caption with the GIF.
  */
 
 import puppeteer from "puppeteer";
@@ -52,6 +58,7 @@ function arg(name, fallback) {
 
 const origin = arg("origin", "http://localhost:5173");
 const site = arg("site", "https://lop-nur-twin.vercel.app");
+const garden = arg("garden", "https://150-136-49-49.sslip.io");
 const only = arg("only", null);
 const OUT = "docs/media/readme";
 const FRAMES = "shots/readme";
@@ -460,9 +467,35 @@ async function captureBethesda(page) {
 /* ------------------------------------------------------------------ */
 
 /**
- * Twenty-four seconds of `/live`, two frames a second, played back at twice
- * the speed. Everything on the page comes from the observer of the one fly;
- * the log of what it decided, and why, is the part worth watching.
+ * Photograph a live page `count` times, no faster than two frames a second,
+ * and report what the recording covers. `read` is evaluated in the page after
+ * each frame and names what the fly is doing. The GIF plays at `fps`, so the
+ * speed-up is the time the recording took over the time it plays for.
+ */
+async function recordLive(page, shoot, { count, fps, read }) {
+  const states = new Set();
+  const started = new Date();
+  let last = Date.now();
+  for (let i = 0; i < count; i++) {
+    const t = Date.now();
+    await shoot();
+    last = Date.now();
+    const state = await page.evaluate(read);
+    if (state) states.add(state.trim());
+    await sleep(Math.max(0, 500 - (Date.now() - t)));
+  }
+  const seconds = (last - started.getTime()) / 1000;
+  console.log(`  recorded ${started.toISOString()}: ${[...states].join(" → ")}`);
+  console.log(
+    `  ${Math.round(seconds)} s of the page in ${count / fps} s of GIF: ` +
+      `${Math.round(seconds / (count / fps))}× speed`,
+  );
+}
+
+/**
+ * `/live`, forty-eight frames at no more than two a second, played back at
+ * four. Everything on the page comes from the observer of the one fly; the
+ * log of what it decided, and why, is the part worth watching.
  */
 async function captureLive(page) {
   console.log("live:");
@@ -478,24 +511,63 @@ async function captureLive(page) {
   }
   await sleep(3000);
   const shoot = await frames(page, "live");
-  const states = new Set();
-  const started = new Date();
-  for (let i = 0; i < 48; i++) {
-    const t = Date.now();
-    await shoot();
-    states.add(
-      await page.evaluate(() => document.body.innerText.match(/NOW\s+(\S[^\n]*)/i)?.[1]),
-    );
-    await sleep(Math.max(0, 500 - (Date.now() - t)));
-  }
-  console.log(`  recorded ${started.toISOString()}: ${[...states].join(" → ")}`);
+  await recordLive(page, shoot, {
+    count: 48,
+    fps: 4,
+    read: () => document.body.innerText.match(/NOW\s+(\S[^\n]*)/i)?.[1],
+  });
+  // The clay model is textured edge to edge, the worst case for a GIF after
+  // the orbit's sand: narrower and lossier than the flat map it replaced.
   encode("live-fly", shoot.dir, {
     fps: 4,
-    width: 960,
+    width: 800,
     colors: 128,
     dither: "none",
-    lossy: 40,
+    lossy: 80,
   });
+}
+
+/**
+ * Eva's garden as a visitor finds it: the clay exhibit in its opening view,
+ * with the observation panel that says what is modelled, reported and
+ * established. Her service is not in this repository; this only looks. One
+ * photograph, for the gallery: she sleeps through Bethesda's night, and a GIF
+ * of a sleeping fly is two megabytes of stillness.
+ */
+async function captureGarden(page) {
+  console.log("garden:");
+  await page.setViewport({ width: 1280, height: 720 });
+  await page.goto(garden, { waitUntil: "domcontentloaded", timeout: 120000 });
+  await page.waitForFunction(
+    () =>
+      /Behaviour\s+\S/i.test(document.body.innerText) && document.querySelector("canvas"),
+    { timeout: 120000, polling: 500 },
+  );
+  await sleep(8000);
+  const shoot = await frames(page, "garden");
+  await shoot();
+  const behaviour = await page.evaluate(
+    () => document.body.innerText.match(/Behaviour\s+(\S[^\n]*)/i)?.[1],
+  );
+  console.log(`  recorded ${new Date().toISOString()}: ${behaviour?.trim()}`);
+}
+
+/**
+ * The metrology bench's research view, as deployed: the frozen held-out
+ * protocol, its verification and its verdict. The page draws committed
+ * records, so the picture changes only when they do.
+ */
+async function captureMetrology(page) {
+  console.log("metrology:");
+  await page.setViewport({ width: 1100, height: 760, deviceScaleFactor: 2 });
+  await page.goto(`${site}/metrology`, { waitUntil: "networkidle0", timeout: 120000 });
+  await page.waitForFunction(() => /Verdict/.test(document.body.innerText), {
+    timeout: 120000,
+    polling: 500,
+  });
+  await sleep(1500);
+  await page.screenshot({ path: `${OUT}/metrology.png` });
+  console.log(`  ${OUT}/metrology.png`);
 }
 
 /**
@@ -566,7 +638,7 @@ function captureGallery() {
   const tiles = [
     ["twin", "docs/screenshot-lens.png", "crop=1040:585:250:290"],
     ["live-fly", `${FRAMES}/live/0022.png`, null],
-    ["garden", "docs/media/live-garden/macro.webp", "crop=1440:810:0:45"],
+    ["garden", `${FRAMES}/garden/0000.png`, "crop=800:450:0:270"],
     ["rain-lab", "docs/screenshots/rain-lab-meeting.png", null],
     ["noeterra", `${FRAMES}/noeterra/0006.png`, "crop=1280:720:0:20"],
     ["blacksite", "docs/screenshot-blacksite.png", null],
@@ -632,6 +704,8 @@ const CAPTURES = {
   evidence: captureEvidence,
   bethesda: captureBethesda,
   live: captureLive,
+  garden: captureGarden,
+  metrology: captureMetrology,
   noeterra: (page) => captureNoeterra(page, "mediterranean-264bc", "noeterra"),
   "noeterra-tarim": (page) => captureNoeterra(page, "tarim-77bc", "noeterra-tarim"),
   gallery: captureGallery,

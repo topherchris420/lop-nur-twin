@@ -9,13 +9,15 @@
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-[![Recorded ECHO session](docs/media/readme/live-fly.gif)](https://lop-nur-twin.vercel.app/live)
+[![ECHO on its live page: a clay model of the simulated Bethesda with the fly walking, resting, grooming, flying and landing, beside its energy reserve, meal count and the log of each decision with its reason](docs/media/readme/live-fly.gif)](https://lop-nur-twin.vercel.app/live)
 
-_Recorded ECHO observation, 28 October 2026, displayed at 2× speed. The animation is not proof of biological life._
+<sub>ECHO on <a href="https://lop-nur-twin.vercel.app/live"><code>/live</code></a>, recorded 10 November 2026 from 02:16 UTC. Three minutes of its life, played at about 15× speed: a walk, a rest, a grooming bout, a flight and a landing, each logged with the reason its controller gave. The last frame catches a checkpoint being committed. The animation is not proof of biological life.</sub>
 
-[Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Visit Eva's garden](https://150-136-49-49.sslip.io/) · [Open the twin](https://lop-nur-twin.vercel.app/) · [Inspect claims](docs/RESEARCH_CLAIMS.md) · [Reproduce](#07-reproduce-the-work)
+**[Observe ECHO](https://lop-nur-twin.vercel.app/live)** · **[Visit Eva's garden](https://150-136-49-49.sslip.io/)** · **[Open the twin](https://lop-nur-twin.vercel.app/)** · **[Inspect claims](docs/RESEARCH_CLAIMS.md)** · **[Reproduce](#07-reproduce-the-work)**
 
 </div>
+
+**Contents** · [01 Question](#01-the-question) · [02 Systems](#02-the-operating-systems) · [03 Verifiable history](#03-a-machine-must-be-able-to-verify-the-history) · [04 Results](#04-the-test-results-including-the-ones-that-did-not-work) · [05 Brain boundary](#05-the-brain-boundary) · [06 Engineering](#06-the-engineering-arrangement) · [07 Reproduce](#07-reproduce-the-work) · [08 Procedure](#08-the-laboratory-procedure) · [09 The laboratory](#09-the-rest-of-the-laboratory) · [10 License](#10-license-and-research-use)
 
 ## 01. The question
 
@@ -29,6 +31,8 @@ The purpose is not to produce the appearance of life. It is to build and measure
 
 ## 02. The operating systems
 
+Six systems share one repository. Each is listed with what actually runs and with the boundary that keeps it from being mistaken for another.
+
 | System                   | What actually runs                                                                                                                                                     | Boundary                                                                                    |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **ECHO**                 | One persistent fruit-fly-scale simulated individual in a headless Bethesda environment, with body, sensors, behavioral control, learning state, and sealed checkpoints | The original is observed, not used as an experimental subject                               |
@@ -37,6 +41,45 @@ The purpose is not to produce the appearance of life. It is to build and measure
 | **R.A.I.N. experiments** | Protocol validation, bounded simulation, recorded outcomes, and replay                                                                                                 | AI agents may propose work but cannot authorize or grade their own claims                   |
 | **Neural research**      | Separate experimental fly subjects using FlyWire FAFB v783 and BANC v888 connectome-derived models                                                                     | Neither original fly is run by those connectome models                                      |
 | **Noeterra / Blacksite** | Civilization and first-person simulation environments                                                                                                                  | Modeled worlds, not records of real-world behavior                                          |
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/live"><img src="docs/media/readme/gallery/live-fly.jpg" width="100%" alt="The live page: the clay fly on the ground between model buildings in Bethesda, beside its current behavior, energy reserve and recent decisions"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/live">ECHO in Bethesda</a></b>
+      <br><sub>The one shared, persistent individual, as its read-only witness reports it, with its recent decisions and the public record.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://150-136-49-49.sslip.io/"><img src="docs/media/readme/gallery/garden.jpg" width="100%" alt="Eva's garden: the clay fly on the warm windowsill, under a card that says it is cleaning its legs, then its wings"></a>
+      <br><b><a href="https://150-136-49-49.sslip.io/">Eva's clay garden</a></b>
+      <br><sub>A different fly in a separate service, watched through a stop-motion clay exhibit. <a href="docs/LIVE_GARDEN.md">About the garden</a>.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/?lens=1"><img src="docs/media/readme/gallery/twin.jpg" width="100%" alt="The Lop Nur compound painted by evidence status, with the evidence timeline below"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/?lens=1">Lop Nur twin</a></b>
+      <br><sub>Every building is observed, reported, interpreted or illustrative. Paint the scene by evidence (<code>L</code>) and move through what was knowable when.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="docs/RAIN_LAB_BETHESDA.md"><img src="docs/media/readme/gallery/rain-lab.jpg" width="100%" alt="The R.A.I.N. Lab's Research Panel: the meeting table, R.A.I.N.'s plate, and a scripted meeting transcript"></a>
+      <br><b><a href="docs/RAIN_LAB_BETHESDA.md">R.A.I.N. Lab</a></b>
+      <br><sub>The laboratory behind a door in the hidden city: protocols, authorization, recorded runs and replay.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/noeterra"><img src="docs/media/readme/gallery/noeterra.jpg" width="100%" alt="Noeterra's Mediterranean map with the event log and the Roman Republic's realm panel"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/noeterra">Noeterra</a></b>
+      <br><sub>Rule-based civilizations in the Mediterranean (264 BC) or the Tarim Basin (77 BC).</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="https://lop-nur-twin.vercel.app/play"><img src="docs/media/readme/gallery/blacksite.jpg" width="100%" alt="Blacksite: a first-person view across open ground between two buildings"></a>
+      <br><b><a href="https://lop-nur-twin.vercel.app/play">Blacksite</a></b>
+      <br><sub>An illustrative first-person simulation with human, scripted or model-controlled seats.</sub>
+    </td>
+  </tr>
+</table>
+
+<sub>Every picture on this page is a screenshot or recording of the running software, taken by script (<code>bun run readme-media</code>, <code>bun run shots</code>). ECHO and Eva were photographed on 10 November 2026 (UTC); neither was touched to get the picture.</sub>
 
 The live pages are public interfaces, not control consoles for the original animals. Service uptime and current state should be checked at the destination, not inferred from a recorded demonstration.
 
@@ -59,6 +102,10 @@ On 1 November, ECHO entered a building volume because the collision solver disag
 
 On 4 November the corrected physics was delivered by a recorded continuation. ECHO subsequently crossed out of the building. The controller did not gain new intelligence; the world model was repaired. The pause, later escape, and eventual meal are preserved in the record.
 
+[![Two plan views drawn from ECHO's recorded positions: inside building 1011267786 after the repair, the recorded exit, and the rest of the day to its first meal](docs/media/echo-collision/exit.svg)](docs/ECHO_COLLISION.md#how-it-got-out)
+
+<sub>Not an illustration: drawn by <code>scripts/echo-exit-figure.ts</code> from ECHO's recorded positions, and reproduced byte for byte by its <code>--check</code> (<a href="#07-reproduce-the-work">section 07</a>).</sub>
+
 [Evidence and reconstruction](docs/ECHO_COLLISION.md)
 
 ## 04. The test results, including the ones that did not work
@@ -80,6 +127,12 @@ The table below contains **reported results, not universal performance claims**.
 | Embodied plasticity under weak legs, metrology bench | Inconclusive on 40 held-out subjects; small corrected regression under severe weak legs | That plasticity cannot help under any impairment |
 
 A 7 November extension added bounded embodied plasticity to the original ECHO and Eva, with owner-approved shadow-mode activation followed by active mode. On held-out **research subjects**, shadow mode preserved baseline behavior, but **active mode demonstrated no established performance advantage**. The fact that an addition is active is not evidence that it helped. The intelligence metrology bench reproduced that finding byte for byte, then asked it again on 40 new research subjects in nine conditions: inconclusive, with a small, corrected regression under severe weak legs. Neither original was touched.
+
+<p align="center">
+  <a href="docs/ECHO_INTELLIGENCE_METROLOGY.md"><img src="docs/media/readme/metrology.png" width="760" alt="The metrology bench's research view for the held-out split of plasticity-locomotor-v1: 40 subjects, 9 conditions, 1240 runs; verification passed with 12 of 12 sampled runs re-simulated byte for byte; verdict: inconclusive evidence"></a>
+</p>
+
+<sub>The bench's research view of the held-out split, as deployed. The verdict was fixed by the protocol's decision rules before the run, and the page prints it as it came out: <b>INCONCLUSIVE</b>.</sub>
 
 [Activation record](docs/EVA_ECHO_ACTIVATION.md) · [Plasticity study](docs/EVA_ECHO_BRAIN_PLASTICITY.md) · [Intelligence metrology bench](docs/ECHO_INTELLIGENCE_METROLOGY.md)
 
@@ -138,6 +191,8 @@ bun run rain:fly:verify
 
 `bun run check` runs the repository's standard quality and build checks. The individuality comparison is a longer reproducibility check. `rain:fly:verify` verifies archived records supported by the current runtime; exit status **3** indicates some archives require a different recorded Node version rather than silently claiming full replay.
 
+The pictures on this page are reproducible too: `bun run readme-media` re-records them from the dev server and the live pages (it needs `ffmpeg` and `gifsicle`), and prints the date and playback speed that the captions must then carry.
+
 Start with [Getting Started](docs/GETTING_STARTED.md), [Validation](docs/VALIDATION.md), and [Contributing](CONTRIBUTING.md). For public evidence, see the [claims register](docs/RESEARCH_CLAIMS.md) and the [ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger).
 
 ## 08. The laboratory procedure
@@ -152,12 +207,39 @@ The four agents do not constitute independent scientific replication. The origin
 
 The repository also contains an evidence-linked Lop Nur reconstruction, a hidden Bethesda city, the Noeterra civilization simulator, and the Blacksite first-person simulation. These are distinct systems within the same research environment. Start with the [documentation index](docs/README.md) rather than assuming all components share ECHO's persistence model.
 
-- [Explore the twin](https://lop-nur-twin.vercel.app/)
-- [Watch ECHO](https://lop-nur-twin.vercel.app/live)
-- [Visit Eva](https://150-136-49-49.sslip.io/)
-- [Noeterra](https://lop-nur-twin.vercel.app/noeterra)
-- [Blacksite](https://lop-nur-twin.vercel.app/play)
-- [Evidence inspector](https://lop-nur-twin.vercel.app/analysis)
+**The Lop Nur twin: what was knowable, and when.** The evidence lens paints each structure by its classification; the timeline then draws solid only what public evidence had established by that date. An outline marks absence of evidence, never evidence of absence.
+
+[![The evidence lens paints the compound by classification; the timeline then rewinds to 2021 and steps forward to today as structures become established](docs/media/readme/evidence-timeline.gif)](https://lop-nur-twin.vercel.app/?lens=1)
+
+[Site model](docs/SITE_MODEL.md) · [Temporal model](docs/TEMPORAL_MODEL.md) · [Evidence inspector](https://lop-nur-twin.vercel.app/analysis), which works without WebGL
+
+**Noeterra: fifty simulated years, one seed.** Rule-based powers declare wars, conclude treaties and annex provinces. The engine is deterministic, so the same seed plays the same fifty years.
+
+[![Noeterra observed for fifty simulated years from Spring 264 BC: borders shift as rule-based powers declare wars, conclude treaties, and annex provinces](docs/media/readme/noeterra.gif)](https://lop-nur-twin.vercel.app/noeterra?scenario=mediterranean-264bc&play=observe&seed=1)
+
+[Noeterra guide](docs/NOETERRA.md) · [Blacksite guide](docs/BLACKSITE.md)
+
+<details>
+<summary><b>Find Bethesda and the hidden laboratory</b> (spoiler)</summary>
+
+<br>
+
+In the twin, press **backtick** (usually below Escape) and submit `38.9847,-77.0947`. Bethesda loads on demand; the laboratory is inside a building, behind a door.
+
+[![The twin's telemetry resolver takes the coordinates, the location resolves from Lop Nur to Bethesda, and the camera surveys the modeled city](docs/media/readme/bethesda-reveal.gif)](docs/BETHESDA_ANOMALY.md)
+
+[City guide](docs/BETHESDA_ANOMALY.md) · [Lab guide](docs/RAIN_LAB_BETHESDA.md)
+
+</details>
+
+| Open                                                           | What it is                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------- |
+| [Lop Nur twin](https://lop-nur-twin.vercel.app/)               | The evidence-linked 3D reconstruction                   |
+| [ECHO, live](https://lop-nur-twin.vercel.app/live)             | The persistent fly, as its read-only witness reports it |
+| [Eva's garden](https://150-136-49-49.sslip.io/)                | The second fly, in her separate service                 |
+| [Noeterra](https://lop-nur-twin.vercel.app/noeterra)           | The civilization simulator                              |
+| [Blacksite](https://lop-nur-twin.vercel.app/play)              | The first-person simulation                             |
+| [Evidence inspector](https://lop-nur-twin.vercel.app/analysis) | Every claim with its sources, as a table                |
 
 ## 10. License and research use
 
