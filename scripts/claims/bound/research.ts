@@ -7,13 +7,15 @@
  * (docs/benchmarks/fly-neural/). Claim 19 is about this repository's own
  * model, so its counts come from the modules the twin itself is built from.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { EVIDENCE_LEDGER } from "../../../src/lib/evidence.js";
 import { STRUCTURES } from "../../../src/lib/layout.js";
 import { PUBLIC_SOURCES } from "../../../src/lib/siteData.js";
 import type { Binding } from "../check.js";
 import { REGISTER, README } from "../documents.js";
 import { at, list, num, readJson } from "../records.js";
-import { fixed, grouped, percent, says } from "../statement.js";
+import { fixed, grouped, percent, says, signed, whole } from "../statement.js";
 
 const individuality = () => readJson("docs/benchmarks/fly-individuality/report.json");
 const calibration = () => readJson("docs/benchmarks/fly-calibration/report.json");
@@ -56,6 +58,26 @@ function criteria(): [number, number] {
 }
 
 const MODEL = "src/lib/layout.ts, src/lib/evidence.ts and src/lib/siteData.ts";
+
+const mushroomBody = () => readJson("docs/benchmarks/fly-mushroom-body/report.json");
+const ecologyAlone = () => readJson("docs/benchmarks/ecology/alone-30d.json");
+const ECOLOGY_TESTS = "src/bethesda/ecology/ecology.test.ts";
+const RULE_TESTS = "scripts/test-evidence-validation.ts";
+
+/**
+ * How often `pattern` occurs in one of this repository's own source files. A
+ * count of tests or rules is a fact about the code, not a record: the file is
+ * read directly, so the binding names it as its `model` and carries no
+ * evidence digest that every unrelated edit to the file would move.
+ */
+function sourceCount(path: string, pattern: RegExp): number {
+  const found =
+    readFileSync(join(process.cwd(), path), "utf8").match(pattern)?.length ?? 0;
+  if (found === 0) throw new Error(`${path} has nothing matching ${String(pattern)}`);
+  return found;
+}
+/** A bound as the register prints it: `0.88`, but `1` for a whole number. */
+const bound = (x: number) => (Number.isInteger(x) ? whole(x) : fixed(x, 2));
 
 export const research: Binding[] = [
   {
@@ -104,6 +126,79 @@ export const research: Binding[] = [
     section: "04",
     statement: () =>
       says`| Memory with continuously moving food | Negative: ${fixed(-num(individuality(), "b.fullMinusAmnesic.mealsPerLife.mean"), 1)} fewer meals per life |`,
+  },
+  {
+    id: "10.returns",
+    doc: REGISTER,
+    section: "10",
+    statement: () => {
+      const circuit = at(mushroomBody(), [
+        "c1",
+        "contrasts",
+        "threeMinusOneMeal",
+        "mushroom-body",
+      ]);
+      const bookkeeping = at(mushroomBody(), [
+        "c1",
+        "contrasts",
+        "threeMinusOneMeal",
+        "reduced-order",
+      ]);
+      return says`Three meals instead of one added ${signed(num(circuit, "returns.mean"), 2)} [${bound(num(circuit, "returns.ci95[0]"))}, ${bound(num(circuit, "returns.ci95[1]"))}] return flights with the circuit (more in ${num(circuit, "sign.up")} of ${num(circuit, "returns.n")}) and ${fixed(num(bookkeeping, "returns.mean"), 2)} with the bookkeeping`;
+    },
+  },
+  {
+    id: "10.lesion",
+    doc: REGISTER,
+    section: "10",
+    statement: () => {
+      const lesion = at(mushroomBody(), [
+        "c1",
+        "contrasts",
+        "blockedMinusMushroomBody",
+        "1",
+        "returns",
+      ]);
+      return says`The lesion kept flies returning (${fixed(num(lesion, "mean"), 2)} [${fixed(num(lesion, "ci95[0]"), 2)}, ${fixed(num(lesion, "ci95[1]"), 2)}] more)`;
+    },
+  },
+  {
+    id: "21.tests",
+    doc: REGISTER,
+    section: "21",
+    model: ECOLOGY_TESTS,
+    statement: () =>
+      says`${sourceCount(ECOLOGY_TESTS, /^ {2}it\(/gm)} tests (\`src/bethesda/ecology/ecology.test.ts\`)`,
+  },
+  {
+    id: "21.reference",
+    doc: REGISTER,
+    section: "21",
+    statement: () =>
+      says`a ${list(ecologyAlone(), "days").length}-day fly-less reference`,
+  },
+  {
+    id: "21.books",
+    doc: REGISTER,
+    section: "21",
+    statement: () =>
+      says`books close to rounding over ${list(ecologyAlone(), "days").length} days`,
+  },
+  {
+    id: "19.rules",
+    doc: REGISTER,
+    section: "19",
+    model: RULE_TESTS,
+    statement: () =>
+      says`asserts each of the ${sourceCount(RULE_TESTS, /^ {4}name: /gm)} rules still fires`,
+  },
+  {
+    id: "19.summary",
+    doc: REGISTER,
+    section: "summary",
+    model: RULE_TESTS,
+    statement: () =>
+      says`| ${sourceCount(RULE_TESTS, /^ {4}name: /gm)} rules, each tested |`,
   },
   {
     id: "13.set",

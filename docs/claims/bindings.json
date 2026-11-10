@@ -6,13 +6,13 @@
     {
       "path": "docs/RESEARCH_CLAIMS.md",
       "quantities": 352,
-      "recomputed": 232,
+      "recomputed": 246,
       "sections": [
         {
           "section": "summary",
           "title": "Summary",
           "quantities": 18,
-          "recomputed": 10
+          "recomputed": 11
         },
         {
           "section": "1",
@@ -72,7 +72,7 @@
           "section": "10",
           "title": "A learning circuit makes behaviour depend on the fly's own history",
           "quantities": 11,
-          "recomputed": 0
+          "recomputed": 9
         },
         {
           "section": "11",
@@ -126,7 +126,7 @@
           "section": "19",
           "title": "Every claim in the Lop Nur twin carries its evidence",
           "quantities": 4,
-          "recomputed": 3
+          "recomputed": 4
         },
         {
           "section": "20",
@@ -138,7 +138,7 @@
           "section": "21",
           "title": "A world that lives on its own, changed by a fly only through records",
           "quantities": 3,
-          "recomputed": 0
+          "recomputed": 3
         },
         {
           "section": "22",
@@ -1823,6 +1823,101 @@
       ]
     },
     {
+      "id": "10.returns",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "10",
+      "statement": "Three meals instead of one added +0.96 [0.88, 1] return flights with the circuit (more in 23 of 24) and −0.04 with the bookkeeping",
+      "computed": [
+        "+0.96",
+        "0.88",
+        "1",
+        "23",
+        "24",
+        "−0.04"
+      ],
+      "evidence_sha256": "fd76fb4711c932468b8eb450ccff020ca2474389bbd2dd07a64f48cd0beabd5b",
+      "records": [
+        "docs/benchmarks/fly-mushroom-body/report.json"
+      ]
+    },
+    {
+      "id": "10.lesion",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "10",
+      "statement": "The lesion kept flies returning (5.46 [4.71, 6.29] more)",
+      "computed": [
+        "5.46",
+        "4.71",
+        "6.29"
+      ],
+      "evidence_sha256": "fd76fb4711c932468b8eb450ccff020ca2474389bbd2dd07a64f48cd0beabd5b",
+      "records": [
+        "docs/benchmarks/fly-mushroom-body/report.json"
+      ]
+    },
+    {
+      "id": "21.tests",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "21",
+      "statement": "13 tests (`src/bethesda/ecology/ecology.test.ts`)",
+      "computed": [
+        "13"
+      ],
+      "model": "src/bethesda/ecology/ecology.test.ts",
+      "evidence_sha256": null,
+      "records": []
+    },
+    {
+      "id": "21.reference",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "21",
+      "statement": "a 30-day fly-less reference",
+      "computed": [
+        "30"
+      ],
+      "evidence_sha256": "c7c6eeeccad7024c6a8c66664d9531b70bf9fc0552fb34ad8c763c0be6bce3d5",
+      "records": [
+        "docs/benchmarks/ecology/alone-30d.json"
+      ]
+    },
+    {
+      "id": "21.books",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "21",
+      "statement": "books close to rounding over 30 days",
+      "computed": [
+        "30"
+      ],
+      "evidence_sha256": "c7c6eeeccad7024c6a8c66664d9531b70bf9fc0552fb34ad8c763c0be6bce3d5",
+      "records": [
+        "docs/benchmarks/ecology/alone-30d.json"
+      ]
+    },
+    {
+      "id": "19.rules",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "19",
+      "statement": "asserts each of the 37 rules still fires",
+      "computed": [
+        "37"
+      ],
+      "model": "scripts/test-evidence-validation.ts",
+      "evidence_sha256": null,
+      "records": []
+    },
+    {
+      "id": "19.summary",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "summary",
+      "statement": "| 37 rules, each tested |",
+      "computed": [
+        "37"
+      ],
+      "model": "scripts/test-evidence-validation.ts",
+      "evidence_sha256": null,
+      "records": []
+    },
+    {
       "id": "13.set",
       "document": "docs/RESEARCH_CLAIMS.md",
       "section": "13",
@@ -2094,13 +2189,13 @@
       "id": "readme.04.recomputed",
       "document": "README.md",
       "section": "04",
-      "statement": "**232 of the 352 quantities**",
+      "statement": "**246 of the 352 quantities**",
       "computed": [
-        "232",
+        "246",
         "352"
       ],
       "model": "scripts/claims/check.ts",
-      "evidence_sha256": "2eba97da8243d74d6d5404c129056bf18e83c4bd7ad9a16679225290e15e9673",
+      "evidence_sha256": "92fdcf9cdc10272638e6406e593b46c561c589fe73301900c49af906e53f0f3a",
       "records": [
         "README.md",
         "docs/ECHO_COLLISION.md",
@@ -2162,6 +2257,7 @@
         "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json",
         "docs/benchmarks/echo-plasticity/heldout/summary.json",
         "docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json",
+        "docs/benchmarks/ecology/alone-30d.json",
         "docs/benchmarks/eva-plasticity/heldout/summary.json",
         "docs/benchmarks/first-contact/encounter.json",
         "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json",
@@ -2173,6 +2269,7 @@
         "docs/benchmarks/fly-calibration/report.json",
         "docs/benchmarks/fly-echo/report.json",
         "docs/benchmarks/fly-individuality/report.json",
+        "docs/benchmarks/fly-mushroom-body/report.json",
         "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json",
         "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json",
         "docs/benchmarks/fly-neural/shiu2024-v783-dev.json",
@@ -2188,7 +2285,7 @@
     }
   ],
   "records": {
-    "README.md": "3368d2adbf936d0575e13cdfea4e27789fbe0b4485dbe2d87b46b478c740a3aa",
+    "README.md": "06e94f3a058cd89de947ec39cce11e2c78193db18cd5ee861d4227d2eaf53b9b",
     "docs/ECHO_COLLISION.md": "8b7f74f11e56442915e750e175e2ca0938572a1f4e9445b4318ea5dd0ac6a264",
     "docs/RESEARCH_CLAIMS.md": "2c6907e050d136ac576d03d5e9b8a21a757dc614b7b4b4729cc9a787c263753f",
     "docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json": "c54f261d0b382e7ad388f790fab6d40b5976fca48696011338a2db4ec6f6fc40",
@@ -2248,6 +2345,7 @@
     "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json": "8407f6b0a210e0807a0cbe139f0646a4d480a736bdc23947b63991da54ccc5ff",
     "docs/benchmarks/echo-plasticity/heldout/summary.json": "7b5bcba947f1f21eecd3243cf7460c2e429c4bfb58bd506dd4e3379e0d88a0c3",
     "docs/benchmarks/echo-ranging/2026-11-03/report-guarded-fresh.json": "61c32bf3b99015ec3110a525ec7dcdfc6823a425d9501a66ffec49560269e91a",
+    "docs/benchmarks/ecology/alone-30d.json": "7d54e7baafc6d4f71ac6b8f296fa120187042db471efee1b666505e165232d93",
     "docs/benchmarks/eva-plasticity/heldout/summary.json": "0c947d0f3926d245c999220dff6378ac23d370a71f7fd0c8229692cb03104d66",
     "docs/benchmarks/first-contact/encounter.json": "da48d6cd2fae0223bf9bd5a58094845215023ec2842a0df49958d843bc2f50b6",
     "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json": "dfd3e17d1fc7a88d40d18bc5318cc1de078d470eaf51883842308dd24a4ef0fe",
@@ -2259,6 +2357,7 @@
     "docs/benchmarks/fly-calibration/report.json": "eacdce07f99443f4aaf0eda75c9909413776b8139089d60fd9057072eb81d22f",
     "docs/benchmarks/fly-echo/report.json": "fb374eea08a60dfeaff8fb11052c5b2a0873d5dac440bb7efa93f3afd3e2debf",
     "docs/benchmarks/fly-individuality/report.json": "166886bdabe11aed300c1e05127feb52af2293695f7c56edb649b59e6938bb06",
+    "docs/benchmarks/fly-mushroom-body/report.json": "4af50e2f5e0c448b671832caa38bb764cc790752827079b54b88ce93c16ad681",
     "docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json": "5c640a22f5b8f879e1524a2257b36520d6dd7b78c98b8280e2bc6be11622f7d0",
     "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json": "ff385955f9e0fbb3b1071403e26272f8d2abd9af34a6795a3c61192a7aee921c",
     "docs/benchmarks/fly-neural/shiu2024-v783-dev.json": "f630ecfc90c0d5ba9ccb288fdd8d24ecf820864fbd074bf36c4127561d85bdf5",

@@ -5,7 +5,7 @@
 
 The [claims register](../../docs/RESEARCH_CLAIMS.md) and the [README](../../README.md) state numbers
 that were copied from records. A copied number can drift from its record and nothing
-fails. The 85 sentences on this page cannot: each is rebuilt from committed
+fails. The 92 sentences on this page cannot: each is rebuilt from committed
 records by a function in [`scripts/claims/`](../../scripts/claims/), and the test suite
 fails when a document and its records disagree.
 
@@ -18,10 +18,10 @@ wrong, and nothing checks them.
 
 | Document | Quantities stated | Recomputed from records | Share |
 | :-- | --: | --: | --: |
-| [Claims register](../../docs/RESEARCH_CLAIMS.md) | 352 | 232 | 66% |
+| [Claims register](../../docs/RESEARCH_CLAIMS.md) | 352 | 246 | 70% |
 | [README](../../README.md) | 33 | 22 | 67% |
 
-85 sentences, 82 record files. A quantity is a number written in
+92 sentences, 84 record files. A quantity is a number written in
 digits in a document's prose ([what counts](#what-counts-as-a-quantity)). It is
 recomputed only when it lies inside text that a function of the records produced, in a
 sentence the document was found to contain. A number that a binding merely quotes is
@@ -31,7 +31,7 @@ not counted.
 
 | Section | Quantities | Recomputed | Share |
 | :-- | --: | --: | --: |
-| [Summary table](../../docs/RESEARCH_CLAIMS.md#summary) | 18 | 10 | 56% |
+| [Summary table](../../docs/RESEARCH_CLAIMS.md#summary) | 18 | 11 | 61% |
 | [1. ECHO's recent history can be recomputed independently](../../docs/RESEARCH_CLAIMS.md#1-echos-recent-history-can-be-recomputed-independently) | 13 | 0 | 0% |
 | [2. Engine changes reached ECHO without replacing it](../../docs/RESEARCH_CLAIMS.md#2-engine-changes-reached-echo-without-replacing-it) | 3 | 0 | 0% |
 | [3. The old physics trapped flies in buildings; `digital-fly/9` fixes it](../../docs/RESEARCH_CLAIMS.md#3-the-old-physics-trapped-flies-in-buildings-digital-fly9-fixes-it) | 31 | 29 | 94% |
@@ -41,7 +41,7 @@ not counted.
 | [7. Memory, workspace and second look help the self-model (ECHO-03–05)](../../docs/RESEARCH_CLAIMS.md#7-memory-workspace-and-second-look-help-the-self-model-echo-0305) | 15 | 15 | 100% |
 | [8. Individuals from one genesis acquire distinct, persistent preferences](../../docs/RESEARCH_CLAIMS.md#8-individuals-from-one-genesis-acquire-distinct-persistent-preferences) | 12 | 10 | 83% |
 | [9. Memory helps where food keeps moving](../../docs/RESEARCH_CLAIMS.md#9-memory-helps-where-food-keeps-moving) | 6 | 3 | 50% |
-| [10. A learning circuit makes behaviour depend on the fly's own history](../../docs/RESEARCH_CLAIMS.md#10-a-learning-circuit-makes-behaviour-depend-on-the-flys-own-history) | 11 | 0 | 0% |
+| [10. A learning circuit makes behaviour depend on the fly's own history](../../docs/RESEARCH_CLAIMS.md#10-a-learning-circuit-makes-behaviour-depend-on-the-flys-own-history) | 11 | 9 | 82% |
 | [11. A learned search preference transfers and pays](../../docs/RESEARCH_CLAIMS.md#11-a-learned-search-preference-transfers-and-pays) | 21 | 16 | 76% |
 | [12. Learning when to search widely beats a fixed search](../../docs/RESEARCH_CLAIMS.md#12-learning-when-to-search-widely-beats-a-fixed-search) | 6 | 6 | 100% |
 | [13. The simulated fly matches published recordings of real flies](../../docs/RESEARCH_CLAIMS.md#13-the-simulated-fly-matches-published-recordings-of-real-flies) | 9 | 5 | 56% |
@@ -50,23 +50,21 @@ not counted.
 | [16. Connectome-level learning, discrimination and control](../../docs/RESEARCH_CLAIMS.md#16-connectome-level-learning-discrimination-and-control) | 25 | 0 | 0% |
 | [17. Flies in separate worlds perceive and recognise each other](../../docs/RESEARCH_CLAIMS.md#17-flies-in-separate-worlds-perceive-and-recognise-each-other) | 4 | 3 | 75% |
 | [18. Research infrastructure results](../../docs/RESEARCH_CLAIMS.md#18-research-infrastructure-results) | 3 | 3 | 100% |
-| [19. Every claim in the Lop Nur twin carries its evidence](../../docs/RESEARCH_CLAIMS.md#19-every-claim-in-the-lop-nur-twin-carries-its-evidence) | 4 | 3 | 75% |
+| [19. Every claim in the Lop Nur twin carries its evidence](../../docs/RESEARCH_CLAIMS.md#19-every-claim-in-the-lop-nur-twin-carries-its-evidence) | 4 | 4 | 100% |
 | [20. Seeing looming from an image beats sensing it from geometry](../../docs/RESEARCH_CLAIMS.md#20-seeing-looming-from-an-image-beats-sensing-it-from-geometry) | 25 | 23 | 92% |
-| [21. A world that lives on its own, changed by a fly only through records](../../docs/RESEARCH_CLAIMS.md#21-a-world-that-lives-on-its-own-changed-by-a-fly-only-through-records) | 3 | 0 | 0% |
+| [21. A world that lives on its own, changed by a fly only through records](../../docs/RESEARCH_CLAIMS.md#21-a-world-that-lives-on-its-own-changed-by-a-fly-only-through-records) | 3 | 3 | 100% |
 | [22. Homeostatic feedback keeps a mortal research fly hydrated](../../docs/RESEARCH_CLAIMS.md#22-homeostatic-feedback-keeps-a-mortal-research-fly-hydrated) | 23 | 17 | 74% |
 | [23. A 496-neuron circuit cut from the FlyWire brain feeds exactly as the whole brain does](../../docs/RESEARCH_CLAIMS.md#23-a-496-neuron-circuit-cut-from-the-flywire-brain-feeds-exactly-as-the-whole-brain-does) | 14 | 6 | 43% |
 | [24. Embodied plasticity can join the two originals without changing them, and does not yet improve them](../../docs/RESEARCH_CLAIMS.md#24-embodied-plasticity-can-join-the-two-originals-without-changing-them-and-does-not-yet-improve-them) | 24 | 18 | 75% |
 | [25. Embodied plasticity helps a research fly with impaired legs eat (metrology bench)](../../docs/RESEARCH_CLAIMS.md#25-embodied-plasticity-helps-a-research-fly-with-impaired-legs-eat-metrology-bench) | 33 | 31 | 94% |
-| **All** | **352** | **232** | **66%** |
+| **All** | **352** | **246** | **70%** |
 
 Entries with nothing recomputed, and why:
 
 - **1. ECHO's recent history can be recomputed independently.** Its record, `replays.jsonl`, is on the `live-fly-ledger` branch, which this tree does not contain; a check here could not read it without the network.
 - **2. Engine changes reached ECHO without replacing it.** Its evidence is the deployed individual's own checkpoint chain, which is not in this repository, and the era table that describes it.
 - **4. The repaired physics let the deployed ECHO out.** The exit's tick and checkpoint are quoted from the deployed individual's checkpoint 2,563, which no file here holds. The figure drawn from the recorded positions is held to them by `scripts/echo-exit-figure.test.ts`.
-- **10. A learning circuit makes behaviour depend on the fly's own history.** Not bound yet. Its record is `docs/benchmarks/fly-mushroom-body/report.json`.
 - **16. Connectome-level learning, discrimination and control.** Not bound yet. Its six results are spread over `docs/benchmarks/fly-neural/` and its `adaptive/` and `banc/` folders.
-- **21. A world that lives on its own, changed by a fly only through records.** Not bound yet. Its records are in `docs/benchmarks/ecology/`; the entry's three quantities count tests and days.
 
 ### README, section by section
 
@@ -95,6 +93,7 @@ changes that digest, so evidence cannot move under a claim unseen.
 - <b>9</b> of <b>12</b> trapped → <b>0</b> of <b>12</b><br><sub>`3.summary` · 48 records in [`docs/benchmarks/echo-collision/2026-11-03/flies/`](../../docs/benchmarks/echo-collision/2026-11-03/flies/) · evidence `ce58ec54714b`</sub>
 - Primary failed; <b>3</b> of <b>6</b><br><sub>`22.summary` · [`docs/benchmarks/homeostasis/homeostasis-v1-heldout.json`](../../docs/benchmarks/homeostasis/homeostasis-v1-heldout.json) · evidence `fd9c62276e2d`</sub>
 - Passed (<b>3</b> of <b>3</b>)<br><sub>`23.summary` · [`docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json`](../../docs/benchmarks/fly-neural/adaptive/feeding-reduced-v783-heldout.json) · evidence `08dd99ff6079`</sub>
+- | <b>37</b> rules, each tested |<br><sub>`19.summary` · computed from `scripts/test-evidence-validation.ts`</sub>
 - | <b>10</b> of <b>12</b> criteria |<br><sub>`15.summary` · 2 records in [`docs/benchmarks/fly-neural/`](../../docs/benchmarks/fly-neural/) · evidence `65a3e8af5169`</sub>
 
 #### 3. The old physics trapped flies in buildings; `digital-fly/9` fixes it
@@ -134,6 +133,11 @@ changes that digest, so evidence cannot move under a claim unseen.
 
 - Memory-bearing flies ate <b>1.2</b> fewer meals per life [<b>−2.25</b>, <b>−0.08</b>] (Study B)<br><sub>`9.meals` · [`docs/benchmarks/fly-individuality/report.json`](../../docs/benchmarks/fly-individuality/report.json) · evidence `8843200a9fa1`</sub>
 
+#### 10. A learning circuit makes behaviour depend on the fly's own history
+
+- Three meals instead of one added <b>+0.96</b> [<b>0.88</b>, <b>1</b>] return flights with the circuit (more in <b>23</b> of <b>24</b>) and <b>−0.04</b> with the bookkeeping<br><sub>`10.returns` · [`docs/benchmarks/fly-mushroom-body/report.json`](../../docs/benchmarks/fly-mushroom-body/report.json) · evidence `fd76fb4711c9`</sub>
+- The lesion kept flies returning (<b>5.46</b> [<b>4.71</b>, <b>6.29</b>] more)<br><sub>`10.lesion` · [`docs/benchmarks/fly-mushroom-body/report.json`](../../docs/benchmarks/fly-mushroom-body/report.json) · evidence `fd76fb4711c9`</sub>
+
 #### 11. A learned search preference transfers and pays
 
 - Transfers, **on the sealed test** (<b>24</b> seeds): <b>+0.42</b> [<b>0.30</b>, <b>0.53</b>] against <b>−0.04</b> [<b>−0.19</b>, <b>0.13</b>]<br><sub>`11.transfers` · [`docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json`](../../docs/benchmarks/echo-acquired/2026-11-02/report-heldout.json) · evidence `960a1ea4a15d`</sub>
@@ -169,6 +173,7 @@ changes that digest, so evidence cannot move under a claim unseen.
 
 #### 19. Every claim in the Lop Nur twin carries its evidence
 
+- asserts each of the <b>37</b> rules still fires<br><sub>`19.rules` · computed from `scripts/test-evidence-validation.ts`</sub>
 - Each of the <b>45</b> structures and the pavements<br><sub>`19.structures` · computed from `src/lib/layout.ts, src/lib/evidence.ts and src/lib/siteData.ts`</sub>
 - derives the ledger (<b>101</b> records, <b>12</b> sources)<br><sub>`19.ledger` · computed from `src/lib/layout.ts, src/lib/evidence.ts and src/lib/siteData.ts`</sub>
 
@@ -180,6 +185,12 @@ changes that digest, so evidence cannot move under a claim unseen.
 - each cost <b>0.21</b>–<b>0.35</b> F1 with intervals above 0<br><sub>`20.ablations` · 2 records in [`docs/benchmarks/fly-vision/`](../../docs/benchmarks/fly-vision/) · evidence `8180debcf2cb`</sub>
 - a <b>110</b> ms median lead against <b>38</b> ms in v2<br><sub>`20.lead` · [`docs/benchmarks/fly-vision/looming-v2-heldout.json`](../../docs/benchmarks/fly-vision/looming-v2-heldout.json) · evidence `c58ff9da30ff`</sub>
 - A τ rule on the deployed senses scored <b>0.917</b> and <b>0.824</b><br><sub>`20.tau` · 2 records in [`docs/benchmarks/fly-vision/`](../../docs/benchmarks/fly-vision/) · evidence `8180debcf2cb`</sub>
+
+#### 21. A world that lives on its own, changed by a fly only through records
+
+- <b>13</b> tests (`src/bethesda/ecology/ecology.test.ts`)<br><sub>`21.tests` · computed from `src/bethesda/ecology/ecology.test.ts`</sub>
+- a <b>30</b>-day fly-less reference<br><sub>`21.reference` · [`docs/benchmarks/ecology/alone-30d.json`](../../docs/benchmarks/ecology/alone-30d.json) · evidence `c7c6eeeccad7`</sub>
+- books close to rounding over <b>30</b> days<br><sub>`21.books` · [`docs/benchmarks/ecology/alone-30d.json`](../../docs/benchmarks/ecology/alone-30d.json) · evidence `c7c6eeeccad7`</sub>
 
 #### 22. Homeostatic feedback keeps a mortal research fly hydrated
 
@@ -234,7 +245,7 @@ changes that digest, so evidence cannot move under a claim unseen.
 - then asked it again on <b>40</b> new research subjects in nine conditions: <b>inconclusive</b><br><sub>`readme.04.metrology-prose` · [`docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json`](../../docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json) · evidence `155d6f3b8132`</sub>
 - | Memory with continuously moving food | Negative: <b>1.2</b> fewer meals per life |<br><sub>`readme.04.memory` · [`docs/benchmarks/fly-individuality/report.json`](../../docs/benchmarks/fly-individuality/report.json) · evidence `8843200a9fa1`</sub>
 - | FlyWire FAFB v783 reproduction | <b>10</b> / <b>12</b> registered criteria met |<br><sub>`readme.04.connectome` · 2 records in [`docs/benchmarks/fly-neural/`](../../docs/benchmarks/fly-neural/) · evidence `65a3e8af5169`</sub>
-- **<b>232</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 82 records in 25 folders under `/`, with `scripts/claims/check.ts` · evidence `2eba97da8243`</sub>
+- **<b>246</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 84 records in 27 folders under `/`, with `scripts/claims/check.ts` · evidence `92fdcf9cdc10`</sub>
 
 #### 05. The brain boundary
 

@@ -42,8 +42,6 @@ export const NOT_RECOMPUTED: Readonly<Record<string, string>> = {
   "1": "Its record, `replays.jsonl`, is on the `live-fly-ledger` branch, which this tree does not contain; a check here could not read it without the network.",
   "2": "Its evidence is the deployed individual's own checkpoint chain, which is not in this repository, and the era table that describes it.",
   "4": "The exit's tick and checkpoint are quoted from the deployed individual's checkpoint 2,563, which no file here holds. The figure drawn from the recorded positions is held to them by `scripts/echo-exit-figure.test.ts`.",
-  "10": "Not bound yet. Its record is `docs/benchmarks/fly-mushroom-body/report.json`.",
   "16": "Not bound yet. Its six results are spread over `docs/benchmarks/fly-neural/` and its `adaptive/` and `banc/` folders.",
   // 18 is bound for Noeterra; its live model-assisted experiment is not.
-  "21": "Not bound yet. Its records are in `docs/benchmarks/ecology/`; the entry's three quantities count tests and days.",
 };
