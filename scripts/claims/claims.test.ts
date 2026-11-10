@@ -63,6 +63,10 @@ describe("what counts as a quantity", () => {
         'run `digital-fly/9` ([report 3](benchmarks/v2/report-12.md)) at https://x.test/41 <img width="33%"> 7 times',
       ),
     ).toEqual(["3:q", "7:q"]);
+    // Raw Markdown too: a block or a comment over several lines is masked whole.
+    expect(
+      kinds("5 flies\n```\nexit 3\n```\n<!-- 12\nseeds --!> and <!-- 9\n--> then 2"),
+    ).toEqual(["5:q", "2:q"]);
   });
 });
 

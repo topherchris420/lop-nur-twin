@@ -40,15 +40,19 @@ export function normalise(markdown: string): string {
 const blank = (match: string) => " ".repeat(match.length);
 
 /**
- * `text` (already normalised) with everything that is not prose replaced by
- * spaces, character for character, so positions in the two agree.
+ * `text` with everything that is not prose replaced by spaces, character for
+ * character, so positions in the two agree. The check hands it one normalised
+ * line, but a block or a comment that runs over several lines is masked whole
+ * all the same: a caller with raw Markdown must not have its hidden digits
+ * counted.
  */
 export function maskNonProse(text: string): string {
   return (
     text
-      .replace(/```.*?```/g, blank)
+      .replace(/```[\s\S]*?```/g, blank)
       .replace(/`[^`]*`/g, blank)
-      .replace(/<!--.*?-->/g, blank)
+      // A comment ends at `-->` or, as browsers also accept, `--!>`.
+      .replace(/<!--[\s\S]*?--!?>/g, blank)
       // A link's target and title; its text stays.
       .replace(/\]\([^)\s]*(?: "[^"]*")?\)/g, (m) => `]${blank(m.slice(1))}`)
       .replace(/<\/?[A-Za-z][^>]*>/g, blank)
