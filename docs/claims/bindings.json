@@ -6,7 +6,7 @@
     {
       "path": "docs/RESEARCH_CLAIMS.md",
       "quantities": 352,
-      "recomputed": 200,
+      "recomputed": 210,
       "sections": [
         {
           "section": "summary",
@@ -96,7 +96,7 @@
           "section": "14",
           "title": "Commanded walking survives physical simulation",
           "quantities": 8,
-          "recomputed": 0
+          "recomputed": 4
         },
         {
           "section": "15",
@@ -114,13 +114,13 @@
           "section": "17",
           "title": "Flies in separate worlds perceive and recognise each other",
           "quantities": 4,
-          "recomputed": 0
+          "recomputed": 3
         },
         {
           "section": "18",
           "title": "Research infrastructure results",
           "quantities": 3,
-          "recomputed": 0
+          "recomputed": 3
         },
         {
           "section": "19",
@@ -1961,16 +1961,64 @@
       "records": []
     },
     {
+      "id": "14.walking",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "14",
+      "statement": "the 2 cm/s plan achieved 0.3791 of its forward progress with −20.46° heading drift; turning on the spot about 2°/s against 115°/s commanded",
+      "computed": [
+        "0.3791",
+        "−20.46",
+        "2",
+        "115"
+      ],
+      "evidence_sha256": "cf4867adf743bcbe9a4f7fd740fc8ac84526596645c3356d54d700426ab46baf",
+      "records": [
+        "docs/benchmarks/fly-physics/turn-on-the-spot--lag-compensated.json",
+        "docs/benchmarks/fly-physics/walk-2cms--lag-compensated.json"
+      ]
+    },
+    {
+      "id": "17.encounters",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "17",
+      "statement": "escaped from each other in 43–45% of sessions against 0% alone",
+      "computed": [
+        "43",
+        "45",
+        "0"
+      ],
+      "evidence_sha256": "00a68aaf36c896f1eb72de48c6e369fa1ee8796d3c998023a2891ae9d1a311d9",
+      "records": [
+        "docs/benchmarks/first-contact/encounter.json"
+      ]
+    },
+    {
+      "id": "18.noeterra",
+      "document": "docs/RESEARCH_CLAIMS.md",
+      "section": "18",
+      "statement": "cut mean wars declared from 6.50 to 2.83 over 40 seasons",
+      "computed": [
+        "6.50",
+        "2.83",
+        "40"
+      ],
+      "evidence_sha256": "bdca0b689e9d7028418d9e3bfd566b91129879c509ef1dea40b5457ce7595997",
+      "records": [
+        "docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/plan.json",
+        "docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/registry-run.json"
+      ]
+    },
+    {
       "id": "readme.04.recomputed",
       "document": "README.md",
       "section": "04",
-      "statement": "**200 of the 352 quantities**",
+      "statement": "**210 of the 352 quantities**",
       "computed": [
-        "200",
+        "210",
         "352"
       ],
       "model": "scripts/claims/check.ts",
-      "evidence_sha256": "c31ed7952eb036dcc8c8da04ae29e43a5d1b427ba332b4180e69f9b53cb743b9",
+      "evidence_sha256": "aef509600c7d015052d9edd1a30a9fe6631066480539c1b666b84d87a88f6da6",
       "records": [
         "README.md",
         "docs/ECHO_COLLISION.md",
@@ -2030,6 +2078,7 @@
         "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json",
         "docs/benchmarks/echo-plasticity/heldout/summary.json",
         "docs/benchmarks/eva-plasticity/heldout/summary.json",
+        "docs/benchmarks/first-contact/encounter.json",
         "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json",
         "docs/benchmarks/fly-behavior/FLY-3dedfd1e08238befa3a2cd09/registry-run.json",
         "docs/benchmarks/fly-behavior/FLY-aff10dec2ec287b28e76c74e/registry-run.json",
@@ -2043,14 +2092,18 @@
         "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json",
         "docs/benchmarks/fly-neural/shiu2024-v783-dev.json",
         "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json",
+        "docs/benchmarks/fly-physics/turn-on-the-spot--lag-compensated.json",
+        "docs/benchmarks/fly-physics/walk-2cms--lag-compensated.json",
         "docs/benchmarks/fly-vision/looming-v1-heldout.json",
         "docs/benchmarks/fly-vision/looming-v2-heldout.json",
-        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json"
+        "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json",
+        "docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/plan.json",
+        "docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/registry-run.json"
       ]
     }
   ],
   "records": {
-    "README.md": "4f4e98a50758b71ef4bb44b3f81cfdc8b655fa0f663e6355968be1938bdac0e4",
+    "README.md": "930c75d3b3beae8233a95ec98011f7ef6ad49497c0878425de9fef2cc93523d2",
     "docs/ECHO_COLLISION.md": "8b7f74f11e56442915e750e175e2ca0938572a1f4e9445b4318ea5dd0ac6a264",
     "docs/RESEARCH_CLAIMS.md": "2c6907e050d136ac576d03d5e9b8a21a757dc614b7b4b4729cc9a787c263753f",
     "docs/benchmarks/echo-collision/2026-11-03/flies/control-301.jsonl": "04b2391da901d5b13d8ade7f4bd5f484c3b124f5c6261c65cad96628f1fbde2a",
@@ -2108,6 +2161,7 @@
     "docs/benchmarks/echo-metrology/reproduction-288b3a8/summary.json": "8407f6b0a210e0807a0cbe139f0646a4d480a736bdc23947b63991da54ccc5ff",
     "docs/benchmarks/echo-plasticity/heldout/summary.json": "7b5bcba947f1f21eecd3243cf7460c2e429c4bfb58bd506dd4e3379e0d88a0c3",
     "docs/benchmarks/eva-plasticity/heldout/summary.json": "0c947d0f3926d245c999220dff6378ac23d370a71f7fd0c8229692cb03104d66",
+    "docs/benchmarks/first-contact/encounter.json": "da48d6cd2fae0223bf9bd5a58094845215023ec2842a0df49958d843bc2f50b6",
     "docs/benchmarks/fly-behavior/FLY-14084ba1f010fb490c4e0d55/registry-run.json": "dfd3e17d1fc7a88d40d18bc5318cc1de078d470eaf51883842308dd24a4ef0fe",
     "docs/benchmarks/fly-behavior/FLY-3dedfd1e08238befa3a2cd09/registry-run.json": "a13b18720804d068f6da81554ef942e47396e8e0872d49d6c8b566968734dc88",
     "docs/benchmarks/fly-behavior/FLY-aff10dec2ec287b28e76c74e/registry-run.json": "c092321277b4f592d3d588c04127286f076d3d93d01d5651c61c051c5e03e586",
@@ -2121,8 +2175,12 @@
     "docs/benchmarks/fly-neural/import-fafb-v783-shiu.json": "ff385955f9e0fbb3b1071403e26272f8d2abd9af34a6795a3c61192a7aee921c",
     "docs/benchmarks/fly-neural/shiu2024-v783-dev.json": "f630ecfc90c0d5ba9ccb288fdd8d24ecf820864fbd074bf36c4127561d85bdf5",
     "docs/benchmarks/fly-neural/shiu2024-v783-heldout.json": "185aedfc06af6f4eedab9a6a2025de8d1d56c4fd72de05a6af111a367cc62d12",
+    "docs/benchmarks/fly-physics/turn-on-the-spot--lag-compensated.json": "6ada446550ef9835dd403c7b3ad9a9c1a941fa6cbafb1411d9c1817cb64a04ed",
+    "docs/benchmarks/fly-physics/walk-2cms--lag-compensated.json": "9bf31958d001cdfaa050393ac2c5e4b5b33abee434e23dd0b345e2524e293dad",
     "docs/benchmarks/fly-vision/looming-v1-heldout.json": "e00585a8321c4a949f7b59d26454ff0f97e2cd1c0a72ba773014e51a2e86f0c4",
     "docs/benchmarks/fly-vision/looming-v2-heldout.json": "58ab6daf49dd3cb3e3757e629f9f6e3749973c50f81b7bff2191af2f84908421",
-    "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json": "755534c5561bd87fc908d5c335e1cf05fb9054ddb649e05cbefe7cb7db0f3758"
+    "docs/benchmarks/homeostasis/homeostasis-v1-heldout.json": "755534c5561bd87fc908d5c335e1cf05fb9054ddb649e05cbefe7cb7db0f3758",
+    "docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/plan.json": "f93f292d7a6e818408e6a9f9cba3cb1a1e4b70ebec7deeca27745716c91528df",
+    "docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/registry-run.json": "942bafb6e45cb7974edd8f262f44be32651f2e0e314746ca87ba433671072dbd"
   }
 }

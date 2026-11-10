@@ -112,7 +112,7 @@ On 4 November the corrected physics was delivered by a recorded continuation. EC
 
 The table below contains **reported results, not universal performance claims**. Every comparison belongs to a specified simulator, protocol, input set, and software revision. Consult the [claims register](docs/RESEARCH_CLAIMS.md) for the complete definitions and evidence classes.
 
-The numbers are held to their records. The test suite rebuilds **200 of the 352 quantities** the claims register states from the committed records, and fails when a document and its records disagree. The rest are still copied by hand, and [listed as such](docs/claims/README.md).
+The numbers are held to their records. The test suite rebuilds **210 of the 352 quantities** the claims register states from the committed records, and fails when a document and its records disagree. The rest are still copied by hand, and [listed as such](docs/claims/README.md).
 
 | Test                                                 | Recorded outcome                                                                        | What it does **not** establish                   |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |

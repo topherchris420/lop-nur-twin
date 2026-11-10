@@ -14,6 +14,7 @@ import { echo } from "./bound/echo.js";
 import { genesis } from "./bound/genesis.js";
 import { metrology } from "./bound/metrology.js";
 import { research } from "./bound/research.js";
+import { worlds } from "./bound/worlds.js";
 
 const RECORDS: readonly Binding[] = [
   ...collision,
@@ -21,6 +22,7 @@ const RECORDS: readonly Binding[] = [
   ...metrology,
   ...genesis,
   ...research,
+  ...worlds,
 ];
 
 export const BINDINGS: readonly Binding[] = [...RECORDS, ...coverage(RECORDS)];
@@ -41,9 +43,7 @@ export const NOT_RECOMPUTED: Readonly<Record<string, string>> = {
   "10": "Not bound yet. Its record is `docs/benchmarks/fly-mushroom-body/report.json`.",
   "11": "Not bound yet. Its records are in `docs/benchmarks/echo-acquired/2026-11-02/`.",
   "12": "Not bound yet. Its records are in `docs/benchmarks/echo-ranging/2026-11-03/`.",
-  "14": "Not bound yet. Its records are the traces in `docs/benchmarks/fly-physics/`.",
   "16": "Not bound yet. Its six results are spread over `docs/benchmarks/fly-neural/` and its `adaptive/` and `banc/` folders.",
-  "17": "Not bound yet. Its records are `docs/benchmarks/first-contact/encounter.json` and `recognition-held-out.json`.",
-  "18": "Not bound yet. Its records are in `docs/rea-research/evaluations/gemma-live/` and `docs/benchmarks/noeterra-civilization/`.",
+  // 18 is bound for Noeterra; its live model-assisted experiment is not.
   "21": "Not bound yet. Its records are in `docs/benchmarks/ecology/`; the entry's three quantities count tests and days.",
 };

@@ -5,7 +5,7 @@
 
 The [claims register](../../docs/RESEARCH_CLAIMS.md) and the [README](../../README.md) state numbers
 that were copied from records. A copied number can drift from its record and nothing
-fails. The 77 sentences on this page cannot: each is rebuilt from committed
+fails. The 80 sentences on this page cannot: each is rebuilt from committed
 records by a function in [`scripts/claims/`](../../scripts/claims/), and the test suite
 fails when a document and its records disagree.
 
@@ -18,10 +18,10 @@ wrong, and nothing checks them.
 
 | Document | Quantities stated | Recomputed from records | Share |
 | :-- | --: | --: | --: |
-| [Claims register](../../docs/RESEARCH_CLAIMS.md) | 352 | 200 | 57% |
+| [Claims register](../../docs/RESEARCH_CLAIMS.md) | 352 | 210 | 60% |
 | [README](../../README.md) | 33 | 22 | 67% |
 
-77 sentences, 74 record files. A quantity is a number written in
+80 sentences, 79 record files. A quantity is a number written in
 digits in a document's prose ([what counts](#what-counts-as-a-quantity)). It is
 recomputed only when it lies inside text that a function of the records produced, in a
 sentence the document was found to contain. A number that a binding merely quotes is
@@ -45,11 +45,11 @@ not counted.
 | [11. A learned search preference transfers and pays](../../docs/RESEARCH_CLAIMS.md#11-a-learned-search-preference-transfers-and-pays) | 21 | 0 | 0% |
 | [12. Learning when to search widely beats a fixed search](../../docs/RESEARCH_CLAIMS.md#12-learning-when-to-search-widely-beats-a-fixed-search) | 6 | 0 | 0% |
 | [13. The simulated fly matches published recordings of real flies](../../docs/RESEARCH_CLAIMS.md#13-the-simulated-fly-matches-published-recordings-of-real-flies) | 9 | 5 | 56% |
-| [14. Commanded walking survives physical simulation](../../docs/RESEARCH_CLAIMS.md#14-commanded-walking-survives-physical-simulation) | 8 | 0 | 0% |
+| [14. Commanded walking survives physical simulation](../../docs/RESEARCH_CLAIMS.md#14-commanded-walking-survives-physical-simulation) | 8 | 4 | 50% |
 | [15. Published connectome predictions reproduce (FAFB v783)](../../docs/RESEARCH_CLAIMS.md#15-published-connectome-predictions-reproduce-fafb-v783) | 8 | 2 | 25% |
 | [16. Connectome-level learning, discrimination and control](../../docs/RESEARCH_CLAIMS.md#16-connectome-level-learning-discrimination-and-control) | 25 | 0 | 0% |
-| [17. Flies in separate worlds perceive and recognise each other](../../docs/RESEARCH_CLAIMS.md#17-flies-in-separate-worlds-perceive-and-recognise-each-other) | 4 | 0 | 0% |
-| [18. Research infrastructure results](../../docs/RESEARCH_CLAIMS.md#18-research-infrastructure-results) | 3 | 0 | 0% |
+| [17. Flies in separate worlds perceive and recognise each other](../../docs/RESEARCH_CLAIMS.md#17-flies-in-separate-worlds-perceive-and-recognise-each-other) | 4 | 3 | 75% |
+| [18. Research infrastructure results](../../docs/RESEARCH_CLAIMS.md#18-research-infrastructure-results) | 3 | 3 | 100% |
 | [19. Every claim in the Lop Nur twin carries its evidence](../../docs/RESEARCH_CLAIMS.md#19-every-claim-in-the-lop-nur-twin-carries-its-evidence) | 4 | 3 | 75% |
 | [20. Seeing looming from an image beats sensing it from geometry](../../docs/RESEARCH_CLAIMS.md#20-seeing-looming-from-an-image-beats-sensing-it-from-geometry) | 25 | 23 | 92% |
 | [21. A world that lives on its own, changed by a fly only through records](../../docs/RESEARCH_CLAIMS.md#21-a-world-that-lives-on-its-own-changed-by-a-fly-only-through-records) | 3 | 0 | 0% |
@@ -57,7 +57,7 @@ not counted.
 | [23. A 496-neuron circuit cut from the FlyWire brain feeds exactly as the whole brain does](../../docs/RESEARCH_CLAIMS.md#23-a-496-neuron-circuit-cut-from-the-flywire-brain-feeds-exactly-as-the-whole-brain-does) | 14 | 6 | 43% |
 | [24. Embodied plasticity can join the two originals without changing them, and does not yet improve them](../../docs/RESEARCH_CLAIMS.md#24-embodied-plasticity-can-join-the-two-originals-without-changing-them-and-does-not-yet-improve-them) | 24 | 18 | 75% |
 | [25. Embodied plasticity helps a research fly with impaired legs eat (metrology bench)](../../docs/RESEARCH_CLAIMS.md#25-embodied-plasticity-helps-a-research-fly-with-impaired-legs-eat-metrology-bench) | 33 | 31 | 94% |
-| **All** | **352** | **200** | **57%** |
+| **All** | **352** | **210** | **60%** |
 
 Entries with nothing recomputed, and why:
 
@@ -67,10 +67,7 @@ Entries with nothing recomputed, and why:
 - **10. A learning circuit makes behaviour depend on the fly's own history.** Not bound yet. Its record is `docs/benchmarks/fly-mushroom-body/report.json`.
 - **11. A learned search preference transfers and pays.** Not bound yet. Its records are in `docs/benchmarks/echo-acquired/2026-11-02/`.
 - **12. Learning when to search widely beats a fixed search.** Not bound yet. Its records are in `docs/benchmarks/echo-ranging/2026-11-03/`.
-- **14. Commanded walking survives physical simulation.** Not bound yet. Its records are the traces in `docs/benchmarks/fly-physics/`.
 - **16. Connectome-level learning, discrimination and control.** Not bound yet. Its six results are spread over `docs/benchmarks/fly-neural/` and its `adaptive/` and `banc/` folders.
-- **17. Flies in separate worlds perceive and recognise each other.** Not bound yet. Its records are `docs/benchmarks/first-contact/encounter.json` and `recognition-held-out.json`.
-- **18. Research infrastructure results.** Not bound yet. Its records are in `docs/rea-research/evaluations/gemma-live/` and `docs/benchmarks/noeterra-civilization/`.
 - **21. A world that lives on its own, changed by a fly only through records.** Not bound yet. Its records are in `docs/benchmarks/ecology/`; the entry's three quantities count tests and days.
 
 ### README, section by section
@@ -145,9 +142,21 @@ changes that digest, so evidence cannot move under a claim unseen.
 - within the flies' spread on <b>4</b> of <b>6</b> observations with an interval<br><sub>`13.within-spread` · [`docs/benchmarks/fly-calibration/report.json`](../../docs/benchmarks/fly-calibration/report.json) · evidence `79d0b6df8907`</sub>
 - Both gains come from one paper and one mechanism; without it, <b>2</b> of <b>6</b><br><sub>`13.ablated` · [`docs/benchmarks/fly-calibration/report.json`](../../docs/benchmarks/fly-calibration/report.json) · evidence `79d0b6df8907`</sub>
 
+#### 14. Commanded walking survives physical simulation
+
+- the 2 cm/s plan achieved <b>0.3791</b> of its forward progress with <b>−20.46</b>° heading drift; turning on the spot about <b>2</b>°/s against <b>115</b>°/s commanded<br><sub>`14.walking` · 2 records in [`docs/benchmarks/fly-physics/`](../../docs/benchmarks/fly-physics/) · evidence `cf4867adf743`</sub>
+
 #### 15. Published connectome predictions reproduce (FAFB v783)
 
 - <b>10</b> of <b>12</b> criteria pass on both seed sets<br><sub>`15.criteria` · 2 records in [`docs/benchmarks/fly-neural/`](../../docs/benchmarks/fly-neural/) · evidence `65a3e8af5169`</sub>
+
+#### 17. Flies in separate worlds perceive and recognise each other
+
+- escaped from each other in <b>43</b>–<b>45</b>% of sessions against <b>0</b>% alone<br><sub>`17.encounters` · [`docs/benchmarks/first-contact/encounter.json`](../../docs/benchmarks/first-contact/encounter.json) · evidence `00a68aaf36c8`</sub>
+
+#### 18. Research infrastructure results
+
+- cut mean wars declared from <b>6.50</b> to <b>2.83</b> over <b>40</b> seasons<br><sub>`18.noeterra` · 2 records in [`docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/`](../../docs/benchmarks/noeterra-civilization/CV-11b7adb76f31fa3d4307bd0b/) · evidence `bdca0b689e9d`</sub>
 
 #### 19. Every claim in the Lop Nur twin carries its evidence
 
@@ -216,7 +225,7 @@ changes that digest, so evidence cannot move under a claim unseen.
 - then asked it again on <b>40</b> new research subjects in nine conditions: <b>inconclusive</b><br><sub>`readme.04.metrology-prose` · [`docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json`](../../docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json) · evidence `155d6f3b8132`</sub>
 - | Memory with continuously moving food | Negative: <b>1.2</b> fewer meals per life |<br><sub>`readme.04.memory` · [`docs/benchmarks/fly-individuality/report.json`](../../docs/benchmarks/fly-individuality/report.json) · evidence `8843200a9fa1`</sub>
 - | FlyWire FAFB v783 reproduction | <b>10</b> / <b>12</b> registered criteria met |<br><sub>`readme.04.connectome` · 2 records in [`docs/benchmarks/fly-neural/`](../../docs/benchmarks/fly-neural/) · evidence `65a3e8af5169`</sub>
-- **<b>200</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 74 records in 20 folders under `/`, with `scripts/claims/check.ts` · evidence `c31ed7952eb0`</sub>
+- **<b>210</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 79 records in 23 folders under `/`, with `scripts/claims/check.ts` · evidence `aef509600c7d`</sub>
 
 #### 05. The brain boundary
 
