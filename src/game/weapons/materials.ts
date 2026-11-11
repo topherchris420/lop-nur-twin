@@ -514,7 +514,15 @@ export function getWeaponMaterials(): WeaponMaterials {
   // grey that still reads as a machined object. Metalness stays low on the
   // coated parts — a conversion coating has a diffuse body; metalness 1
   // here was a black mirror with nothing to reflect.
-  const steel = new THREE.MeshStandardMaterial({
+  // A working rifle is oiled. The film is a clear dielectric over the
+  // coating: about 4% reflectance head-on, far more at a grazing angle, so
+  // the top of the receiver picks up the sky's haze band and ridge line
+  // while the body stays dark. The coatings alone are too rough to show a
+  // horizon at all; without the film, giving the weapon a sky with structure
+  // changed 0.1% of its pixels.
+  const oilFilm = { clearcoat: 0.32, clearcoatRoughness: 0.26 } as const;
+  const steel = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-steel-metal",
     color: 0x55565a,
     metalness: 0.34,
@@ -528,7 +536,8 @@ export function getWeaponMaterials(): WeaponMaterials {
   // Hard-anodised aluminium, black-grey and faintly warm. No plate shader:
   // it quantises *world* position, and in the viewmodel pass world space
   // moves with the gun, so the cells swam across the receiver as a tartan.
-  const receiver = new THREE.MeshStandardMaterial({
+  const receiver = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-receiver-metal",
     color: 0x4a4946,
     metalness: 0.32,
@@ -539,7 +548,8 @@ export function getWeaponMaterials(): WeaponMaterials {
     envMapIntensity: 0.3,
   });
 
-  const nitride = new THREE.MeshStandardMaterial({
+  const nitride = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-nitride-metal",
     color: 0x3c3d40,
     metalness: 0.42,
@@ -664,7 +674,8 @@ export function getWeaponMaterials(): WeaponMaterials {
     toneMapped: false,
   });
 
-  const optic = new THREE.MeshStandardMaterial({
+  const optic = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-optic-metal",
     color: 0x3f4042,
     metalness: 0.32,
