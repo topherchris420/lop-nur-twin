@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/noise";
 import { GROUND_ZONES, type GroundZone } from "@/lib/layout";
+import { buildNavGrid, type NavGrid } from "./navmesh";
+import { Path, PathFinder, findPathImmediate, lineWalkable } from "./pathfinding";
 import {
   HUMAN_METRICS,
   MASK_SIGHT,
@@ -45,10 +47,15 @@ import { mirageOffset } from "../world/mirage";
  * snapping to zero, and burst discipline that leaves gaps you can move in.
  * All three scale with `actor.skill`.
  *
- * Navigation is steering plus whisker avoidance, not a full path search. The
- * compound is open ground between large convex buildings, which is the case
- * where steering does well and a grid search mostly buys corners; the nav grid
- * in `navmesh.ts` is there for when that stops being true.
+ * Navigation is a path over the nav grid (`navmesh.ts`, `pathfinding.ts`),
+ * followed by steering with whisker avoidance. It was steering alone, on the
+ * reasoning that the compound is open ground between large convex buildings.
+ * A measurement said otherwise: of the ten-second stretches in which a bot
+ * wanted to be somewhere else, three in four ended within 3 m of where they
+ * began, a bot sprinting into the wall between it and its goal, and four of
+ * six enemies spent two minutes 100 m from a player who never moved. Steering
+ * straight at the goal is still what a bot does for a goal the grid does not
+ * cover, and for a short hop with nothing in the way.
  *
  * ## Why the fight comes to you
  *
@@ -155,6 +162,61 @@ const SPAWN_SIGHT_CLEARANCE = SIGHT_RANGE;
 const CONTACT_TTL = 9;
 
 /**
+ * The nav grid: the square that holds every ground zone and the ground a
+ * fight spills onto around them. One-metre cells; a bot's capsule is 0.7 m
+ * across, and the buildings it has to get round are tens of metres.
+ */
+const NAV_AREA = (() => {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
+  for (const zone of GROUND_ZONES) {
+    minX = Math.min(minX, zone.position[0] - zone.radius);
+    maxX = Math.max(maxX, zone.position[0] + zone.radius);
+    minZ = Math.min(minZ, zone.position[1] - zone.radius);
+    maxZ = Math.max(maxZ, zone.position[1] + zone.radius);
+  }
+  return {
+    center: [(minX + maxX) / 2, (minZ + maxZ) / 2] as const,
+    halfExtent: Math.max(maxX - minX, maxZ - minZ) / 2 + 60,
+    cellSize: 1,
+    // The ground is nearly flat here; a height sample every 4 m is exact for
+    // walking and a quarter of the build's largest cost.
+    heightStride: 4,
+  };
+})();
+
+interface Nav {
+  grid: NavGrid;
+  finder: PathFinder;
+}
+/**
+ * The grid for the collision world it was built against. Built once, in one
+ * piece, when a match starts (about a third of a second), and kept for every
+ * rematch on the same world. Not spread over frames: the builder slices by
+ * the clock, and a grid that becomes ready on a different frame on every
+ * machine would make the same seed play a different match.
+ */
+let navCache: { world: CollisionWorld; version: number; nav: Nav } | null = null;
+function navFor(world: CollisionWorld): Nav {
+  if (navCache?.world === world && navCache.version === world.version)
+    return navCache.nav;
+  const grid = buildNavGrid(world, NAV_AREA);
+  const nav = { grid, finder: new PathFinder(grid, world) };
+  navCache = { world, version: world.version, nav };
+  return nav;
+}
+/** A goal nearer than this, with a clear walkable line to it, needs no path. */
+const DIRECT_WITHIN_M = 6;
+/** A path is kept until its goal has moved this far. */
+const REPATH_GOAL_M = 2.5;
+/** Seconds before the same bot may ask for another path. */
+const REPATH_INTERVAL_S = 0.6;
+/** A waypoint counts as reached inside this distance. */
+const WAYPOINT_REACHED_M = 1.1;
+
+/**
  * Slack a bot gives when its target is the player. Bot-on-bot fights keep the
  * full numbers so the match around you still resolves at the same pace; the
  * player gets a longer window before the first round, an aim cone that never
@@ -231,6 +293,13 @@ interface Bot {
   rand: () => number;
   /** Destination the bot is steering toward. */
   goal: THREE.Vector3;
+  /** The route to `goal` over the nav grid, and which point of it is next. */
+  path: Path;
+  pathIndex: number;
+  /** The goal `path` was found for; the path is stale once `goal` leaves it. */
+  pathGoal: THREE.Vector3;
+  /** Match time before which this bot does not ask for another path. */
+  repathAt: number;
   goalZone: GroundZone | null;
   /** Current target, and how long it has been continuously visible. */
   targetId: number | null;
@@ -441,9 +510,21 @@ export class BotManager {
   /** The last enemy sighting each team has shared, newest wins. */
   private readonly contacts: Record<Team, Contact | null> = { blue: null, red: null };
 
+  /** The nav grid and its path search, rebuilt if the collision world changes. */
+  private nav: Nav;
+  private navSeenVersion = -1;
+  private navSettledFrames = 0;
+  /** Path searches left this frame: one, so eleven bots cannot spike a frame. */
+  private pathBudget = 0;
+  private time = 0;
+  /** Counts for the checks in `tools/engagement.mjs`; nothing in the match reads them. */
+  readonly navStats = { buildMs: 0, searches: 0, found: 0, partial: 0 };
+
   constructor(world: CollisionWorld, options: BotManagerOptions) {
     this.world = world;
     this.rand = mulberry32(options.seed >>> 0);
+    this.nav = navFor(world);
+    this.navStats.buildMs = Math.round(this.nav.grid.buildMs);
     if (options.focus) this.setFocus(options.focus);
     this.spawnAll(options);
   }
@@ -623,6 +704,10 @@ export class BotManager {
         state: "patrol",
         rand: mulberry32((options.seed ^ (id * 2654435761)) >>> 0),
         goal: spawnZone,
+        path: new Path(),
+        pathIndex: 0,
+        pathGoal: new THREE.Vector3(Infinity, 0, Infinity),
+        repathAt: 0,
         goalZone: null,
         targetId: null,
         timeOnTarget: 0,
@@ -661,6 +746,9 @@ export class BotManager {
 
   update(dt: number, time: number): void {
     this.frame += 1;
+    this.time = time;
+    this.pathBudget = 1;
+    this.refreshNav();
     for (const bot of this.bots) {
       const actor = bot.actor;
       if (!actor.alive) {
@@ -691,6 +779,25 @@ export class BotManager {
       this.move(bot, dt);
       this.shoot(bot, dt, time);
     }
+  }
+
+  /**
+   * Rebuild the grid when the collision world has changed under it, but only
+   * once the world has stopped changing: colliders arrive one at a time, and a
+   * rebuild for each would freeze the match for as long as they kept coming.
+   */
+  private refreshNav(): void {
+    const version = this.world.version;
+    if (this.nav.grid.worldVersion === version) return;
+    if (version !== this.navSeenVersion) {
+      this.navSeenVersion = version;
+      this.navSettledFrames = 0;
+      return;
+    }
+    this.navSettledFrames += 1;
+    if (this.navSettledFrames < 30) return;
+    this.nav = navFor(this.world);
+    for (const bot of this.bots) bot.path.clear();
   }
 
   /**
@@ -1451,11 +1558,72 @@ export class BotManager {
   /* Movement                                                          */
   /* ---------------------------------------------------------------- */
 
+  /**
+   * Where to steer right now: the next point of the bot's path to its goal, or
+   * the goal itself when it is a short clear hop away or no path was found. A path is searched for at most once a frame
+   * across all bots, in the order they are updated, so the same match steps
+   * the same way every time.
+   */
+  private waypoint(bot: Bot): THREE.Vector3 {
+    const nav = this.nav;
+    const actor = bot.actor;
+    // A slide is a committed straight line; it is over before a path would matter.
+    if (bot.state === "slide") return bot.goal;
+
+    const dx = bot.goal.x - actor.position.x;
+    const dz = bot.goal.z - actor.position.z;
+    if (dx * dx + dz * dz < DIRECT_WITHIN_M * DIRECT_WITHIN_M) {
+      const from = nav.grid.worldToCell(actor.position.x, actor.position.z);
+      const to = nav.grid.worldToCell(bot.goal.x, bot.goal.z);
+      if (from >= 0 && to >= 0 && lineWalkable(nav.grid, from, to)) return bot.goal;
+    }
+
+    const gx = bot.goal.x - bot.pathGoal.x;
+    const gz = bot.goal.z - bot.pathGoal.z;
+    const stale = !bot.path.valid || gx * gx + gz * gz > REPATH_GOAL_M * REPATH_GOAL_M;
+    if (stale && this.pathBudget > 0 && this.time >= bot.repathAt) {
+      this.pathBudget -= 1;
+      bot.repathAt = this.time + REPATH_INTERVAL_S;
+      bot.pathGoal.copy(bot.goal);
+      findPathImmediate(
+        nav.finder,
+        actor.position.x,
+        actor.position.z,
+        bot.goal.x,
+        bot.goal.z,
+        bot.path,
+      );
+      // Point 0 is where the bot stands.
+      bot.pathIndex = 1;
+      this.navStats.searches += 1;
+      if (bot.path.valid) this.navStats.found += 1;
+      if (bot.path.partial) this.navStats.partial += 1;
+    }
+    if (!bot.path.valid) return bot.goal;
+
+    while (bot.pathIndex < bot.path.count - 1) {
+      const next = bot.path.at(bot.pathIndex)!;
+      const ex = next.x - actor.position.x;
+      const ez = next.z - actor.position.z;
+      if (ex * ex + ez * ez > WAYPOINT_REACHED_M * WAYPOINT_REACHED_M) break;
+      bot.pathIndex += 1;
+    }
+    return bot.path.at(Math.min(bot.pathIndex, bot.path.count - 1)) ?? bot.goal;
+  }
+
   private move(bot: Bot, dt: number): void {
     const actor = bot.actor;
-    _desired.copy(bot.goal).sub(actor.position);
+    // How far there is to go decides the pace; where to steer is the next waypoint.
+    const toGoal = Math.hypot(
+      bot.goal.x - actor.position.x,
+      bot.goal.z - actor.position.z,
+    );
+    const waypoint = this.waypoint(bot);
+    // On a route the grid found, as opposed to steering straight at the goal.
+    const onPath = waypoint !== bot.goal;
+    _desired.copy(waypoint).sub(actor.position);
     _desired.y = 0;
-    const distance = _desired.length();
+    const distance = toGoal > 0.8 ? Math.max(_desired.length(), 1e-3) : toGoal;
 
     let speed = 0;
     if (distance > 0.8) {
@@ -1465,7 +1633,7 @@ export class BotManager {
       if (bot.state === "slide") {
         // Rapid sliding speed, decaying
         speed = 6.4 * Math.max(0.3, bot.slideTimer / 0.75);
-      } else if (bot.isTacSprinting || distance > 28) {
+      } else if (bot.isTacSprinting || toGoal > 28) {
         // Tactical sprint speed
         speed = 6.8 + actor.skill * 0.6;
       } else if (actor.stance === "crouch") {
@@ -1488,9 +1656,24 @@ export class BotManager {
       ];
       for (const [direction, reach] of feelers) {
         const hit = this.world.raycast(_probe, direction, reach, MASK_SIGHT, actor.id);
-        if (hit) {
-          _steer.addScaledVector(hit.normal, (1 - hit.distance / reach) * 2.2);
+        if (!hit) continue;
+        const weight = (1 - hit.distance / reach) * 2.2;
+        let pushX = hit.normal.x * weight;
+        let pushZ = hit.normal.z * weight;
+        if (onPath) {
+          // The path already clears what the grid knows about, so a whisker
+          // only has to slide the bot past what it grazes. Keep the push's
+          // sideways part and drop the part that points back the way it came:
+          // near a crate beside its route the two used to cancel, and the bot
+          // stood there jittering for as long as the route passed it.
+          const back = pushX * _desired.x + pushZ * _desired.z;
+          if (back < 0) {
+            pushX -= _desired.x * back;
+            pushZ -= _desired.z * back;
+          }
         }
+        _steer.x += pushX;
+        _steer.z += pushZ;
       }
       // Separate from nearby teammates so squads do not stack.
       for (const other of game.actors) {

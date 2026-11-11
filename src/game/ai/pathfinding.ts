@@ -193,7 +193,9 @@ export interface PathOptions {
   dangerWeight?: number;
 }
 
-const DEFAULT_OPTIONS: Required<Omit<PathOptions, "danger">> & { danger: Float32Array | null } = {
+const DEFAULT_OPTIONS: Required<Omit<PathOptions, "danger">> & {
+  danger: Float32Array | null;
+} = {
   exposureWeight: 0,
   coverBonus: 0,
   heuristicWeight: 1.05,
@@ -210,8 +212,13 @@ export class PathFinder {
 
   private readonly gScore: Float32Array;
   private readonly cameFrom: Int32Array;
-  /** `stamp * 2` marks an open cell, `stamp * 2 + 1` a closed one. */
+  /** The search that last reached each cell; a cell from an older search is unvisited. */
   private readonly stamps: Int32Array;
+  /**
+   * The search that closed each cell. A whole stamp, not a byte of one: a
+   * cell closed 251 searches ago must not read as closed now.
+   */
+  private readonly closed: Int32Array;
   private readonly heap: BinaryHeap;
   private readonly trail: Int32Array;
   private stamp = 0;
@@ -237,7 +244,7 @@ export class PathFinder {
     this.gScore = new Float32Array(count);
     this.cameFrom = new Int32Array(count);
     this.stamps = new Int32Array(count);
-    this.closed = new Uint8Array(count);
+    this.closed = new Int32Array(count);
     this.heap = new BinaryHeap(Math.min(count, 8192));
     this.trail = new Int32Array(Math.max(64, Math.ceil(Math.sqrt(count)) * 8));
   }
@@ -257,9 +264,11 @@ export class PathFinder {
 
   /** Prepare a search. Cells must already be walkable. */
   begin(startCell: number, goalCell: number, options?: PathOptions): void {
-    this.options.exposureWeight = options?.exposureWeight ?? DEFAULT_OPTIONS.exposureWeight;
+    this.options.exposureWeight =
+      options?.exposureWeight ?? DEFAULT_OPTIONS.exposureWeight;
     this.options.coverBonus = options?.coverBonus ?? DEFAULT_OPTIONS.coverBonus;
-    this.options.heuristicWeight = options?.heuristicWeight ?? DEFAULT_OPTIONS.heuristicWeight;
+    this.options.heuristicWeight =
+      options?.heuristicWeight ?? DEFAULT_OPTIONS.heuristicWeight;
     this.options.maxNodes = options?.maxNodes ?? DEFAULT_OPTIONS.maxNodes;
     this.options.danger = options?.danger ?? null;
     this.options.dangerWeight = options?.dangerWeight ?? DEFAULT_OPTIONS.dangerWeight;
@@ -307,12 +316,12 @@ export class PathFinder {
         this.lastExpanded = this.expanded;
         return this.state;
       }
-      if (this.closed[current] === this.stamp % 251 + 1) {
+      if (this.closed[current] === this.stamp) {
         // Stale heap entry (we push duplicates rather than decrease-key).
         n -= 1;
         continue;
       }
-      this.closed[current] = (this.stamp % 251) + 1;
+      this.closed[current] = this.stamp;
 
       if (current === this.goal) {
         this.state = "found";
@@ -337,7 +346,7 @@ export class PathFinder {
       for (let d = 0; d < 8; d += 1) {
         if ((links & (1 << d)) === 0) continue;
         const next = (cz + NAV_DIR_Z[d]!) * cols + (cx + NAV_DIR_X[d]!);
-        if (this.closed[next] === (this.stamp % 251) + 1) continue;
+        if (this.closed[next] === this.stamp) continue;
 
         let stepCost = (d & 1) === 1 ? diagonal : cellSize;
         if (exposureWeight > 0) {
@@ -421,7 +430,11 @@ export class PathFinder {
     }
 
     if (out.partial) {
-      out.push(grid.cellCenterX(terminal), grid.heights[terminal]!, grid.cellCenterZ(terminal));
+      out.push(
+        grid.cellCenterX(terminal),
+        grid.heights[terminal]!,
+        grid.cellCenterZ(terminal),
+      );
     } else {
       out.push(endX, grid.heightAt(endX, endZ), endZ);
     }
@@ -628,7 +641,10 @@ export class PathFollower {
     }
     out.distanceRemaining = remaining;
 
-    if (this.index >= this.path.count - 1 && Math.hypot(goal.x - x, goal.z - z) <= this.arriveRadius) {
+    if (
+      this.index >= this.path.count - 1 &&
+      Math.hypot(goal.x - x, goal.z - z) <= this.arriveRadius
+    ) {
       out.arrived = true;
       return;
     }
@@ -868,7 +884,11 @@ export class PathQueue {
     let best: QueuedRequest | null = null;
     for (const r of this.requests) {
       if (!r.active) continue;
-      if (!best || r.priority > best.priority || (r.priority === best.priority && r.submitted < best.submitted)) {
+      if (
+        !best ||
+        r.priority > best.priority ||
+        (r.priority === best.priority && r.submitted < best.submitted)
+      ) {
         best = r;
       }
     }
@@ -890,12 +910,14 @@ export class PathQueue {
       return true;
     }
 
-    this.activeGoalX = goalCell === grid.worldToCell(best.toX, best.toZ)
-      ? best.toX
-      : grid.cellCenterX(goalCell);
-    this.activeGoalZ = goalCell === grid.worldToCell(best.toX, best.toZ)
-      ? best.toZ
-      : grid.cellCenterZ(goalCell);
+    this.activeGoalX =
+      goalCell === grid.worldToCell(best.toX, best.toZ)
+        ? best.toX
+        : grid.cellCenterX(goalCell);
+    this.activeGoalZ =
+      goalCell === grid.worldToCell(best.toX, best.toZ)
+        ? best.toZ
+        : grid.cellCenterZ(goalCell);
 
     const options = best.options;
     this.finder.begin(startCell, goalCell, {

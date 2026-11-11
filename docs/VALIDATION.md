@@ -250,7 +250,7 @@ answer. These drive the real subsystems and assert numbers:
 
 ```sh
 bun run smoke        # 22 checks: colliders baked, spawns clear, hits resolve
-bun run engagement   # 13 checks: the opposing force actually fights you
+bun run engagement   # 15 checks: the opposing force finds its way and fights you
 bun run gait         # 15 checks on the walk cycle
 bun run audio        # renders each sound offline and measures peak + crest
 ```

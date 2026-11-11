@@ -236,6 +236,14 @@ and the twin can never drift apart.
   collide-and-slide, and an analytic heightfield raycast that calls the same
   `terrainHeight` the terrain mesh is displaced by.
 - `player/`, `weapons/`, `characters/`, `ai/`, `fx/`, `render/`, `hud/`.
+- `ai/` — bots walk routes over a nav grid (`navmesh.ts`, `pathfinding.ts`)
+  and steer at the next waypoint; steering straight at a goal is the fallback
+  for a goal the grid does not cover. The grid is built once per collision
+  world, in one piece, and searched at most once a frame: both by count, never
+  by the clock, so a stepped match is the same match on every run. Keep it
+  that way. `bun run engagement` checks that routes are found and that a bot
+  which sets off gets somewhere; CI does not run it, so run it after any change
+  to `ai/`.
 - `pilot/` — who sits in the player's seat: the human, the TypeSafe Jev model,
   a seeded random baseline or a recorded trace. See "The player seat" below.
 - Unfinished match-mode subsystems live in `experiments/game-modes/`, outside
@@ -1713,7 +1721,7 @@ the audio too:
 
 ```sh
 bun run smoke                 # 22 checks; exits non-zero on failure
-bun run engagement            # 13 checks that the match actually plays
+bun run engagement            # 15 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
 bun run jev                   # the player seat, places included; no API calls
