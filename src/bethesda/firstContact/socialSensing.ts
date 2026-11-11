@@ -55,17 +55,20 @@ function vector(raw: readonly number[]): SurfaceChemistry {
   if (raw.length !== 4) throw new Error("social sensing: four chemistry bins required");
   for (const n of raw) {
     finite(n, "chemical bin");
-    if (n < 0 || n > 1) throw new Error("social sensing: chemistry must be normalized to [0,1]");
+    if (n < 0 || n > 1)
+      throw new Error("social sensing: chemistry must be normalized to [0,1]");
   }
   return [raw[0]!, raw[1]!, raw[2]!, raw[3]!];
 }
 
 function body(b: SocialBody): void {
-  if (b.center.length !== 3) throw new Error("social sensing: body must have three coordinates");
+  if (b.center.length !== 3)
+    throw new Error("social sensing: body must have three coordinates");
   for (const x of b.center) finite(x, "body coordinate");
   finite(b.yawRad, "body yaw");
   finite(b.radiusM, "body radius");
-  if (b.radiusM <= 0 || b.radiusM > 0.01) throw new Error("social sensing: invalid body radius");
+  if (b.radiusM <= 0 || b.radiusM > 0.01)
+    throw new Error("social sensing: invalid body radius");
   if (b.surfaceChemistry) vector(b.surfaceChemistry);
 }
 
@@ -109,17 +112,18 @@ export function senseSocialOther(
     !occluded &&
     distance <= config.visionRangeM &&
     Math.abs(bearing) <= config.fieldOfViewRad / 2;
-  const contact = distance <= receiver.radiusM + emitter.radiusM + config.contactClearanceM;
+  const contact =
+    distance <= receiver.radiusM + emitter.radiusM + config.contactClearanceM;
   return {
     visual: inView
       ? {
-          angularSizeDeg: (2 * Math.atan2(emitter.radiusM, Math.max(distance, 1e-9)) * 180) / Math.PI,
+          angularSizeDeg:
+            (2 * Math.atan2(emitter.radiusM, Math.max(distance, 1e-9)) * 180) / Math.PI,
           bearingRad: bearing,
         }
       : null,
-    contactChemistry: contact && emitter.surfaceChemistry
-      ? vector(emitter.surfaceChemistry)
-      : null,
+    contactChemistry:
+      contact && emitter.surfaceChemistry ? vector(emitter.surfaceChemistry) : null,
   };
 }
 
@@ -169,9 +173,11 @@ export interface SocialMemorySnapshot {
 
 function checkMemoryConfig(c: SocialMemoryConfig): void {
   for (const [label, value] of Object.entries(c)) finite(value, label);
-  if (c.matchRadius <= 0 || c.matchRadius > 2) throw new Error("social memory: match radius");
+  if (c.matchRadius <= 0 || c.matchRadius > 2)
+    throw new Error("social memory: match radius");
   if (c.minEncounterGapS <= 0) throw new Error("social memory: encounter gap");
-  if (c.forgetAfterS <= c.minEncounterGapS) throw new Error("social memory: forgetting window");
+  if (c.forgetAfterS <= c.minEncounterGapS)
+    throw new Error("social memory: forgetting window");
   if (!Number.isInteger(c.capacity) || c.capacity < 1 || c.capacity > 128)
     throw new Error("social memory: capacity");
 }
@@ -200,7 +206,9 @@ export class SocialFamiliarityMemory {
     if (t < 0 || (this.lastTime !== null && t < this.lastTime))
       throw new Error("social memory: time cannot go backwards");
     this.lastTime = t;
-    this.traces = this.traces.filter((trace) => t - trace.lastSeenAt <= this.config.forgetAfterS);
+    this.traces = this.traces.filter(
+      (trace) => t - trace.lastSeenAt <= this.config.forgetAfterS,
+    );
     const detected = observation.visual !== null || observation.contactChemistry !== null;
     if (!detected) return { verdict: "unseen", detected: false, encounters: 0 };
     if (!observation.contactChemistry)
@@ -211,7 +219,10 @@ export class SocialFamiliarityMemory {
     let min = Infinity;
     for (let i = 0; i < this.traces.length; i++) {
       const d = chemicalDistance(profile, this.traces[i]!.profile);
-      if (d < min) { min = d; best = i; }
+      if (d < min) {
+        min = d;
+        best = i;
+      }
     }
     if (best === -1 || min > this.config.matchRadius) {
       if (this.traces.length === this.config.capacity) {
@@ -233,7 +244,9 @@ export class SocialFamiliarityMemory {
       trace.lastEncounterAt = t;
       // One new encounter contributes one update. Repeated frame samples do not.
       const k = 1 / trace.encounters;
-      trace.profile = trace.profile.map((v, i) => v * (1 - k) + profile[i]! * k) as unknown as SurfaceChemistry;
+      trace.profile = trace.profile.map(
+        (v, i) => v * (1 - k) + profile[i]! * k,
+      ) as unknown as SurfaceChemistry;
     }
     trace.lastSeenAt = t;
     return {
@@ -251,7 +264,10 @@ export class SocialFamiliarityMemory {
     };
   }
 
-  static restore(snapshot: SocialMemorySnapshot, config: SocialMemoryConfig = DEFAULT_SOCIAL_MEMORY): SocialFamiliarityMemory {
+  static restore(
+    snapshot: SocialMemorySnapshot,
+    config: SocialMemoryConfig = DEFAULT_SOCIAL_MEMORY,
+  ): SocialFamiliarityMemory {
     if (snapshot.schema !== SOCIAL_SENSING_SCHEMA || !Array.isArray(snapshot.traces))
       throw new Error("social memory: incompatible snapshot");
     const m = new SocialFamiliarityMemory(config);
@@ -265,9 +281,14 @@ export class SocialFamiliarityMemory {
     for (const trace of snapshot.traces) {
       finite(trace.lastEncounterAt, "saved encounter");
       finite(trace.lastSeenAt, "saved observation");
-      if (!Number.isInteger(trace.encounters) || trace.encounters < 1 ||
-          trace.lastEncounterAt < 0 || trace.lastEncounterAt > trace.lastSeenAt ||
-          snapshot.lastTime === null || trace.lastSeenAt > snapshot.lastTime)
+      if (
+        !Number.isInteger(trace.encounters) ||
+        trace.encounters < 1 ||
+        trace.lastEncounterAt < 0 ||
+        trace.lastEncounterAt > trace.lastSeenAt ||
+        snapshot.lastTime === null ||
+        trace.lastSeenAt > snapshot.lastTime
+      )
         throw new Error("social memory: invalid saved trace");
       m.traces.push({ ...trace, profile: vector(trace.profile) });
     }

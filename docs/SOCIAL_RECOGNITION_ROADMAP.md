@@ -24,7 +24,7 @@ drive the original individuals.
   and apparent body size are controlled.
 - **H4, retention:** H3 persists after an independently specified delay,
   with checkpoint/restore identity and replay checks.
-- **H5, ecological validity:** a model calibrated from real *Drosophila*
+- **H5, ecological validity:** a model calibrated from real _Drosophila_
   movements and social observations predicts held-out real-fly kinematics
   and interactions better than fixed, simpler baselines.
 
@@ -42,7 +42,7 @@ identity-blind synthetic sensory and memory module:
 2. It permits a four-bin synthetic surface-chemistry vector **only at
    physical contact range**, where cuticular hydrocarbons might be sampled.
    It cannot read those cues from across the arena. The four bins are
-   *not* measured hydrocarbons, calibrated receptors, sex cues or an
+   _not_ measured hydrocarbons, calibrated receptors, sex cues or an
    empirical behavioral model.
 3. The receiver gets only sensory observations, with no `life_id`,
    `partner_id`, name, source controller or privileged simulator state.
@@ -103,7 +103,7 @@ not only the conditions that inspired each mechanism.
 
 Eva's garden service and ECHO's headless organism presently have different
 control loops, clocks, world coordinates and persistence backends. The
-first-contact bridge is restricted to *research subjects* and must stay
+first-contact bridge is restricted to _research subjects_ and must stay
 that way until the following independent gates pass.
 
 1. **Read-only observation and provenance:** fresh source audit and
@@ -142,23 +142,23 @@ own controller, and keep that interaction in its own history.
 
 ## Proposed held-out outcome measures
 
-| Question | Evidence required | Essential negative control |
-| --- | --- | --- |
-| Did they detect a second animal? | time-locked endogenous sensory and behavior traces | matched non-fly stimulus |
-| Did they influence each other? | bidirectional causal dependence of action and subsequent sensing | yoked/non-contingent replay |
-| Did they recognize a familiar individual? | familiar/stranger discrimination after controlled repeated encounters | rotated/scrambled chemical profiles and matched visual trajectories |
-| Did memory survive? | post-restart behavior and ancestry-preserving checkpoints | identical fresh subject without experience |
-| Are they biologically realistic? | held-out comparisons to measured body dynamics and real social encounters | simpler biomechanical and sensory models |
+| Question                                  | Evidence required                                                         | Essential negative control                                          |
+| ----------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Did they detect a second animal?          | time-locked endogenous sensory and behavior traces                        | matched non-fly stimulus                                            |
+| Did they influence each other?            | bidirectional causal dependence of action and subsequent sensing          | yoked/non-contingent replay                                         |
+| Did they recognize a familiar individual? | familiar/stranger discrimination after controlled repeated encounters     | rotated/scrambled chemical profiles and matched visual trajectories |
+| Did memory survive?                       | post-restart behavior and ancestry-preserving checkpoints                 | identical fresh subject without experience                          |
+| Are they biologically realistic?          | held-out comparisons to measured body dynamics and real social encounters | simpler biomechanical and sensory models                            |
 
 ## External scientific anchors
 
-- Billeter, Bailly, Kohlmeier, *The social life of Drosophila
-  melanogaster* (2024 online / 2025 issue):
+- Billeter, Bailly, Kohlmeier, _The social life of Drosophila
+  melanogaster_ (2024 online / 2025 issue):
   https://link.springer.com/article/10.1007/s00040-024-00990-3
-- *Who is he and what is he to you? Recognition in Drosophila melanogaster*
+- _Who is he and what is he to you? Recognition in Drosophila melanogaster_
   (review):
   https://www.sciencedirect.com/science/article/abs/pii/S0959438812001420
-- *Whole-body 3D kinematics of freely behaving Drosophila* (2026):
+- _Whole-body 3D kinematics of freely behaving Drosophila_ (2026):
   https://pmc.ncbi.nlm.nih.gov/articles/PMC13174342/
 
 No result in this document establishes consciousness, genuine biological

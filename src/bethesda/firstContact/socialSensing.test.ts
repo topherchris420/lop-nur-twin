@@ -37,8 +37,9 @@ describe("research social sensing", () => {
     expect(senseSocialOther(receiver, body(0.02, A)).contactChemistry).toBeNull();
     const withoutProfile = senseSocialOther(receiver, body(0.003));
     expect(withoutProfile.contactChemistry).toBeNull();
-    expect(senseSocialOther(receiver, body(0.0032, A), undefined, true).contactChemistry)
-      .toEqual(A);
+    expect(
+      senseSocialOther(receiver, body(0.0032, A), undefined, true).contactChemistry,
+    ).toEqual(A);
   });
 
   it("rejects malformed bodies, sensory bounds, and chemistry", () => {
@@ -47,7 +48,11 @@ describe("research social sensing", () => {
       senseSocialOther(receiver, { ...body(0.003), surfaceChemistry: [2, 0, 0, 0] }),
     ).toThrow();
     expect(() =>
-      senseSocialOther(receiver, body(0.02), { visionRangeM: 2, fieldOfViewRad: 2, contactClearanceM: 0 }),
+      senseSocialOther(receiver, body(0.02), {
+        visionRangeM: 2,
+        fieldOfViewRad: 2,
+        contactClearanceM: 0,
+      }),
     ).toThrow();
   });
 
@@ -57,8 +62,11 @@ describe("research social sensing", () => {
     for (let t = 0; t <= 50; t += 10)
       expect(memory.observe(visualOnly, t).verdict).toBe("detected-unresolved");
     expect(memory.snapshot().traces).toHaveLength(0);
-    expect(memory.observe({ visual: null, contactChemistry: null }, 60))
-      .toEqual({ verdict: "unseen", detected: false, encounters: 0 });
+    expect(memory.observe({ visual: null, contactChemistry: null }, 60)).toEqual({
+      verdict: "unseen",
+      detected: false,
+      encounters: 0,
+    });
   });
 
   it("counts separated close encounters, not every video frame", () => {
