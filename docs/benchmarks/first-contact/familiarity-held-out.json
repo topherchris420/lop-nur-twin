@@ -1,0 +1,228 @@
+{
+  "ranFrom": "`c888f3a`",
+  "platform": "Node 24.22.1, win32 arm64",
+  "recordsSha256": "95c2656d3c14b1ca0217b7fa25e086e130a8a97ed4f8849e455ec28112476651",
+  "schema": "first-contact-familiarity/v1",
+  "protocol": {
+    "id": "first-contact-familiarity-v1",
+    "sha256": "effade8099bf8661f69c3a2e27092caa178a026fbb687a7f5c9972c8b68f17d3"
+  },
+  "phase": "held-out",
+  "groups": {
+    "intact/same": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.77,
+      "meanFirstResponse": 0.2662,
+      "firstResponses": 60,
+      "alerted": {
+        "successes": 6,
+        "n": 42
+      },
+      "walked": {
+        "successes": 45,
+        "n": 58
+      },
+      "meanEscapesAtOnset": 6.767,
+      "meanGroomFeedShare": 0.1467
+    },
+    "intact/stranger": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.77,
+      "meanFirstResponse": 0.4141,
+      "firstResponses": 60,
+      "alerted": {
+        "successes": 14,
+        "n": 41
+      },
+      "walked": {
+        "successes": 45,
+        "n": 60
+      },
+      "meanEscapesAtOnset": 7.117,
+      "meanGroomFeedShare": 0.1348
+    },
+    "intact/twin": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.77,
+      "meanFirstResponse": 0.2709,
+      "firstResponses": 60,
+      "alerted": {
+        "successes": 8,
+        "n": 43
+      },
+      "walked": {
+        "successes": 49,
+        "n": 60
+      },
+      "meanEscapesAtOnset": 6.9,
+      "meanGroomFeedShare": 0.1383
+    },
+    "intact/unscented": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.77,
+      "meanFirstResponse": null,
+      "firstResponses": 0,
+      "alerted": {
+        "successes": 8,
+        "n": 41
+      },
+      "walked": {
+        "successes": 45,
+        "n": 60
+      },
+      "meanEscapesAtOnset": 7.117,
+      "meanGroomFeedShare": 0.1351
+    },
+    "agustatory/same": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.2,
+      "meanFirstResponse": null,
+      "firstResponses": 0,
+      "alerted": {
+        "successes": 3,
+        "n": 43
+      },
+      "walked": {
+        "successes": 45,
+        "n": 58
+      },
+      "meanEscapesAtOnset": 6.717,
+      "meanGroomFeedShare": 0.1468
+    },
+    "agustatory/stranger": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.2,
+      "meanFirstResponse": null,
+      "firstResponses": 0,
+      "alerted": {
+        "successes": 7,
+        "n": 43
+      },
+      "walked": {
+        "successes": 45,
+        "n": 60
+      },
+      "meanEscapesAtOnset": 7.067,
+      "meanGroomFeedShare": 0.1361
+    },
+    "frozen/same": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.73,
+      "meanFirstResponse": 1,
+      "firstResponses": 60,
+      "alerted": {
+        "successes": 19,
+        "n": 43
+      },
+      "walked": {
+        "successes": 46,
+        "n": 58
+      },
+      "meanEscapesAtOnset": 6.867,
+      "meanGroomFeedShare": 0.1433
+    },
+    "frozen/stranger": {
+      "replicates": 60,
+      "skipped": 0,
+      "withTestContact": 60,
+      "familiarized": 60,
+      "meanFamiliarizationContacts": 39.73,
+      "meanFirstResponse": 1,
+      "firstResponses": 60,
+      "alerted": {
+        "successes": 26,
+        "n": 40
+      },
+      "walked": {
+        "successes": 45,
+        "n": 60
+      },
+      "meanEscapesAtOnset": 7.133,
+      "meanGroomFeedShare": 0.1334
+    }
+  },
+  "manipulation": {
+    "passed": true,
+    "notes": []
+  },
+  "hypotheses": {
+    "H1": {
+      "estimate": {
+        "estimate": 0.1467,
+        "low": 0.1096,
+        "high": 0.1851
+      },
+      "n": 60,
+      "verdict": "supported",
+      "rule": "95% bootstrap interval of probe(stranger) − probe(partner) wholly above 0"
+    },
+    "H2": {
+      "estimate": {
+        "estimate": 0.1478,
+        "low": 0.1124,
+        "high": 0.1842
+      },
+      "n": 60,
+      "verdict": "supported",
+      "rule": "95% paired bootstrap interval of first-test-contact response, stranger − same, wholly above 0"
+    },
+    "H3": {
+      "estimate": {
+        "estimate": 0.1986,
+        "low": 0.0136,
+        "high": 0.3693
+      },
+      "n": 83,
+      "verdict": "supported",
+      "rule": "95% Newcombe interval of P(alerted | first eligible onset), stranger − same, wholly above 0"
+    },
+    "H4": {
+      "estimate": {
+        "estimate": 0.0047,
+        "low": -0.0005,
+        "high": 0.0099
+      },
+      "n": 60,
+      "verdict": "supported",
+      "rule": "90% paired bootstrap interval of first-test-contact response, twin − same, wholly within ±0.1"
+    },
+    "H5": {
+      "estimate": {
+        "estimate": 0,
+        "low": -0.129,
+        "high": 0.129
+      },
+      "n": 120,
+      "verdict": "supported",
+      "rule": "90% Newcombe interval of P(walked away | first stationary onset), unscented − stranger, wholly within ±0.15"
+    }
+  },
+  "lesions": {
+    "agustatory": "passed: no contact was tasted",
+    "frozen": "passed: every response was 1"
+  },
+  "revisions": [
+    "After the first development run (12 replicates, protocol SHA-256 6e1a2d04…, nothing else changed): held-out replicates raised from 40 to 60, because H5's 90% equivalence interval cannot fit within ±0.15 at the observed walk-away rate (about 0.75) with 40 first stationary onsets per group even if the two groups were identical. H3 is left as written: its predicted difference (about 0.06 in alerting probability, from the observed responses) needs thousands of eligible onsets, so it is expected to be not supported for lack of power, and is reported so. The development seeds were then run again under this protocol."
+  ]
+}
