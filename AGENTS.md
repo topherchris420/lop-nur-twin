@@ -885,6 +885,8 @@ Research-only frameworks for an eventual encounter between Eva and ECHO, and
 for research modules beside a fly's controller. Read `docs/FIRST_CONTACT.md`
 and `docs/EVA_ECHO_AUDIT.md` first. Outside these folders they add
 `scripts/first-contact-evaluate.ts`, `scripts/first-contact-observe.ts`,
+`scripts/first-contact-familiarity.ts` and `scripts/first-contact-garden.ts`
+(each with a `-worker.mjs`), `scripts/eva-parity.py`,
 `scripts/augmentation-evaluate.ts`, `docs/benchmarks/first-contact/`,
 `docs/benchmarks/fly-augmentation/`, the two documents above and the
 `.first-contact/` line of `.gitignore`. The rule they exist to keep: **the
@@ -916,6 +918,21 @@ originals are observed, never touched; experiments run on research subjects.**
   state. Deliveries happen only while `EncounterClock` verifies both subjects
   in step; the channel interpolates between delivered samples and never
   extrapolates or crosses a refused jump.
+- **In the commons the other is a body** (`commons/`). Two research subjects
+  share one world and one clock: each is solid to the other, seen by the
+  other's own eyes, and felt at contact range with a sample of its surface
+  chemistry (`TouchSample`: time, bearing, chemistry; never an id, name,
+  mode or memory). A lone occupant steps exactly as in its bare world (a
+  test). New senses live in research adapters at the organism's `shape()`
+  hook (`social.ts`), never in `src/bethesda/fly/`, so the fly's source
+  digest and pilots are untouched. Published parameters carry a DOI and a
+  verbatim quote; the memory is synaptic weights only, never a list of
+  partners.
+- **Eva's port runs research gardens only** (`eva/`). It is matched step for
+  step against her Python (`deploy/garden/service/`) by the parity fixtures;
+  `EvaGarden.birth` and `restore` refuse any id that is not a research id.
+  Its research seams (`perceive`, `obstruct`) must leave her byte for byte
+  unchanged when absent (a test). Never point it at her database or service.
 - **Do not script.** Partners' motion is their own recorded flight; subjects'
   responses are their unchanged controllers'. Never add a rule that makes a
   subject recognize, befriend or avoid another, and never word a result as

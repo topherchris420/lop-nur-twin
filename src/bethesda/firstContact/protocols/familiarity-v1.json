@@ -1,0 +1,73 @@
+{
+  "schema": "first-contact-familiarity/v1",
+  "id": "first-contact-familiarity-v1",
+  "question": "Living with one partner in a shared world, does a research fly of the deployed ECHO's kind come to treat that partner's body as familiar through contact chemistry alone, is the familiarity specific to the partner's chemistry rather than to the individual, and does it change what the fly does?",
+  "hypotheses": {
+    "H1": "Neural familiarity: at the swap, the focal fly's α′3 compartment answers the stranger's chemistry more strongly than the partner's (an experimenter's probe on a copy, as imaging would). Supported when the 95% interval of the per-replicate mean of probe(stranger) − probe(partner) lies wholly above 0 in the intact arm.",
+    "H2": "In vivo: the first contact of the test evokes a stronger α′3 response from a stranger than from the partner. Supported when the 95% interval of first-test-contact response, stranger − same, lies wholly above 0 in the intact arm.",
+    "H3": "Behaviour: a stranger interrupts the focal fly's grooming or feeding more often than the partner does. Supported when the 95% Newcombe interval of P(alerted | first eligible test onset), stranger − same, lies wholly above 0 in the intact arm.",
+    "H4": "Predicted failure of individual recognition: a stranger carrying the partner's exact chemistry is treated as the partner. Supported when the 90% interval of first-test-contact response, twin − same, lies wholly within ±responseMargin.",
+    "H5": "Touch is chemistry-independent (Ramdya et al. 2015): a stranger without surface chemistry makes a stationary focal fly walk away as often as one with it. Supported when the 90% Newcombe interval of P(walked away | first stationary test onset), unscented − stranger, lies wholly within ±proportionMargin."
+  },
+  "predictions": [
+    "Stated before any run: H1 and H2 supported; H3 uncertain, because eligible onsets (the focal fly grooming or feeding when touched) may be too few for its interval; H4 supported (the model has no channel to tell an individual from another with the same chemistry); H5 supported or inconclusive for the same reason as H3.",
+    "Lesion checks, not hypotheses: in the agustatory arm no contact is tasted, so no response is recorded and alerting is at its floor for both conditions; in the frozen arm every response is 1."
+  ],
+  "phases": {
+    "development": {
+      "replicates": 12,
+      "focalSeedBase": 610000,
+      "partnerSeedBase": 620000,
+      "strangerSeedBase": 630000,
+      "twinSeedBase": 640000
+    },
+    "held-out": {
+      "replicates": 60,
+      "focalSeedBase": 710000,
+      "partnerSeedBase": 720000,
+      "strangerSeedBase": 730000,
+      "twinSeedBase": 740000
+    }
+  },
+  "arms": {
+    "intact": { "focal": {}, "conditions": ["same", "stranger", "twin", "unscented"] },
+    "agustatory": { "focal": { "tastes": false }, "conditions": ["same", "stranger"] },
+    "frozen": { "focal": { "plastic": false }, "conditions": ["same", "stranger"] }
+  },
+  "conditions": {
+    "same": "the partner stays",
+    "stranger": "the partner leaves; a new fly with its own chemistry is placed where it stood",
+    "twin": "the partner leaves; a new fly (another seed) carrying the partner's exact chemistry is placed where it stood",
+    "unscented": "the partner leaves; the stranger's own body, without any surface chemistry, is placed where it stood"
+  },
+  "revisions": [
+    "After the first development run (12 replicates, protocol SHA-256 6e1a2d04…, nothing else changed): held-out replicates raised from 40 to 60, because H5's 90% equivalence interval cannot fit within ±0.15 at the observed walk-away rate (about 0.75) with 40 first stationary onsets per group even if the two groups were identical. H3 is left as written: its predicted difference (about 0.06 in alerting probability, from the observed responses) needs thousands of eligible onsets, so it is expected to be not supported for lack of power, and is reported so. The development seeds were then run again under this protocol."
+  ],
+  "world": "encounter-dish",
+  "kind": "plasticity organism, active mode (the deployed ECHO's kind), with the social brain at its shaping hook",
+  "starts": {
+    "focal": { "p": [-0.008, 0.002, -0.006], "yaw": -0.6 },
+    "partner": { "p": [0.008, 0.002, 0.006], "yaw": 2.5 }
+  },
+  "startReserve": 0.6,
+  "chemistry": {
+    "note": "synthetic: four arbitrary bins (socialSensing.ts), a species profile with log-normal individual variation; not calibrated against real cuticular hydrocarbons",
+    "speciesProfile": [0.4, 0.3, 0.2, 0.1],
+    "individualSigma": 0.3
+  },
+  "timing": {
+    "familiarizationS": 1200,
+    "swapMaxWaitS": 120,
+    "swapMinDistanceM": 0.005,
+    "testS": 600
+  },
+  "criteria": {
+    "responseMargin": 0.1,
+    "proportionMargin": 0.15,
+    "minTestContactShare": 0.8,
+    "minFamiliarizationContacts": 5,
+    "minFamiliarizedShare": 0.8,
+    "bootstrap": 10000,
+    "bootstrapSeed": 20261111
+  }
+}
