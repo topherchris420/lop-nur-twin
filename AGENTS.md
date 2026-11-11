@@ -887,11 +887,19 @@ and `docs/EVA_ECHO_AUDIT.md` first. Outside these folders they add
 `scripts/first-contact-evaluate.ts`, `scripts/first-contact-observe.ts`,
 `scripts/first-contact-familiarity.ts` and `scripts/first-contact-garden.ts`
 (each with a `-worker.mjs`), `scripts/eva-parity.py`,
+`scripts/eva-restore-check.py` (with `scripts/test_eva_restore_check.py`),
+`scripts/first-contact-copy-originals.sh`,
 `scripts/augmentation-evaluate.ts`, `docs/benchmarks/first-contact/`,
 `docs/benchmarks/fly-augmentation/`, the two documents above and the
 `.first-contact/` line of `.gitignore`. The rule they exist to keep: **the
 originals are observed, never touched; experiments run on research subjects.**
 
+- **Copies of the originals are the owner's to take.**
+  `scripts/first-contact-copy-originals.sh` (Stage 4, step 2) is run by the
+  owner, never from a session; its copies stay outside the repository. A
+  copy is checked without stepping it (`scripts/eva-restore-check.py`; the
+  headless runner's `--check` from the release the archive names): a copy
+  that stepped forward would be a second individual, not a backup.
 - **Never an original.** Every subject, bridge endpoint, authorization and
   augmented adapter passes `refuseOriginal` (`originals.ts`), which refuses
   Eva's and ECHO's ids, their printed prefixes and anything containing them;

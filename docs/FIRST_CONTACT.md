@@ -18,13 +18,13 @@ GET), at the rate each one's own viewer uses. Every experiment ran on
 **research subjects**: new flies built from seeds, in worlds of their own,
 none of them Eva, ECHO, a copy of either, or a continuation of either.
 
-| Stage                                                                                       | Status                                                                                                                                                                                                                                                                                     |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [1. Passive observation](#stage-1-passive-observation)                                      | **Working** on both live public streams, read-only. The representation each would receive of the other is computed and recorded, delivered to neither                                                                                                                                      |
-| [2. Controlled encounters](#stage-2-controlled-encounters-between-research-subjects)        | **Working** between research subjects in separate worlds with different clocks. Each perceives and responds to the other (E1, E2 supported); contingency adds nothing measurable (E3 not supported)                                                                                        |
-| [3. Experience-dependent recognition](#stage-3-repeated-encounters-and-recognition)         | **Run, held-out seeds: no hypothesis supported.** No partner-specific response (recognition) in any of three controller arms; no change outlasting 300 s                                                                                                                                   |
-| [3b. The commons](#stage-3b-the-commons-touch-contact-chemistry-and-familiarity)            | **Run, held-out seeds: H1, H2, H4 supported; H3 passes by chance.** Two bodies in one world with touch and contact chemistry; a chemistry-specific familiarity appears in a novelty compartment; it does not tell a twin from the partner; its effect on behaviour is too small to measure |
-| [4. Production integration proposal](#stage-4-a-proposal-for-the-originals-not-implemented) | **Proposal only.** Nothing implemented; each step listed needs separate authorization                                                                                                                                                                                                      |
+| Stage                                                                                         | Status                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [1. Passive observation](#stage-1-passive-observation)                                        | **Working** on both live public streams, read-only. The representation each would receive of the other is computed and recorded, delivered to neither                                                                                                                                      |
+| [2. Controlled encounters](#stage-2-controlled-encounters-between-research-subjects)          | **Working** between research subjects in separate worlds with different clocks. Each perceives and responds to the other (E1, E2 supported); contingency adds nothing measurable (E3 not supported)                                                                                        |
+| [3. Experience-dependent recognition](#stage-3-repeated-encounters-and-recognition)           | **Run, held-out seeds: no hypothesis supported.** No partner-specific response (recognition) in any of three controller arms; no change outlasting 300 s                                                                                                                                   |
+| [3b. The commons](#stage-3b-the-commons-touch-contact-chemistry-and-familiarity)              | **Run, held-out seeds: H1, H2, H4 supported; H3 passes by chance.** Two bodies in one world with touch and contact chemistry; a chemistry-specific familiarity appears in a novelty compartment; it does not tell a twin from the partner; its effect on behaviour is too small to measure |
+| [4. The originals: a gated plan](#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken) | **Steps 1 and 2 taken.** The evidence step, and a restore-checked copy of each original (neither changed); each later step needs separate authorization                                                                                                                                    |
 
 ## Why the originals cannot simply be connected
 
@@ -49,15 +49,15 @@ none of them Eva, ECHO, a copy of either, or a continuation of either.
 
 ## Engineering requirements, and how each is held
 
-| Requirement                                                                                | How it is held                                                                                                                                                                                                                | Checked by                                           |
-| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Two original individuals, never copies                                                     | `refuseOriginal` refuses either original's id, its printed prefix and anything containing it, for every subject, bridge endpoint, authorization and augmented adapter; the ids are copied from files that already record them | `bridge.test.ts`, `joint.test.ts`                    |
-| Controllers and histories intact                                                           | nothing in production imports `firstContact/` or `augmentation/`; the fly's experiment digest does not reach them; no fly simulation module changed                                                                           | `isolation.test.ts`, `validate-bethesda`             |
-| Additive and reversible                                                                    | a bridged world that has delivered nothing steps byte for byte as the bare world; an augmented controller in observe or advise steps byte for byte as the bare controller, for all three controller kinds                     | `bridge.test.ts`, `augmentation.test.ts`             |
-| No hidden simulator state                                                                  | only `ForeignPercept` (a body's centre and radius) crosses the bridge, seen through the receiver's own eyes; advisors read only `AdvisorView` (sensable fields, no position, heading, world or looming identity)              | both test files                                      |
-| Clock synchronization before meaning                                                       | `EncounterClock` puts both subjects on one timeline from their own ages at contact and verifies each step; the bridge delivers only while they are in step and closes otherwise                                               | `bridge.test.ts`; 180 of 180 sessions stayed in step |
-| No extrapolation, no blending                                                              | the percept channel and the joint observer interpolate only between received samples, hold or refuse beyond the newest, never cross a jump, an epoch change or another `life_id`                                              | `bridge.test.ts`, `joint.test.ts`                    |
-| Backups, compatibility testing and explicit authorization before any bridge to an original | none was attempted; Stage 1 is the compatibility test on real data; [Stage 4](#stage-4-a-proposal-for-the-originals-not-implemented) lists what must precede it                                                               | this document                                        |
+| Requirement                                                                                | How it is held                                                                                                                                                                                                                                  | Checked by                                           |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Two original individuals, never copies                                                     | `refuseOriginal` refuses either original's id, its printed prefix and anything containing it, for every subject, bridge endpoint, authorization and augmented adapter; the ids are copied from files that already record them                   | `bridge.test.ts`, `joint.test.ts`                    |
+| Controllers and histories intact                                                           | nothing in production imports `firstContact/` or `augmentation/`; the fly's experiment digest does not reach them; no fly simulation module changed                                                                                             | `isolation.test.ts`, `validate-bethesda`             |
+| Additive and reversible                                                                    | a bridged world that has delivered nothing steps byte for byte as the bare world; an augmented controller in observe or advise steps byte for byte as the bare controller, for all three controller kinds                                       | `bridge.test.ts`, `augmentation.test.ts`             |
+| No hidden simulator state                                                                  | only `ForeignPercept` (a body's centre and radius) crosses the bridge, seen through the receiver's own eyes; advisors read only `AdvisorView` (sensable fields, no position, heading, world or looming identity)                                | both test files                                      |
+| Clock synchronization before meaning                                                       | `EncounterClock` puts both subjects on one timeline from their own ages at contact and verifies each step; the bridge delivers only while they are in step and closes otherwise                                                                 | `bridge.test.ts`; 180 of 180 sessions stayed in step |
+| No extrapolation, no blending                                                              | the percept channel and the joint observer interpolate only between received samples, hold or refuse beyond the newest, never cross a jump, an epoch change or another `life_id`                                                                | `bridge.test.ts`, `joint.test.ts`                    |
+| Backups, compatibility testing and explicit authorization before any bridge to an original | restore-checked copies of both, taken by the owner on 11 November 2026 ([Stage 4](#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken), step 2); Stage 1 is the compatibility test on real data; no bridge to an original was attempted | this document                                        |
 
 ## Stage 1: passive observation
 
@@ -608,7 +608,7 @@ What changed with the cord, stated plainly:
 - The brain is quieter: about one descending neuron active per 100 ms,
   against four or five on FAFB.
 
-## Stage 4: a gated plan for the originals (not implemented)
+## Stage 4: a gated plan for the originals (steps 1 and 2 taken)
 
 Stage 3b supplies what the earlier proposal lacked: one world that can hold
 both bodies, a contact sense through which individuals can differ, and Eva's
@@ -627,6 +627,38 @@ that fails stops the plan there.
    backup of each original: Eva's database and plasticity sidecar on the
    garden VM, and ECHO's checkpoint chain and ledger on its VM, with their
    digests recorded. Both originals keep advancing, unchanged, throughout.
+
+   **Met on 11 November 2026.** The owner ran
+   `scripts/first-contact-copy-originals.sh` (a copy of the same steps, before
+   it was committed), and the copies were then checked on the owner's
+   laptop, where they are kept, outside the repository:
+   - **Eva's plasticity sidecar**, read first (with its five daily copies),
+     SHA-256
+     `e6cd9dc45748d5759519248693b7a06e0c738afeb3c00912c945d66ec568f4c8`.
+     Learned to tick 305,179 in active mode: 3,094 samples, 0 overrides of her
+     own choice so far.
+   - **Eva's database**, her garden's own snapshot taken just after
+     (`day-2.sqlite3`, 22:14Z), SHA-256
+     `b57790e8eb710ea431a26309c6446f818f86c035ea9fc9058c488c029a4aef9b`:
+     integrity ok, tick 305,372 (her live tick then), 2,345 journeys, 9,308
+     moments. `scripts/eva-restore-check.py` follows her service's load path
+     and her extension's restart gate without saving or stepping: the pair
+     resumes as her. The sidecar is 193 ticks behind because it saves only
+     when she learns, from travel, and she was asleep.
+   - **ECHO's store**, the newest archive its own `backup.sh` kept (checked on
+     its VM before keeping, and uploaded off-site),
+     `bethesda-life-20261111T180133Z-5cc50355148d.tar.gz`, SHA-256
+     `f6de54b648d3fc1a45337aadf5fc9b264a9f30f091d7c77646fdffff40c178ae`:
+     checkpoint 4652, tick 13,922,315, head digest
+     `42f015003aebce5e6f47068ad722f7f483bb88de387039902b40cdf48cbcb7e4`.
+     Checked again on a second machine with release `5cc5035` (`--check`:
+     every seal and link, then the head restored in memory, never stepped).
+
+   Neither life was changed: the one write was her garden's routine snapshot
+   into its weekly slot. Found on the way: her plasticity sidecar had never
+   been copied off her VM, because `deploy/garden/deploy.mjs backup` copies
+   only her database; that script copies it.
+
 3. **Twins.** ECHO: `twinCheckpoint` starts a new individual from its latest
    checkpoint, with its parentage recorded. Eva: an owner-run, read-only
    export of her state, restored into the port (`EvaGarden.restore`) under a
@@ -663,8 +695,8 @@ that fails stops the plan there.
    cross-organism input in a hash-chained log, and the visit's record
    published.
 
-Only step 1, which needs no original, has been taken. Nothing in this
-repository can take the rest: the
+Steps 1 and 2 have been taken; step 2 copied both originals and changed
+neither. Nothing in this repository can take the rest: the
 originals' processes, databases and memories are reachable only by the owner.
 
 ## Reproducing everything

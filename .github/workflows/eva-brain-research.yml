@@ -7,10 +7,14 @@ on:
   push:
     paths:
       - deploy/garden/service/**
+      - scripts/eva-restore-check.py
+      - scripts/test_eva_restore_check.py
       - .github/workflows/eva-brain-research.yml
   pull_request:
     paths:
       - deploy/garden/service/**
+      - scripts/eva-restore-check.py
+      - scripts/test_eva_restore_check.py
       - .github/workflows/eva-brain-research.yml
 
 permissions:
@@ -30,3 +34,6 @@ jobs:
       - name: Byte-identity, shadow equivalence, restart, identity binding and fault tests
         working-directory: deploy/garden/service
         run: python -m unittest test_service -v
+      - name: A copy of her life resumes as her without stepping (research gardens)
+        working-directory: scripts
+        run: python -m unittest test_eva_restore_check -v

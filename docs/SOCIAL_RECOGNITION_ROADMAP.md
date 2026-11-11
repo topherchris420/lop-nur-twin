@@ -169,7 +169,7 @@ is the first increment toward gate 2, for research subjects only.
   of chemistry, not of individuals) are credited. Live/live against yoked playback was Stage 2's
   test (E3, not supported) and has not been repeated in the commons.
 - **Gates 4 and 5: not started.** The ordered plan is in
-  [First Contact, Stage 4](FIRST_CONTACT.md#stage-4-a-gated-plan-for-the-originals-not-implemented).
+  [First Contact, Stage 4](FIRST_CONTACT.md#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken).
 
 The chemistry match's predicted failure holds in the new memory too: a fly
 carrying the partner's exact chemistry is treated as the partner (H4,
