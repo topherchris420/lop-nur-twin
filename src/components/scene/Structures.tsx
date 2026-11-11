@@ -81,17 +81,44 @@ function facadeMaterial(
  * mistake rather than as engineering.
  */
 function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
+  // Every wall on the lakebed stands on ground that is flat at 0 (the flatten
+  // pads level it), so the splash band can measure from world height 0. Walls
+  // also shed grime down from each joint. Neither goes on aircraft, radomes
+  // or machined parts, which do not stand in the dirt.
+  // A metre and a half: the plinth under most walls is 0.4 m, and a band that
+  // stopped there never reached the cladding.
+  const weathered = {
+    groundGrime: 0.85,
+    groundGrimeHeight: 1.5,
+    seamDrips: 0.7,
+  } as const;
+
   // poured concrete: wide expansion joints, no rivets
-  applyPreset(m.concrete, "concrete", { seed: 11 });
-  applyPreset(m.concreteLight, "concrete", { seed: 23, dust: 0.4 });
-  applyPreset(m.dirtyConcreteWall, "concrete", { seed: 37, streaks: 0.55 });
-  applyPreset(m.stucco, "concrete", { seed: 41, plateScale: 9, seamRelief: 0.22 });
+  applyPreset(m.concrete, "concrete", { seed: 11, ...weathered });
+  applyPreset(m.concreteLight, "concrete", { seed: 23, dust: 0.4, ...weathered });
+  applyPreset(m.dirtyConcreteWall, "concrete", { seed: 37, streaks: 0.55, ...weathered });
+  applyPreset(m.stucco, "concrete", {
+    seed: 41,
+    plateScale: 9,
+    seamRelief: 0.22,
+    ...weathered,
+  });
 
   // sheet cladding: tight plates, rivets, oxidisation running down the seams
-  applyPreset(m.corrugated, "cladding", { seed: 53 });
-  applyPreset(m.corrugatedTan, "cladding", { seed: 59, rust: 0.28 });
-  applyPreset(m.corrugatedWhite, "cladding", { seed: 67, rust: 0.18, dust: 0.34 });
-  applyPreset(m.rustyMetal, "cladding", { seed: 71, rust: 0.7, streaks: 0.65 });
+  applyPreset(m.corrugated, "cladding", { seed: 53, ...weathered });
+  applyPreset(m.corrugatedTan, "cladding", { seed: 59, rust: 0.28, ...weathered });
+  applyPreset(m.corrugatedWhite, "cladding", {
+    seed: 67,
+    rust: 0.18,
+    dust: 0.34,
+    ...weathered,
+  });
+  applyPreset(m.rustyMetal, "cladding", {
+    seed: 71,
+    rust: 0.7,
+    streaks: 0.65,
+    ...weathered,
+  });
 
   // building envelopes: larger architectural panels on a straight grid, no
   // rust. A running bond at this scale reads as roof tiles, not cladding.
@@ -102,6 +129,7 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     stagger: 0,
     seamDarken: 0.74,
     rivets: false,
+    ...weathered,
   } as const;
   applyPreset(m.whitePanel, "cladding", { seed: 79, ...facade });
   applyPreset(m.monolithRoof, "cladding", {
@@ -146,6 +174,7 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     plateAlbedo: 0.03,
     streaks: 0.5,
     rust: 0.22,
+    groundGrime: weathered.groundGrime,
   });
   applyPreset(m.radomeWhite, "plated", {
     seed: 131,

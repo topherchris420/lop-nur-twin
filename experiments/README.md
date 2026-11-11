@@ -27,7 +27,6 @@ until someone finishes one.
 | `modes/scoring.ts`      | Scoring, streak accounting and end-of-round tallies                       |
 | `modes/killstreaks.ts`  | Killstreak reward definitions and their activation rules                  |
 | `modes/spawns.ts`       | Mode-aware spawn selection over the compound's ground zones               |
-| `pathfinding.ts`        | Grid pathfinding over the navmesh, for bot navigation beyond direct steer |
 
 ## Known reasons they do not compile
 
@@ -41,7 +40,15 @@ under `src/game/`, and two of them reference modules that were never written:
   nothing. Finishing a file means repointing these at `src/game/…`.
 - `modes/mode.ts` imports `./internal`, which does not exist anywhere in the
   repository.
-- `pathfinding.ts` imports `./navmesh`; the real module is `src/game/ai/navmesh.ts`.
+
+## One that was finished
+
+`pathfinding.ts` (grid pathfinding over the nav grid) was finished and now lives
+at `src/game/ai/pathfinding.ts`, where the bots follow its routes. What it took
+is what the steps below say: its imports resolved once it sat beside
+`navmesh.ts`; the one thing it referenced that was never written was its own
+closed set, declared now as a full stamp per cell; and `tools/engagement.mjs`
+gained two checks that the routes are found and walked.
 
 ## Finishing one
 

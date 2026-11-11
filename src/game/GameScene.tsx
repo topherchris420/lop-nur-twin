@@ -442,20 +442,24 @@ function EnvironmentLighting({ onReady }: { onReady: (texture: THREE.Texture) =>
   const night = useTwinStore((s) => s.night);
 
   useEffect(() => {
-    const lighting = new EnvironmentLightingRig(gl);
-    const texture = lighting.get({
+    const sun = {
       elevationRad: sunElevationRad(night ? 0 : 1),
       azimuthRad: (SUN.azimuthDeg * Math.PI) / 180,
       dayFactor: night ? 0 : 1,
-    });
-    scene.environment = texture;
+    };
+    const lighting = new EnvironmentLightingRig(gl);
+    scene.environment = lighting.get(sun);
     // Daytime IBL sits under unity so sunlit concrete does not double the
     // key. Night is a separate, dimmer authoring.
     scene.environmentIntensity = night ? 0.22 : 0.68;
-    onReady(texture);
+    // The weapon reflects the same sky with a horizon in it (see
+    // `EnvironmentLighting`'s `structured`); it has its own pass and scene.
+    const weaponLighting = new EnvironmentLightingRig(gl, { structured: true });
+    onReady(weaponLighting.get(sun));
     return () => {
       scene.environment = null;
       lighting.dispose();
+      weaponLighting.dispose();
     };
   }, [gl, scene, night, onReady]);
 

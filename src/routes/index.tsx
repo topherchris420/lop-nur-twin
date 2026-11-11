@@ -85,7 +85,10 @@ function TwinView() {
   const sceneUnavailable = useTwinStore((state) => state.sceneUnavailable);
 
   return (
-    <div className="relative h-full w-full select-none">
+    <main className="relative h-full w-full select-none">
+      {/* The twin's only level-one heading. The scene has no text of its own, and
+          a screen reader's list of headings would otherwise open at the timeline. */}
+      <h1 className="sr-only">Lop Nur Twin: the evidence-linked 3D reconstruction</h1>
       <Scene />
       {/* Ahead of the HUD and above the canvas: the panels work during the load, and
           the evidence labels are on screen before the scene is. */}
@@ -116,6 +119,6 @@ function TwinView() {
           <HelpOverlay />
         </>
       )}
-    </div>
+    </main>
   );
 }

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/noise";
+import { WEAR_HALF, WEAR_LOCAL } from "./geometry";
 
 /**
  * Weapon materials.
@@ -358,6 +359,128 @@ export function createCollimatedReticleMaterial(
 
 let cached: WeaponMaterials | null = null;
 
+/** What a finish wears through to on a handled edge. */
+export interface EdgeWear {
+  /** The material underneath (sRGB hex). */
+  color: number;
+  metalness: number;
+  roughness: number;
+  /** How far onto a face the wear reaches at most, in metres. */
+  width: number;
+  /** 0 to 1. */
+  strength: number;
+}
+
+/**
+ * Coatings wear through on handled edges first. A finish this patches turns,
+ * near any edge of a chamfered-box part, to what is under it: bright steel
+ * under parkerising and nitride, bare aluminium under anodising, a lighter,
+ * smoother scuff on polymer. The distance to the edge is exact, from the
+ * part's own frame (`WEAR_LOCAL`, `WEAR_HALF` in geometry.ts), so the wear
+ * runs a few millimetres onto each face as it does on a used rifle. Two
+ * octaves of noise chip it, a slow one decides which regions were handled
+ * more, and a part too small to have a face of its own is left alone rather
+ * than turned to bare metal. Parts with no box frame (tubes, rails, cast
+ * profiles) carry a zero half-size and are untouched.
+ *
+ * Positions are the part's own, so the wear moves with the weapon: a
+ * world-space pattern swam across the receiver as a tartan once already.
+ */
+const WEAR_VERTEX_HEAD = /* glsl */ `
+attribute vec3 ${WEAR_LOCAL};
+attribute vec3 ${WEAR_HALF};
+varying vec3 vWearLocal;
+varying vec3 vWearHalf;
+`;
+
+const WEAR_FRAGMENT_HEAD = /* glsl */ `
+varying vec3 vWearLocal;
+varying vec3 vWearHalf;
+uniform vec3 uWearColor;
+uniform float uWearMetalness;
+uniform float uWearRoughness;
+uniform float uWearWidth;
+uniform float uWearStrength;
+
+float wearHash(vec3 p) {
+  p = fract(p * 0.3183099 + 0.1);
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float wearNoise(vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(wearHash(i), wearHash(i + vec3(1, 0, 0)), f.x),
+        mix(wearHash(i + vec3(0, 1, 0)), wearHash(i + vec3(1, 1, 0)), f.x), f.y),
+    mix(mix(wearHash(i + vec3(0, 0, 1)), wearHash(i + vec3(1, 0, 1)), f.x),
+        mix(wearHash(i + vec3(0, 1, 1)), wearHash(i + vec3(1, 1, 1)), f.x), f.y),
+    f.z);
+}
+`;
+
+const WEAR_FRAGMENT = /* glsl */ `
+{
+  float wearMinHalf = min(vWearHalf.x, min(vWearHalf.y, vWearHalf.z));
+  if (wearMinHalf > 1e-5) {
+    // distance to each pair of faces; the smallest is the face this pixel is
+    // on, the middle one is how far it is from that face's nearest edge
+    vec3 wearQ = max(vWearHalf - abs(vWearLocal), 0.0);
+    float wearLo = min(wearQ.x, min(wearQ.y, wearQ.z));
+    float wearHi = max(wearQ.x, max(wearQ.y, wearQ.z));
+    float wearEdge = wearQ.x + wearQ.y + wearQ.z - wearLo - wearHi;
+
+    float wearChips = wearNoise(vWearLocal * 420.0) * 0.6 + wearNoise(vWearLocal * 1150.0) * 0.4;
+    float wearHandled = wearNoise(vWearLocal * 14.0 + 3.7);
+    // a pin or a button has no face to wear onto
+    float wearWidth = min(uWearWidth * (0.3 + 1.2 * wearChips), wearMinHalf * 0.3);
+    float wearAa = fwidth(wearEdge);
+    float wear = 1.0 - smoothstep(wearWidth * 0.45, wearWidth + wearAa, wearEdge);
+    wear *= smoothstep(0.3, 0.62, wearChips + 0.18 * wearHandled);
+    wear *= uWearStrength * (0.45 + 0.55 * wearHandled);
+
+    diffuseColor.rgb = mix(diffuseColor.rgb, uWearColor, wear);
+    metalnessFactor = mix(metalnessFactor, uWearMetalness, wear);
+    roughnessFactor = mix(roughnessFactor, uWearRoughness, wear);
+  }
+}
+`;
+
+/** Patch a finish so its handled edges wear through to `wear`. */
+export function applyEdgeWear<M extends THREE.MeshStandardMaterial>(
+  material: M,
+  wear: EdgeWear,
+): M {
+  const uniforms: Record<string, THREE.IUniform> = {
+    uWearColor: { value: new THREE.Color(wear.color) },
+    uWearMetalness: { value: wear.metalness },
+    uWearRoughness: { value: wear.roughness },
+    uWearWidth: { value: wear.width },
+    uWearStrength: { value: wear.strength },
+  };
+  material.userData.edgeWear = uniforms;
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", `#include <common>\n${WEAR_VERTEX_HEAD}`)
+      .replace(
+        "#include <begin_vertex>",
+        `#include <begin_vertex>\nvWearLocal = ${WEAR_LOCAL};\nvWearHalf = ${WEAR_HALF};`,
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", `#include <common>\n${WEAR_FRAGMENT_HEAD}`)
+      .replace(
+        "#include <metalnessmap_fragment>",
+        `#include <metalnessmap_fragment>\n${WEAR_FRAGMENT}`,
+      );
+  };
+  material.customProgramCacheKey = () => "weapon-edge-wear-v1";
+  material.needsUpdate = true;
+  return material;
+}
+
 export function getWeaponMaterials(): WeaponMaterials {
   if (cached) return cached;
 
@@ -391,7 +514,15 @@ export function getWeaponMaterials(): WeaponMaterials {
   // grey that still reads as a machined object. Metalness stays low on the
   // coated parts — a conversion coating has a diffuse body; metalness 1
   // here was a black mirror with nothing to reflect.
-  const steel = new THREE.MeshStandardMaterial({
+  // A working rifle is oiled. The film is a clear dielectric over the
+  // coating: about 4% reflectance head-on, far more at a grazing angle, so
+  // the top of the receiver picks up the sky's haze band and ridge line
+  // while the body stays dark. The coatings alone are too rough to show a
+  // horizon at all; without the film, giving the weapon a sky with structure
+  // changed 0.1% of its pixels.
+  const oilFilm = { clearcoat: 0.32, clearcoatRoughness: 0.26 } as const;
+  const steel = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-steel-metal",
     color: 0x55565a,
     metalness: 0.34,
@@ -405,7 +536,8 @@ export function getWeaponMaterials(): WeaponMaterials {
   // Hard-anodised aluminium, black-grey and faintly warm. No plate shader:
   // it quantises *world* position, and in the viewmodel pass world space
   // moves with the gun, so the cells swam across the receiver as a tartan.
-  const receiver = new THREE.MeshStandardMaterial({
+  const receiver = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-receiver-metal",
     color: 0x4a4946,
     metalness: 0.32,
@@ -416,7 +548,8 @@ export function getWeaponMaterials(): WeaponMaterials {
     envMapIntensity: 0.3,
   });
 
-  const nitride = new THREE.MeshStandardMaterial({
+  const nitride = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-nitride-metal",
     color: 0x3c3d40,
     metalness: 0.42,
@@ -541,7 +674,8 @@ export function getWeaponMaterials(): WeaponMaterials {
     toneMapped: false,
   });
 
-  const optic = new THREE.MeshStandardMaterial({
+  const optic = new THREE.MeshPhysicalMaterial({
+    ...oilFilm,
     name: "weapon-optic-metal",
     color: 0x3f4042,
     metalness: 0.32,
@@ -568,6 +702,48 @@ export function getWeaponMaterials(): WeaponMaterials {
     normalMap: repeat(brushedNormal.clone(), 3),
     normalScale: new THREE.Vector2(0.35, 0.35),
     envMapIntensity: 0.75,
+  });
+
+  // Under parkerising and nitride is steel; under anodising, aluminium. Both
+  // show bright and fairly smooth where the coating has gone. Polymer does not
+  // wear to anything but itself, lighter and polished by hands.
+  const steelUnder = { color: 0x9ea0a5, metalness: 0.92, roughness: 0.34 } as const;
+  applyEdgeWear(steel, { ...steelUnder, width: 0.0022, strength: 0.85 });
+  applyEdgeWear(nitride, { ...steelUnder, width: 0.002, strength: 0.75 });
+  applyEdgeWear(receiver, {
+    color: 0xb3b4b7,
+    metalness: 0.95,
+    roughness: 0.3,
+    width: 0.0024,
+    strength: 0.85,
+  });
+  applyEdgeWear(optic, {
+    color: 0xb3b4b7,
+    metalness: 0.95,
+    roughness: 0.3,
+    width: 0.0018,
+    strength: 0.7,
+  });
+  applyEdgeWear(polymer, {
+    color: 0x6b6c6e,
+    metalness: 0,
+    roughness: 0.42,
+    width: 0.003,
+    strength: 0.6,
+  });
+  applyEdgeWear(polymerTan, {
+    color: 0xb6a586,
+    metalness: 0,
+    roughness: 0.42,
+    width: 0.003,
+    strength: 0.6,
+  });
+  applyEdgeWear(grip, {
+    color: 0x5d625a,
+    metalness: 0,
+    roughness: 0.5,
+    width: 0.0025,
+    strength: 0.5,
   });
 
   const textures = [

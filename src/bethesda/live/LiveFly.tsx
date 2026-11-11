@@ -85,7 +85,7 @@ export default function LiveFly() {
   const o = view.observation;
 
   return (
-    <div className="bg-background text-foreground flex h-full w-full flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+    <main className="bg-background text-foreground flex h-full w-full flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
       <section className="relative h-[58vh] min-h-[320px] shrink-0 lg:h-full lg:flex-1">
         {flat ? (
           <WitnessMap
@@ -231,7 +231,7 @@ export default function LiveFly() {
           </p>
         </footer>
       </aside>
-    </div>
+    </main>
   );
 }
 

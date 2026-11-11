@@ -158,3 +158,7 @@ src/bethesda/ecology/connectome/fixtures/
 docs/benchmarks/connectome-feeding/
 docs/benchmarks/lifetimes/
 docs/benchmarks/ecology-trace/
+
+# What the claims register's bindings recompute: written by
+# `scripts/claim-bindings.ts` and checked byte for byte by its `--check`.
+docs/claims/

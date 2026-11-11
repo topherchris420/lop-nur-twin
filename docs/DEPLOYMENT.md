@@ -27,6 +27,7 @@ node scripts/run-ts.mjs scripts/validate-model-history.ts   # this model is its 
 vite build                                                  # → dist/
 tsc --noEmit                                                # strict typecheck
 node tools/jev-secret-scan.mjs dist                         # no credential in the bundle
+node tools/front-door.mjs dist                              # no route loads the WebGL renderer before it asks
 ```
 
 Data validation and manifest generation run **before** Vite, so a deployment

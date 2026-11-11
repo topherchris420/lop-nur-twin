@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo } from "react";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 import { Link } from "@tanstack/react-router";
 import {
   EVIDENCE_CLASSIFICATION_META,
@@ -87,7 +88,10 @@ export function ClaimList({
   }, [open]);
 
   return (
-    <div className="relative mt-3 overflow-x-auto">
+    <ScrollRegion
+      label="Claims that are not about a structure"
+      className="mt-3 overflow-x-auto"
+    >
       <table className="w-full min-w-[52rem] border-collapse text-left text-xs">
         <caption className="text-muted-foreground pb-3 text-left text-xs">
           Every claim this model makes that is not about a structure, grouped by kind.
@@ -217,6 +221,6 @@ export function ClaimList({
           The evidence mode admits none of these claims.
         </p>
       ) : null}
-    </div>
+    </ScrollRegion>
   );
 }

@@ -25,10 +25,82 @@
         background: #14120e;
         overflow: hidden;
       }
+      /* Shown only when scripts are off or blocked; see the <noscript> below. */
+      .no-script {
+        /* Over the empty root, which fills the page and would push it out of view. */
+        position: fixed;
+        inset: 0;
+        box-sizing: border-box;
+        overflow: auto;
+        padding: 2rem 1.25rem;
+        color: #e9e4d6;
+        font:
+          1rem/1.6 system-ui,
+          sans-serif;
+      }
+      .no-script > * {
+        max-width: 38rem;
+        margin-inline: auto;
+      }
+      /* The stylesheet resets headings, lists and links; these put them back. */
+      .no-script h1 {
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+      .no-script p,
+      .no-script ul {
+        margin-bottom: 1rem;
+      }
+      .no-script ul {
+        padding-left: 1.25rem;
+        list-style: disc;
+      }
+      .no-script a {
+        color: #e3c98a;
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Every view here is drawn by scripts. Without them the page was an empty
+         dark screen with no word of why; this says so, and points at what can be
+         read without them. -->
+    <noscript>
+      <main class="no-script">
+        <h1>Lop Nur Twin</h1>
+        <p>
+          This site needs JavaScript, which is off or blocked in this browser. The 3D
+          twin, the analysis table and the other views are all drawn by scripts, so
+          nothing has loaded and nothing is hidden behind this notice.
+        </p>
+        <p>The project's documents can be read without scripts:</p>
+        <ul>
+          <li>
+            <a
+              href="https://github.com/topherchris420/lop-nur-twin#readme"
+              rel="noopener noreferrer"
+              >what the project is</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/topherchris420/lop-nur-twin/blob/main/docs/RESEARCH_CLAIMS.md"
+              rel="noopener noreferrer"
+              >every claim it makes, with its evidence</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/topherchris420/lop-nur-twin/blob/main/docs/SITE_MODEL.md"
+              rel="noopener noreferrer"
+              >the site model and its sources</a
+            >
+          </li>
+        </ul>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

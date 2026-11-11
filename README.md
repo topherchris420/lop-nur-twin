@@ -112,6 +112,8 @@ On 4 November the corrected physics was delivered by a recorded continuation. EC
 
 The table below contains **reported results, not universal performance claims**. Every comparison belongs to a specified simulator, protocol, input set, and software revision. Consult the [claims register](docs/RESEARCH_CLAIMS.md) for the complete definitions and evidence classes.
 
+The numbers are held to their records. The test suite rebuilds **246 of the 352 quantities** the claims register states from the committed records, and fails when a document and its records disagree. The rest are still copied by hand, and [listed as such](docs/claims/README.md).
+
 | Test                                                 | Recorded outcome                                                                        | What it does **not** establish                   |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | ECHO checkpoint replay                               | 361 / 361 seals reproduced in the audited interval                                      | Full lifetime replay or biological identity      |
@@ -184,12 +186,13 @@ This runs local services and browser simulations; it does **not** connect to or 
 
 ```bash
 bun run check
+bun run claims
 node scripts/run-ts.mjs scripts/individuality-evaluate.ts --check
 node scripts/run-ts.mjs scripts/echo-exit-figure.ts --check
 bun run rain:fly:verify
 ```
 
-`bun run check` runs the repository's standard quality and build checks. The individuality comparison is a longer reproducibility check. `rain:fly:verify` verifies archived records supported by the current runtime; exit status **3** indicates some archives require a different recorded Node version rather than silently claiming full replay.
+`bun run check` runs the repository's standard quality and build checks. `bun run claims` rebuilds the bound sentences of this page and of the claims register from the records, and prints what share of their numbers that covers. The individuality comparison is a longer reproducibility check. `rain:fly:verify` verifies archived records supported by the current runtime; exit status **3** indicates some archives require a different recorded Node version rather than silently claiming full replay.
 
 The pictures on this page are reproducible too: `bun run readme-media` re-records them from the dev server and the live pages (it needs `ffmpeg` and `gifsicle`), and prints the date and playback speed that the captions must then carry.
 

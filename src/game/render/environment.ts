@@ -31,8 +31,23 @@ uniform vec3 uGround;
 uniform vec3 uSunColor;
 uniform float uSunIntensity;
 uniform float uTurbidity;
+// 0: the world's smooth sky. 1: the weapon's, with a horizon to reflect.
+uniform float uStructure;
 
 varying vec3 vDirection;
+
+float envHash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+// value noise around the horizon, seamless in azimuth: \`a\` is in turns
+float envRing(float a, float cells) {
+  float x = a * cells;
+  float i = floor(x);
+  float f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(envHash(vec2(mod(i, cells), cells)), envHash(vec2(mod(i + 1.0, cells), cells)), f);
+}
 
 // Henyey-Greenstein atmospheric scattering phase function
 float henyeyGreenstein(float cosTheta, float g) {
@@ -57,9 +72,33 @@ void main() {
   vec3 ground = uGround * mix(1.15, 0.38, pow(down, 0.55));
   ground += uGround * pow(1.0 - down, 3.0) * 0.28;
 
+  if (uStructure > 0.0) {
+    // What a rifle needs to reflect is a horizon. In the smooth sky the
+    // ground just below it was brighter than the sky just above it, so every
+    // metal face read as one warm grey from any angle. A photographed desert
+    // sky has the reverse: a bright band of haze over the horizon, a darker
+    // ridge line under it, and the lakebed brightening again toward the feet.
+    float turns = atan(dir.z, dir.x) / 6.2831853 + 0.5;
+    // haze band, brighter than anything on the ground near the horizon
+    sky += uHorizon * 0.95 * exp(-max(up, 0.0) / 0.07);
+    // thin, slow cloud wisps so a flat face does not reflect one tint
+    float wisps = envRing(turns, 9.0) * 0.6 + envRing(turns + 0.37, 23.0) * 0.4;
+    sky *= 1.0 + (wisps - 0.5) * 0.22 * smoothstep(0.03, 0.12, up) * (1.0 - smoothstep(0.35, 0.7, up));
+    // the ground near the horizon reads darker than the haze above it
+    ground *= mix(0.62, 1.0, smoothstep(0.0, 0.35, down));
+  }
+
   // Soft horizon blend so pre-filter sees a seamless transition
   float blend = smoothstep(-0.04, 0.04, up);
   vec3 color = mix(ground, sky, blend);
+
+  if (uStructure > 0.0) {
+    // distant ridges: a low, broken silhouette sitting on the horizon
+    float turns = atan(dir.z, dir.x) / 6.2831853 + 0.5;
+    float ridge = 0.012 + 0.03 * (envRing(turns, 14.0) * 0.7 + envRing(turns + 0.11, 41.0) * 0.3);
+    float onRidge = (1.0 - smoothstep(ridge - 0.006, ridge + 0.004, up)) * smoothstep(-0.03, 0.0, up);
+    color = mix(color, uGround * 0.58 + uHorizon * 0.22, onRidge);
+  }
 
   // Sun: solar disc with volumetric Mie atmospheric forward-scattering glow
   float cosAngle = dot(dir, uSunDirection);
@@ -107,7 +146,13 @@ export class EnvironmentLighting {
    */
   private cachedTarget: THREE.WebGLRenderTarget | null = null;
 
-  constructor(renderer: THREE.WebGLRenderer) {
+  /**
+   * `structured` draws the weapon's variant: the same sky and sun, with a
+   * haze band, a ridge line and the near ground darkened, so a metal face has
+   * a horizon to reflect. The world keeps the smooth sky its buildings and
+   * soldiers were tuned under.
+   */
+  constructor(renderer: THREE.WebGLRenderer, { structured = false } = {}) {
     this.pmrem = new THREE.PMREMGenerator(renderer);
 
     this.material = new THREE.ShaderMaterial({
@@ -124,6 +169,7 @@ export class EnvironmentLighting {
         uSunColor: { value: SUN_WARM.clone() },
         uSunIntensity: { value: 92 },
         uTurbidity: { value: 1.6 },
+        uStructure: { value: structured ? 1 : 0 },
       },
     });
     const dome = new THREE.Mesh(new THREE.SphereGeometry(50, 32, 24), this.material);

@@ -61,6 +61,22 @@ export interface HardSurfaceOptions {
   rust?: number;
   /** Colour the rust biases toward. */
   rustColor?: THREE.ColorRepresentation;
+  /**
+   * Grime carried down each plate from the joint above it, in uneven drip
+   * columns, on vertical faces. Off by default.
+   */
+  seamDrips?: number;
+  /**
+   * Soil splashed and blown up the foot of vertical faces. It is measured
+   * from world height 0, so only turn it on where the ground under every
+   * mesh using the material is flat at 0, as it is under the Lop Nur
+   * compound; on Bethesda's hills it would float. Off by default.
+   */
+  groundGrime?: number;
+  /** How far up the wall the splash reaches on average, in metres. */
+  groundGrimeHeight?: number;
+  /** Colour of the splashed soil: darker and warmer than settled dust. */
+  groundGrimeColor?: THREE.ColorRepresentation;
   /** Grazing-angle edge highlight strength. */
   rimIntensity?: number;
   /** Fresnel exponent for the rim; 2.5-4 reads as a machined edge. */
@@ -72,11 +88,12 @@ export interface HardSurfaceOptions {
 }
 
 interface ResolvedHardSurface extends Required<
-  Omit<HardSurfaceOptions, "dustColor" | "rustColor" | "rimColor">
+  Omit<HardSurfaceOptions, "dustColor" | "rustColor" | "rimColor" | "groundGrimeColor">
 > {
   dustColor: THREE.Color;
   rustColor: THREE.Color;
   rimColor: THREE.Color;
+  groundGrimeColor: THREE.Color;
 }
 
 const HARD_SURFACE_DEFAULTS: ResolvedHardSurface = {
@@ -95,6 +112,10 @@ const HARD_SURFACE_DEFAULTS: ResolvedHardSurface = {
   dustColor: new THREE.Color("#c9bc99"),
   rust: 0,
   rustColor: new THREE.Color("#6d4325"),
+  seamDrips: 0,
+  groundGrime: 0,
+  groundGrimeHeight: 0.9,
+  groundGrimeColor: new THREE.Color("#8a7454"),
   rimIntensity: 0.12,
   rimPower: 2.8,
   rimColor: new THREE.Color("#b9cfe8"),
@@ -110,6 +131,7 @@ const HARD_SURFACE_HEAD = /* glsl */ `
 varying vec3 vHsPos;
 varying vec3 vHsNormal;
 varying vec3 vHsWorldNormal;
+varying float vHsWorldY;
 
 // three declares these in the vertex prefix only, but binds them for any
 // program whose uniform map contains them, so declaring it here is enough
@@ -129,6 +151,10 @@ uniform float hsDust;
 uniform vec3 hsDustColor;
 uniform float hsRust;
 uniform vec3 hsRustColor;
+uniform float hsSeamDrips;
+uniform float hsGroundGrime;
+uniform float hsGroundGrimeHeight;
+uniform vec3 hsGroundGrimeColor;
 uniform float hsRimIntensity;
 uniform float hsRimPower;
 uniform vec3 hsRimColor;
@@ -267,6 +293,45 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
     metalnessFactor *= 1.0 - hsOx * 0.65;
   }
 
+  // --- drips: each plate carries grime down from the joint above it ---
+  if (hsSeamDrips > 0.0) {
+    // metres below the plate's upper joint; plate rows run up the wall
+    float hsBelow = (1.0 - fract(hsQ.y)) * hsCellSize.y;
+    // narrow columns, each with a length of its own
+    float hsColumnX = hsUv.x * 5.3;
+    float hsColumn = smoothstep(0.55, 0.85, hsValueNoise(vec2(hsColumnX, hsRow * 7.1)));
+    float hsReach =
+        mix(0.25, 0.95, hsHash21(vec2(floor(hsColumnX), hsRow) + 3.0)) * hsCellSize.y;
+    float hsDrip = hsColumn * (1.0 - smoothstep(0.0, hsReach, hsBelow));
+    // and a thin film right under the joint, wider than any drip
+    hsDrip = max(hsDrip, (1.0 - smoothstep(0.0, 0.16 * hsCellSize.y, hsBelow)) * 0.5);
+    hsDrip *= hsVertical * hsFade * (1.0 - hsGlazing) * hsSeamDrips;
+    diffuseColor.rgb *= 1.0 - hsDrip * 0.3;
+    roughnessFactor = clamp(roughnessFactor + hsDrip * 0.18, 0.035, 1.0);
+  }
+
+  // --- soil splashed up the foot of a wall ----------------------------
+  if (hsGroundGrime > 0.0) {
+    float hsHeight = vHsWorldY;
+    // a ragged top edge: slow swells along the wall, quicker breaks in them
+    float hsReach = hsGroundGrimeHeight *
+        (0.55 + 0.45 * hsValueNoise(vec2(hsUv.x * 1.3, 0.5)) +
+         0.25 * (hsValueNoise(vec2(hsUv.x * 7.0, 3.0)) - 0.5));
+    hsReach = max(hsReach, 0.05);
+    float hsSplash = pow(1.0 - smoothstep(0.0, hsReach, hsHeight), 1.1);
+    // single splashes landed above the band
+    float hsFleck =
+        step(0.86, hsValueNoise(vec2(hsUv.x * 23.0, hsHeight * 23.0))) *
+        (1.0 - smoothstep(0.0, hsReach * 1.6, hsHeight)) * hsFade;
+    float hsSoil = clamp(max(hsSplash, hsFleck * 0.6), 0.0, 1.0) *
+        hsVertical * hsGroundGrime * (1.0 - hsGlazing);
+    diffuseColor.rgb = mix(diffuseColor.rgb, hsGroundGrimeColor * (0.8 + 0.4 * hsPlate2), hsSoil * 0.7);
+    roughnessFactor = mix(roughnessFactor, 0.96, hsSoil * 0.8);
+    metalnessFactor *= 1.0 - hsSoil * 0.85;
+    // the last hand-span of wall sits in the ground's own shadow
+    diffuseColor.rgb *= 1.0 - (1.0 - smoothstep(0.0, 0.18, hsHeight)) * 0.22 * hsVertical * hsGroundGrime;
+  }
+
   // dust settles by orientation, and undersides stay dark
   float hsDustAmount = pow(hsUp, 1.6) * hsDust * (0.65 + 0.35 * hsPlate2);
   diffuseColor.rgb = mix(diffuseColor.rgb, hsDustColor, hsDustAmount * 0.55);
@@ -338,6 +403,9 @@ export function applyHardSurface<M extends THREE.MeshStandardMaterial>(
     dustColor: new THREE.Color(options.dustColor ?? HARD_SURFACE_DEFAULTS.dustColor),
     rustColor: new THREE.Color(options.rustColor ?? HARD_SURFACE_DEFAULTS.rustColor),
     rimColor: new THREE.Color(options.rimColor ?? HARD_SURFACE_DEFAULTS.rimColor),
+    groundGrimeColor: new THREE.Color(
+      options.groundGrimeColor ?? HARD_SURFACE_DEFAULTS.groundGrimeColor,
+    ),
   };
 
   const uniforms: Record<string, THREE.IUniform> = {
@@ -355,6 +423,10 @@ export function applyHardSurface<M extends THREE.MeshStandardMaterial>(
     hsDustColor: { value: o.dustColor },
     hsRust: { value: o.rust },
     hsRustColor: { value: o.rustColor },
+    hsSeamDrips: { value: o.seamDrips },
+    hsGroundGrime: { value: o.groundGrime },
+    hsGroundGrimeHeight: { value: o.groundGrimeHeight },
+    hsGroundGrimeColor: { value: o.groundGrimeColor },
     hsRimIntensity: { value: o.rimIntensity },
     hsRimPower: { value: o.rimPower },
     hsRimColor: { value: o.rimColor },
@@ -374,7 +446,8 @@ export function applyHardSurface<M extends THREE.MeshStandardMaterial>(
         `#include <common>
 varying vec3 vHsPos;
 varying vec3 vHsNormal;
-varying vec3 vHsWorldNormal;`,
+varying vec3 vHsWorldNormal;
+varying float vHsWorldY;`,
       )
       // `transformed` and `objectNormal` are final by the time project_vertex
       // runs, and this keeps the logdepth/clipping chunks after us untouched
@@ -383,6 +456,11 @@ varying vec3 vHsWorldNormal;`,
         `vHsPos = transformed;
 vHsNormal = objectNormal;
 vHsWorldNormal = normalize(mat3(modelMatrix) * objectNormal);
+#ifdef USE_INSTANCING
+vHsWorldY = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).y;
+#else
+vHsWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
+#endif
 #include <project_vertex>`,
       );
 

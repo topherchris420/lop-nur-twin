@@ -13,7 +13,7 @@ its evidence class and its record.
 
 | I want to…                                 | Start with                                                                                                                                                             |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Know what has been shown, and how strongly | [Claims register](RESEARCH_CLAIMS.md), [evaluation philosophy](EVALUATION_PHILOSOPHY.md)                                                                               |
+| Know what has been shown, and how strongly | [Claims register](RESEARCH_CLAIMS.md), [which of its numbers are recomputed](claims/README.md), [evaluation philosophy](EVALUATION_PHILOSOPHY.md)                      |
 | Test whether a controller change helps     | [Intelligence metrology bench](ECHO_INTELLIGENCE_METROLOGY.md)                                                                                                         |
 | Understand ECHO, the persistent fly        | [Digital fly](DIGITAL_FLY.md), [Project ECHO](PROJECT_ECHO.md), [the collision repair](ECHO_COLLISION.md), [keeping ECHO](ECHO_STEWARDSHIP.md)                         |
 | Check ECHO's history for myself            | [Replaying it](BETHESDA_CONTINUOUS_LIFE.md#replaying-it), [the ledger](BETHESDA_CONTINUOUS_LIFE.md#the-ledger)                                                         |

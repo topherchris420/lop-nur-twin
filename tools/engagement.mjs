@@ -56,6 +56,13 @@ const report = await page.evaluate(() => {
     closestApproach: Infinity,
     /** Seconds of match time with a live enemy inside 60 m. */
     contactSeconds: 0,
+    /**
+     * Ten-second stretches in which a bot stayed alive and wanted throughout
+     * to be more than 8 m from where it stood, and how many of them ended
+     * within 3 m of where they began.
+     */
+    travelWindows: 0,
+    stalledWindows: 0,
     maxSuppression: 0,
     playerHealthMin: player.health,
     weaponIds: [
@@ -85,6 +92,13 @@ const report = await page.evaluate(() => {
   let deathsSeen = 0;
   const wasAlive = new Map();
   for (const a of game.actors) wasAlive.set(a.id, a.alive);
+  // `bots.bots` is the manager's own list: each bot's goal sits beside its actor.
+  const travel = new Map(
+    bots.bots.map((b) => [
+      b.actor.id,
+      { x: b.actor.position.x, z: b.actor.position.z, travelling: true },
+    ]),
+  );
 
   for (let i = 0; i < SECONDS / STEP; i += 1) {
     game.time += STEP;
@@ -105,6 +119,25 @@ const report = await page.evaluate(() => {
     }
     if (nearest < stats.closestApproach) stats.closestApproach = nearest;
     if (nearest < 60) stats.contactSeconds += STEP;
+
+    for (const b of bots.bots) {
+      const at = b.actor.position;
+      const away = Math.hypot(b.goal.x - at.x, b.goal.z - at.z);
+      if (!b.actor.alive || away <= 8) travel.get(b.actor.id).travelling = false;
+    }
+    if ((i + 1) % (10 / STEP) === 0) {
+      for (const b of bots.bots) {
+        const at = b.actor.position;
+        const from = travel.get(b.actor.id);
+        if (from.travelling) {
+          stats.travelWindows += 1;
+          if (Math.hypot(at.x - from.x, at.z - from.z) < 3) stats.stalledWindows += 1;
+        }
+        from.x = at.x;
+        from.z = at.z;
+        from.travelling = b.actor.alive;
+      }
+    }
     stats.maxSuppression = Math.max(stats.maxSuppression, player.suppression);
     stats.playerHealthMin = Math.min(stats.playerHealthMin, player.health);
 
@@ -125,6 +158,7 @@ const report = await page.evaluate(() => {
   }
 
   stats.botsKilled = deathsSeen;
+  stats.nav = { ...bots.navStats };
   stats.playerDeaths = player.deaths;
   stats.closestApproach = +stats.closestApproach.toFixed(1);
   stats.contactSeconds = +stats.contactSeconds.toFixed(1);
@@ -200,19 +234,16 @@ const report = await page.evaluate(() => {
   const subject = game.actors.find((a) => !a.isPlayer && a.alive);
   if (subject) {
     const bones = characters.bonesOf(subject.id);
+    // The height of the highest bone says whether the body went down. Which
+    // way it went is the head's travel, not that bone's: once a body is on the
+    // ground its highest point is whichever limb is sticking up, and in three
+    // bodies of ten that limb lay uprange of where the head had stood while
+    // the head itself lay more than a metre downrange.
+    const head = bones.find((b) => /head/i.test(b.name));
     const highest = () => {
       let top = -Infinity;
-      let atX = 0;
-      let atZ = 0;
-      for (const b of bones) {
-        const y = b.matrixWorld.elements[13];
-        if (y > top) {
-          top = y;
-          atX = b.matrixWorld.elements[12];
-          atZ = b.matrixWorld.elements[14];
-        }
-      }
-      return { top, atX, atZ };
+      for (const b of bones) top = Math.max(top, b.matrixWorld.elements[13]);
+      return { top, headZ: head ? head.matrixWorld.elements[14] : null };
     };
 
     characters.poseOnly(subject.id, 1 / 60);
@@ -229,8 +260,9 @@ const report = await page.evaluate(() => {
 
     stats.standingTopM = +(standing.top - subject.position.y).toFixed(2);
     stats.fallenTopM = +(fallen.top - subject.position.y).toFixed(2);
-    // Positive means the body went over in the direction the round was going.
-    stats.fallDownrangeM = +(fallen.atZ - standing.atZ).toFixed(2);
+    // Positive means the head went over in the direction the round was going.
+    stats.fallDownrangeM =
+      standing.headZ === null ? null : +(fallen.headZ - standing.headZ).toFixed(2);
   }
 
   return stats;
@@ -264,6 +296,19 @@ check(
   report.contactSeconds > 8,
   `${report.contactSeconds}s inside 60 m`,
 );
+// Steering straight at a goal left three travelling bots in four running into
+// the wall between them and it, and the force a hundred metres from a player
+// who never moved. These two say the routes exist and are being walked.
+check(
+  "bots find a route to where they are going",
+  report.nav.searches > 0 && report.nav.found >= report.nav.searches * 0.9,
+  `${report.nav.found} of ${report.nav.searches} searches found one; grid built in ${report.nav.buildMs} ms`,
+);
+check(
+  "a bot that sets off gets somewhere",
+  report.stalledWindows <= Math.max(1, report.travelWindows * 0.25),
+  `${report.stalledWindows} of ${report.travelWindows} ten-second journeys ended within 3 m of their start`,
+);
 check(
   "bots shoot the player",
   report.shotsAtPlayer > 0,
@@ -287,8 +332,10 @@ check(
 );
 check(
   "it falls the way the round was going",
-  report.fallDownrangeM > 0.35,
-  `${report.fallDownrangeM} m downrange`,
+  report.fallDownrangeM !== null && report.fallDownrangeM > 0.35,
+  report.fallDownrangeM === null
+    ? "the rig has no head bone to follow"
+    : `head ${report.fallDownrangeM} m downrange`,
 );
 check(
   "hitboxes cover the body",

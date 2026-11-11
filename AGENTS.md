@@ -50,7 +50,11 @@ Guidance for coding agents (and humans) working on this repo.
   analytical field belongs in the table as well as the dossier, and every new
   analytical _capability_ needs a semantic representation there, not only a
   control in the HUD. `bun run a11y` gates both routes on serious/critical axe
-  violations. The claim inspector answers for every subject the ledger claims
+  violations, at a desktop width and again at a phone's, which is also a
+  desktop zoomed in. A table wider than its column goes in `ScrollRegion`
+  (`src/components/ui/`), never a bare `overflow-x-auto` box: a scroll container
+  with nothing focusable in it cannot be scrolled from a keyboard. Every route
+  renders one `<main>` and one `<h1>`. The claim inspector answers for every subject the ledger claims
   anything about (`CLAIM_SUBJECT_IDS`), not only structures, and the ruler has
   a form (`MeasureBetween`) that offers exactly the vertices it would snap to.
 - **A measurement states only the error its own evidence documents.** Each
@@ -181,6 +185,14 @@ props run on active tiers, keep their geometry cheap and treat motion as illustr
 - `npm run twin:startup` measures the first seconds of `/` against a running
   server: blocking, first frame, input and FPS, with `--attribute` to name the slow
   GL calls. It prints the renderer it got; a software result is not comparable.
+- **Every route pays for what the entry imports statically.** `index.html`
+  serves all of them, so `tools/front-door.mjs` ends `bun run build` by adding
+  up that set and failing if the WebGL renderer is in it or it outgrows its
+  ceiling. A vendor chunk group in `vite.config.ts` also takes whatever its
+  modules depend on: a package the entry uses must be in the `framework` group,
+  or it lands beside three.js and `/analysis` downloads the renderer to get it.
+  Load a heavy module where a route decides to use it, with `import()`; raise
+  the ceiling only on purpose, in the commit that needs it.
 - Instancing is only warranted when a structure type has >5 instances; none
   do today.
 - Textures are generated once and cached by `useMemo` — keep new generators
@@ -224,6 +236,14 @@ and the twin can never drift apart.
   collide-and-slide, and an analytic heightfield raycast that calls the same
   `terrainHeight` the terrain mesh is displaced by.
 - `player/`, `weapons/`, `characters/`, `ai/`, `fx/`, `render/`, `hud/`.
+- `ai/` — bots walk routes over a nav grid (`navmesh.ts`, `pathfinding.ts`)
+  and steer at the next waypoint; steering straight at a goal is the fallback
+  for a goal the grid does not cover. The grid is built once per collision
+  world, in one piece, and searched at most once a frame: both by count, never
+  by the clock, so a stepped match is the same match on every run. Keep it
+  that way. `bun run engagement` checks that routes are found and that a bot
+  which sets off gets somewhere; CI does not run it, so run it after any change
+  to `ai/`.
 - `pilot/` — who sits in the player's seat: the human, the TypeSafe Jev model,
   a seeded random baseline or a recorded trace. See "The player seat" below.
 - Unfinished match-mode subsystems live in `experiments/game-modes/`, outside
@@ -1635,6 +1655,48 @@ it exists to keep: **brains propose; the resolver decides.**
   record; every number is a game value and the file says so. Never present a
   Noeterra result as evidence about history.
 
+## Claim bindings (`scripts/claims/`)
+
+The claims register and the README state numbers copied from records. A binding
+rebuilds one of their sentences from the committed records, and
+`scripts/claims/claims.test.ts` fails when a document and its records disagree.
+Read "The documents' own numbers" in `docs/VALIDATION.md` first. Outside the
+folder it adds `scripts/claim-bindings.ts`, the generated `docs/claims/` (and
+its `.prettierignore` line), the `claims` scripts, a paragraph in the register's
+introduction, a sentence in README section 04 and its lines in section 07, a
+link in `docs/README.md` and the section in `docs/VALIDATION.md`. The rule it
+exists to keep: **a number in a document is the number in its record.**
+
+- **Never type a number into a binding.** The words go in the `says` template
+  as the document has them; every number is an interpolated value computed from
+  a record read through `records.ts`. A number typed into the words is only
+  quoted, and is not counted as recomputed. To change a number in a bound
+  sentence, change what the record says; there is no other place to put it.
+- **A failing binding is a finding.** Either the document no longer says what
+  its record gives, or the record moved. Correct the sentence or find out why
+  the record changed. Never quote less, round more coarsely or delete a binding
+  to make it pass, and never edit a record to match a document.
+- **Bindings read; they run nothing.** Committed files only, by repository
+  path, through `records.ts`: no network, no simulation, no store, and no write
+  anywhere but `docs/claims/`. A value from this repository's own model (the
+  twin's counts) names its modules in `model`.
+- **Bound or explained.** Every entry of the register has a binding or a line
+  in `NOT_RECOMPUTED` that says why not: its evidence is not in this tree, or
+  nobody has written the binding yet and the line names the record to start
+  from. A new entry needs one or the other, and the test fails on an
+  explanation left behind once its entry is bound.
+- **The count is a rule.** `numerals.ts` decides what a quantity is. A change
+  to it moves every denominator: say so in the commit, and never adjust the
+  rule to raise a share.
+- **`docs/claims/` is generated.** After changing a bound sentence, a binding
+  or a record a binding reads, run `bun run claims:write` and commit what it
+  writes. The README's count of what is recomputed is a binding too
+  (`bound/coverage.ts`), so a new binding changes that sentence: the failing
+  check prints the numbers it should carry.
+- **It is not verification of a claim.** It shows that a document agrees with
+  its record, not that the record is right, the experiment sound or the claim
+  true. Word it that way everywhere.
+
 ## Verifying changes
 
 ```sh
@@ -1659,7 +1721,7 @@ the audio too:
 
 ```sh
 bun run smoke                 # 22 checks; exits non-zero on failure
-bun run engagement            # 13 checks that the match actually plays
+bun run engagement            # 15 checks that the match actually plays
 bun run gait                  # 15 checks on the walk cycle
 bun run audio                 # renders each sound offline and measures it
 bun run jev                   # the player seat, places included; no API calls

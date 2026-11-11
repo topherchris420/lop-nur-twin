@@ -322,7 +322,8 @@ npm run build
   ├─ node scripts/run-ts.mjs scripts/validate-model-history.ts  # this model is its latest recorded revision
   ├─ vite build                                            # → dist/
   ├─ tsc --noEmit                                          # strict types
-  └─ node tools/jev-secret-scan.mjs dist                   # no credential in the bundle
+  ├─ node tools/jev-secret-scan.mjs dist                   # no credential in the bundle
+  └─ node tools/front-door.mjs dist                        # no route loads the WebGL renderer before it asks
 ```
 
 `scripts/run-ts.mjs` runs the TypeScript scripts under Bun natively or under

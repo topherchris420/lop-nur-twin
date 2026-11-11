@@ -21,6 +21,15 @@ of any provider credential (`TYPESAFE_API_KEY`, `FASTINO_API_KEY`,
 `LLM_API_KEY`, `RAIN_LLM_API_KEY`), anything shaped like one of their keys, or a
 configured key's value when it is present in the build environment.
 
+Last, `tools/front-door.mjs` reads the bundle it was just given and adds up what
+every route loads before it can show anything: the scripts `index.html` names
+and everything they import statically. It fails if the WebGL renderer is among
+them, or if the set outgrows its ceiling. `/analysis` and `/compare` are the
+routes that work without WebGL, and they once downloaded and compiled three.js
+all the same, because React had been grouped into its chunk: 403 kB of
+compressed script for `/analysis` where 163 kB does. The ceiling is a tripwire
+with room in it, not a target.
+
 `bun run check` composes the full quality gate:
 
 ```sh
@@ -28,7 +37,7 @@ bun run format:check   # Prettier
 bun run lint           # ESLint
 bun run test:run       # Vitest
 bun run test:evidence  # the validator's own negative tests
-bun run build          # validate (twin, Bethesda) → manifest → model history → bundle → strict typecheck → secret scan
+bun run build          # validate (twin, Bethesda) → manifest → model history → bundle → strict typecheck → secret scan → front door
 ```
 
 Nothing in that list re-runs a build operation the build already performs.
@@ -93,6 +102,32 @@ unknown uncertainty, temporal presence, canonical export determinism, malformed
 responses and RFC 7946 coordinate/ring validity. `validate:data` gates catalog
 completeness, evidence linkage, finite closed rings, live-entity exclusion and
 representative repeated-query equality.
+
+## The documents' own numbers
+
+```sh
+bun run claims        # every binding, and how much of each document it covers
+bun run claims:check  # docs/claims/ is what the bindings give
+```
+
+The [claims register](RESEARCH_CLAIMS.md) and the README state numbers that
+were copied from records, and a copied number can drift without anything
+failing. A _binding_ (`scripts/claims/`) rebuilds one of their sentences from
+the committed records: the words are quoted, and every number is computed from
+the record that holds it. `scripts/claims/claims.test.ts`, part of the unit
+suite, fails when a document stops saying what its records give. It also runs
+each binding against a copy of its document with one computed number altered
+and requires the check to notice, because a binding that cannot fail is not a
+check.
+
+[`docs/claims/`](claims/README.md) is the generated account: each sentence
+with the records it read and their SHA-256, and for each entry of the register
+how many of its quantities are recomputed and how many are still copied by
+hand. What counts as a quantity is a rule in `scripts/claims/numerals.ts`, so
+the denominators are a count and not a judgement.
+
+This holds a document to its records. It says nothing about whether a record
+is right or a claim follows from its numbers.
 
 ## Manifest reproducibility
 
@@ -215,7 +250,7 @@ answer. These drive the real subsystems and assert numbers:
 
 ```sh
 bun run smoke        # 22 checks: colliders baked, spawns clear, hits resolve
-bun run engagement   # 13 checks: the opposing force actually fights you
+bun run engagement   # 15 checks: the opposing force finds its way and fights you
 bun run gait         # 15 checks on the walk cycle
 bun run audio        # renders each sound offline and measures peak + crest
 ```

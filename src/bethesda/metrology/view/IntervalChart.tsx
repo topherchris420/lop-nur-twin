@@ -3,7 +3,25 @@
  * to matter (±δ), one row per comparison. Plain positioned HTML so it stays
  * crisp and legible at phone width; every chart comes with its table.
  */
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
+
+/**
+ * A wide table in a box that scrolls sideways and that a keyboard can reach.
+ * At phone width, or zoomed in, every table here is wider than the page; a
+ * scroll box with nothing focusable in it cannot be scrolled without a mouse
+ * (axe's `scrollable-region-focusable`). The view imports nothing outside its
+ * folder, so this is its own and not the site's `ScrollRegion`.
+ */
+export function Scrollable({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    // A focusable region is the pattern WAI-ARIA prescribes for a scroll
+    // container; the lint rule cannot see that it scrolls.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+    <div role="region" aria-label={label} tabIndex={0} className="overflow-x-auto">
+      {children}
+    </div>
+  );
+}
 
 export interface IntervalRow {
   key: string;
@@ -153,7 +171,7 @@ export function IntervalChart({
       </figcaption>
       <details className="mt-2 text-xs">
         <summary className="cursor-pointer">Table of this chart</summary>
-        <div className="overflow-x-auto">
+        <Scrollable label={`Table: ${caption}`}>
           <table className="mt-2 w-full min-w-[36rem] border-collapse text-left">
             <thead>
               <tr className="border-border border-b">
@@ -189,7 +207,7 @@ export function IntervalChart({
               ))}
             </tbody>
           </table>
-        </div>
+        </Scrollable>
       </details>
     </figure>
   );

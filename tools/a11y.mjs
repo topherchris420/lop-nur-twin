@@ -56,6 +56,9 @@ async function openArchivedRun(page) {
   await page.waitForSelector("#arms", { timeout: 15000 });
 }
 
+/** The second width every route is scanned at: a phone, or a desktop zoomed in. */
+const NARROW_VIEWPORT = { width: 390, height: 844 };
+
 /** `gate: true` means axe violations fail the run, not just get printed. */
 const ROUTES = [
   { path: "/analysis", label: "Accessible analysis table", gate: true, settle: 1500 },
@@ -234,14 +237,38 @@ for (const route of ROUTES) {
   }
 
   await page.evaluate(axeSource);
-  const results = await page.evaluate(
-    async (tags) =>
-      await globalThis.axe.run(document, {
-        runOnly: { type: "tag", values: tags },
-        resultTypes: ["violations"],
-      }),
-    AXE_TAGS,
-  );
+  const scan = () =>
+    page.evaluate(
+      async (tags) =>
+        await globalThis.axe.run(document, {
+          runOnly: { type: "tag", values: tags },
+          resultTypes: ["violations"],
+        }),
+      AXE_TAGS,
+    );
+  const results = await scan();
+  // Again at a phone's width, which is also what a desktop shows zoomed to
+  // 370%. Tables that fit at 1440 px scroll sideways here, and a scroll box no
+  // keyboard can reach is a finding the wide pass never sees: `/analysis` and
+  // `/metrology` each shipped one.
+  await page.setViewport(NARROW_VIEWPORT);
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const narrow = await scan();
+  results.violations ??= [];
+  for (const violation of narrow.violations ?? []) {
+    const wide = results.violations.find((found) => found.id === violation.id);
+    if (!wide) {
+      results.violations.push({
+        ...violation,
+        help: `${violation.help} (at ${NARROW_VIEWPORT.width} px)`,
+      });
+      continue;
+    }
+    const seen = new Set(wide.nodes.map((node) => node.target.join(" ")));
+    wide.nodes.push(
+      ...violation.nodes.filter((node) => !seen.has(node.target.join(" "))),
+    );
+  }
 
   const csp = await page.evaluate(() => globalThis.__cspViolations ?? []);
   const title = await page.title();

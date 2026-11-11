@@ -6,6 +6,12 @@ as strong as the record it links to: this page summarises those records and
 does not replace them. Numbers are copied from the linked records, except
 where an entry says it computed something itself, and then it says how.
 
+A copied number can drift from its record. Where a record is in this repository
+in a form a program can read, the entry's sentences are rebuilt from it by the
+test suite, which fails when the two disagree:
+[what is recomputed](claims/README.md) lists those sentences entry by entry,
+and counts the quantities that are still only copied.
+
 As of 2026-11-07. A result recorded later belongs in its own record first and
 here second.
 

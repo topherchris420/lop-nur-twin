@@ -33,7 +33,7 @@ function Play() {
   }, []);
 
   return (
-    <div
+    <main
       className={cn(
         "relative h-full w-full overflow-hidden bg-[#05070a] select-none",
         brain === "human" ? "cursor-none" : "cursor-auto",
@@ -93,6 +93,6 @@ function Play() {
           </Link>
         )}
       </div>
-    </div>
+    </main>
   );
 }
