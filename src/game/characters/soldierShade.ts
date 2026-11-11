@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v15";
+const CACHE_KEY = "soldier-shade-v16";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -133,7 +133,10 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
   vec3 viewN = normalize(mat3(viewMatrix) * worldN);
   float ndotv = clamp(dot(viewN, normalize(-vViewPosition)), 0.0, 1.0);
   float rim = pow(1.0 - ndotv, 3.0) * (1.0 - upN) * dielectric;
-  dusted += vec3(0.55, 0.62, 0.72) * rim * 0.38;
+  // Half sky, half the surface's own hue: a rim of pure sky colour added into
+  // the albedo greyed every grazing face of the uniform.
+  vec3 ownHue = dusted / max(soldierLuma(dusted), 1e-3) * 0.6;
+  dusted += mix(vec3(0.55, 0.62, 0.72), ownHue, 0.5) * rim * 0.38;
 
   float baseL = max(soldierLuma(diffuseColor.rgb), 1e-3);
   float dustL = max(soldierLuma(dusted), 1e-3);

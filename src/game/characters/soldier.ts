@@ -89,15 +89,20 @@ const PALETTES: Readonly<Record<Team, Palette>> = {
     glove: 0x2f2a24,
     lens: 0x1b2a33,
   },
-  // Cooler grey-green, so the two sides read apart at 60 m.
+  // Olive green, so the two sides read apart at 60 m. It was a grey-green
+  // (tones at saturation 0.16-0.22), which the warm sun and AgX's highlight
+  // desaturation turned into neutral grey: measured on the character shots,
+  // the uniform came out at saturation 0.08, below the bare lakebed's 0.12,
+  // and read as an undressed mannequin. Same value spread as before, with
+  // the chroma of olive-drab cloth.
   red: {
-    camo: [0x5b6150, 0x8b9179, 0x2e3227, 0xa8ad92],
-    gear: 0x55574a,
-    webbing: 0x6f6d59,
-    pouch: 0x3a3c32,
+    camo: [0x5e6a3e, 0x8a9461, 0x323a20, 0xa9ae80],
+    gear: 0x4f5638,
+    webbing: 0x6b6b4a,
+    pouch: 0x363b26,
     boot: 0x2c2c28,
     sole: 0x1e1e1c,
-    helmet: 0x4a4d43,
+    helmet: 0x4f5539,
     skin: 0x96745c,
     glove: 0x26261f,
     lens: 0x1b2a33,
