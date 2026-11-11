@@ -162,8 +162,10 @@ is the first increment toward gate 2, for research subjects only.
   partner's exact chemistry on another body, so profile and individual are
   dissociated), an unscented stranger, a sensory ablation (a fly that cannot
   taste) and a frozen memory. The rotated and scrambled profiles of the table
-  below are not among them. Its development seeds support H1, H2 and H4; the
-  held-out seeds have not been run. Live/live against yoked playback was Stage 2's
+  below are not among them. Its held-out seeds, run once from a clean
+  commit, support all five hypotheses by their rules, but H3's alerting gap
+  is as large with the memory frozen, so only H1, H2 and H4 (a familiarity
+  of chemistry, not of individuals) are credited. Live/live against yoked playback was Stage 2's
   test (E3, not supported) and has not been repeated in the commons.
 - **Gates 4 and 5: not started.** The ordered plan is in
   [First Contact, Stage 4](FIRST_CONTACT.md#stage-4-a-gated-plan-for-the-originals-not-implemented).
