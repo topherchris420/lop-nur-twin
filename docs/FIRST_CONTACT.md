@@ -18,13 +18,13 @@ GET), at the rate each one's own viewer uses. Every experiment ran on
 **research subjects**: new flies built from seeds, in worlds of their own,
 none of them Eva, ECHO, a copy of either, or a continuation of either.
 
-| Stage                                                                                       | Status                                                                                                                                                                                                                                                                                          |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [1. Passive observation](#stage-1-passive-observation)                                      | **Working** on both live public streams, read-only. The representation each would receive of the other is computed and recorded, delivered to neither                                                                                                                                           |
-| [2. Controlled encounters](#stage-2-controlled-encounters-between-research-subjects)        | **Working** between research subjects in separate worlds with different clocks. Each perceives and responds to the other (E1, E2 supported); contingency adds nothing measurable (E3 not supported)                                                                                             |
-| [3. Experience-dependent recognition](#stage-3-repeated-encounters-and-recognition)         | **Run, held-out seeds: no hypothesis supported.** No partner-specific response (recognition) in any of three controller arms; no change outlasting 300 s                                                                                                                                        |
-| [3b. The commons](#stage-3b-the-commons-touch-contact-chemistry-and-familiarity)            | **Run, held-out seeds: H1, H2, H4 supported; H3 passes but is not credited.** Two bodies in one world with touch and contact chemistry; a chemistry-specific familiarity appears in a novelty compartment; it does not tell a twin from the partner; its effect on behaviour is not established |
-| [4. Production integration proposal](#stage-4-a-proposal-for-the-originals-not-implemented) | **Proposal only.** Nothing implemented; each step listed needs separate authorization                                                                                                                                                                                                           |
+| Stage                                                                                       | Status                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [1. Passive observation](#stage-1-passive-observation)                                      | **Working** on both live public streams, read-only. The representation each would receive of the other is computed and recorded, delivered to neither                                                                                                                                      |
+| [2. Controlled encounters](#stage-2-controlled-encounters-between-research-subjects)        | **Working** between research subjects in separate worlds with different clocks. Each perceives and responds to the other (E1, E2 supported); contingency adds nothing measurable (E3 not supported)                                                                                        |
+| [3. Experience-dependent recognition](#stage-3-repeated-encounters-and-recognition)         | **Run, held-out seeds: no hypothesis supported.** No partner-specific response (recognition) in any of three controller arms; no change outlasting 300 s                                                                                                                                   |
+| [3b. The commons](#stage-3b-the-commons-touch-contact-chemistry-and-familiarity)            | **Run, held-out seeds: H1, H2, H4 supported; H3 passes by chance.** Two bodies in one world with touch and contact chemistry; a chemistry-specific familiarity appears in a novelty compartment; it does not tell a twin from the partner; its effect on behaviour is too small to measure |
+| [4. Production integration proposal](#stage-4-a-proposal-for-the-originals-not-implemented) | **Proposal only.** Nothing implemented; each step listed needs separate authorization                                                                                                                                                                                                      |
 
 ## Why the originals cannot simply be connected
 
@@ -435,18 +435,20 @@ What the held-out seeds add:
 - **The familiarity replicates.** At the first test contact the focal fly's
   α′3 answered its partner at 0.27, a stranger at 0.41 and the partner's
   chemistry on a stranger's body (the twin) at 0.27.
-- **H3 passes its rule, but the pass is not credited to familiarity.** The
-  focal fly stopped grooming or feeding at the first eligible onset in 14 of
-  41 stranger tests against 6 of 42 same tests. That gap (0.199) is four
-  times what the mechanism predicts (0.35 × the response difference of
-  0.148 ≈ 0.05). And the frozen-memory control, where every response is 1
-  and the memory cannot act, shows the same gap: 26 of 40 against 19 of 43,
-  0.208 [−0.006, 0.397]. Whatever produces it (something about the new
-  fly's arrival, or chance with about 40 onsets per group), it is not the α′3
-  memory. So **whether familiarity reaches behaviour is not established**.
-  The frozen rule compares intact groups only, so it could not catch this;
-  a test of it (the intact gap against the frozen gap) would be a new
-  protocol.
+- **H3 passes its rule by chance, so the pass is not credited.** The focal
+  fly stopped grooming or feeding at the first eligible onset in 14 of 41
+  stranger tests against 6 of 42 same tests, a gap of 0.199. The alerting
+  rule itself predicts about 0.05: its probability is 0.15 + 0.35 × the α′3
+  response, about 0.30 for a stranger against 0.24 for the partner (from
+  the first test contact's responses). The frozen-memory arm shows how large
+  chance alone is here: every response is 1, so both of its groups alert
+  with probability exactly 0.5, yet their samples differ by 0.208 (26 of 40
+  against 19 of 43; a gap that large arises by chance about 6% of the time).
+  The intact gap is within chance of the predicted 0.05 (1.5 sampling
+  standard deviations above it). So familiarity does reach behaviour in
+  this model, through the alerting rule, but by about 0.05 at a contact:
+  too little for the dish to measure. As the protocol predicted, resolving
+  it would take about 1,150 eligible onsets per group.
 - **Touch did not care about chemistry**: 45 of 60 walked away for both the
   unscented fly and the stranger (H5). The response was built that way, from
   Ramdya et al.'s finding, so H5 confirms the implementation in a dish where
@@ -618,9 +620,9 @@ that fails stops the plan there.
 1. **Evidence (met).** The familiarity study's held-out seeds ran once, from
    clean commit `c888f3a`, and H1 and H2 held: this gate's condition for
    proposing the social brain for ECHO (had either failed, a meeting by sight
-   and touch alone could still have gone ahead). H3's pass is not credited
-   to familiarity, so a meeting would show what the memory records, not that
-   it changes what either fly does.
+   and touch alone could still have gone ahead). H3's pass is chance and
+   the memory's effect on behaviour is about 0.05, so a meeting would mainly
+   show what the memory records.
 2. **Backups and provenance.** Before any change, a fresh, restore-tested
    backup of each original: Eva's database and plasticity sidecar on the
    garden VM, and ECHO's checkpoint chain and ledger on its VM, with their
@@ -701,11 +703,11 @@ differently.
 - **The α′3 compartment met one calibration criterion only on average**:
   seed 4's second exposure kept 0.634 of the first response against "over
   50% suppression" (the five-seed mean, 0.477, meets it).
-- **Whether familiarity reaches behaviour is not established** (Stage 3b,
-  H3): the held-out alerting gap passed its rule but is as large with the
-  memory frozen, the difference the memory can make is small (about 0.05),
-  and the moments it can act in (a contact while grooming or feeding) are
-  rare.
+- **Familiarity barely reaches behaviour** (Stage 3b, H3): it acts only
+  through the alerting probability, by about 0.05 at a contact, and only at
+  the rare contacts that find the fly grooming or feeding. H3's held-out
+  pass is chance: the frozen arm, whose groups both alert with probability
+  exactly 0.5, differed by as much.
 - **Approaches often loom** in the dish: 29% of contact onsets in the test
   found the focal fly already escaping. This is the existing giant-fiber
   pathway answering a fly-sized thing coming close in a small arena, not a

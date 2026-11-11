@@ -163,8 +163,9 @@ is the first increment toward gate 2, for research subjects only.
   dissociated), an unscented stranger, a sensory ablation (a fly that cannot
   taste) and a frozen memory. The rotated and scrambled profiles of the table
   below are not among them. Its held-out seeds, run once from a clean
-  commit, support all five hypotheses by their rules, but H3's alerting gap
-  is as large with the memory frozen, so only H1, H2 and H4 (a familiarity
+  commit, support all five hypotheses by their rules, but H3's pass is
+  within chance (the frozen arm, whose groups both alert with probability
+  exactly 0.5, differed by as much), so only H1, H2 and H4 (a familiarity
   of chemistry, not of individuals) are credited. Live/live against yoked playback was Stage 2's
   test (E3, not supported) and has not been repeated in the commons.
 - **Gates 4 and 5: not started.** The ordered plan is in
