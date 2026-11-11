@@ -31,8 +31,12 @@ simulated fly; nothing it counts is a claim about real flies or experience.
 In-memory persistence (a bounded tail of moments plus their count; the
 plasticity sidecar as an object), no HTTP server, weather fetcher, wall clock
 or `uuid4`, and a `/state` snapshot without `server_time` or the weather's
-`fetched_at` and `sun`. The plasticity port omits file writes, daily copies,
-sidecar validation and the life-binding refusals (see `plasticity.ts`).
+`fetched_at` and `sun`. The plasticity port omits file writes and daily copies
+(see `plasticity.ts`). It does read a sidecar file's contents as her extension
+does (`sidecarMemory`, the same validation and messages, keeping everything but
+the daily copies' bookkeeping), and `EvaGarden.restore` refuses what her
+restart gate refuses: a memory from another life, or one that has learned past
+her tick.
 
 ## Research seams (absent by default)
 
@@ -49,6 +53,7 @@ runs them with her patched one and writes `fixtures/`:
 python -m venv /tmp/evavenv && /tmp/evavenv/bin/pip install tzdata   # Windows has no tz database
 /tmp/evavenv/bin/python scripts/eva-parity.py vectors src/bethesda/firstContact/eva/fixtures
 /tmp/evavenv/bin/python scripts/eva-parity.py runs src/bethesda/firstContact/eva/fixtures
+/tmp/evavenv/bin/python scripts/eva-parity.py copies src/bethesda/firstContact/eva/fixtures
 npx vitest run src/bethesda/firstContact/eva/eva.test.ts
 ```
 
@@ -59,3 +64,17 @@ where active swaps). The test requires every discrete field to match at every
 step and every continuous field to be within 1e-9 at every step and at every
 checkpoint (whole state, plasticity memory, snapshot). The fixtures were
 written by Python 3.15.2 on Windows ARM64.
+
+`copy-*.json.gz` are copies of a life rather than births: a research garden
+lived by her patched service to tick 2,000 with its sidecar written to disk as
+her service writes it, then copied (database row, sidecar file, latest
+moments), given another research id and lived on for 3,000 steps. The port
+restores the same stored row and sidecar itself (`EvaGarden.restore`,
+`sidecarMemory`) and is held to the same criterion from the restore on. One copy
+is in active mode mid-swapping (624 more swaps after the copy), one in shadow
+mode before its first counted swaps. While a copy is made, the wall clock her
+extension stamps its file bookkeeping with is the simulated clock, and a
+replace Windows refuses (another process holding the new file) is retried, so
+the fixtures are the same on every run. This is the path Stage 4's twins take
+(`scripts/first-contact-twins.ts`, docs/FIRST_CONTACT.md); `eva-parity.py
+from-copy` runs it on any copy.

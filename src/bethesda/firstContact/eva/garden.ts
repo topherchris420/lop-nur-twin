@@ -356,7 +356,11 @@ export class EvaGarden {
 
   /**
    * A research garden from its own saved state (and plasticity memory), as
-   * her service reopens its database. Refuses an original's id.
+   * her service reopens its database (`World.__init__`): her learner's
+   * defaults for anything missing (`learning.initialize`), then her
+   * extension's restart gate. Throws where that gate would refuse (a memory
+   * from another life, or one that has learned past her tick), and for an
+   * original's id. `memory` from a sidecar file goes through `sidecarMemory`.
    */
   static restore(
     state: EvaState,
@@ -369,6 +373,17 @@ export class EvaGarden {
   ): EvaGarden {
     refuseNonResearch(state.life_id);
     const copy = structuredClone(state);
+    copy.body ??= { wing_integrity: 1.0, leg_integrity: 1.0, wetness: 0.0 };
+    copy.learning ??= {
+      version: 1,
+      trials: 0,
+      models: {},
+      sensory_error: 0.0,
+      last: null,
+      objects: {},
+      surprises: 0,
+    };
+    copy.version = 2;
     const mode = options.plasticity ?? "off";
     let plasticity: EvaPlasticity | null = null;
     if (mode !== "off") {
@@ -381,6 +396,12 @@ export class EvaGarden {
           options.memory.born_at !== copy.born_at
         )
           throw new Error("the plasticity memory belongs to a different life");
+        const learned = options.memory.last_tick;
+        if (learned !== null && learned > copy.ticks)
+          throw new Error(
+            `the sidecar has learned up to tick ${learned}, past her tick ${copy.ticks}: ` +
+              "was her database restored from an older backup?",
+          );
         plasticity.adopt(options.memory, copy, at);
       } else plasticity.bind(copy, at);
     }

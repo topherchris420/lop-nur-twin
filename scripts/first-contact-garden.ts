@@ -2,7 +2,7 @@
  * Exploratory: Eva-kind and ECHO-kind research subjects living together in
  * Eva's garden (`gardenEncounter.ts`). One pair per worker; each pair is
  * deterministic. Writes each pair's record (with its recorded frames) to
- * `--out` (default: a folder under the OS temp directory) and prints a summary.
+ * `--out` (default: a new folder under the OS temp directory) and prints a summary.
  * Nothing here reaches either original.
  *
  *   node --experimental-transform-types scripts/run-ts.mjs scripts/first-contact-garden.ts --pairs 4 --hours 12
@@ -10,7 +10,7 @@
  * (The exhibit's staging uses TypeScript parameter properties, which Node's
  * default type stripping does not accept; hence the flag.)
  */
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Worker } from "node:worker_threads";
@@ -25,9 +25,11 @@ const value = (name: string) => {
 const pairs = Number(value("--pairs") ?? 4);
 const first = Number(value("--first") ?? 0);
 const hours = Number(value("--hours") ?? 12);
-const out = value("--out") ?? join(tmpdir(), "first-contact-garden");
-refuseProductionHost(out, existsSync);
-mkdirSync(out, { recursive: true });
+// Without --out, a new private folder (mkdtemp), never a fixed name another user could prepare.
+const named = value("--out");
+refuseProductionHost(named ?? tmpdir(), existsSync);
+const out = named ?? mkdtempSync(join(tmpdir(), "first-contact-garden-"));
+if (named !== undefined) mkdirSync(out, { recursive: true });
 const t0 = performance.now();
 const records = await Promise.all(
   Array.from(

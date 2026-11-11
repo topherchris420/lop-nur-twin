@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Fixtures for the TypeScript port of Eva's controller (src/bethesda/firstContact/eva/).
 
-Research gardens only, as in deploy/garden/service/study.py: every life here is
-born in a temporary directory by her original service, given a research
-identity, and run by her patched service (with eva-embodied-plasticity/v1 off,
-in shadow or in active mode) in simulated time. Never Eva, never a copy of her
-database, no network. Her sources are imported unchanged; this script drives
+Research gardens only, as in deploy/garden/service/study.py: every life in
+`vectors`, `runs` and `copies` is born in a temporary directory by her original
+service, given a research identity, and run by her patched service (with
+eva-embodied-plasticity/v1 off, in shadow or in active mode) in simulated time.
+`from-copy` reads a copy of a database and sidecar someone already took (Stage
+4 of docs/FIRST_CONTACT.md: the owner's copies of hers), copies it again into a
+temporary directory and lives it on only under a research id. Never Eva, never
+her VM, no network. Her sources are imported unchanged; this script drives
 her clock, records what her code did after every step, and keeps the
 plasticity sidecar in memory (`_no_files`: a Windows file-replace fault once
 disabled her extension mid-run, which is a host fault, not her behaviour).
@@ -19,6 +22,10 @@ her whole state, the sidecar's behavioural fields and her /state snapshot.
   python scripts/eva-parity.py vectors OUT_DIR   # unit-test vectors (random, round, hypot, clock)
   python scripts/eva-parity.py runs OUT_DIR [NAME ...]
   python scripts/eva-parity.py search            # look for runs where active mode swaps
+  python scripts/eva-parity.py copies OUT_DIR    # copies of research gardens, lived on (from-copy)
+  python scripts/eva-parity.py from-copy DB SIDECAR research-ID TICKS OUT.json.gz
+                                                 # a copy of a life, lived on under a research id
+                                                 # (Stage 4 of docs/FIRST_CONTACT.md; OUT outside the repository)
 
 Needs the IANA tz database (on Windows: `pip install tzdata` in a venv).
 """
@@ -34,10 +41,13 @@ import os
 import platform
 import random
 import shutil
+import sqlite3
 import sys
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 HERE = ROOT / "deploy" / "garden" / "service"
@@ -102,6 +112,17 @@ RUNS = [
 TICKS = 20000
 CHECKPOINT_EVERY = 500
 
+# Copies of research gardens (never Eva), the path Stage 4's twins take: a run
+# lived by her patched service to tick `at` with its sidecar written to disk as
+# her service writes it, then copied, given another research id and lived on
+# for `ticks` steps by `from_copy`.
+COPIES = [
+    # Copied mid-swapping (669 of the run's 1293 swaps made), so the restored memory goes on deciding.
+    {"name": "copy-weak-active", "run": "weak-active", "at": 2000, "ticks": 3000},
+    # Copied just before shadow mode's first counted swaps (tick 2000 of 7 by tick 2500).
+    {"name": "copy-weak-shadow", "run": "weak-shadow", "at": 2000, "ticks": 3000},
+]
+
 
 def _no_files(path, text):
     """Her sidecar write (eva_plasticity._atomic), kept in memory for fixtures.
@@ -111,6 +132,53 @@ def _no_files(path, text):
     designed to). That is a host fault, not her behaviour, and the TypeScript
     port has no files; the sidecar's contents never change what she does.
     """
+
+
+_her_atomic = eva_plasticity._atomic
+
+
+def _her_atomic_retried(path, text):
+    """Her `_atomic`, retried when Windows refuses the replace (another process, such as a
+    virus scanner, briefly holding the file just written: the host fault `_no_files` describes).
+    The bytes written are hers, unchanged; a fault that persists still reaches her extension."""
+    for attempt in range(40):
+        try:
+            return _her_atomic(path, text)
+        except PermissionError:
+            if attempt == 39:
+                raise
+            time.sleep(0.05)
+
+
+def lived(run: dict, directory: Path, at: int) -> tuple:
+    """A research garden lived by her patched service to tick `at`: its database and sidecar, on disk.
+
+    Her extension writes the sidecar with its own `_atomic`. The wall clock it
+    stamps its file bookkeeping with (`created_at`, `mode_history[].at`, the
+    daily copies' slot) is the simulated clock here, so the copy is the same on
+    every run; none of those values changes what she does.
+    """
+    if run.get("outage") or run.get("weather") or run["plasticity"] not in ("shadow", "active"):
+        raise SystemExit(f"{run['name']}: a copy is made of a plain shadow or active run")
+    db = birth(directory, run)
+    sidecar = directory / ("eva" + eva_plasticity.SIDECAR_SUFFIX)
+    clock = [run["born"]]
+    wall = eva_plasticity.time
+    eva_plasticity._atomic = _her_atomic_retried
+    eva_plasticity.time = SimpleNamespace(time=lambda: clock[0])
+    try:
+        p = eva_plasticity.Plasticity(run["plasticity"], sidecar, db)
+        world = make(patched, db, run["born"], p)
+        while world.state["ticks"] < at:
+            clock[0] += 5
+            world.advance(clock[0])
+        if p.state is None:
+            raise SystemExit(f"{run['name']}: her plasticity extension stopped: {p.problem}")
+        world.close()
+    finally:
+        eva_plasticity._atomic = _no_files
+        eva_plasticity.time = wall
+    return db, sidecar
 
 
 def refuse_production_host():
@@ -274,11 +342,12 @@ def drive(run: dict, record) -> tuple:
         shutil.rmtree(directory, ignore_errors=True)
 
 
-def run_fixture(run: dict) -> dict:
+def _recorder(start_tick: int = 0, seen_start: int = 0):
+    """What `run_fixture` records after each of her steps (a birth starts at tick 0, no moments)."""
     steps, checkpoints = [], []
     prev = {}
     prev_needs = [None]
-    seen = [0]
+    seen = [seen_start]
 
     def record(world, p, what):
         cur = json.loads(json.dumps(flat(world, p)))
@@ -296,7 +365,7 @@ def run_fixture(run: dict) -> dict:
                 entry["n"] = dn
             if rows:
                 entry["nm"] = [list(r) for r in rows]
-            if tick != len(steps) + 1:
+            if tick != start_tick + len(steps) + 1:
                 raise SystemExit(f"tick {tick} is not step {len(steps) + 1}")
             steps.append(entry)
         prev.clear()
@@ -310,6 +379,11 @@ def run_fixture(run: dict) -> dict:
                                 "moments": seen[0], "flat": cur, "needs": now_needs,
                                 **({"born_moments": [list(r) for r in rows]} if what == "born" else {})})
 
+    return record, steps, checkpoints
+
+
+def run_fixture(run: dict) -> dict:
+    record, steps, checkpoints = _recorder()
     ticks, mem = drive(run, record)
     return {"schema": "eva-parity/v1",
             "run": {**run, "ticks": run.get("ticks", TICKS), "life_id": f"research-eva-parity-{run['seed']}",
@@ -317,6 +391,89 @@ def run_fixture(run: dict) -> dict:
             "python": {"version": platform.python_version(), "implementation": platform.python_implementation(),
                        "platform": f"{platform.system()} {platform.machine()}"},
             "summary": {"ticks": ticks, "plasticity": mem and {k: mem[k] for k in (
+                "samples", "discarded", "duplicates", "overrides", "would_override")}},
+            "steps": steps, "checkpoints": checkpoints}
+
+
+def from_copy(db_src: Path, sidecar_src: Path, life_id: str, ticks: int) -> dict:
+    """A copy of a life, renamed to a research id and lived on by her patched service, recorded as `run_fixture`.
+
+    The copy (a snapshot of a database and the plasticity sidecar read just
+    before it) is copied again into a temporary directory and given the
+    research id there; the copies passed in are only read. Her service then
+    lives it on exactly as `drive` lives a born garden: `advance` every five
+    seconds from the copy's last step, no weather fetched, no network. The
+    fixture names the parent (its id, birth, tick and the copies' SHA-256) and
+    holds the stored row and sidecar, so the port can restore the same copy
+    itself and be compared step for step (`parity.ts`). The run is a check of
+    the port, not anyone's life: Stage 4 makes a twin separately
+    (`scripts/first-contact-twins.ts`).
+    """
+    if not life_id.startswith("research-"):
+        raise SystemExit("a twin's id starts with research-")
+    directory = Path(tempfile.mkdtemp(prefix="eva-twin-"))
+    try:
+        db = directory / "twin.sqlite3"
+        shutil.copyfile(db_src, db)
+        con = sqlite3.connect(str(db))
+        state = json.loads(con.execute("SELECT value FROM world WHERE id=1").fetchone()[0])
+        parent = {"life_id": state["life_id"], "born_at": state["born_at"], "ticks": state["ticks"],
+                  "updated_at": state["updated_at"],
+                  "database_sha256": hashlib.sha256(Path(db_src).read_bytes()).hexdigest(),
+                  "sidecar_sha256": hashlib.sha256(Path(sidecar_src).read_bytes()).hexdigest()}
+        state["life_id"] = life_id
+        stored_state = json.loads(json.dumps(state))
+        con.execute("UPDATE world SET value=? WHERE id=1", (json.dumps(state, separators=(",", ":")),))
+        count, last_id = con.execute("SELECT COUNT(*), MAX(id) FROM moments").fetchone()
+        if count != last_id:
+            raise SystemExit(f"her moments are numbered with gaps ({count} of them, last id {last_id})")
+        kept = [list(r) for r in con.execute(
+            "SELECT id, at, words FROM moments ORDER BY id DESC LIMIT 1000").fetchall()[::-1]]
+        con.commit()
+        con.close()
+        side = json.loads(Path(sidecar_src).read_text(encoding="utf-8"))
+        if side["life_id"] != parent["life_id"] or side["born_at"] != parent["born_at"]:
+            raise SystemExit("the sidecar belongs to a different life")
+        mode = side["mode"]
+        side["life_id"] = life_id
+        sidecar = directory / ("eva" + eva_plasticity.SIDECAR_SUFFIX)
+        sidecar.write_text(json.dumps(side, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n",
+                           encoding="utf-8", newline="\n")
+
+        start, tick0 = state["updated_at"], state["ticks"]
+        record, steps, checkpoints = _recorder(tick0, last_id)
+        p = eva_plasticity.Plasticity(mode, sidecar, db)
+        world = make(patched, db, start, p)
+        if p.state is None:
+            raise SystemExit(f"her extension refused the copy: {p.problem}")
+        record(world, p, "born")
+        cls_step = type(world)._step
+
+        def step(now, dt):
+            cls_step(world, now, dt)
+            record(world, p, "step")
+
+        world._step = step  # observe after each of her steps; her code is unchanged
+        t = start
+        while world.state["ticks"] < tick0 + ticks:
+            t += 5
+            world.advance(t)
+        record(world, p, "end")
+        if p.state is None:
+            raise SystemExit(f"her plasticity extension stopped: {p.problem}")
+        mem = memory(p)
+        world.close()
+    finally:
+        shutil.rmtree(directory, ignore_errors=True)
+    return {"schema": "eva-parity/v1",
+            "run": {"name": f"copy-{tick0}", "seed": None, "seed_string": state["seed"], "life_id": life_id,
+                    "born": start, "plasticity": mode, "ticks": ticks, "checkpoint_every": CHECKPOINT_EVERY,
+                    "from_copy": {"start_tick": tick0, "stored_state": stored_state, "stored_sidecar": side,
+                                  "kept_moments": kept}},
+            "parent": parent,
+            "python": {"version": platform.python_version(), "implementation": platform.python_implementation(),
+                       "platform": f"{platform.system()} {platform.machine()}"},
+            "summary": {"ticks": world.state["ticks"], "plasticity": mem and {k: mem[k] for k in (
                 "samples", "discarded", "duplicates", "overrides", "would_override")}},
             "steps": steps, "checkpoints": checkpoints}
 
@@ -467,6 +624,25 @@ def main(argv):
             print(run["name"], json.dumps(fixture["summary"]), flush=True)
     elif mode == "search":
         search()
+    elif mode == "copies":
+        out = Path(argv[1])
+        out.mkdir(parents=True, exist_ok=True)
+        for c in COPIES:
+            run = next(r for r in RUNS if r["name"] == c["run"])
+            directory = Path(tempfile.mkdtemp(prefix="eva-copy-"))
+            try:
+                db, sidecar = lived(run, directory, c["at"])
+                fixture = from_copy(db, sidecar, f"research-eva-copy-{run['seed']}", c["ticks"])
+            finally:
+                shutil.rmtree(directory, ignore_errors=True)
+            write_gz(out / f"{c['name']}.json.gz", fixture)
+            print(c["name"], json.dumps(fixture["summary"]), flush=True)
+    elif mode == "from-copy" and len(argv) == 6:
+        db, sidecar, life_id, ticks, out = Path(argv[1]), Path(argv[2]), argv[3], int(argv[4]), Path(argv[5])
+        fixture = from_copy(db, sidecar, life_id, ticks)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        write_gz(out, fixture)
+        print(json.dumps({"parent": fixture["parent"], "summary": fixture["summary"]}), flush=True)
     else:
         raise SystemExit(__doc__)
 

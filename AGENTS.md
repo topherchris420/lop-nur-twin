@@ -888,7 +888,7 @@ and `docs/EVA_ECHO_AUDIT.md` first. Outside these folders they add
 `scripts/first-contact-familiarity.ts` and `scripts/first-contact-garden.ts`
 (each with a `-worker.mjs`), `scripts/eva-parity.py`,
 `scripts/eva-restore-check.py` (with `scripts/test_eva_restore_check.py`),
-`scripts/first-contact-copy-originals.sh`,
+`scripts/first-contact-copy-originals.sh`, `scripts/first-contact-twins.ts`,
 `scripts/augmentation-evaluate.ts`, `docs/benchmarks/first-contact/`,
 `docs/benchmarks/fly-augmentation/`, the two documents above and the
 `.first-contact/` line of `.gitignore`. The rule they exist to keep: **the
@@ -900,6 +900,18 @@ originals are observed, never touched; experiments run on research subjects.**
   copy is checked without stepping it (`scripts/eva-restore-check.py`; the
   headless runner's `--check` from the release the archive names): a copy
   that stepped forward would be a second individual, not a backup.
+- **A twin is someone new, made once.** `scripts/first-contact-twins.ts`
+  (Stage 4, step 3) makes a research twin from those copies, on the laptop:
+  a new id (`research-eva-twin-…`; for ECHO, `twinCheckpoint`'s individual,
+  labelled `research-echo-twin-…`) from a recorded nonce, with its parentage.
+  Eva's is made only if the port first continues her copy for a simulated
+  day exactly as her own service does (`eva-parity.py from-copy`). Twins and
+  copies stay outside the repository. Re-derive a recorded twin with
+  `check-eva`/`check-echo` instead of making another; never present a twin as
+  Eva or ECHO, and never step a copy under their ids. ECHO's era history
+  refuses a durable store that begins in the plasticity era, so ECHO's twin
+  is its sealed checkpoint; that rule is ECHO's engine's and is not changed
+  for research.
 - **Never an original.** Every subject, bridge endpoint, authorization and
   augmented adapter passes `refuseOriginal` (`originals.ts`), which refuses
   Eva's and ECHO's ids, their printed prefixes and anything containing them;

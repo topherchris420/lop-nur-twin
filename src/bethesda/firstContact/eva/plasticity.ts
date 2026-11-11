@@ -8,11 +8,13 @@
  * records in `mode_history` (`restart`). It never draws from her random
  * stream and never writes into her state.
  *
+ * Reading a sidecar file's contents (`check`) is `sidecarMemory`; the refusal
+ * to bind a sidecar from another life or one ahead of her tick is in
+ * `EvaGarden.restore`, which throws where her extension would refuse.
+ *
  * Omitted, because this port has no files: the sidecar's atomic writes and
- * daily rolling copies (`save`, `_atomic`, `snapshots`, `saved_at`), reading
- * and validating a sidecar (`check`), the refusal to bind a sidecar from
- * another life or one ahead of her tick, the sidecar path rules and
- * `from_environment`. Wall-clock times Python takes from `time.time()`
+ * daily rolling copies (`save`, `_atomic`, `snapshots`, `saved_at`), the
+ * sidecar path rules and `from_environment`. Wall-clock times Python takes from `time.time()`
  * (`created_at`, `mode_history[].at`) are the simulated time the caller
  * passes. Any exception inside a hook disables the extension, as in Python,
  * and she carries on as her original service would.
@@ -125,6 +127,55 @@ export function bounds(stat: Stat | undefined): [number, number, number] | null 
 
 const finite = (...values: unknown[]) =>
   values.every((v) => typeof v === "number" && Number.isFinite(v));
+
+const isCount = (v: unknown) => typeof v === "number" && Number.isInteger(v) && v >= 0;
+
+/**
+ * A sidecar file's contents as her extension reads them (`check` in
+ * eva_plasticity.py, the same rules and messages), kept as this port's memory:
+ * everything but `snapshots`, the bookkeeping of its daily file copies, which
+ * never changes what she does. Throws for anything `check` refuses.
+ */
+export function sidecarMemory(value: unknown): PlasticityMemory {
+  const v = value as Record<string, unknown> | null;
+  if (typeof v !== "object" || v === null || Array.isArray(v) || v.schema !== VERSION)
+    throw new Error("not an eva-embodied-plasticity/v1 sidecar");
+  if (typeof v.life_id !== "string" || !v.life_id)
+    throw new Error("sidecar has no life ID");
+  if (!finite(v.born_at)) throw new Error("sidecar has no birth time");
+  if (v.last_tick !== null && v.last_tick !== undefined && !isCount(v.last_tick))
+    throw new Error("sidecar tick is not a count");
+  if (v.mode !== "shadow" && v.mode !== "active")
+    throw new Error("sidecar mode is unknown");
+  const stats = v.stats as Record<string, unknown> | null;
+  if (typeof stats !== "object" || stats === null || Array.isArray(stats))
+    throw new Error("sidecar has no estimates");
+  for (const [key, raw] of Object.entries(stats)) {
+    const slash = key.indexOf("/");
+    const motion = slash < 0 ? key : key.slice(0, slash);
+    const condition = slash < 0 ? "" : key.slice(slash + 1);
+    if (!(MOTIONS as readonly string[]).includes(motion) || !condition)
+      throw new Error(`sidecar estimate '${key}' is not motion/condition`);
+    const stat = raw as Record<string, unknown> | null;
+    if (typeof stat !== "object" || stat === null || !finite(stat.n, stat.mean, stat.m2))
+      throw new Error(`sidecar estimate '${key}' is malformed`);
+    const { n, m2 } = stat as unknown as Stat;
+    if (n < 0 || n > PARAMS.count_cap || m2 < 0)
+      throw new Error(`sidecar estimate '${key}' is out of bounds`);
+  }
+  for (const name of [
+    "samples",
+    "discarded",
+    "duplicates",
+    "overrides",
+    "would_override",
+  ])
+    if (!isCount(v[name])) throw new Error(`sidecar ${name} is not a count`);
+  if (!Array.isArray(v.mode_history) || !Array.isArray(v.recent))
+    throw new Error("sidecar history is malformed");
+  const { snapshots: _files, ...memory } = structuredClone(v);
+  return memory as unknown as PlasticityMemory;
+}
 
 export interface PlasticityStatus {
   version: string;

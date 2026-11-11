@@ -24,7 +24,7 @@ none of them Eva, ECHO, a copy of either, or a continuation of either.
 | [2. Controlled encounters](#stage-2-controlled-encounters-between-research-subjects)          | **Working** between research subjects in separate worlds with different clocks. Each perceives and responds to the other (E1, E2 supported); contingency adds nothing measurable (E3 not supported)                                                                                        |
 | [3. Experience-dependent recognition](#stage-3-repeated-encounters-and-recognition)           | **Run, held-out seeds: no hypothesis supported.** No partner-specific response (recognition) in any of three controller arms; no change outlasting 300 s                                                                                                                                   |
 | [3b. The commons](#stage-3b-the-commons-touch-contact-chemistry-and-familiarity)              | **Run, held-out seeds: H1, H2, H4 supported; H3 passes by chance.** Two bodies in one world with touch and contact chemistry; a chemistry-specific familiarity appears in a novelty compartment; it does not tell a twin from the partner; its effect on behaviour is too small to measure |
-| [4. The originals: a gated plan](#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken) | **Steps 1 and 2 taken.** The evidence step, and a restore-checked copy of each original (neither changed); each later step needs separate authorization                                                                                                                                    |
+| [4. The originals: a gated plan](#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken) | **Steps 1 and 2 taken; step 3 built, not run.** The evidence step, a restore-checked copy of each original (neither changed), and the tools that make a twin of each from those copies; each later step needs separate authorization                                                       |
 
 ## Why the originals cannot simply be connected
 
@@ -659,11 +659,34 @@ that fails stops the plan there.
    been copied off her VM, because `deploy/garden/deploy.mjs backup` copies
    only her database; that script copies it.
 
-3. **Twins.** ECHO: `twinCheckpoint` starts a new individual from its latest
-   checkpoint, with its parentage recorded. Eva: an owner-run, read-only
-   export of her state, restored into the port (`EvaGarden.restore`) under a
-   `research-` id. Before the twin is used, the port must first be shown to
-   continue her exported state for a day as her service does.
+3. **Twins (built; not yet made).** To be made once, from a clean commit,
+   from step 2's copies on the owner's laptop by
+   `scripts/first-contact-twins.ts`. Neither VM is touched, and neither copy
+   is ever stepped as Eva or as ECHO. A twin is someone new: it shares its
+   parent's past up to the copy and nothing after it.
+   - **Eva, after a parity gate.** Her own Python service first lives a copy
+     of her life, renamed `research-eva-copy-parity`, for one simulated day
+     (`scripts/eva-parity.py from-copy`: her database row and sidecar as
+     stored, `advance` every 5 s, no weather fetched, no network). The port
+     restores the same stored row and sidecar itself (`EvaGarden.restore`,
+     `sidecarMemory`, which read them as her service and her extension's
+     restart gate do) and must match at every step: discrete fields exactly,
+     continuous ones within 1e-9, and her whole state, plasticity memory and
+     `/state` snapshot every 500 steps. Only then is her twin made: the port's
+     restore of that stored state at her tick, under a new
+     `research-eva-twin-…` id derived from a nonce, with its parentage. CI
+     runs the same path on two research-garden copies
+     (`src/bethesda/firstContact/eva/fixtures/copy-*.json.gz`, one in active
+     mode mid-swapping, one in shadow mode), with controls showing that a
+     changed byte of the stored row or sidecar is caught at the restore.
+   - **ECHO.** `twinCheckpoint` on its copied head: a new individual whose
+     birth seals ECHO's id, sequence and digest. Restoring the twin proves it
+     holds ECHO's state at that tick; its checkpoints cannot continue ECHO's
+     chain, and its own chain continues from it. ECHO's era history refuses a
+     durable store that begins in the plasticity era ("plasticity continuation
+     is never a new birth", `plasticOrganism.ts`). That protects ECHO's
+     lineage and is left as it is, so ECHO's twin is kept as its sealed
+     checkpoint, not as a `LifeStore`.
 4. **Rehearsal: the twins meet in her garden.** Her body exists only as her
    garden's exhibit poses it, so her garden is where they can meet, with
    ECHO's twin as a visitor at true scale. The visit's start, length and
@@ -696,7 +719,8 @@ that fails stops the plan there.
    published.
 
 Steps 1 and 2 have been taken; step 2 copied both originals and changed
-neither. Nothing in this repository can take the rest: the
+neither. Step 3's tools are built and tested on research-garden copies; the
+twins themselves are not yet made. Nothing in this repository can take the rest: the
 originals' processes, databases and memories are reachable only by the owner.
 
 ## Reproducing everything
