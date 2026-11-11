@@ -77,6 +77,40 @@ export function chamferedBox(
   });
   geometry.translate(0, 0, -(d - chamfer * 2) / 2 - chamfer);
   geometry.computeVertexNormals();
+  return withWearFrame(geometry, w / 2, h / 2, d / 2);
+}
+
+/**
+ * The attributes edge wear reads (`WEAR_LOCAL`, `WEAR_HALF`): each vertex's
+ * position in its own part's frame, and that part's half-size. From the two
+ * the shader knows exactly how far a pixel is from the nearest edge of the
+ * part, across a whole face and not only on the 0.6 mm chamfer, which is
+ * about a pixel at arm's length. A baked curvature map does the same job for
+ * a modelled asset; there are no baked maps here. Placing a part moves its
+ * positions and leaves these alone, which is the point: they stay in the
+ * part's frame.
+ */
+export const WEAR_LOCAL = "wearLocal";
+export const WEAR_HALF = "wearHalf";
+
+function withWearFrame(
+  geometry: THREE.BufferGeometry,
+  hx: number,
+  hy: number,
+  hz: number,
+): THREE.BufferGeometry {
+  const position = geometry.getAttribute("position");
+  const half = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i += 1) {
+    half[i * 3] = hx;
+    half[i * 3 + 1] = hy;
+    half[i * 3 + 2] = hz;
+  }
+  geometry.setAttribute(
+    WEAR_LOCAL,
+    new THREE.BufferAttribute(Float32Array.from(position.array as ArrayLike<number>), 3),
+  );
+  geometry.setAttribute(WEAR_HALF, new THREE.BufferAttribute(half, 3));
   return geometry;
 }
 
@@ -406,7 +440,10 @@ export function curvedMagazineOffset(drop: number, curveRadius: number): number 
  * of those mismatches. Normalising once, here, is what keeps every call site
  * free to use whichever primitive fits the part.
  */
-export function normalizeForMerge(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+export function normalizeForMerge(
+  geometry: THREE.BufferGeometry,
+  options: { keepWearFrame?: boolean } = {},
+): THREE.BufferGeometry {
   let result = geometry;
   if (result.getIndex()) {
     const expanded = result.toNonIndexed();
@@ -418,10 +455,24 @@ export function normalizeForMerge(geometry: THREE.BufferGeometry): THREE.BufferG
     const count = result.getAttribute("position").count;
     result.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(count * 2), 2));
   }
-  for (const name of Object.keys(result.attributes)) {
-    if (name !== "position" && name !== "normal" && name !== "uv") {
-      result.deleteAttribute(name);
+  const kept = new Set(["position", "normal", "uv"]);
+  if (options.keepWearFrame) {
+    // Every part of a merge needs the same attributes. A part with no box
+    // frame (a tube, a rail, a cast profile) gets a half-size of zero, which
+    // the wear shader reads as "no edges here".
+    const count = result.getAttribute("position").count;
+    for (const name of [WEAR_LOCAL, WEAR_HALF]) {
+      kept.add(name);
+      if (!result.getAttribute(name)) {
+        result.setAttribute(
+          name,
+          new THREE.BufferAttribute(new Float32Array(count * 3), 3),
+        );
+      }
     }
+  }
+  for (const name of Object.keys(result.attributes)) {
+    if (!kept.has(name)) result.deleteAttribute(name);
   }
   return result;
 }
@@ -429,7 +480,9 @@ export function normalizeForMerge(geometry: THREE.BufferGeometry): THREE.BufferG
 /** Merge a list of geometries and dispose the sources. */
 export function mergeAndDispose(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   if (parts.length === 0) return new THREE.BufferGeometry();
-  const normalized = parts.map(normalizeForMerge);
+  const normalized = parts.map((part) =>
+    normalizeForMerge(part, { keepWearFrame: true }),
+  );
   if (normalized.length === 1) return normalized[0]!;
   const merged = mergeGeometries(normalized, false);
   if (!merged) {
@@ -501,6 +554,39 @@ export function sideSlab(
   geometry.translate(0, 0, -(width - b * 2) / 2);
   geometry.rotateY(Math.PI / 2);
   geometry.computeVertexNormals();
+  return withSlabWearFrame(geometry, width / 2);
+}
+
+/**
+ * The wear frame of a side slab. On the perimeter (the receiver's top, its
+ * bottom, the edges of a stock) and on the bevels, the nearest edge is one of
+ * the two side edges, `halfWidth - |x|` away; the frame says so by putting the
+ * vertex on a face in y and nowhere near one in z. The flat sides would need
+ * the distance to the profile's outline, which only the shape knows, so they
+ * get a frame too large to have edges and are left as they are.
+ */
+function withSlabWearFrame(
+  geometry: THREE.BufferGeometry,
+  halfWidth: number,
+): THREE.BufferGeometry {
+  const position = geometry.getAttribute("position");
+  const normal = geometry.getAttribute("normal");
+  const local = new Float32Array(position.count * 3);
+  const half = new Float32Array(position.count * 3);
+  const far = 1;
+  for (let i = 0; i < position.count; i += 1) {
+    if (Math.abs(normal.getX(i)) > 0.9) {
+      half.fill(far, i * 3, i * 3 + 3);
+      continue;
+    }
+    local[i * 3] = position.getX(i);
+    local[i * 3 + 1] = halfWidth;
+    half[i * 3] = halfWidth;
+    half[i * 3 + 1] = halfWidth;
+    half[i * 3 + 2] = far;
+  }
+  geometry.setAttribute(WEAR_LOCAL, new THREE.BufferAttribute(local, 3));
+  geometry.setAttribute(WEAR_HALF, new THREE.BufferAttribute(half, 3));
   return geometry;
 }
 
