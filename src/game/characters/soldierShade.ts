@@ -17,7 +17,7 @@ import * as THREE from "three";
 /** Pale Lop Nur dust, the same family as the terrain playa highlight. */
 const LAKEBED = new THREE.Color(0xcabc98);
 
-const CACHE_KEY = "soldier-shade-v16";
+const CACHE_KEY = "soldier-shade-v17";
 
 const VERTEX_COMMON = /* glsl */ `
 attribute vec2 pbr;
@@ -156,19 +156,6 @@ float metalnessFactor = clamp(vSoldierPbr.y, 0.0, 1.0);
 }
 `;
 
-const EYE_LIGHT = /* glsl */ `
-{
-  vec2 eL = vSoldierPos.xy - vec2(-0.036, 1.633);
-  vec2 eR = vSoldierPos.xy - vec2(0.036, 1.633);
-  float eye = max(
-    1.0 - smoothstep(0.005, 0.016, length(eL)),
-    1.0 - smoothstep(0.005, 0.016, length(eR))
-  );
-  eye *= 1.0 - smoothstep(-0.12, -0.05, vSoldierPos.z);
-  totalEmissiveRadiance += vec3(0.45, 0.4, 0.34) * eye * 0.35;
-}
-`;
-
 function replaceChunk(
   source: string,
   needle: string,
@@ -216,12 +203,6 @@ export function applySoldierShade(
       "#include <metalnessmap_fragment>",
       METALNESS_AND_SHADE,
       "metalnessmap_fragment",
-    );
-    shader.fragmentShader = replaceChunk(
-      shader.fragmentShader,
-      "#include <emissivemap_fragment>",
-      `#include <emissivemap_fragment>\n${EYE_LIGHT}`,
-      "emissivemap_fragment",
     );
   };
   // The chunk does not vary per team; colours and pbr live in the geometry.
