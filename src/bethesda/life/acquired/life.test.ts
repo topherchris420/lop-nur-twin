@@ -122,5 +122,6 @@ describe("the same individual, with acquired search", () => {
     expect(compared).toBeGreaterThanOrEqual(300);
     // What it has by then is real evidence that the layer has been counting.
     expect(search.state.timeIn.some((v) => v > 0)).toBe(true);
-  }, 300_000);
+    // 170–310 s on CI runners, depending on the runner and its load.
+  }, 600_000);
 });
