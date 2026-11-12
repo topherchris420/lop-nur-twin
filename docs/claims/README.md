@@ -19,7 +19,7 @@ wrong, and nothing checks them.
 | Document | Quantities stated | Recomputed from records | Share |
 | :-- | --: | --: | --: |
 | [Claims register](../../docs/RESEARCH_CLAIMS.md) | 352 | 246 | 70% |
-| [README](../../README.md) | 33 | 22 | 67% |
+| [README](../../README.md) | 35 | 22 | 63% |
 
 92 sentences, 84 record files. A quantity is a number written in
 digits in a document's prose ([what counts](#what-counts-as-a-quantity)). It is
@@ -70,13 +70,14 @@ Entries with nothing recomputed, and why:
 
 | Section | Quantities | Recomputed | Share |
 | :-- | --: | --: | --: |
+| [02. The operating systems](../../README.md#02-the-operating-systems) | 1 | 0 | 0% |
 | [03. A machine must be able to verify the history](../../README.md#03-a-machine-must-be-able-to-verify-the-history) | 9 | 5 | 56% |
 | [04. The test results, including the ones that did not work](../../README.md#04-the-test-results-including-the-ones-that-did-not-work) | 17 | 15 | 88% |
 | [05. The brain boundary](../../README.md#05-the-brain-boundary) | 2 | 2 | 100% |
-| [07. Reproduce the work](../../README.md#07-reproduce-the-work) | 3 | 0 | 0% |
+| [07. Reproduce the work](../../README.md#07-reproduce-the-work) | 4 | 0 | 0% |
 | [09. The rest of the laboratory](../../README.md#09-the-rest-of-the-laboratory) | 1 | 0 | 0% |
 | [10. License and research use](../../README.md#10-license-and-research-use) | 1 | 0 | 0% |
-| **All** | **33** | **22** | **67%** |
+| **All** | **35** | **22** | **63%** |
 
 ## The recomputed sentences
 
@@ -245,7 +246,7 @@ changes that digest, so evidence cannot move under a claim unseen.
 - then asked it again on <b>40</b> new research subjects in nine conditions: <b>inconclusive</b><br><sub>`readme.04.metrology-prose` · [`docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json`](../../docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json) · evidence `155d6f3b8132`</sub>
 - | Memory with continuously moving food | Negative: <b>1.2</b> fewer meals per life |<br><sub>`readme.04.memory` · [`docs/benchmarks/fly-individuality/report.json`](../../docs/benchmarks/fly-individuality/report.json) · evidence `8843200a9fa1`</sub>
 - | FlyWire FAFB v783 reproduction | <b>10</b> / <b>12</b> registered criteria met |<br><sub>`readme.04.connectome` · 2 records in [`docs/benchmarks/fly-neural/`](../../docs/benchmarks/fly-neural/) · evidence `65a3e8af5169`</sub>
-- **<b>246</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 84 records in 27 folders under `/`, with `scripts/claims/check.ts` · evidence `92fdcf9cdc10`</sub>
+- **<b>246</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 84 records in 27 folders under `/`, with `scripts/claims/check.ts` · evidence `524e8e0c5afb`</sub>
 
 #### 05. The brain boundary
 

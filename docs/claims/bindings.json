@@ -168,7 +168,7 @@
     },
     {
       "path": "README.md",
-      "quantities": 33,
+      "quantities": 35,
       "recomputed": 22,
       "sections": [
         {
@@ -180,7 +180,7 @@
         {
           "section": "02",
           "title": "The operating systems",
-          "quantities": 0,
+          "quantities": 1,
           "recomputed": 0
         },
         {
@@ -210,7 +210,7 @@
         {
           "section": "07",
           "title": "Reproduce the work",
-          "quantities": 3,
+          "quantities": 4,
           "recomputed": 0
         },
         {
@@ -2195,7 +2195,7 @@
         "352"
       ],
       "model": "scripts/claims/check.ts",
-      "evidence_sha256": "92fdcf9cdc10272638e6406e593b46c561c589fe73301900c49af906e53f0f3a",
+      "evidence_sha256": "524e8e0c5afbfee3ac7589ffce8ad7cb7dddc8466f3f3331b2f14e8c4f674408",
       "records": [
         "README.md",
         "docs/ECHO_COLLISION.md",
@@ -2285,7 +2285,7 @@
     }
   ],
   "records": {
-    "README.md": "06e94f3a058cd89de947ec39cce11e2c78193db18cd5ee861d4227d2eaf53b9b",
+    "README.md": "9dccb4f93996e98ff9f1cc22989203d537a0faef0a64d3a8bc41af930e267338",
     "docs/ECHO_COLLISION.md": "8b7f74f11e56442915e750e175e2ca0938572a1f4e9445b4318ea5dd0ac6a264",
     "docs/RESEARCH_CLAIMS.md": "2c6907e050d136ac576d03d5e9b8a21a757dc614b7b4b4729cc9a787c263753f",
     "docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json": "c54f261d0b382e7ad388f790fab6d40b5976fca48696011338a2db4ec6f6fc40",

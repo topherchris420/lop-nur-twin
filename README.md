@@ -2,9 +2,11 @@
 
 # LOP NUR TWIN
 
-### R.A.I.N. LAB · VERS3DYNAMICS
+**An open laboratory for persistent digital life.**
 
-**Persistent simulated individuals. Verifiable histories. Experiments that can fail.**
+R.A.I.N. LAB · VERS3DYNAMICS
+
+Two flies with separate histories. Worlds they can act in. Experiments another machine can check.
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -13,34 +15,39 @@
 
 <sub>ECHO on <a href="https://lop-nur-twin.vercel.app/live"><code>/live</code></a>, recorded 10 November 2026 from 02:16 UTC. Three minutes of its life, played at about 15× speed: a walk, a rest, a grooming bout, a flight and a landing, each logged with the reason its controller gave. The last frame catches a checkpoint being committed. The animation is not proof of biological life.</sub>
 
-**[Observe ECHO](https://lop-nur-twin.vercel.app/live)** · **[Visit Eva's garden](https://150-136-49-49.sslip.io/)** · **[Open the twin](https://lop-nur-twin.vercel.app/)** · **[Inspect claims](docs/RESEARCH_CLAIMS.md)** · **[Reproduce](#07-reproduce-the-work)**
+**[Observe ECHO](https://lop-nur-twin.vercel.app/live)** · **[Visit Eva's garden](https://150-136-49-49.sslip.io/)** · **[Explore the twin](https://lop-nur-twin.vercel.app/)** · **[First contact](#first-contact-research)** · **[Run locally](#07-reproduce-the-work)**
 
 </div>
 
-**Contents** · [01 Question](#01-the-question) · [02 Systems](#02-the-operating-systems) · [03 Verifiable history](#03-a-machine-must-be-able-to-verify-the-history) · [04 Results](#04-the-test-results-including-the-ones-that-did-not-work) · [05 Brain boundary](#05-the-brain-boundary) · [06 Engineering](#06-the-engineering-arrangement) · [07 Reproduce](#07-reproduce-the-work) · [08 Procedure](#08-the-laboratory-procedure) · [09 The laboratory](#09-the-rest-of-the-laboratory) · [10 License](#10-license-and-research-use)
+**Start here:** watch the originals through their public pages, inspect the [research claims](docs/RESEARCH_CLAIMS.md), or follow the [local setup](#07-reproduce-the-work). The [documentation index](docs/README.md) maps the full repository.
+
+**Contents** · [01 Question](#01-the-question) · [02 Systems & first contact](#02-the-operating-systems) · [03 Continuity](#03-a-machine-must-be-able-to-verify-the-history) · [04 Results](#04-the-test-results-including-the-ones-that-did-not-work) · [05 Neural models](#05-the-brain-boundary) · [06 Architecture](#06-the-engineering-arrangement) · [07 Run & verify](#07-reproduce-the-work) · [08 Research procedure](#08-the-laboratory-procedure) · [09 Other worlds](#09-the-rest-of-the-laboratory) · [10 License](#10-license-and-research-use)
 
 ## 01. The question
 
-**Can a simulated individual continue through changes to its world and its own computational machinery, while leaving a history that another machine can independently check?**
+**Can a simulated individual learn, encounter another, and continue through changes to its machinery while keeping a history another machine can independently check?**
 
-Lop Nur Twin is an open research environment built to investigate that question. It contains a provenance-linked geographic reconstruction, a simulated Bethesda, two separately operated persistent digital flies, computational neuroscience research subjects, and an experimental registry. The work began at Lop Nur; the name remains as part of its history.
+Lop Nur Twin brings persistent simulation, computational neuroscience, and reproducible experiments into one research environment. **ECHO** inhabits a simulated Bethesda. **Eva** inhabits a separately operated garden. They have separate controllers, states, clocks, and histories. Their services advance independently of the browser; their public pages observe existing individuals.
 
-The purpose is not to produce the appearance of life. It is to build and measure a system in which simulation state, decisions, failures, maintenance, and changes are recorded rather than silently rewritten.
+The project began as an evidence-linked reconstruction of Lop Nur, which remains part of the laboratory. Its central engineering commitment is continuity: record what an individual did, preserve what it learned through a change, and make both the change and its consequences inspectable.
 
-**The essential distinction:** a continuous, replayable software history is evidence of state continuity under a defined model. It is not evidence of consciousness, subjective experience, biological equivalence, or complete nervous-system fidelity.
+> **Latest research — November 2026:** research subjects can now occupy a shared commons with collisions, sight, touch, and contact chemistry. A novelty-memory model shows familiarity with chemical cues in held-out tests. Eva's Python service is now included, alongside a TypeScript port checked against it. **The original Eva and ECHO have not been coupled by this work.** [Read the current first-contact status →](#first-contact-research)
+
+These are simulated individuals. State continuity, sensory responses, and learning results establish properties of the software under stated conditions; they do not establish consciousness, subjective experience, or biological equivalence.
 
 ## 02. The operating systems
 
-Six systems share one repository. Each is listed with what actually runs and with the boundary that keeps it from being mistaken for another.
+The repository separates the deployed originals, experimental subjects, and the worlds used to study them.
 
-| System                   | What actually runs                                                                                                                                                     | Boundary                                                                                    |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **ECHO**                 | One persistent fruit-fly-scale simulated individual in a headless Bethesda environment, with body, sensors, behavioral control, learning state, and sealed checkpoints | The original is observed, not used as an experimental subject                               |
-| **Eva**                  | A separate persistent simulated fly in a garden service, with its own state and history                                                                                | Her Python service and database are separate from ECHO and not contained in this repository |
-| **Lop Nur twin**         | Evidence-linked 3D reconstruction, source dossiers, and changing historical visibility                                                                                 | Observed, reported, interpreted, and illustrative details remain distinct                   |
-| **R.A.I.N. experiments** | Protocol validation, bounded simulation, recorded outcomes, and replay                                                                                                 | AI agents may propose work but cannot authorize or grade their own claims                   |
-| **Neural research**      | Separate experimental fly subjects using FlyWire FAFB v783 and BANC v888 connectome-derived models                                                                     | Neither original fly is run by those connectome models                                      |
-| **Noeterra / Blacksite** | Civilization and first-person simulation environments                                                                                                                  | Modeled worlds, not records of real-world behavior                                          |
+| System                     | What actually runs                                                                                                                                                     | Boundary                                                                                                 |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **ECHO**                   | One persistent fruit-fly-scale simulated individual in a headless Bethesda environment, with body, sensors, behavioral control, learning state, and sealed checkpoints | The original is observed, not used as an experimental subject                                            |
+| **Eva**                    | A persistent simulated fly in a separate Python garden service, with her own learning, state, and history                                                              | Service source is in `deploy/garden/service/`; her live database, memories, and process remain on her VM |
+| **First-contact research** | A shared commons, sensory familiarity experiments, and an Eva controller port for research gardens                                                                     | Isolated from production; research subjects are never presented as either original                       |
+| **Lop Nur twin**           | Evidence-linked 3D reconstruction, source dossiers, and changing historical visibility                                                                                 | Observed, reported, interpreted, and illustrative details remain distinct                                |
+| **R.A.I.N. experiments**   | Protocol validation, bounded simulation, recorded outcomes, and replay                                                                                                 | AI agents may propose work but cannot authorize or grade their own claims                                |
+| **Neural research**        | Separate experimental fly subjects using FlyWire FAFB v783 and BANC v888 connectome-derived models, with Codex reference tooling                                       | Neither original fly is run by those connectome models                                                   |
+| **Noeterra / Blacksite**   | Civilization and first-person simulation environments                                                                                                                  | Modeled worlds, not records of real-world behavior                                                       |
 
 <table>
   <tr>
@@ -81,7 +88,26 @@ Six systems share one repository. Each is listed with what actually runs and wit
 
 <sub>Every picture on this page is a screenshot or recording of the running software, taken by script (<code>bun run readme-media</code>, <code>bun run shots</code>). ECHO and Eva were photographed on 10 November 2026 (UTC); neither was touched to get the picture.</sub>
 
-The live pages are public interfaces, not control consoles for the original animals. Service uptime and current state should be checked at the destination, not inferred from a recorded demonstration.
+The live pages are read-only views of the originals. Check the destination for current state and availability; these recordings document their capture dates.
+
+### First-contact research
+
+The new work asks what two independently controlled subjects can perceive and retain about each other. It starts with a shared physical environment and tests the resulting responses.
+
+| Addition                       | What is implemented                                                                                                                     | What the evidence supports                                                                                                                                         |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **The commons**                | One world and clock, shared food, bodies that block each other, sight through each subject's own eyes, and touch with contact chemistry | Research subjects can encounter one another through sensory inputs; names, identities, and memories do not cross the sensory boundary                              |
+| **Familiarity memory**         | A research model of the mushroom body's α′3 novelty compartment, driven by sampled chemistry                                            | In held-out dish experiments, familiar and unfamiliar chemistry evoke different responses; a stranger carrying the familiar profile receives the familiar response |
+| **Eva's research port**        | Her garden controller and plasticity logic in TypeScript, with Python parity fixtures and restart checks                                | Research gardens can reproduce her service's behavior within the documented tolerances; this port does not run the original Eva                                    |
+| **Continuity rehearsal tools** | Restore checks and tools for making separately identified research twins from owner-held copies                                         | The tools are built and tested on research copies; the original-derived twins have not yet been made in the recorded plan                                          |
+
+**The result has a precise limit:** the commons demonstrates familiarity with a cue, not recognition of an individual. The study did not establish a measurable behavioral advantage from that familiarity. Earlier visual-only encounters elicited escape responses, but live interaction did not outperform matched playback.
+
+Exploratory garden runs also put **Eva-kind and ECHO-kind research subjects** together at the garden's scale. They met near food and water, but contact was too brief and infrequent for familiarity to form. Eva's port recorded the other as a moving object; that tracker does not influence her decisions. Collisions can interrupt movement. These runs are demonstrations, separate from the held-out familiarity study.
+
+**For the originals:** the current plan records completed evidence review and restore-checked copies of both individuals. Making research twins, rehearsing a visit, and deploying a separately approved continuation remain later steps. A repository merge does not couple their running services or replace their histories.
+
+[First-contact methods and status](docs/FIRST_CONTACT.md) · [Held-out familiarity report](docs/benchmarks/first-contact/familiarity-held-out.md) · [Eva port and parity contract](src/bethesda/firstContact/eva/README.md) · [Biological calibration roadmap](docs/SOCIAL_RECOGNITION_ROADMAP.md)
 
 ## 03. A machine must be able to verify the history
 
@@ -112,21 +138,22 @@ On 4 November the corrected physics was delivered by a recorded continuation. EC
 
 The table below contains **reported results, not universal performance claims**. Every comparison belongs to a specified simulator, protocol, input set, and software revision. Consult the [claims register](docs/RESEARCH_CLAIMS.md) for the complete definitions and evidence classes.
 
-The numbers are held to their records. The test suite rebuilds **246 of the 352 quantities** the claims register states from the committed records, and fails when a document and its records disagree. The rest are still copied by hand, and [listed as such](docs/claims/README.md).
+The numbers are held to their records. The test suite rebuilds **246 of the 352 quantities** the claims register states from the committed records, and fails when a bound sentence and its records disagree. The rest are still copied by hand, and [listed as such](docs/claims/README.md). This checks agreement with the records; it does not independently validate the experimental design or the claim.
 
-| Test                                                 | Recorded outcome                                                                        | What it does **not** establish                   |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| ECHO checkpoint replay                               | 361 / 361 seals reproduced in the audited interval                                      | Full lifetime replay or biological identity      |
-| Collision correction                                 | 9 / 12 subjects trapped before; 0 / 12 after                                            | Correct collision handling in every geometry     |
-| Self-model under concealed impairment, ECHO-01       | Path error 0.073 vs 0.370 in registered conditions                                      | General motor intelligence                       |
-| Hidden-change attribution, ECHO-02                   | 0.919 vs 0.537; overconfidence remains                                                  | Calibrated certainty in all conditions           |
-| Memory and place preference                          | Distinct preferences develop in seeded research subjects                                | Open-ended animal learning                       |
-| Memory with continuously moving food                 | Negative: 1.2 fewer meals per life                                                      | That memory necessarily improves fitness         |
-| ECHO-03 through ECHO-05                              | Inconclusive                                                                            | That the added mechanisms help                   |
-| FlyWire FAFB v783 reproduction                       | 10 / 12 registered criteria met                                                         | Full fly-neural equivalence                      |
-| Connectome odor learning                             | Negative in the tested design                                                           | Functional biological mushroom-body learning     |
-| Cross-world individual recognition                   | Negative                                                                                | That the two original flies perceive one another |
-| Embodied plasticity under weak legs, metrology bench | Inconclusive on 40 held-out subjects; small corrected regression under severe weak legs | That plasticity cannot help under any impairment |
+| Test                                                  | Recorded outcome                                                                        | What it does **not** establish                                    |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| ECHO checkpoint replay                                | 361 / 361 seals reproduced in the audited interval                                      | Full lifetime replay or biological identity                       |
+| Collision correction                                  | 9 / 12 subjects trapped before; 0 / 12 after                                            | Correct collision handling in every geometry                      |
+| Self-model under concealed impairment, ECHO-01        | Path error 0.073 vs 0.370 in registered conditions                                      | General motor intelligence                                        |
+| Hidden-change attribution, ECHO-02                    | 0.919 vs 0.537; overconfidence remains                                                  | Calibrated certainty in all conditions                            |
+| Memory and place preference                           | Distinct preferences develop in seeded research subjects                                | Open-ended animal learning                                        |
+| Memory with continuously moving food                  | Negative: 1.2 fewer meals per life                                                      | That memory necessarily improves fitness                          |
+| ECHO-03 through ECHO-05                               | Inconclusive                                                                            | That the added mechanisms help                                    |
+| FlyWire FAFB v783 reproduction                        | 10 / 12 registered criteria met                                                         | Full fly-neural equivalence                                       |
+| Connectome odor learning                              | Negative in the tested design                                                           | Functional biological mushroom-body learning                      |
+| Cross-world individual recognition, visual-only study | Negative                                                                                | That the two original flies perceive one another                  |
+| Contact-chemistry familiarity, commons study          | Supported as a sensory-memory effect; behavioral effect unresolved                      | Recognition of an individual or a measurable behavioral advantage |
+| Embodied plasticity under weak legs, metrology bench  | Inconclusive on 40 held-out subjects; small corrected regression under severe weak legs | That plasticity cannot help under any impairment                  |
 
 A 7 November extension added bounded embodied plasticity to the original ECHO and Eva, with owner-approved shadow-mode activation followed by active mode. On held-out **research subjects**, shadow mode preserved baseline behavior, but **active mode demonstrated no established performance advantage**. The fact that an addition is active is not evidence that it helped. The intelligence metrology bench reproduced that finding byte for byte, then asked it again on 40 new research subjects in nine conditions: inconclusive, with a small, corrected regression under severe weak legs. Neither original was touched.
 
@@ -136,7 +163,7 @@ A 7 November extension added bounded embodied plasticity to the original ECHO an
 
 <sub>The bench's research view of the held-out split, as deployed. The verdict was fixed by the protocol's decision rules before the run, and the page prints it as it came out: <b>INCONCLUSIVE</b>.</sub>
 
-[Activation record](docs/EVA_ECHO_ACTIVATION.md) · [Plasticity study](docs/EVA_ECHO_BRAIN_PLASTICITY.md) · [Intelligence metrology bench](docs/ECHO_INTELLIGENCE_METROLOGY.md)
+[Activation record](docs/EVA_ECHO_ACTIVATION.md) · [Plasticity study](docs/EVA_ECHO_BRAIN_PLASTICITY.md) · [Intelligence metrology bench](docs/ECHO_INTELLIGENCE_METROLOGY.md) · [First-contact results](docs/FIRST_CONTACT.md#stage-3b-the-commons-touch-contact-chemistry-and-familiarity)
 
 ## 05. The brain boundary
 
@@ -144,22 +171,36 @@ The repository includes computational neuroscience experiments that import and r
 
 These are **research backends**, not the neural machinery controlling the original ECHO or Eva. Their observations of the originals are read-only; a simulated neural response to the same stimulus is a comparison between models, not a recording of either fly's brain.
 
-[Methods, sources, validation and failures](docs/ECHO_CONNECTOME.md)
+The commons' novelty compartment is a separate research model. A familiarity signal there does not mean a full connectome controls the subject. Progress toward biological realism still requires calibration against independent measurements of real-fly movement, sensation, and interaction.
+
+[Connectome methods, sources and validation](docs/ECHO_CONNECTOME.md) · [FlyWire Codex reference layer](docs/FIRST_CONTACT.md#phase-1-flywire-codex-as-a-reference-layer) · [Biological calibration milestones](docs/SOCIAL_RECOGNITION_ROADMAP.md#biological-calibration-milestones)
 
 ## 06. The engineering arrangement
 
 ```mermaid
-flowchart LR
-  SITE["Lop Nur / browser twin"] --> CITY["Bethesda simulation"]
-  CITY --> LAB["R.A.I.N. experiments"]
-  ECHO["ECHO: separate headless runtime"] --> CP["Sealed checkpoints"]
-  CP --> LEDGER["Public replay ledger"]
-  ECHO -->|read-only witness| LIVE["Live observation page"]
-  EVA["Eva: separate Python garden service"] -->|state API| GARDEN["Garden exhibit"]
-  ECHO -. "public observations" .-> RESEARCH["FAFB / BANC research subjects"]
+flowchart TD
+  subgraph ORIGINALS["Originals: separate services"]
+    ECHO["ECHO: headless Bethesda"] -->|sealed checkpoints| LEDGER["Public replay ledger"]
+    ECHO -->|read-only witness| LIVE["Live observation page"]
+    EVA["Eva: Python garden"] -->|read-only state| GARDEN["Garden exhibit"]
+  end
+  subgraph RESEARCH["First contact: research subjects only"]
+    ER["ECHO-kind subject"] <-->|sight, touch, chemistry| COMMONS["Shared commons"]
+    VR["Eva-kind subject"] <-->|sight, collisions| COMMONS
+    COMMONS --> RECORDS["Encounter records and controls"]
+  end
 ```
 
-The arrows indicate data boundaries, not shared identity. There is no direct controller or checkpoint channel between ECHO and Eva. The browser's Bethesda fly is also separate from the deployed ECHO.
+The originals retain separate controllers and persistence. Production code does not import the first-contact or augmentation modules; isolation tests enforce that boundary. The browser's local Bethesda fly is also separate from the deployed ECHO.
+
+| To inspect                                   | Start here                                                                                                 |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| ECHO's persistent runtime and checkpoints    | [`src/bethesda/life/`](src/bethesda/life/)                                                                 |
+| Eva's Python service and research port       | [`deploy/garden/service/`](deploy/garden/service/) · [`firstContact/eva/`](src/bethesda/firstContact/eva/) |
+| Encounters, sensory inputs, and familiarity  | [`src/bethesda/firstContact/`](src/bethesda/firstContact/)                                                 |
+| Controller evaluation and evidence           | [`src/bethesda/metrology/`](src/bethesda/metrology/) · [`scripts/claims/`](scripts/claims/)                |
+| Connectome experiments                       | [`fly-neural/`](fly-neural/)                                                                               |
+| Geographic evidence and the research runtime | [`src/lib/`](src/lib/) · [`src/rain/`](src/rain/)                                                          |
 
 **Four invariants govern development:**
 
@@ -172,31 +213,43 @@ The arrows indicate data boundaries, not shared identity. There is no direct con
 
 ## 07. Reproduce the work
 
-Requires **Node.js 22.18+** and **Bun 1.3+**.
+Requires **Node.js 22.18+** and **Bun 1.3+**. The base app needs no account, API key, environment file, or model server.
 
 ```bash
 git clone https://github.com/topherchris420/lop-nur-twin.git
 cd lop-nur-twin
 bun install --frozen-lockfile
 bun run dev
-# browser: http://localhost:5173
 ```
 
-This runs local services and browser simulations; it does **not** connect to or alter ECHO's or Eva's deployed states.
+Open **[localhost:5173](http://localhost:5173)**. This starts the local app and its simulations; it does not start or modify either hosted individual. The live observation page may read public witness data.
+
+Prefer npm? Use `npm ci` and `npm run dev` after cloning. Individual scripts support Node; the aggregate `check` command invokes Bun internally.
+
+### Check the app and its records
 
 ```bash
 bun run check
-bun run claims
-node scripts/run-ts.mjs scripts/individuality-evaluate.ts --check
-node scripts/run-ts.mjs scripts/echo-exit-figure.ts --check
-bun run rain:fly:verify
+bun run claims:check
 ```
 
-`bun run check` runs the repository's standard quality and build checks. `bun run claims` rebuilds the bound sentences of this page and of the claims register from the records, and prints what share of their numbers that covers. The individuality comparison is a longer reproducibility check. `rain:fly:verify` verifies archived records supported by the current runtime; exit status **3** indicates some archives require a different recorded Node version rather than silently claiming full replay.
+`bun run check` runs formatting, lint, unit tests, evidence validation, and the production build. `bun run claims:check` checks the bound sentences against committed records and verifies that the generated claims reports are current.
+
+| Research check                                        | Command                                                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| First-contact contracts, Eva parity, and augmentation | `bunx vitest run src/bethesda/firstContact src/bethesda/augmentation scripts/whole-brain.test.ts` |
+| Adaptation report from archived records               | `bun run echo:adaptation:check`                                                                   |
+| Individuality study replay                            | `node scripts/run-ts.mjs scripts/individuality-evaluate.ts --check`                               |
+| Collision figure from recorded positions              | `node scripts/run-ts.mjs scripts/echo-exit-figure.ts --check`                                     |
+| Compatible archived fly experiments                   | `bun run rain:fly:verify`                                                                         |
+
+Some replay checks are longer and require the runtime/platform recorded by their study. `rain:fly:verify` exits with status **3** when older or incompatible records remain unchecked; that is partial verification. [First-contact reproduction](docs/FIRST_CONTACT.md#reproducing-everything) lists the study-specific replay commands.
+
+Noeterra additionally needs a local Rust/WebAssembly build. Model-assisted research and hosted persistence have their own setup; see [optional capabilities](docs/GETTING_STARTED.md#optional-capabilities).
 
 The pictures on this page are reproducible too: `bun run readme-media` re-records them from the dev server and the live pages (it needs `ffmpeg` and `gifsicle`), and prints the date and playback speed that the captions must then carry.
 
-Start with [Getting Started](docs/GETTING_STARTED.md), [Validation](docs/VALIDATION.md), and [Contributing](CONTRIBUTING.md). For public evidence, see the [claims register](docs/RESEARCH_CLAIMS.md) and the [ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger).
+[Complete setup](docs/GETTING_STARTED.md) · [Validation and prerequisites](docs/VALIDATION.md) · [Contributing](CONTRIBUTING.md) · [Public ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger)
 
 ## 08. The laboratory procedure
 
@@ -208,7 +261,7 @@ The four agents do not constitute independent scientific replication. The origin
 
 ## 09. The rest of the laboratory
 
-The repository also contains an evidence-linked Lop Nur reconstruction, a hidden Bethesda city, the Noeterra civilization simulator, and the Blacksite first-person simulation. These are distinct systems within the same research environment. Start with the [documentation index](docs/README.md) rather than assuming all components share ECHO's persistence model.
+The geographic twin, hidden Bethesda city, Noeterra, and Blacksite are distinct systems within the same environment, each with its own execution model. The [documentation index](docs/README.md) connects their guides.
 
 **The Lop Nur twin: what was knowable, and when.** The evidence lens paints each structure by its classification; the timeline then draws solid only what public evidence had established by that date. An outline marks absence of evidence, never evidence of absence.
 
@@ -235,15 +288,6 @@ In the twin, press **backtick** (usually below Escape) and submit `38.9847,-77.0
 
 </details>
 
-| Open                                                           | What it is                                              |
-| -------------------------------------------------------------- | ------------------------------------------------------- |
-| [Lop Nur twin](https://lop-nur-twin.vercel.app/)               | The evidence-linked 3D reconstruction                   |
-| [ECHO, live](https://lop-nur-twin.vercel.app/live)             | The persistent fly, as its read-only witness reports it |
-| [Eva's garden](https://150-136-49-49.sslip.io/)                | The second fly, in her separate service                 |
-| [Noeterra](https://lop-nur-twin.vercel.app/noeterra)           | The civilization simulator                              |
-| [Blacksite](https://lop-nur-twin.vercel.app/play)              | The first-person simulation                             |
-| [Evidence inspector](https://lop-nur-twin.vercel.app/analysis) | Every claim with its sources, as a table                |
-
 ## 10. License and research use
 
 Code and documentation: **[Apache License 2.0](LICENSE)**, with third-party restrictions and attributions documented in [NOTICE](NOTICE). Bethesda geography, FlyBody-derived materials, FlyWire, BANC, and other referenced datasets may carry separate terms. Do not assume the repository license covers external datasets.
@@ -252,6 +296,6 @@ Contributions should include a source, a test, a reproducible correction, or a c
 
 ---
 
-**The aim is not to persuade an observer that a simulation is alive. It is to preserve what the simulation actually did, make its behavior testable, and record what the test could not establish.**
+**Preserve the individual. Measure the change. Keep the result, including the failure.**
 
 _Built at [Vers3Dynamics](https://vers3dynamics.com) by Christopher Woodyard. Open for inspection, correction, and independent reproduction._
