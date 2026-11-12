@@ -140,6 +140,42 @@ browser animation showing the two models next to each other. Each animal
 must receive sensory consequences of the other's action, react with its
 own controller, and keep that interaction in its own history.
 
+### Where these gates stand (11 November 2026)
+
+The commons ([First Contact, Stage 3b](FIRST_CONTACT.md#stage-3b-the-commons-touch-contact-chemistry-and-familiarity))
+is the first increment toward gate 2, for research subjects only.
+
+- **Gate 1: not started.** No backup or audit of either original was made,
+  and none was needed: nothing here reads or writes them.
+- **Gate 2: partly met.** One authoritative world steps both bodies every
+  5 ms on one clock, with shared collisions (neither can pass through the
+  other), a shared food source, sight of each other through each one's own
+  eyes, touch, and this module's contact chemistry, now sensed by a mushroom
+  body novelty compartment rather than a profile match. Not met: shared air
+  (no airborne odour of the other) and Eva's time resolution. Her controller
+  still decides every 5 s; between decisions her body follows the exhibit's
+  own animation of her state. That animation is her renderer's, not invented
+  behaviour, but it is not a decision of hers either. A move that the other
+  body stops is cut short and fed back to her physics and learner.
+- **Gate 3: begun.** The familiarity protocol is frozen, with controls
+  that each change one thing: a profile transplant (the twin carries the
+  partner's exact chemistry on another body, so profile and individual are
+  dissociated), an unscented stranger, a sensory ablation (a fly that cannot
+  taste) and a frozen memory. The rotated and scrambled profiles of the table
+  below are not among them. Its held-out seeds, run once from a clean
+  commit, support all five hypotheses by their rules, but H3's pass is
+  within chance (the frozen arm, whose groups both alert with probability
+  exactly 0.5, differed by as much), so only H1, H2 and H4 (a familiarity
+  of chemistry, not of individuals) are credited. Live/live against yoked playback was Stage 2's
+  test (E3, not supported) and has not been repeated in the commons.
+- **Gates 4 and 5: not started.** The ordered plan is in
+  [First Contact, Stage 4](FIRST_CONTACT.md#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken).
+
+The chemistry match's predicted failure holds in the new memory too: a fly
+carrying the partner's exact chemistry is treated as the partner (H4,
+supported). The memory is about cues, not individuals, as this section's
+module said it would be.
+
 ## Proposed held-out outcome measures
 
 | Question                                  | Evidence required                                                         | Essential negative control                                          |

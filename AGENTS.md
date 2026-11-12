@@ -885,11 +885,33 @@ Research-only frameworks for an eventual encounter between Eva and ECHO, and
 for research modules beside a fly's controller. Read `docs/FIRST_CONTACT.md`
 and `docs/EVA_ECHO_AUDIT.md` first. Outside these folders they add
 `scripts/first-contact-evaluate.ts`, `scripts/first-contact-observe.ts`,
+`scripts/first-contact-familiarity.ts` and `scripts/first-contact-garden.ts`
+(each with a `-worker.mjs`), `scripts/eva-parity.py`,
+`scripts/eva-restore-check.py` (with `scripts/test_eva_restore_check.py`),
+`scripts/first-contact-copy-originals.sh`, `scripts/first-contact-twins.ts`,
 `scripts/augmentation-evaluate.ts`, `docs/benchmarks/first-contact/`,
 `docs/benchmarks/fly-augmentation/`, the two documents above and the
 `.first-contact/` line of `.gitignore`. The rule they exist to keep: **the
 originals are observed, never touched; experiments run on research subjects.**
 
+- **Copies of the originals are the owner's to take.**
+  `scripts/first-contact-copy-originals.sh` (Stage 4, step 2) is run by the
+  owner, never from a session; its copies stay outside the repository. A
+  copy is checked without stepping it (`scripts/eva-restore-check.py`; the
+  headless runner's `--check` from the release the archive names): a copy
+  that stepped forward would be a second individual, not a backup.
+- **A twin is someone new, made once.** `scripts/first-contact-twins.ts`
+  (Stage 4, step 3) makes a research twin from those copies, on the laptop:
+  a new id (`research-eva-twin-…`; for ECHO, `twinCheckpoint`'s individual,
+  labelled `research-echo-twin-…`) from a recorded nonce, with its parentage.
+  Eva's is made only if the port first continues her copy for a simulated
+  day exactly as her own service does (`eva-parity.py from-copy`). Twins and
+  copies stay outside the repository. Re-derive a recorded twin with
+  `check-eva`/`check-echo` instead of making another; never present a twin as
+  Eva or ECHO, and never step a copy under their ids. ECHO's era history
+  refuses a durable store that begins in the plasticity era, so ECHO's twin
+  is its sealed checkpoint; that rule is ECHO's engine's and is not changed
+  for research.
 - **Never an original.** Every subject, bridge endpoint, authorization and
   augmented adapter passes `refuseOriginal` (`originals.ts`), which refuses
   Eva's and ECHO's ids, their printed prefixes and anything containing them;
@@ -916,6 +938,21 @@ originals are observed, never touched; experiments run on research subjects.**
   state. Deliveries happen only while `EncounterClock` verifies both subjects
   in step; the channel interpolates between delivered samples and never
   extrapolates or crosses a refused jump.
+- **In the commons the other is a body** (`commons/`). Two research subjects
+  share one world and one clock: each is solid to the other, seen by the
+  other's own eyes, and felt at contact range with a sample of its surface
+  chemistry (`TouchSample`: time, bearing, chemistry; never an id, name,
+  mode or memory). A lone occupant steps exactly as in its bare world (a
+  test). New senses live in research adapters at the organism's `shape()`
+  hook (`social.ts`), never in `src/bethesda/fly/`, so the fly's source
+  digest and pilots are untouched. Published parameters carry a DOI and a
+  verbatim quote; the memory is synaptic weights only, never a list of
+  partners.
+- **Eva's port runs research gardens only** (`eva/`). It is matched step for
+  step against her Python (`deploy/garden/service/`) by the parity fixtures;
+  `EvaGarden.birth` and `restore` refuse any id that is not a research id.
+  Its research seams (`perceive`, `obstruct`) must leave her byte for byte
+  unchanged when absent (a test). Never point it at her database or service.
 - **Do not script.** Partners' motion is their own recorded flight; subjects'
   responses are their unchanged controllers'. Never add a rule that makes a
   subject recognize, befriend or avoid another, and never word a result as

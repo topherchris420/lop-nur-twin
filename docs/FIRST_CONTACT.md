@@ -18,21 +18,23 @@ GET), at the rate each one's own viewer uses. Every experiment ran on
 **research subjects**: new flies built from seeds, in worlds of their own,
 none of them Eva, ECHO, a copy of either, or a continuation of either.
 
-| Stage                                                                                       | Status                                                                                                                                                                                              |
-| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [1. Passive observation](#stage-1-passive-observation)                                      | **Working** on both live public streams, read-only. The representation each would receive of the other is computed and recorded, delivered to neither                                               |
-| [2. Controlled encounters](#stage-2-controlled-encounters-between-research-subjects)        | **Working** between research subjects in separate worlds with different clocks. Each perceives and responds to the other (E1, E2 supported); contingency adds nothing measurable (E3 not supported) |
-| [3. Experience-dependent recognition](#stage-3-repeated-encounters-and-recognition)         | **Run, held-out seeds: no hypothesis supported.** No partner-specific response (recognition) in any of three controller arms; no change outlasting 300 s                                            |
-| [4. Production integration proposal](#stage-4-a-proposal-for-the-originals-not-implemented) | **Proposal only.** Nothing implemented; each step listed needs separate authorization                                                                                                               |
+| Stage                                                                                         | Status                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [1. Passive observation](#stage-1-passive-observation)                                        | **Working** on both live public streams, read-only. The representation each would receive of the other is computed and recorded, delivered to neither                                                                                                                                      |
+| [2. Controlled encounters](#stage-2-controlled-encounters-between-research-subjects)          | **Working** between research subjects in separate worlds with different clocks. Each perceives and responds to the other (E1, E2 supported); contingency adds nothing measurable (E3 not supported)                                                                                        |
+| [3. Experience-dependent recognition](#stage-3-repeated-encounters-and-recognition)           | **Run, held-out seeds: no hypothesis supported.** No partner-specific response (recognition) in any of three controller arms; no change outlasting 300 s                                                                                                                                   |
+| [3b. The commons](#stage-3b-the-commons-touch-contact-chemistry-and-familiarity)              | **Run, held-out seeds: H1, H2, H4 supported; H3 passes by chance.** Two bodies in one world with touch and contact chemistry; a chemistry-specific familiarity appears in a novelty compartment; it does not tell a twin from the partner; its effect on behaviour is too small to measure |
+| [4. The originals: a gated plan](#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken) | **Steps 1 and 2 taken; step 3 built, not run.** The evidence step, a restore-checked copy of each original (neither changed), and the tools that make a twin of each from those copies; each later step needs separate authorization                                                       |
 
 ## Why the originals cannot simply be connected
 
-- **Eva's simulation is not in this repository.** It is a Python service
-  (`server.py`, `learning.py`) on the garden's VM. Its controller, learning
-  code and database cannot be inspected, tested, backed up or extended from
-  here; this repository holds only her viewer and the contract of
-  `GET /api/state`. Any interaction for Eva needs her service's code and its
-  keeper's authorization.
+- **Eva is a Python service on the garden's VM.** Her code is now in this
+  repository (`deploy/garden/service/`: `server.py`, `learning.py`,
+  `eva_plasticity.py`) and has a step-for-step TypeScript port for research
+  gardens (`firstContact/eva/`, matched against her Python at every step),
+  but her database, her memories and the running process live only on that
+  VM. Changing what she receives is a change to her service, deployed only
+  through `deploy/garden` with the owner's explicit approval.
 - **They live in different kinds of world.** Eva's garden is an abstract 2D
   plane in fractions of its extent with seven places and no metric scale or
   heights; ECHO's city is metres in three dimensions. Placing one in the
@@ -47,15 +49,15 @@ none of them Eva, ECHO, a copy of either, or a continuation of either.
 
 ## Engineering requirements, and how each is held
 
-| Requirement                                                                                | How it is held                                                                                                                                                                                                                | Checked by                                           |
-| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Two original individuals, never copies                                                     | `refuseOriginal` refuses either original's id, its printed prefix and anything containing it, for every subject, bridge endpoint, authorization and augmented adapter; the ids are copied from files that already record them | `bridge.test.ts`, `joint.test.ts`                    |
-| Controllers and histories intact                                                           | nothing in production imports `firstContact/` or `augmentation/`; the fly's experiment digest does not reach them; no fly simulation module changed                                                                           | `isolation.test.ts`, `validate-bethesda`             |
-| Additive and reversible                                                                    | a bridged world that has delivered nothing steps byte for byte as the bare world; an augmented controller in observe or advise steps byte for byte as the bare controller, for all three controller kinds                     | `bridge.test.ts`, `augmentation.test.ts`             |
-| No hidden simulator state                                                                  | only `ForeignPercept` (a body's centre and radius) crosses the bridge, seen through the receiver's own eyes; advisors read only `AdvisorView` (sensable fields, no position, heading, world or looming identity)              | both test files                                      |
-| Clock synchronization before meaning                                                       | `EncounterClock` puts both subjects on one timeline from their own ages at contact and verifies each step; the bridge delivers only while they are in step and closes otherwise                                               | `bridge.test.ts`; 180 of 180 sessions stayed in step |
-| No extrapolation, no blending                                                              | the percept channel and the joint observer interpolate only between received samples, hold or refuse beyond the newest, never cross a jump, an epoch change or another `life_id`                                              | `bridge.test.ts`, `joint.test.ts`                    |
-| Backups, compatibility testing and explicit authorization before any bridge to an original | none was attempted; Stage 1 is the compatibility test on real data; [Stage 4](#stage-4-a-proposal-for-the-originals-not-implemented) lists what must precede it                                                               | this document                                        |
+| Requirement                                                                                | How it is held                                                                                                                                                                                                                                  | Checked by                                           |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Two original individuals, never copies                                                     | `refuseOriginal` refuses either original's id, its printed prefix and anything containing it, for every subject, bridge endpoint, authorization and augmented adapter; the ids are copied from files that already record them                   | `bridge.test.ts`, `joint.test.ts`                    |
+| Controllers and histories intact                                                           | nothing in production imports `firstContact/` or `augmentation/`; the fly's experiment digest does not reach them; no fly simulation module changed                                                                                             | `isolation.test.ts`, `validate-bethesda`             |
+| Additive and reversible                                                                    | a bridged world that has delivered nothing steps byte for byte as the bare world; an augmented controller in observe or advise steps byte for byte as the bare controller, for all three controller kinds                                       | `bridge.test.ts`, `augmentation.test.ts`             |
+| No hidden simulator state                                                                  | only `ForeignPercept` (a body's centre and radius) crosses the bridge, seen through the receiver's own eyes; advisors read only `AdvisorView` (sensable fields, no position, heading, world or looming identity)                                | both test files                                      |
+| Clock synchronization before meaning                                                       | `EncounterClock` puts both subjects on one timeline from their own ages at contact and verifies each step; the bridge delivers only while they are in step and closes otherwise                                                                 | `bridge.test.ts`; 180 of 180 sessions stayed in step |
+| No extrapolation, no blending                                                              | the percept channel and the joint observer interpolate only between received samples, hold or refuse beyond the newest, never cross a jump, an epoch change or another `life_id`                                                                | `bridge.test.ts`, `joint.test.ts`                    |
+| Backups, compatibility testing and explicit authorization before any bridge to an original | restore-checked copies of both, taken by the owner on 11 November 2026 ([Stage 4](#stage-4-a-gated-plan-for-the-originals-steps-1-and-2-taken), step 2); Stage 1 is the compatibility test on real data; no bridge to an original was attempted | this document                                        |
 
 ## Stage 1: passive observation
 
@@ -212,6 +214,246 @@ stimulus-specific memory (escape habituation here is a single scalar). Adding
 either is a change to the fly, which bumps `FLY_VERSION` and its pilots, and
 would be studied first in research subjects.
 
+## Stage 3b: the commons (touch, contact chemistry and familiarity)
+
+`src/bethesda/firstContact/commons/`; protocol
+`protocols/familiarity-v1.json` (SHA-256 in every result); results in
+[docs/benchmarks/first-contact/](benchmarks/first-contact/familiarity-development.md).
+Research subjects only. Nothing in `src/bethesda/fly/` changed, so
+`FLY_VERSION`, the fly's source digest and its pilots are untouched: the new
+senses live in a research adapter at the organism's existing `shape()` hook.
+
+Stage 3 named the two things recognition would need: a sensory channel that
+can tell individuals apart, and a memory specific to a stimulus. This stage
+builds both from published biology, puts two bodies in one world, and asks
+whether familiarity then appears, without any rule that says "recognize".
+
+### One world, two bodies (`commons.ts`)
+
+Two subjects share **one** world and one clock, stepped in turn every 5 ms
+(alternating which goes first, so neither moves against where the other
+used to be). Each lives in a view of the shared world that adds the other's
+body three ways and nothing else:
+
+- **to its body**, a solid sphere (the configuration-space sum of both
+  bodies' radii): neither can walk or fly into the other, and contact never
+  pushes;
+- **to its eyes**, a moving thing of the other's own size, which its own eyes
+  must find with their acuity, field of view, occlusion and latency;
+- **to its legs**, touch with the side it came from, within Ramdya et al.'s
+  Encounter criterion ("distance to nearest neighbour <25% long-axis body
+  length", [doi:10.1038/nature14024](https://doi.org/10.1038/nature14024)),
+  and a sample of the other's surface chemistry at the tarsi, where
+  _Drosophila_ has contact chemoreceptors that "respond to cuticular
+  hydrocarbons" (Thistle et al. 2012,
+  [doi:10.1016/j.cell.2012.03.045](https://doi.org/10.1016/j.cell.2012.03.045)).
+
+Never an id, a name, a mode or a memory. Tested: a lone occupant steps
+exactly as in its bare world, physiology included; two bodies walking head-on
+never overlap or pass through each other; an occupant cannot be placed inside
+the other's body; the record of contacts is hash-chained. An organism-kind
+occupant's physiology (hunger, fatigue, sleep pressure) now advances as its
+life's does, which Stage 3's arenas did not do.
+
+### The senses and responses (`novelty.ts`, `social.ts`)
+
+- **Contact chemistry** uses the four synthetic bins of `socialSensing.ts`
+  (PR #187): each individual's profile is a species profile with log-normal
+  individual variation (σ 0.3), drawn from its seed. **Synthetic**: not
+  calibrated against any real cuticular-hydrocarbon measurement.
+- **An α′3 novelty compartment.** Hattori et al. 2017
+  ([doi:10.1016/j.cell.2017.04.028](https://doi.org/10.1016/j.cell.2017.04.028))
+  recorded MBON-α′3 answering a novel odour strongly and a repeated one less,
+  through dopamine-dependent depression specific to the odour. The model: 24
+  contact-receptor types (one species-wide tuning) → 2,000 Kenyon cells, each
+  summing 6 receptor channels chosen at random **per individual** ("each
+  Kenyon cell integrates input from a different and apparently random
+  combination of glomeruli", Caron et al. 2013,
+  [doi:10.1038/nature12063](https://doi.org/10.1038/nature12063)) → the
+  strongest 7% fire ("a sparse representation (5%–10%)", Hattori) → the
+  output is the mean synaptic weight of the active cells. While chemistry is
+  sensed, active synapses depress; all recover with τ = 20 min. The memory is
+  nothing but synaptic weights: no partner list, no label, no trace store.
+- **Calibration, against the paper's sentences** (1-s exposures, 30 s apart):
+  the depression rate was chosen as the mildest of four values that met
+  "Over 50% suppression is apparent by the second exposure to odor" and
+  "MBON activity declines more than 80% within three to seven repetitions"
+  on seeds 1-3. On seeds 4-8 (first run in the test) every individual meets
+  the decline, specificity (a different chemistry still answered above 0.9),
+  20-minute ("still observed after 20 min of recovery") and one-hour
+  ("returns to levels observed with a novel odor after 1 hr") criteria; the
+  50% criterion holds on their mean (0.477) but **not for seed 4 alone**
+  (0.634), and is asserted on the mean. Not retuned.
+- **Touch → walking away**: a resting or grooming fly touched by another
+  starts walking away with probability 0.8 ("it caused the encountered fly to
+  initiate a bout with probability P(Encounter Response) = 0.8", Ramdya et
+  al.), whatever the toucher's chemistry (their oenocyte-less flies, without
+  cuticular hydrocarbons, elicited the response as well).
+- **Novel chemistry → alerting**: at each contact onset, a grooming (or, our
+  extension, feeding) fly stops with probability 0.15 + 0.35 × the α′3
+  response, between "50% of the flies stop grooming" for a novel odour and
+  "10%–20%" for a familiar one (Hattori).
+
+`SocialOrganismAdapter` is the deployed ECHO's kind (plasticity organism,
+active mode) with this brain at `shape()`: after the intention, before the
+self-model acts, so its efference copy is the command the body receives.
+
+### Eva-kind and ECHO-kind in her garden (`evaOccupant.ts`, `gardenEncounter.ts`)
+
+Exploratory, with no hypothesis: three pairs, each an Eva-kind subject (her
+service's own code through the port, plasticity active, as Eva runs) and an
+ECHO-kind subject (the deployed ECHO's kind with the social brain), living 12
+hours together in the garden's exhibit world at true scale. The ECHO-kind
+started 15 cm from the asters, facing a seeded direction; after that nothing
+was arranged. `scripts/first-contact-garden.ts` writes each pair's record.
+
+- **Her body in the commons.** Her controller decides every 5 s, as Eva's
+  does; between decisions her body follows the exhibit director's pose (the
+  same animation her viewer shows). The occupant steps a copy of her to learn
+  where her step goes, so her body can move before her step is taken; every
+  real step landed where its copy did (0 mismatches in 36 hours). If her body
+  would enter the other's, it stops, and her `obstruct` seam ends her step's
+  motion at the same share of the way, so her own physics and learner meet
+  the collision.
+- **What she perceives.** Within one ommatidium's reach and in line of sight,
+  the other is a thing her own object tracker follows ("small-mover"). Her
+  tracker reads each thing at the start and end of her step. Both ends
+  place the other in her 2D frame through the same staging, so a still body
+  is still to her however the exhibit animates her (tested: a still body
+  reads 0, a body circling at 9 mm/s is called independent by her own rule).
+  **Nothing in her decisions reads that tracker** (her code: it only reports
+  what it follows), so seeing the other changes what she records, never
+  what she does. Being stopped is the one way the other changes her
+  behaviour.
+
+| Pair | Contacts | Closest (mm) | Within 5 cm | Her steps with it in view | Her tracker's verdict          | Her moves stopped | ECHO-kind meals · escapes | Its α′3 response, first → last contact |
+| ---: | -------: | -----------: | ----------: | ------------------------: | ------------------------------ | ----------------: | ------------------------: | -------------------------------------- |
+|    0 |        2 |          3.3 |    11.2 min |                        55 | independent mover (46 samples) |                 0 |                    44 · 2 | 1.000 → 1.000                          |
+|    1 |        2 |          3.4 |     0.7 min |                         2 | too few samples to judge (1)   |                 0 |                    36 · 1 | 1.000 → 1.000                          |
+|    2 |        3 |          3.0 |     9.0 min |                        29 | independent mover (21 samples) |                 2 |                    32 · 3 | 1.000 → 0.996                          |
+
+What happened, read from the records:
+
+- **They meet where she feeds and drinks.** All seven contacts happened at
+  the asters or on the saucer's rim: twice the ECHO-kind walked up to her
+  as she drank on the rim, three times she flew in to the asters where it
+  was feeding, and twice it flew in and landed beside her at the asters.
+- **Contact mostly meant escape.** At five of the seven contact onsets the
+  ECHO-kind was already escaping, its giant-fiber escape having fired as
+  they closed in (a looming body, here hers); at the other two it was flying
+  in to land. Its touch response and alerting need a resting, grooming or
+  feeding fly, so neither ever came into play. Contacts lasted 0.02-0.24 s.
+- **Then it came back.** After two of the escapes from the asters (pairs 0
+  and 2) the ECHO-kind landed again 7-10 mm from her and fed beside her:
+  11.2 and 9.0 minutes within 5 cm of each other in those runs. Nothing in
+  either fly is about the other; the flower is food for both.
+- **No familiarity forms in the garden.** It tasted her for a fraction of a
+  second, an hour or more apart, so its α′3 response fell at most from 1 to
+  0.996 (it recovers with τ = 20 min). Familiarity needs the dish's density
+  of contact.
+- **Her tracker classes it as a mover.** Where she saw it long enough
+  (pairs 0 and 2), her own tracker's rule (at least 10 samples, moving more
+  than 0.0003 of the garden per second once her own motion is allowed for)
+  classed it as an independent mover. That means only that it moves on its
+  own: the same rule classes her drifting midge and her swaying leaf as
+  independent too. A first run fed her tracker the other's position at the
+  step's end for both ends, so it could never see the other move. This was
+  found, fixed and tested before any record was kept, and the rerun's
+  frames, contacts and journal are identical, as they must be.
+- **Her journal never mentions the other.** Her moments are written by her
+  code from her own activity, and it has no words for another fly.
+
+### Where they meet (`dish.ts`)
+
+In the garden at true scale, a pair touched only two or three times in 12
+hours, too rarely to measure familiarity. The controlled study uses Ramdya et al.'s single-fly touch arena, "a small arena (3 cm ×
+3 cm)", with a lid (6 mm, ours) and a drop of food at its centre (ours), where
+two hungry flies make about 35 contacts in 20 minutes. Nothing makes them
+approach each other; they share the food. Unprompted, 29% of the test's
+contact onsets (652 of 2,236, development seeds) found the focal fly already
+escaping: the other fly's approach loomed large enough to trigger its
+giant-fiber escape (an existing visual pathway, not a new rule).
+
+### The familiarity study (`familiarity.ts`)
+
+One focal fly lives 20 minutes with one partner. At the first moment after
+that when the partner is on its feet, out of contact and at least 5 mm away,
+the condition decides who shares the dish for 10 more minutes: the partner
+(**same**), a new fly where the partner stood (**stranger**), a new fly
+carrying the partner's exact chemistry (**twin**), or the stranger's own
+body without any chemistry (**unscented**, like Ramdya's oenocyte-less
+flies). Two lesion arms repeat same and stranger with a focal fly that
+cannot taste (**agustatory**) or whose synapses cannot change (**frozen**).
+The focal fly is never handled: it lives one continuous life, identical up to
+the swap in every condition. Hypotheses, rules and predictions were frozen
+in the protocol before any run; one revision (held-out size, for power) was
+made after the first development run and is recorded in the protocol.
+
+**Development seeds** (12 replicates per group; manipulation and lesion checks
+passed):
+
+| Hypothesis                                   | Estimate [interval]                | Verdict               |
+| -------------------------------------------- | ---------------------------------- | --------------------- |
+| H1 α′3 probe at the swap, stranger − partner | +0.157 [0.060, 0.274] (95%)        | supported             |
+| H2 first test contact, stranger − same       | +0.157 [0.054, 0.279] (95%)        | supported             |
+| H3 alerted at first eligible onset           | −0.018 [−0.402, 0.347] (95%), n 15 | not supported (power) |
+| H4 twin − same (predicted failure)           | +0.002 [−0.010, 0.014] (90%, ±0.1) | supported             |
+| H5 walked away, unscented − stranger         | 0.000 [−0.278, 0.278] (90%, ±0.15) | not supported (power) |
+
+What the development seeds showed:
+
+- **Familiarity appears, and it is about chemistry, not individuals.** After
+  20 minutes together the focal fly's α′3 answers its partner's chemistry at
+  0.24 and a stranger's at 0.39: the stranger is more novel, but far from
+  fully novel, because individuals vary around one species profile and what
+  depressed for one partner partly carries over. A stranger with the
+  partner's exact chemistry is indistinguishable from the partner (H4): the
+  model has nothing else to tell individuals apart by, as predicted.
+- **It barely reaches behaviour.** Contacts rarely find the focal fly
+  grooming or feeding (in about 8 of each group's 12 tests, one ever did), and the
+  difference familiarity makes to the alerting probability is about 0.06, so
+  H3 cannot be resolved at any feasible size; it was predicted so.
+- **Touch does not care about chemistry**: unscented and stranger produced
+  the same walk-away count (9 of 12), as Ramdya et al. found, but 12 per
+  group cannot bound the difference within ±0.15 (H5); hence the held-out
+  phase's 60 replicates.
+
+**Held-out seeds** (60 replicates per group, run once from clean commit
+`c888f3a`; manipulation and lesion checks passed;
+[report](benchmarks/first-contact/familiarity-held-out.md)):
+
+| Hypothesis                                   | Estimate [interval]                | Verdict                                   |
+| -------------------------------------------- | ---------------------------------- | ----------------------------------------- |
+| H1 α′3 probe at the swap, stranger − partner | +0.147 [0.110, 0.185] (95%)        | supported                                 |
+| H2 first test contact, stranger − same       | +0.148 [0.112, 0.184] (95%)        | supported                                 |
+| H3 alerted at first eligible onset           | +0.199 [0.014, 0.369] (95%), n 83  | supported by its rule; not credited below |
+| H4 twin − same (predicted failure)           | +0.005 [−0.001, 0.010] (90%, ±0.1) | supported                                 |
+| H5 walked away, unscented − stranger         | 0.000 [−0.129, 0.129] (90%, ±0.15) | supported                                 |
+
+What the held-out seeds add:
+
+- **The familiarity replicates.** At the first test contact the focal fly's
+  α′3 answered its partner at 0.27, a stranger at 0.41 and the partner's
+  chemistry on a stranger's body (the twin) at 0.27.
+- **H3 passes its rule by chance, so the pass is not credited.** The focal
+  fly stopped grooming or feeding at the first eligible onset in 14 of 41
+  stranger tests against 6 of 42 same tests, a gap of 0.199. The alerting
+  rule itself predicts about 0.05: its probability is 0.15 + 0.35 × the α′3
+  response, about 0.30 for a stranger against 0.24 for the partner (from
+  the first test contact's responses). The frozen-memory arm shows how large
+  chance alone is here: every response is 1, so both of its groups alert
+  with probability exactly 0.5, yet their samples differ by 0.208 (26 of 40
+  against 19 of 43; a gap that large arises by chance about 6% of the time).
+  The intact gap is within chance of the predicted 0.05 (1.5 sampling
+  standard deviations above it). So familiarity does reach behaviour in
+  this model, through the alerting rule, but by about 0.05 at a contact:
+  too little for the dish to measure. As the protocol predicted, resolving
+  it would take about 1,150 eligible onsets per group.
+- **Touch did not care about chemistry**: 45 of 60 walked away for both the
+  unscented fly and the stranger (H5). The response was built that way, from
+  Ramdya et al.'s finding, so H5 confirms the implementation in a dish where
+  contacts happen on their own; it is not a new finding.
+
 ## Phase 2: the neural augmentation layer
 
 `src/bethesda/augmentation/` (`layer.ts`, `advisors.ts`, `evaluate.ts`);
@@ -366,37 +608,120 @@ What changed with the cord, stated plainly:
 - The brain is quieter: about one descending neuron active per 100 ms,
   against four or five on FAFB.
 
-## Stage 4: a proposal for the originals (not implemented)
+## Stage 4: a gated plan for the originals (steps 1 and 2 taken)
 
-Interaction capabilities for Eva and ECHO themselves, if they are ever wanted,
-in this order, each step separately reviewed and authorized by the owner, and
-each reversible without reconstructing lost data:
+Stage 3b supplies what the earlier proposal lacked: one world that can hold
+both bodies, a contact sense through which individuals can differ, and Eva's
+own code running for research subjects. If the owner wants Eva and ECHO
+themselves to meet, this is the order. Each gate is reviewed and authorized
+separately, each is reversible without reconstructing lost data, and a gate
+that fails stops the plan there.
 
-1. **Eva's source and backups.** The garden's keeper provides `server.py` and
-   `learning.py` for review, and a fresh, restore-tested backup exists. Until
-   then nothing can be proposed for Eva beyond observation.
-2. **A same-origin observation of both.** Either a CORS header on Eva's
-   `/api/state` for one named origin, or a read-only relay; both are
-   production changes to the garden's nginx and are the owner's to approve.
-3. **Rehearsal on twins.** `twinCheckpoint` gives ECHO's state to a new
-   individual with its parentage recorded; Eva would need the equivalent from
-   her service. Bridge the twins, never the originals, with this repository's
-   bridge and the frozen protocols, and show that disabling the bridge
-   returns each twin to its unbridged trajectory.
-4. **A recorded input for ECHO.** For ECHO, a percept from outside is an
-   exogenous input, which the life records as an event in the checkpoint that
-   follows it ("Exogenous inputs are life events"): a new event kind, a
-   release that can replay it, a recorded continuation, and the old release
-   kept for replay. Its world would add the other fly as a seen-never-touched
-   moving thing exactly as `BridgedWorld` does, at Eva's five-second step
-   resolution and with her garden mapped by a declared frame.
-5. **Eva's side** would need the same in her service: a recorded input, a way
-   to disable it, and a replay that excludes it.
-6. **Only then** a time-limited, monitored bridge between the originals, with
-   a kill switch, both identities checked before and after, and every
-   delivered percept in a hash-chained log.
+1. **Evidence (met).** The familiarity study's held-out seeds ran once, from
+   clean commit `c888f3a`, and H1 and H2 held: this gate's condition for
+   proposing the social brain for ECHO (had either failed, a meeting by sight
+   and touch alone could still have gone ahead). H3's pass is chance and
+   the memory's effect on behaviour is about 0.05, so a meeting would mainly
+   show what the memory records.
+2. **Backups and provenance.** Before any change, a fresh, restore-tested
+   backup of each original: Eva's database and plasticity sidecar on the
+   garden VM, and ECHO's checkpoint chain and ledger on its VM, with their
+   digests recorded. Both originals keep advancing, unchanged, throughout.
 
-None of these steps was taken.
+   **Met on 11 November 2026.** The owner ran
+   `scripts/first-contact-copy-originals.sh` (a copy of the same steps, before
+   it was committed), and the copies were then checked on the owner's
+   laptop, where they are kept, outside the repository:
+   - **Eva's plasticity sidecar**, read first (with its five daily copies),
+     SHA-256
+     `e6cd9dc45748d5759519248693b7a06e0c738afeb3c00912c945d66ec568f4c8`.
+     Learned to tick 305,179 in active mode: 3,094 samples, 0 overrides of her
+     own choice so far.
+   - **Eva's database**, her garden's own snapshot taken just after
+     (`day-2.sqlite3`, 22:14Z), SHA-256
+     `b57790e8eb710ea431a26309c6446f818f86c035ea9fc9058c488c029a4aef9b`:
+     integrity ok, tick 305,372 (her live tick then), 2,345 journeys, 9,308
+     moments. `scripts/eva-restore-check.py` follows her service's load path
+     and her extension's restart gate without saving or stepping: the pair
+     resumes as her. The sidecar is 193 ticks behind because it saves only
+     when she learns, from travel, and she was asleep.
+   - **ECHO's store**, the newest archive its own `backup.sh` kept (checked on
+     its VM before keeping, and uploaded off-site),
+     `bethesda-life-20261111T180133Z-5cc50355148d.tar.gz`, SHA-256
+     `f6de54b648d3fc1a45337aadf5fc9b264a9f30f091d7c77646fdffff40c178ae`:
+     checkpoint 4652, tick 13,922,315, head digest
+     `42f015003aebce5e6f47068ad722f7f483bb88de387039902b40cdf48cbcb7e4`.
+     Checked again on a second machine with release `5cc5035` (`--check`:
+     every seal and link, then the head restored in memory, never stepped).
+
+   Neither life was changed: the one write was her garden's routine snapshot
+   into its weekly slot. Found on the way: her plasticity sidecar had never
+   been copied off her VM, because `deploy/garden/deploy.mjs backup` copies
+   only her database; that script copies it.
+
+3. **Twins (built; not yet made).** To be made once, from a clean commit,
+   from step 2's copies on the owner's laptop by
+   `scripts/first-contact-twins.ts`. Neither VM is touched, and neither copy
+   is ever stepped as Eva or as ECHO. A twin is someone new: it shares its
+   parent's past up to the copy and nothing after it.
+   - **Eva, after a parity gate.** Her own Python service first lives a copy
+     of her life, renamed `research-eva-copy-parity`, for one simulated day
+     (`scripts/eva-parity.py from-copy`: her database row and sidecar as
+     stored, `advance` every 5 s, no weather fetched, no network). The port
+     restores the same stored row and sidecar itself (`EvaGarden.restore`,
+     `sidecarMemory`, which read them as her service and her extension's
+     restart gate do) and must match at every step: discrete fields exactly,
+     continuous ones within 1e-9, and her whole state, plasticity memory and
+     `/state` snapshot every 500 steps. Only then is her twin made: the port's
+     restore of that stored state at her tick, under a new
+     `research-eva-twin-…` id derived from a nonce, with its parentage. CI
+     runs the same path on two research-garden copies
+     (`src/bethesda/firstContact/eva/fixtures/copy-*.json.gz`, one in active
+     mode mid-swapping, one in shadow mode), with controls showing that a
+     changed byte of the stored row or sidecar is caught at the restore.
+   - **ECHO.** `twinCheckpoint` on its copied head: a new individual whose
+     birth seals ECHO's id, sequence and digest. Restoring the twin proves it
+     holds ECHO's state at that tick; its checkpoints cannot continue ECHO's
+     chain, and its own chain continues from it. ECHO's era history refuses a
+     durable store that begins in the plasticity era ("plasticity continuation
+     is never a new birth", `plasticOrganism.ts`). That protects ECHO's
+     lineage and is left as it is, so ECHO's twin is kept as its sealed
+     checkpoint, not as a `LifeStore`.
+4. **Rehearsal: the twins meet in her garden.** Her body exists only as her
+   garden's exhibit poses it, so her garden is where they can meet, with
+   ECHO's twin as a visitor at true scale. The visit's start, length and
+   entry point are fixed in advance. A visit in which the other never comes
+   within reach must leave each twin exactly on its solo trajectory (already
+   tested for research subjects), and ending the visit must return ECHO's
+   twin to its city at the recorded point.
+5. **ECHO's release.** The social brain at `shape()`, touch and contact
+   chemistry, and the visit itself become recorded life events (an event kind
+   for each contact sample and for the change of world), in a new release
+   that replays them. The old release is kept for replay. The live fly is
+   upgraded in place, never re-created, and the owner runs each VM step.
+6. **Eva's release.** The port's `perceive` and `obstruct` seams go into
+   `server.py`, off by default and byte-identical when off (as the port's
+   tests show), and every delivered input is saved in her database beside
+   her moments, so that a replay can include it or exclude it. Deployed only
+   through `deploy/garden`, with explicit approval.
+7. **Coupling across two machines.** The commons steps both bodies every
+   5 ms on one clock, but the originals run on two VMs. Eva's side changes
+   only once per 5 s step, so the commons can run beside ECHO. It receives
+   each of her steps, poses her between steps with the exhibit's own
+   director, and sends her, before her next step, whether her motion was
+   stopped and what she perceived: a few hundred bytes each way every 5 s.
+   Her service must compute each step one step ahead and commit it after the
+   commons answers (the research occupant's predict-then-verify). That is the
+   largest change to her service.
+8. **Only then** a time-limited visit between the originals, with a kill
+   switch, both identities and digests checked before and after, every
+   cross-organism input in a hash-chained log, and the visit's record
+   published.
+
+Steps 1 and 2 have been taken; step 2 copied both originals and changed
+neither. Step 3's tools are built and tested on research-garden copies; the
+twins themselves are not yet made. Nothing in this repository can take the rest: the
+originals' processes, databases and memories are reachable only by the owner.
 
 ## Reproducing everything
 
@@ -406,11 +731,14 @@ node scripts/run-ts.mjs scripts/first-contact-evaluate.ts --study encounter --ch
 node scripts/run-ts.mjs scripts/first-contact-evaluate.ts --study recognition --phase development --check
 node scripts/run-ts.mjs scripts/first-contact-evaluate.ts --study recognition --phase held-out --check
 node scripts/run-ts.mjs scripts/augmentation-evaluate.ts --check
+node scripts/run-ts.mjs scripts/first-contact-familiarity.ts --phase development --check
+node scripts/run-ts.mjs scripts/first-contact-familiarity.ts --phase held-out --check
 cd fly-neural && python -m pytest -q
 ```
 
 Each `--check` reruns the study and fails unless it reproduces the committed
-file byte for byte. The results were produced with Node 22.23.4 on Linux x64;
+file byte for byte. The results were produced with Node 22.23.4 on Linux x64
+(the familiarity study's with Node 24.22.1 on Windows arm64);
 as with the repository's pilots, another platform's `Math` may round
 differently.
 
@@ -421,14 +749,33 @@ differently.
   is one shared scalar. Habituation itself fell short of its criterion.
 - **Contingency made no measurable difference** (Stage 2, E3).
 - **The other fly is a sphere** of FlyBody's body length: no wings, no
-  elongation, no wingbeat flicker, no contact, no odour or sound.
+  elongation, no wingbeat flicker, no sound and no airborne odour. In the
+  commons (Stage 3b) it is also solid, can be touched and carries a contact
+  chemistry; outside it, it has none of these.
+- **The contact chemistry is synthetic**: four bins with log-normal
+  individual variation, not calibrated against measured cuticular
+  hydrocarbons, with one species-wide receptor tuning. Real flies' profiles
+  also differ by sex, age, diet and strain, none of which is modelled.
+- **The α′3 compartment met one calibration criterion only on average**:
+  seed 4's second exposure kept 0.634 of the first response against "over
+  50% suppression" (the five-seed mean, 0.477, meets it).
+- **Familiarity barely reaches behaviour** (Stage 3b, H3): it acts only
+  through the alerting probability, by about 0.05 at a contact, and only at
+  the rare contacts that find the fly grooming or feeding. H3's held-out
+  pass is chance: the frozen arm, whose groups both alert with probability
+  exactly 0.5, differed by as much.
+- **Approaches often loom** in the dish: 29% of contact onsets in the test
+  found the focal fly already escaping. This is the existing giant-fiber
+  pathway answering a fly-sized thing coming close in a small arena, not a
+  social response; it is reported, not corrected.
 - **Placement is the experimenter's** in Stage 3 (playback): partners' motion
   is theirs, where it passes is not.
-- **The organism arm is approximate in arenas:** its physiology stays at its
-  initial state (the organism's life advances it, an arena does not) and it
-  smells nothing.
-- **Eva is absent from every experiment**: her controller is not in this
-  repository, so no research subject stands in for her.
+- **The organism arm is approximate in Stage 2 and 3 arenas:** its
+  physiology stays at its initial state and it smells nothing. In the
+  commons its physiology advances as its life's does; it still smells no
+  airborne odour of the other.
+- **Eva-kind subjects appear only in exploratory garden runs**, not in any
+  confirmatory study: the familiarity study uses ECHO-kind flies only.
 - **Stage 1's metric scale for Eva's garden is the renderer's**, with a 0.63 m
   rms residual over the seven places.
 - **The advice gate's false-alarm criterion is lenient** as written, and the

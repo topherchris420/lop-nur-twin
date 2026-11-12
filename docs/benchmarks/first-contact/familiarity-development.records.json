@@ -1,0 +1,3170 @@
+[
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.33887900711144053
+    },
+    "focalReserveAtEnd": 0.8069,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.285498,
+      "stranger": 0.426458
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": 0.290213,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 4,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.0938
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": 0.32161952896248136
+    },
+    "focalReserveAtEnd": 0.8236,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": 0.245692,
+      "stranger": 0.248642
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": 0.25699,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 5,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0973
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.3574949739920424
+    },
+    "focalReserveAtEnd": 0.8228,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.301001,
+      "stranger": 0.247619
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": 0.308878,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 8,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1365
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.14222501673911786
+    },
+    "focalReserveAtEnd": 0.9349,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.150835,
+      "stranger": 0.225004
+    },
+    "test": {
+      "contacts": 23,
+      "onsets": 23,
+      "firstResponse": 0.151599,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.1378
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.1731553892966254
+    },
+    "focalReserveAtEnd": 0.838,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.154939,
+      "stranger": 0.373486
+    },
+    "test": {
+      "contacts": 16,
+      "onsets": 16,
+      "firstResponse": 0.157463,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1435
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.2349530864678797
+    },
+    "focalReserveAtEnd": 0.8247,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.149228,
+      "stranger": 0.179245
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": 0.207241,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.103
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.22443940534354792
+    },
+    "focalReserveAtEnd": 0.8043,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.201773,
+      "stranger": 0.443195
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": 0.222907,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1312
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": 0.24745268963782882
+    },
+    "focalReserveAtEnd": 0.8641,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.170925,
+      "stranger": 0.190176
+    },
+    "test": {
+      "contacts": 13,
+      "onsets": 13,
+      "firstResponse": 0.17702,
+      "firstEligibleAlerted": true,
+      "eligible": 3,
+      "alerted": 2,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 2,
+      "groomFeedShare": 0.1587
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.2681313636730541
+    },
+    "focalReserveAtEnd": 0.8084,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.209926,
+      "stranger": 0.788388
+    },
+    "test": {
+      "contacts": 33,
+      "onsets": 33,
+      "firstResponse": 0.21183,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 11,
+      "walked": 9,
+      "escapesAtOnset": 12,
+      "groomFeedShare": 0.0897
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.20973220750530416
+    },
+    "focalReserveAtEnd": 0.8568,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.247438,
+      "stranger": 0.322055
+    },
+    "test": {
+      "contacts": 20,
+      "onsets": 20,
+      "firstResponse": 0.255286,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.2715
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": 0.4254114779380887
+    },
+    "focalReserveAtEnd": 0.8821,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.445154,
+      "stranger": 0.49842
+    },
+    "test": {
+      "contacts": 17,
+      "onsets": 17,
+      "firstResponse": 0.483589,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1052
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "same",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.122124774431687
+    },
+    "focalReserveAtEnd": 0.8988,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.124639,
+      "stranger": 0.631311
+    },
+    "test": {
+      "contacts": 23,
+      "onsets": 23,
+      "firstResponse": 0.129586,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 5,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.2997
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": 630000
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.33887900711144053
+    },
+    "focalReserveAtEnd": 0.8063,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.285498,
+      "stranger": 0.426458
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": 0.44111,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0917
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": 630001
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": 0.32161952896248136
+    },
+    "focalReserveAtEnd": 0.8228,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": 0.245692,
+      "stranger": 0.248642
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": 0.251541,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 5,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.1147
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": 630002
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.3574949739920424
+    },
+    "focalReserveAtEnd": 0.8114,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.301001,
+      "stranger": 0.247619
+    },
+    "test": {
+      "contacts": 21,
+      "onsets": 21,
+      "firstResponse": 0.261484,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1293
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": 630003
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.14222501673911786
+    },
+    "focalReserveAtEnd": 0.9354,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.150835,
+      "stranger": 0.225004
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": 0.225701,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1135
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": 630004
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.1731553892966254
+    },
+    "focalReserveAtEnd": 0.8378,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.154939,
+      "stranger": 0.373486
+    },
+    "test": {
+      "contacts": 30,
+      "onsets": 30,
+      "firstResponse": 0.375542,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0645
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": 630005
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.2349530864678797
+    },
+    "focalReserveAtEnd": 0.8255,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.149228,
+      "stranger": 0.179245
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": 0.183165,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0803
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": 630006
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.22443940534354792
+    },
+    "focalReserveAtEnd": 0.8034,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.201773,
+      "stranger": 0.443195
+    },
+    "test": {
+      "contacts": 11,
+      "onsets": 11,
+      "firstResponse": 0.536119,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 4,
+      "walked": 1,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1027
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": 630007
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": 0.24745268963782882
+    },
+    "focalReserveAtEnd": 0.8644,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.170925,
+      "stranger": 0.190176
+    },
+    "test": {
+      "contacts": 22,
+      "onsets": 21,
+      "firstResponse": 0.198063,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1597
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": 630008
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.2681313636730541
+    },
+    "focalReserveAtEnd": 0.809,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.209926,
+      "stranger": 0.788388
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": 0.794641,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.1433
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": 630009
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.20973220750530416
+    },
+    "focalReserveAtEnd": 0.7996,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.247438,
+      "stranger": 0.322055
+    },
+    "test": {
+      "contacts": 22,
+      "onsets": 22,
+      "firstResponse": 0.330959,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.1558
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": 630010
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": 0.4254114779380887
+    },
+    "focalReserveAtEnd": 0.8817,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.445154,
+      "stranger": 0.49842
+    },
+    "test": {
+      "contacts": 31,
+      "onsets": 31,
+      "firstResponse": 0.504502,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 12,
+      "walked": 10,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1762
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "stranger",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": 630011
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.122124774431687
+    },
+    "focalReserveAtEnd": 0.8488,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.124639,
+      "stranger": 0.631311
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": 0.633849,
+      "firstEligibleAlerted": true,
+      "eligible": 2,
+      "alerted": 1,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 3,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.186
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": 640000
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.33887900711144053
+    },
+    "focalReserveAtEnd": 0.8063,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.285498,
+      "stranger": 0.426458
+    },
+    "test": {
+      "contacts": 32,
+      "onsets": 32,
+      "firstResponse": 0.298765,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 4,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.0903
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": 640001
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": 0.32161952896248136
+    },
+    "focalReserveAtEnd": 0.8235,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": 0.245692,
+      "stranger": 0.248642
+    },
+    "test": {
+      "contacts": 21,
+      "onsets": 21,
+      "firstResponse": 0.247058,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 2,
+      "walked": 1,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.1282
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": 640002
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.3574949739920424
+    },
+    "focalReserveAtEnd": 0.8009,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.301001,
+      "stranger": 0.247619
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": 0.323559,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.2153
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": 640003
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.14222501673911786
+    },
+    "focalReserveAtEnd": 0.9358,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.150835,
+      "stranger": 0.225004
+    },
+    "test": {
+      "contacts": 23,
+      "onsets": 23,
+      "firstResponse": 0.151599,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 8,
+      "walked": 6,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.1043
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": 640004
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.1731553892966254
+    },
+    "focalReserveAtEnd": 0.8376,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.154939,
+      "stranger": 0.373486
+    },
+    "test": {
+      "contacts": 16,
+      "onsets": 16,
+      "firstResponse": 0.156649,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 2,
+      "walked": 1,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1622
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": 640005
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.2349530864678797
+    },
+    "focalReserveAtEnd": 0.8259,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.149228,
+      "stranger": 0.179245
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": 0.156306,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 3,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.0883
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": 640006
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.22443940534354792
+    },
+    "focalReserveAtEnd": 0.8228,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.201773,
+      "stranger": 0.443195
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": 0.220406,
+      "firstEligibleAlerted": false,
+      "eligible": 3,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 4,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.1565
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": 640007
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": 0.24745268963782882
+    },
+    "focalReserveAtEnd": 0.8634,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.170925,
+      "stranger": 0.190176
+    },
+    "test": {
+      "contacts": 21,
+      "onsets": 21,
+      "firstResponse": 0.197784,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 3,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1623
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": 640008
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.2681313636730541
+    },
+    "focalReserveAtEnd": 0.8093,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.209926,
+      "stranger": 0.788388
+    },
+    "test": {
+      "contacts": 27,
+      "onsets": 27,
+      "firstResponse": 0.221809,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 10,
+      "walked": 8,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.0942
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": 640009
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.20973220750530416
+    },
+    "focalReserveAtEnd": 0.8049,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.247438,
+      "stranger": 0.322055
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": 0.272673,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 3,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.172
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": 640010
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": 0.4254114779380887
+    },
+    "focalReserveAtEnd": 0.8822,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.445154,
+      "stranger": 0.49842
+    },
+    "test": {
+      "contacts": 21,
+      "onsets": 21,
+      "firstResponse": 0.450927,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 1,
+      "firstStationaryWalked": false,
+      "stationary": 7,
+      "walked": 3,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0983
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "twin",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": 640011
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.122124774431687
+    },
+    "focalReserveAtEnd": 0.8085,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.124639,
+      "stranger": 0.631311
+    },
+    "test": {
+      "contacts": 13,
+      "onsets": 13,
+      "firstResponse": 0.180493,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 3,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.2192
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": 630000
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.33887900711144053
+    },
+    "focalReserveAtEnd": 0.8063,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.285498,
+      "stranger": 0.426458
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0917
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": 630001
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": 0.32161952896248136
+    },
+    "focalReserveAtEnd": 0.8228,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": 0.245692,
+      "stranger": 0.248642
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 5,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.1147
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": 630002
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.3574949739920424
+    },
+    "focalReserveAtEnd": 0.8114,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.301001,
+      "stranger": 0.247619
+    },
+    "test": {
+      "contacts": 21,
+      "onsets": 21,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1293
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": 630003
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 0.14222501673911786
+    },
+    "focalReserveAtEnd": 0.9354,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.150835,
+      "stranger": 0.225004
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1135
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": 630004
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 0.1731553892966254
+    },
+    "focalReserveAtEnd": 0.8378,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.154939,
+      "stranger": 0.373486
+    },
+    "test": {
+      "contacts": 30,
+      "onsets": 30,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0645
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": 630005
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.2349530864678797
+    },
+    "focalReserveAtEnd": 0.8255,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.149228,
+      "stranger": 0.179245
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0803
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": 630006
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 0.22443940534354792
+    },
+    "focalReserveAtEnd": 0.8034,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.201773,
+      "stranger": 0.443195
+    },
+    "test": {
+      "contacts": 11,
+      "onsets": 11,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 4,
+      "walked": 1,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1027
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": 630007
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": 0.24745268963782882
+    },
+    "focalReserveAtEnd": 0.8644,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.170925,
+      "stranger": 0.190176
+    },
+    "test": {
+      "contacts": 22,
+      "onsets": 21,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1597
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": 630008
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.2681313636730541
+    },
+    "focalReserveAtEnd": 0.809,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.209926,
+      "stranger": 0.788388
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.1433
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": 630009
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.20973220750530416
+    },
+    "focalReserveAtEnd": 0.7996,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.247438,
+      "stranger": 0.322055
+    },
+    "test": {
+      "contacts": 22,
+      "onsets": 22,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.1558
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": 630010
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": 0.4254114779380887
+    },
+    "focalReserveAtEnd": 0.8817,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.445154,
+      "stranger": 0.49842
+    },
+    "test": {
+      "contacts": 31,
+      "onsets": 31,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 12,
+      "walked": 10,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1762
+    }
+  },
+  {
+    "arm": "intact",
+    "condition": "unscented",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": 630011
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 0.122124774431687
+    },
+    "focalReserveAtEnd": 0.8488,
+    "swapT": 1200,
+    "probe": {
+      "partner": 0.124639,
+      "stranger": 0.631311
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": null,
+      "firstEligibleAlerted": true,
+      "eligible": 2,
+      "alerted": 1,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 3,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.186
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8069,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 4,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.0938
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8236,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 5,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0973
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 37,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8064,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 2,
+      "walked": 2,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.1437
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.9349,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 23,
+      "onsets": 23,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.1378
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.838,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 16,
+      "onsets": 16,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1435
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8247,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.103
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 44,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8028,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 17,
+      "onsets": 17,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 2,
+      "walked": 1,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.0763
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8641,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 13,
+      "onsets": 13,
+      "firstResponse": null,
+      "firstEligibleAlerted": true,
+      "eligible": 3,
+      "alerted": 2,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 2,
+      "groomFeedShare": 0.1587
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8084,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 33,
+      "onsets": 33,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 11,
+      "walked": 9,
+      "escapesAtOnset": 12,
+      "groomFeedShare": 0.0897
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8568,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 20,
+      "onsets": 20,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.2715
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8821,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 17,
+      "onsets": 17,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1052
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "same",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8988,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 23,
+      "onsets": 23,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 5,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.2997
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": 630000
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8063,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0917
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": 630001
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8228,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 2,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 5,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.1147
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": 630002
+    },
+    "familiarization": {
+      "contacts": 37,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8057,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 18,
+      "onsets": 18,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.1448
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": 630003
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.9354,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1135
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": 630004
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8378,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 30,
+      "onsets": 30,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0645
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": 630005
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8255,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0803
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": 630006
+    },
+    "familiarization": {
+      "contacts": 44,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8031,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 30,
+      "onsets": 30,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.1148
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": 630007
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8644,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 22,
+      "onsets": 21,
+      "firstResponse": null,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1597
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": 630008
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.809,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.1433
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": 630009
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.7996,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 22,
+      "onsets": 22,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.1558
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": 630010
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8817,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 31,
+      "onsets": 31,
+      "firstResponse": null,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 12,
+      "walked": 10,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1762
+    }
+  },
+  {
+    "arm": "agustatory",
+    "condition": "stranger",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": 630011
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": null
+    },
+    "focalReserveAtEnd": 0.8488,
+    "swapT": 1200,
+    "probe": {
+      "partner": null,
+      "stranger": null
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": null,
+      "firstEligibleAlerted": true,
+      "eligible": 2,
+      "alerted": 1,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 3,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.186
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8069,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 4,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.0938
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8236,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 5,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0973
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8228,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 8,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1365
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.9349,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 23,
+      "onsets": 23,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.1378
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.838,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 16,
+      "onsets": 16,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1435
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8247,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.103
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8043,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1312
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8641,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 13,
+      "onsets": 13,
+      "firstResponse": 1,
+      "firstEligibleAlerted": true,
+      "eligible": 3,
+      "alerted": 3,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 2,
+      "groomFeedShare": 0.1587
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8084,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 33,
+      "onsets": 33,
+      "firstResponse": 1,
+      "firstEligibleAlerted": true,
+      "eligible": 1,
+      "alerted": 1,
+      "firstStationaryWalked": true,
+      "stationary": 11,
+      "walked": 9,
+      "escapesAtOnset": 12,
+      "groomFeedShare": 0.0897
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 42,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8171,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 27,
+      "onsets": 27,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 4,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.2028
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8821,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 17,
+      "onsets": 17,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1052
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "same",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": null
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8988,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 23,
+      "onsets": 23,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 5,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.2997
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 0,
+    "seeds": {
+      "focal": 610000,
+      "partner": 620000,
+      "test": 630000
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8063,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 19,
+      "onsets": 19,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 3,
+      "walked": 2,
+      "escapesAtOnset": 4,
+      "groomFeedShare": 0.0917
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 1,
+    "seeds": {
+      "focal": 610001,
+      "partner": 620001,
+      "test": 630001
+    },
+    "familiarization": {
+      "contacts": 25,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8228,
+    "swapT": 1200.1,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 29,
+      "onsets": 29,
+      "firstResponse": 1,
+      "firstEligibleAlerted": true,
+      "eligible": 2,
+      "alerted": 1,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 5,
+      "escapesAtOnset": 7,
+      "groomFeedShare": 0.1147
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 2,
+    "seeds": {
+      "focal": 610002,
+      "partner": 620002,
+      "test": 630002
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8114,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 21,
+      "onsets": 21,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1293
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 3,
+    "seeds": {
+      "focal": 610003,
+      "partner": 620003,
+      "test": 630003
+    },
+    "familiarization": {
+      "contacts": 36,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.9354,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 24,
+      "onsets": 24,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 6,
+      "groomFeedShare": 0.1135
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 4,
+    "seeds": {
+      "focal": 610004,
+      "partner": 620004,
+      "test": 630004
+    },
+    "familiarization": {
+      "contacts": 39,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8378,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 30,
+      "onsets": 30,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0645
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 5,
+    "seeds": {
+      "focal": 610005,
+      "partner": 620005,
+      "test": 630005
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8255,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 7,
+      "walked": 6,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.0803
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 6,
+    "seeds": {
+      "focal": 610006,
+      "partner": 620006,
+      "test": 630006
+    },
+    "familiarization": {
+      "contacts": 38,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8034,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 11,
+      "onsets": 11,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 4,
+      "walked": 1,
+      "escapesAtOnset": 3,
+      "groomFeedShare": 0.1027
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 7,
+    "seeds": {
+      "focal": 610007,
+      "partner": 620007,
+      "test": 630007
+    },
+    "familiarization": {
+      "contacts": 35,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8644,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 22,
+      "onsets": 21,
+      "firstResponse": 1,
+      "firstEligibleAlerted": null,
+      "eligible": 0,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1597
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 8,
+    "seeds": {
+      "focal": 610008,
+      "partner": 620008,
+      "test": 630008
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.809,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 28,
+      "onsets": 28,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 6,
+      "walked": 5,
+      "escapesAtOnset": 10,
+      "groomFeedShare": 0.1433
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 9,
+    "seeds": {
+      "focal": 610009,
+      "partner": 620009,
+      "test": 630009
+    },
+    "familiarization": {
+      "contacts": 42,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8085,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 17,
+      "onsets": 17,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": true,
+      "stationary": 5,
+      "walked": 4,
+      "escapesAtOnset": 5,
+      "groomFeedShare": 0.1518
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 10,
+    "seeds": {
+      "focal": 610010,
+      "partner": 620010,
+      "test": 630010
+    },
+    "familiarization": {
+      "contacts": 19,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8817,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 31,
+      "onsets": 31,
+      "firstResponse": 1,
+      "firstEligibleAlerted": false,
+      "eligible": 1,
+      "alerted": 0,
+      "firstStationaryWalked": false,
+      "stationary": 12,
+      "walked": 10,
+      "escapesAtOnset": 8,
+      "groomFeedShare": 0.1762
+    }
+  },
+  {
+    "arm": "frozen",
+    "condition": "stranger",
+    "replicate": 11,
+    "seeds": {
+      "focal": 610011,
+      "partner": 620011,
+      "test": 630011
+    },
+    "familiarization": {
+      "contacts": 40,
+      "lastResponse": 1
+    },
+    "focalReserveAtEnd": 0.8488,
+    "swapT": 1200,
+    "probe": {
+      "partner": 1,
+      "stranger": 1
+    },
+    "test": {
+      "contacts": 25,
+      "onsets": 25,
+      "firstResponse": 1,
+      "firstEligibleAlerted": true,
+      "eligible": 2,
+      "alerted": 1,
+      "firstStationaryWalked": true,
+      "stationary": 4,
+      "walked": 3,
+      "escapesAtOnset": 9,
+      "groomFeedShare": 0.186
+    }
+  }
+]
