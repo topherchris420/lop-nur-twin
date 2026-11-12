@@ -105,17 +105,22 @@ describe("the same individual, with acquired search", () => {
     const a = restoreLife(ORGANISM_LIFE, from);
     const { life: b } = continueWithAcquiredSearch(from, times[1], times[0]);
     const search = b.acquired.search;
-    const index = () => indexGraph(ACQUIRED_LIFE.build(genesis));
+    // Built once: an index names the module data a fresh city shares, which
+    // stepping does not change, so building two more cities every round to ask
+    // again only cost time.
+    const acquiredIndex = indexGraph(ACQUIRED_LIFE.build(genesis));
+    const organismIndex = indexGraph(ORGANISM_LIFE.build(genesis));
+    // `canonical()` only reads its graph, so it needs no copy to read from.
     const whole = (graph: GraphSnapshot) =>
-      sha256(JSON.stringify(new Graph(graph).canonical()));
+      sha256(JSON.stringify(new Graph(graph, false).canonical()));
     let compared = 0;
     // Everything but the addition, not a hash of part of it: positions, memories,
     // weights, physiology and every random stream's position.
     for (let i = 0; i < 40 && search.state.meals < 3; i++) {
       a.advanceTicks(300);
       b.advanceTicks(300);
-      expect(acquiredProjection(snapshotGraph(b, index()))).toBe(
-        whole(snapshotGraph(a, indexGraph(ORGANISM_LIFE.build(genesis)))),
+      expect(acquiredProjection(snapshotGraph(b, acquiredIndex))).toBe(
+        whole(snapshotGraph(a, organismIndex)),
       );
       compared += 300;
     }

@@ -98,6 +98,20 @@ const where = (path: readonly PathStep[]) =>
     : "(root)";
 
 /**
+ * Where a value sits, as a chain back to the root (null). A snapshot only
+ * reads it to word an error, so it is one link per object instead of a copied
+ * path per value, numbers included; that copying was a fifth of the time it
+ * took to snapshot a city.
+ */
+type Trail = { readonly up: Trail; readonly step: PathStep } | null;
+
+function trailWhere(trail: Trail): string {
+  const path: PathStep[] = [];
+  for (let t = trail; t; t = t.up) path.push(t.step);
+  return where(path.reverse());
+}
+
+/**
  * The objects and functions reachable from `root`, each with the first path
  * that reaches it, in the same order `snapshotGraph` walks.
  */
@@ -171,19 +185,19 @@ function className(o: object): string | null {
 }
 
 /** Check that every own property of `o` is a plain, enumerable, string-keyed value. */
-function checkProperties(o: object, path: PathStep[], isArray: boolean): void {
+function checkProperties(o: object, trail: Trail, isArray: boolean): void {
   if (Object.getOwnPropertySymbols(o).length)
-    throw new Error(`${where(path)} has symbol-keyed properties`);
+    throw new Error(`${trailWhere(trail)} has symbol-keyed properties`);
   for (const key of Object.getOwnPropertyNames(o)) {
     if (isArray && key === "length") continue;
     const d = Object.getOwnPropertyDescriptor(o, key)!;
-    if (!("value" in d)) throw new Error(`${where(path)}.${key} is an accessor`);
-    if (!d.enumerable) throw new Error(`${where(path)}.${key} is not enumerable`);
+    if (!("value" in d)) throw new Error(`${trailWhere(trail)}.${key} is an accessor`);
+    if (!d.enumerable) throw new Error(`${trailWhere(trail)}.${key} is not enumerable`);
   }
   if (isArray) {
     const a = o as unknown[];
     if (Object.keys(a).length !== a.length)
-      throw new Error(`${where(path)} is not a dense array`);
+      throw new Error(`${trailWhere(trail)} is not a dense array`);
   }
 }
 
@@ -197,7 +211,8 @@ export function snapshotGraph(
 ): GraphSnapshot {
   const ids = new Map<object, number>();
   const nodes: GraphNode[] = [];
-  const value = (v: unknown, path: PathStep[]): GraphValue => {
+  /** `v`, found at `step` of the object at `up` (`step` null for the root itself). */
+  const value = (v: unknown, up: Trail, step: PathStep | null): GraphValue => {
     switch (typeof v) {
       case "string":
       case "boolean":
@@ -208,7 +223,9 @@ export function snapshotGraph(
         return { u: 1 };
       case "symbol":
       case "bigint":
-        throw new Error(`${where(path)} is a ${typeof v}`);
+        throw new Error(
+          `${trailWhere(step === null ? up : { up, step })} is a ${typeof v}`,
+        );
     }
     if (v === null) return null;
     const o = v as object;
@@ -217,10 +234,10 @@ export function snapshotGraph(
     const id = nodes.length;
     ids.set(o, id);
     nodes.push({ t: "fn" }); // a placeholder, so a cycle back here finds its id
-    nodes[id] = node(o, path);
+    nodes[id] = node(o, step === null ? up : { up, step });
     return { r: id };
   };
-  const node = (o: object, path: PathStep[]): GraphNode => {
+  const node = (o: object, trail: Trail): GraphNode => {
     const at = shared.get(o);
     if (at) return { t: "sh", p: at };
     if (typeof o === "function") {
@@ -228,30 +245,32 @@ export function snapshotGraph(
       return p === null ? { t: "fn" } : { t: "rng", p };
     }
     if (o instanceof Map) {
-      if (className(o) !== "Map") throw new Error(`${where(path)} is a subclass of Map`);
+      if (className(o) !== "Map")
+        throw new Error(`${trailWhere(trail)} is a subclass of Map`);
       const e: [GraphValue, GraphValue][] = [];
       let i = 0;
       for (const [k, v] of o) {
-        e.push([value(k, [...path, `key ${i}`]), value(v, [...path, `value ${i}`])]);
+        e.push([value(k, trail, `key ${i}`), value(v, trail, `value ${i}`)]);
         i++;
       }
       return { t: "m", e };
     }
     if (o instanceof Set) {
-      if (className(o) !== "Set") throw new Error(`${where(path)} is a subclass of Set`);
-      return { t: "s", e: [...o].map((v, i) => value(v, [...path, `member ${i}`])) };
+      if (className(o) !== "Set")
+        throw new Error(`${trailWhere(trail)} is a subclass of Set`);
+      return { t: "s", e: [...o].map((v, i) => value(v, trail, `member ${i}`)) };
     }
     if (ArrayBuffer.isView(o)) {
       const c = typedName(o);
       if (!c || className(o) !== c)
-        throw new Error(`${where(path)} is an unsupported buffer view`);
+        throw new Error(`${trailWhere(trail)} is an unsupported buffer view`);
       return { t: "ta", c, e: Array.from(o as TypedArray, encodeNumber) };
     }
     if (Array.isArray(o)) {
       if (className(o) !== "Array")
-        throw new Error(`${where(path)} is a subclass of Array`);
-      checkProperties(o, path, true);
-      const e = o.map((v, i) => value(v, [...path, i]));
+        throw new Error(`${trailWhere(trail)} is a subclass of Array`);
+      checkProperties(o, trail, true);
+      const e = o.map((v, i) => value(v, trail, i));
       return Object.isFrozen(o) ? { t: "a", z: 1, e } : { t: "a", e };
     }
     const c = className(o);
@@ -264,15 +283,15 @@ export function snapshotGraph(
       o instanceof WeakSet ||
       o instanceof ArrayBuffer
     )
-      throw new Error(`${where(path)} is a ${c}, which a snapshot cannot hold`);
-    checkProperties(o, path, false);
+      throw new Error(`${trailWhere(trail)} is a ${c}, which a snapshot cannot hold`);
+    checkProperties(o, trail, false);
     const e = Object.keys(o).map((k): [string, GraphValue] => [
       k,
-      value((o as Record<string, unknown>)[k], [...path, k]),
+      value((o as Record<string, unknown>)[k], trail, k),
     ]);
     return Object.isFrozen(o) ? { t: "o", c, z: 1, e } : { t: "o", c, e };
   };
-  const root_ = value(root, []);
+  const root_ = value(root, null, null);
   return { schema: GRAPH_SCHEMA, root: root_, nodes };
 }
 

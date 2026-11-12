@@ -91,6 +91,24 @@ describe("graph snapshots", () => {
     const accessor = {};
     Object.defineProperty(accessor, "x", { get: () => 1, enumerable: true });
     expect(() => snapshotGraph({ accessor })).toThrow(/accessor/);
+    // The place is spelled out through every kind of container, and as "(root)" at the top.
+    const message = (root: unknown) => {
+      try {
+        snapshotGraph(root);
+      } catch (e) {
+        return (e as Error).message;
+      }
+      return null;
+    };
+    expect(message(Symbol("x"))).toBe("(root) is a symbol");
+    expect(message([0, { m: new Map([["k", [1n]]]) }])).toBe(
+      "[1].m.value 0[0] is a bigint",
+    );
+    expect(message({ m: new Map([[Symbol("k"), 1]]) })).toBe(".m.key 0 is a symbol");
+    expect(message({ s: new Set([1, new Date(0)]) })).toBe(
+      ".s.member 1 is a Date, which a snapshot cannot hold",
+    );
+    expect(message({ a: [accessor] })).toBe(".a[0].x is an accessor");
     // A function the fresh graph does not hold where the snapshot had one cannot be restored.
     const snap = snapshotGraph({ f: () => 1 });
     expect(() => restoreGraph(snap, {})).toThrow(/no function/);
