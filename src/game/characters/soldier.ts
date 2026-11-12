@@ -289,21 +289,35 @@ function buildParts(
   mask.translate(0, 1.615, 0.004);
   add(mask, palette.webbing, 0.9);
 
-  // Brow shadow, a nose, and eye sockets. Three small solids, and between them
-  // they are what stop a head reading as a bald sphere at three metres.
+  // A nose and a brow. Between them they stop a head reading as a bald sphere.
   add(ball(0.018, 0, 1.612, -0.085, 1.35, 1.0), palette.skin, 0.72);
-  // Recessed, not stuck on. A sphere proud of the skin is a sticker.
-  add(ball(0.019, -0.036, 1.633, -0.09, 0.55, 0.4), 0xe8e0d4, 0.42);
-  add(ball(0.019, 0.036, 1.633, -0.09, 0.55, 0.4), 0xe8e0d4, 0.42);
-  add(ball(0.012, -0.036, 1.635, -0.098, 0.7, 0.52), 0x5a4030, 0.28);
-  add(ball(0.012, 0.036, 1.635, -0.098, 0.7, 0.52), 0x5a4030, 0.28);
-  add(ball(0.0058, -0.036, 1.637, -0.106, 0.75, 0.55), 0x0a0806, 0.1);
-  add(ball(0.0058, 0.036, 1.637, -0.106, 0.75, 0.55), 0x0a0806, 0.1);
-  add(ball(0.0032, -0.03, 1.642, -0.11), 0xfff8ee, 0.08);
-  add(ball(0.0032, 0.042, 1.642, -0.11), 0xfff8ee, 0.08);
-  add(slab(0.026, 0.007, 0.012, -0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
-  add(slab(0.026, 0.007, 0.012, 0.036, 1.644, -0.094, 0.0015, -0.4), palette.skin, 0.7);
   add(slab(0.088, 0.011, 0.018, 0, 1.654, -0.086, 0.003, -0.22), palette.skin, 0.68);
+
+  // Ballistic eyewear, which a soldier in a desert firefight wears. It
+  // replaced modelled eyes: near-white sclera, an iris and a 3 mm white
+  // catchlight ball, lit by an emissive term in the shader, which in every
+  // close study read as a cartoon face under a real helmet. Two lenses angled
+  // back to wrap the face, a bridge and a top bar. No arms: the head is a
+  // scaled sphere, an arm that clears it at the temple pokes out at the
+  // cheek, and the headset cups cover where one would run.
+  const eyewear = (
+    w: number,
+    h: number,
+    d: number,
+    x: number,
+    y: number,
+    z: number,
+    yaw: number,
+  ) => {
+    const part = slab(w, h, d, 0, 0, 0, Math.min(w, h, d) * 0.3);
+    part.rotateY(yaw);
+    part.translate(x, y, z);
+    return part;
+  };
+  add(eyewear(0.05, 0.03, 0.004, -0.035, 1.634, -0.111, -0.26), palette.lens, 0.1, 0.18);
+  add(eyewear(0.05, 0.03, 0.004, 0.035, 1.634, -0.111, 0.26), palette.lens, 0.1, 0.18);
+  add(eyewear(0.018, 0.006, 0.005, 0, 1.642, -0.115, 0), 0x1c1d1a, 0.4);
+  add(eyewear(0.12, 0.006, 0.006, 0, 1.65, -0.11, 0), 0x1c1d1a, 0.4);
 
   add(slab(0.145, 0.075, 0.145, 0, 1.567, 0.004, 0.045), palette.webbing, 0.9);
   // Neck gaiter bunched at the collar — tall enough that a skinned head
