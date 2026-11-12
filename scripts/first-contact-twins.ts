@@ -41,7 +41,16 @@
  */
 import { execFileSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  fsyncSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync, gzipSync } from "node:zlib";
@@ -318,7 +327,27 @@ function echoTwinFacts(
 function echo(storeDir: string, out: string, nonce?: string): boolean {
   const dir = outside(out);
   const file = join(dir, "echo-twin-checkpoint.json.gz");
-  if (existsSync(file)) throw new Error(`${file} exists: one twin per folder`);
+  // Claimed before the work, exclusively (one twin per folder), and written
+  // through this handle; removed again if the twin cannot be made.
+  const fd = openSync(file, "wx");
+  try {
+    echoTwin(storeDir, dir, file, fd, nonce);
+  } catch (error) {
+    closeSync(fd);
+    rmSync(file, { force: true });
+    throw error;
+  }
+  closeSync(fd);
+  return true;
+}
+
+function echoTwin(
+  storeDir: string,
+  dir: string,
+  file: string,
+  fd: number,
+  nonce?: string,
+): void {
   const { kind, verified, head, committedUtc } = echoParent(storeDir);
   const twin = twinCheckpoint(head, nonce ?? randomBytes(16).toString("hex"));
   const facts = echoTwinFacts(head, committedUtc, twin);
@@ -356,7 +385,8 @@ function echo(storeDir: string, out: string, nonce?: string): boolean {
   // twin is kept as its sealed checkpoint.
   const storeRefuses = kind.history?.transition(null, twin) ?? [];
   const bytes = gzipSync(JSON.stringify(twin), { level: 9 });
-  writeFileSync(file, bytes, { flag: "wx" });
+  writeFileSync(fd, bytes);
+  fsyncSync(fd);
   console.log(`wrote ${file}`);
   const back = JSON.parse(
     gunzipSync(readFileSync(file)).toString("utf8"),
@@ -386,7 +416,6 @@ function echo(storeDir: string, out: string, nonce?: string): boolean {
   console.log(
     `ECHO's twin: ${facts.individual} (${facts.label}), at ECHO's checkpoint ${head.sequence}, tick ${head.tick}`,
   );
-  return true;
 }
 
 function checkEcho(storeDir: string, out: string): boolean {
