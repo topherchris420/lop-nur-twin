@@ -197,21 +197,27 @@ export class Graph {
       throw new Error(`migration found no ${path.join(".")}`);
     o.e = o.e.filter(([k]) => k !== key);
   }
-  /** Copy a reachable subgraph, including its aliases, with reference ids rebased. */
+  /**
+   * Copy a reachable subgraph, including its aliases, with reference ids rebased.
+   *
+   * The result shares nothing with `source`, and its bytes are those of
+   * deep-cloning each node and then rebasing its entries; graphEditor.test.ts
+   * holds that definition and checks this against it. It is not written that
+   * way because `canonical()` runs it over every node of a live graph, and
+   * calling `structuredClone` per node and per number made canonicalising a
+   * living city's graph take about twice as long as stepping it 300 ticks.
+   */
   import(source: Graph, value: GraphValue): GraphValue {
     const ids = new Map<number, number>();
     const copy = (v: GraphValue): GraphValue => {
-      if (typeof v !== "object" || v === null || !("r" in v)) return structuredClone(v);
+      if (typeof v !== "object" || v === null) return v;
+      if (!("r" in v)) return detached(v);
       const seen = ids.get(v.r);
       if (seen !== undefined) return { r: seen };
       const id = this.snapshot.nodes.length;
       ids.set(v.r, id);
       this.snapshot.nodes.push({ t: "fn" });
-      const n = structuredClone(source.node(v));
-      if (n.t === "o") n.e = n.e.map(([k, x]) => [k, copy(x)]);
-      if (n.t === "a" || n.t === "s" || n.t === "ta") n.e = n.e.map(copy);
-      if (n.t === "m") n.e = n.e.map(([k, x]) => [copy(k), copy(x)]);
-      this.snapshot.nodes[id] = n;
+      this.snapshot.nodes[id] = copyNode(source.node(v), copy);
       return { r: id };
     };
     return copy(value);
@@ -245,6 +251,46 @@ export class Graph {
     const out = new Graph({ schema: GRAPH_SCHEMA, root: null, nodes: [] });
     out.snapshot.root = out.import(this, this.snapshot.root);
     return out.snapshot;
+  }
+}
+
+/**
+ * A copy of `o` that shares no object with it, in its own key order. The
+ * `except` field is left shared, for the caller to replace. Graph values and
+ * nodes are a level or two of JSON, so this is the deep clone without a
+ * `structuredClone` per number; a deeper value is still cloned whole.
+ */
+function detached<T extends object>(o: T, except?: keyof T): T {
+  const out = { ...o };
+  for (const key of Object.keys(out) as (keyof T)[]) {
+    const x = out[key];
+    if (key !== except && typeof x === "object" && x !== null)
+      out[key] = structuredClone(x);
+  }
+  return out;
+}
+
+/** `n` with its entries rebased by `copy` and every other field detached, in `n`'s key order. */
+function copyNode(n: GraphNode, copy: (v: GraphValue) => GraphValue): GraphNode {
+  switch (n.t) {
+    case "o":
+      return {
+        ...detached(n, "e"),
+        e: n.e.map(([k, x]): [string, GraphValue] => [k, copy(x)]),
+      };
+    case "a":
+      return { ...detached(n, "e"), e: n.e.map(copy) };
+    case "s":
+      return { ...detached(n, "e"), e: n.e.map(copy) };
+    case "ta":
+      return { ...detached(n, "e"), e: n.e.map(copy) };
+    case "m":
+      return {
+        ...detached(n, "e"),
+        e: n.e.map(([k, x]): [GraphValue, GraphValue] => [copy(k), copy(x)]),
+      };
+    default:
+      return detached(n);
   }
 }
 

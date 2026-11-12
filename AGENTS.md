@@ -970,6 +970,11 @@ verified to be; a copy is always someone else.**
   stream's position) is invisible to it: never add any. Every random stream
   goes through `mulberry32`, whose position the snapshot reads without
   drawing, so the hook changes no outcome (the pilots reproduce).
+- **The graph editor's bytes are recorded.** Every continuation's projection
+  digest goes through `Graph.import`/`canonical()` (`echoUpgrade.ts`) and is
+  compared with digests sealed into checkpoints. `graphEditor.test.ts` keeps
+  the plain definition (deep-clone each node, then rebase it) and holds the
+  fast code to it byte for byte; make either faster, never different.
 - **Never trust a restore.** `restoreLife` re-snapshots and compares bytes and
   the state hash; the tests step restored lives beside uninterrupted ones in
   flight, landing, grooming, feeding and the city with both controllers. A
