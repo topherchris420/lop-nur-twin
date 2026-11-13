@@ -233,7 +233,7 @@ export class ResearchStore {
   saveResearchArtifact(session: string, name: string, text: string) {
     if (
       !/^DS-[a-f0-9-]{36}$/.test(session) ||
-      !/^(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json)$/.test(
+      !/^(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json|observatory\.html|observatory\.js)$/.test(
         name,
       )
     )
@@ -253,7 +253,7 @@ export class ResearchStore {
   }
   readResearchArtifact(path: string): string {
     if (
-      !/^programs\/DS-[a-f0-9-]{36}\/(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json)$/.test(
+      !/^programs\/DS-[a-f0-9-]{36}\/(?:[1-3]-)?(?:manuscript\.md|manuscript\.json|figure\.svg|references\.bib|evidence\.json|review\.json|graph\.json|delivery\.json|observatory\.html|observatory\.js)$/.test(
         path,
       )
     )

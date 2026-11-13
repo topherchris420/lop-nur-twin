@@ -76,6 +76,8 @@
     "rain:inception:source": "node scripts/run-ts.mjs scripts/rain-inception-source.ts",
     "rain:inception:study": "node scripts/run-ts.mjs scripts/rain-inception-study.ts",
     "rain:inception:test": "vitest run src/rain/research/worlds.test.ts src/rain/research/partnership.test.ts src/rain/research/program.test.ts",
+    "rain:intelligence": "node scripts/run-ts.mjs scripts/rain-intelligence.ts",
+    "rain:intelligence:study": "node scripts/run-ts.mjs scripts/rain-intelligence-study.ts",
     "rain:learning:live": "node scripts/run-ts.mjs scripts/rain-learning-live.ts",
     "rain:lineage-demo": "node tools/rain-lineage-demo.mjs",
     "rain:math:index": "node scripts/run-ts.mjs scripts/math-substrate.ts index",

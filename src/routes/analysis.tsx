@@ -1235,6 +1235,25 @@ function AnalysisView() {
           <MeasureBetween evidenceMode={evidenceMode} snapshotDate={snapshotDate} />
         </section>
 
+        <section aria-labelledby="research-intelligence-heading" className="mt-10">
+          <h2 id="research-intelligence-heading" className="text-lg font-semibold">
+            R.A.I.N. research observatory
+          </h2>
+          <p className="text-muted-foreground mt-1 max-w-4xl text-sm leading-relaxed">
+            Inspect a recorded local CPU research campaign: its hypotheses, falsification
+            protocols, computational budget, screening and held-out confirmation,
+            independent checks, failures and provenance. The report provides keyboard
+            filters and expandable measurement panels. Its results characterize the
+            registered computational experiments; the report states their limits.
+          </p>
+          <a
+            href="/research-intelligence/index.html"
+            className="text-primary focus-visible:ring-ring mt-3 inline-block rounded underline underline-offset-2 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            Open the recorded research campaign
+          </a>
+        </section>
+
         <section aria-labelledby="sources-heading" className="mt-10">
           <h2 id="sources-heading" className="text-lg font-semibold">
             Public source register

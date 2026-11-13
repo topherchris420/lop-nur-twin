@@ -1,0 +1,3 @@
+# Fixed numeric probes bypass upstream package initializers and need no SDKs.
+numpy==2.4.6
+scipy==1.17.1
