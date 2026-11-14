@@ -185,11 +185,11 @@ The commons' novelty compartment is a separate research model. A familiarity sig
 
 ![Isometric technical illustration of ECHO's persistent headless Bethesda with sealed checkpoints, Eva's separately operated Python garden with its own state history, and an isolated commons containing research-only simulated fly subjects.](docs/media/readme/engineering-arrangement-systems.webp)
 
-*Figure A. The original flies occupy separate persistent environments. First-contact studies use isolated research subjects. This illustration is explanatory, not photographic or evidence of biological life.*
+_Figure A. The original flies occupy separate persistent environments. First-contact studies use isolated research subjects. This illustration is explanatory, not photographic or evidence of biological life._
 
 ![Isometric research-architecture illustration showing preregistered questions, isolated experiments, independently scored reproducible records, a source-linked institutional journal, and authorized human review.](docs/media/readme/engineering-arrangement-evidence.webp)
 
-*Figure B. R.A.I.N.'s scientific evidence and review chain. AI research proposals cannot authorize experiments or approve their own scientific claims.*
+_Figure B. R.A.I.N.'s scientific evidence and review chain. AI research proposals cannot authorize experiments or approve their own scientific claims._
 
 The originals retain separate controllers and persistence. Production code does not import the first-contact or augmentation modules; isolation tests enforce that boundary. The browser's local Bethesda fly is also separate from the deployed ECHO.
 
