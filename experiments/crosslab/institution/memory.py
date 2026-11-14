@@ -153,10 +153,16 @@ class Journal:
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
             records, by_hash = self._read(db)
-            for record in records:
-                if record["actor"] == principal.name and record["role"] == principal.role and record["event"] == event:
-                    return record
             validate(principal, event, by_hash)
+            for record in records:
+                if record["actor"] != principal.name or record["role"] != principal.role:
+                    continue
+                earlier = record["event"]
+                if earlier == event:
+                    return record
+                if (event["kind"] == earlier["kind"] == "decision"
+                        and event["data"]["request_id"] == earlier["data"]["request_id"]):
+                    raise ValueError("Review request identifier already bound to a different decision")
             prev = records[-1]["hash"] if records else ZERO
             record = {"schema": SCHEMA, "seq": len(records) + 1, "prev": prev, "actor": principal.name,
                       "role": principal.role, "recorded_ns": time.time_ns(), "event": event}
@@ -250,8 +256,10 @@ def validate(principal, event, by_hash):
         ):
             raise ValueError("Correction requires refutation and a distinct replication")
     if kind == "decision":
-        if (parent_kinds not in (["correction"], ["guidance"]) or set(data) != {"disposition"}
-                or data["disposition"] not in {"approve", "reject", "revoke"}):
+        if (parent_kinds not in (["correction"], ["guidance"]) or set(data) != {"disposition", "request_id"}
+                or data["disposition"] not in {"approve", "reject", "revoke"}
+                or not isinstance(data["request_id"], str)
+                or not re.fullmatch(r"[a-f0-9]{32}", data["request_id"])):
             raise ValueError("Invalid review decision")
         if parents[0]["actor"] == principal.name:
             raise PermissionError("Authors cannot review their own proposal")

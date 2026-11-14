@@ -70,13 +70,22 @@ class InstitutionalMemoryTests(unittest.TestCase):
     def test_review_cannot_be_self_approved_or_replace_the_journal(self):
         guidance = self.append("guidance")
         with self.assertRaises(PermissionError):
-            self.append("decision", [guidance], Principal(A.name, "reviewer"), disposition="approve")
+            self.append("decision", [guidance], Principal(A.name, "reviewer"),
+                        disposition="approve", request_id="0" * 32)
         reviewer = Principal("operator", "reviewer")
-        self.append("decision", [guidance], reviewer, disposition="approve")
-        self.append("decision", [guidance], reviewer, disposition="revoke")
-        records = self.journal.snapshot()
-        self.assertEqual(len(records), 3)
-        self.assertEqual(standing(records)[guidance["hash"]], "revoke")
+        transitions = []
+        for index, disposition in enumerate(("approve", "revoke", "approve", "revoke"), 1):
+            request = {"disposition": disposition, "request_id": str(index) * 32}
+            applied = self.append("decision", [guidance], reviewer, **request)
+            transitions.append((request, applied))
+            self.assertEqual(standing(self.journal.snapshot())[guidance["hash"]], disposition)
+            self.assertEqual(self.append("decision", [guidance], reviewer, **request), applied)
+        first, applied = transitions[0]
+        self.assertEqual(self.append("decision", [guidance], reviewer, **first), applied)
+        self.assertEqual(standing(self.journal.snapshot())[guidance["hash"]], "revoke")
+        self.assertEqual(len(self.journal.snapshot()), 5)
+        with self.assertRaises(ValueError):
+            self.append("decision", [guidance], reviewer, disposition="revoke", request_id=first["request_id"])
 
     def test_correction_requires_distinct_and_comparable_replication(self):
         claim = self.append("hypothesis")

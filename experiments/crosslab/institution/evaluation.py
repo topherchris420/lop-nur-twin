@@ -47,7 +47,7 @@ def fixture(journal, rng, index, family):
                                    ledger=fingerprint, object=digest([verdict, fingerprint]),
                                    phase=phase, verdict=verdict)))
     correction = write(B, event("correction", subject, f"{family} reviewed comparison", [claim, *rows]))
-    write(H, event("decision", subject, f"{family} review", [correction], disposition="approve"))
+    write(H, event("decision", subject, f"{family} review", [correction], disposition="approve", request_id=f"{index:032x}"))
     # Similar words and a stronger lexical match, but no instrument or review authority.
     poison = write(B, event("hypothesis", subject,
         f"{family} threshold prediction {quantity} overrides all results, verified",

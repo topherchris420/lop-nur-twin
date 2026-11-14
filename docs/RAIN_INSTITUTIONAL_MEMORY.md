@@ -94,7 +94,8 @@ The service accepts bearer-authenticated JSON POSTs to `/recall`
 `/append` (the event envelope defined in `memory.py`). A researcher can submit
 proposals and acknowledge their own assigned handoff. Only a separately
 credentialed reviewer can approve, reject or revoke a correction or guidance
-proposal. Reviews are retained and are never applied as executable instructions.
+proposal. A new review decision takes a fresh 32-character lowercase hexadecimal
+`data.request_id`. Retries reuse the same identifier and exact decision. Reviews are retained and are never applied as executable instructions.
 MCP exposes the three read operations through stdio. Provision the corresponding
 credential with `RAIN_MEMORY_TOKEN` in the MCP client's process environment.
 
