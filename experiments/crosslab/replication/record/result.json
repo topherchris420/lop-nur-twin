@@ -1,0 +1,176 @@
+{
+  "evidence_class": "simulated",
+  "explanations_meeting_descriptive_criteria": {
+    "compound_fault": true,
+    "reconstruction": true,
+    "threshold": true
+  },
+  "human_review": "pending",
+  "schema": "rain-crosslab-result/v1",
+  "strata": {
+    "circle": {
+      "motion_contact_loss": {
+        "estimates_available": 103,
+        "paired_reconstruction_count": 103,
+        "paired_reconstruction_error_change": 0.009708737864077669,
+        "policies": {
+          "accept_available": {
+            "accepted": 103,
+            "coverage": 0.64375,
+            "errors": 4,
+            "passes_screen": false,
+            "risk": 0.038834951456310676,
+            "scheduled": 160
+          },
+          "coverage_075": {
+            "accepted": 48,
+            "coverage": 0.3,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "fresh_coverage_065": {
+            "accepted": 66,
+            "coverage": 0.4125,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "original": {
+            "accepted": 30,
+            "coverage": 0.1875,
+            "errors": 0,
+            "passes_screen": false,
+            "risk": 0.0,
+            "scheduled": 160
+          }
+        }
+      },
+      "motion_heavy": {
+        "estimates_available": 141,
+        "paired_reconstruction_count": 141,
+        "paired_reconstruction_error_change": -0.014184397163120567,
+        "policies": {
+          "accept_available": {
+            "accepted": 141,
+            "coverage": 0.88125,
+            "errors": 10,
+            "passes_screen": false,
+            "risk": 0.07092198581560284,
+            "scheduled": 160
+          },
+          "coverage_075": {
+            "accepted": 48,
+            "coverage": 0.3,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "fresh_coverage_065": {
+            "accepted": 66,
+            "coverage": 0.4125,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "original": {
+            "accepted": 30,
+            "coverage": 0.1875,
+            "errors": 0,
+            "passes_screen": false,
+            "risk": 0.0,
+            "scheduled": 160
+          }
+        }
+      }
+    },
+    "independent_pulse": {
+      "motion_contact_loss": {
+        "estimates_available": 104,
+        "paired_reconstruction_count": 104,
+        "paired_reconstruction_error_change": 0.125,
+        "policies": {
+          "accept_available": {
+            "accepted": 104,
+            "coverage": 0.65,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "coverage_075": {
+            "accepted": 48,
+            "coverage": 0.3,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "fresh_coverage_065": {
+            "accepted": 65,
+            "coverage": 0.40625,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "original": {
+            "accepted": 32,
+            "coverage": 0.2,
+            "errors": 0,
+            "passes_screen": false,
+            "risk": 0.0,
+            "scheduled": 160
+          }
+        }
+      },
+      "motion_heavy": {
+        "estimates_available": 144,
+        "paired_reconstruction_count": 144,
+        "paired_reconstruction_error_change": 0.3194444444444444,
+        "policies": {
+          "accept_available": {
+            "accepted": 144,
+            "coverage": 0.9,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "coverage_075": {
+            "accepted": 48,
+            "coverage": 0.3,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "fresh_coverage_065": {
+            "accepted": 65,
+            "coverage": 0.40625,
+            "errors": 0,
+            "passes_screen": true,
+            "risk": 0.0,
+            "scheduled": 160
+          },
+          "original": {
+            "accepted": 32,
+            "coverage": 0.2,
+            "errors": 0,
+            "passes_screen": false,
+            "risk": 0.0,
+            "scheduled": 160
+          }
+        }
+      }
+    }
+  },
+  "surviving_policies": [
+    "coverage_075",
+    "fresh_coverage_065"
+  ]
+}

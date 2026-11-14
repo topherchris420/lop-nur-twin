@@ -1,0 +1,40 @@
+{
+  "human_review": "pending",
+  "results": {
+    "fixed_factorial": {
+      "basis": "Fixed historical or factorial design with executable contrasts.",
+      "executable_contrasts": 3,
+      "mechanisms_named": 3
+    },
+    "historical": {
+      "basis": "Fixed historical or factorial design with executable contrasts.",
+      "executable_contrasts": 1,
+      "mechanisms_named": 1
+    },
+    "model-plan": {
+      "basis": "Every prediction repeats its falsifier. The text restates historical observations or a verdict.",
+      "executable_contrasts": 0,
+      "mechanisms_named": 3,
+      "usage": {
+        "completion_tokens": 145,
+        "finish_reason": "stop",
+        "latency_ms": 3163,
+        "prompt_tokens": 119
+      }
+    },
+    "model-plan-retry": {
+      "basis": "All predictions repeat the same historical counts. Inconclusive is a verdict label rather than a measured counterfactual.",
+      "executable_contrasts": 0,
+      "mechanisms_named": 3,
+      "usage": {
+        "completion_tokens": 170,
+        "finish_reason": "stop",
+        "latency_ms": 3057,
+        "prompt_tokens": 175
+      }
+    }
+  },
+  "review_origin": "external qualitative assessment",
+  "schema": "rain-crosslab-planning-comparison/v1",
+  "task_count": 1
+}

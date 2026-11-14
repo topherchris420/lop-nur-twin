@@ -1,0 +1,67 @@
+{
+  "protocol": {
+    "calibration_seeds": [
+      94001,
+      94002,
+      94003,
+      94004
+    ],
+    "calibration_target": 0.8,
+    "error_bpm": 3,
+    "generators": [
+      "circle",
+      "independent_pulse"
+    ],
+    "hypotheses": {
+      "compound_fault": "Compound contact and motion faults change availability. Compare availability at identical scheduled times and seeds with motion alone.",
+      "reconstruction": "Beat reconstruction is a material constraint. Removing IMU beat exclusion changes paired error by at least five percentage points in one or more strata.",
+      "threshold": "The clean-calibrated gate withholds usable estimates. At least one fixed quality policy meets the limits in every test stratum."
+    },
+    "maximum_accepted_error": 0.05,
+    "maximum_excess_error": 0.02,
+    "mechanism_effect_floor": 0.05,
+    "minimum_coverage": 0.25,
+    "minimum_paired_estimates": 40,
+    "planning_baselines": {
+      "fixed_factorial": [
+        "threshold",
+        "reconstruction",
+        "compound_fault"
+      ],
+      "historical": [
+        "threshold"
+      ]
+    },
+    "policies": [
+      "original",
+      "coverage_075",
+      "fresh_coverage_065",
+      "accept_available"
+    ],
+    "revisions": {
+      "atlas": "a876d458778b0917541a26153d2425b922762480",
+      "circle": "0f231ec41f3a1bd0cf47d347dc2b6068dc5fb7da",
+      "triad": "0b9867c280f1ffbc1b958eaae44b7e85988a8674"
+    },
+    "schema": "rain-crosslab-replication/v1",
+    "test_families": [
+      "motion_heavy",
+      "motion_contact_loss"
+    ],
+    "test_seeds": [
+      94101,
+      94102,
+      94103,
+      94104,
+      94105,
+      94106,
+      94107,
+      94108
+    ],
+    "windows_per_session": 20
+  },
+  "protocol_sha256": "25188dc08b33f9f3d5afab53169597daede9568b08935c0a2140a11031ed7dae",
+  "registered_at": "2026-11-14T00:08:28.177158+00:00",
+  "triad_lock_sha256": "110157b4ab5b55f721eb0378ec1e763ae835407c2ad0139368d6550926a95e51",
+  "triad_source_sha256": "ec3272d3323f822ed7b7aa26610d1b726d6154881ccf9eedfb704d0a28ced24c"
+}

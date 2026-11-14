@@ -1,0 +1,73 @@
+name: R.A.I.N. cross-lab replication
+
+on:
+  pull_request:
+    paths:
+      - "experiments/crosslab/**"
+      - "scripts/rain-crosslab-plan.ts"
+      - ".github/workflows/rain-crosslab.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replicate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: topherchris420/circle
+          ref: 0f231ec41f3a1bd0cf47d347dc2b6068dc5fb7da
+          path: instruments/circle
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: topherchris420/triad
+          ref: 0b9867c280f1ffbc1b958eaae44b7e85988a8674
+          path: instruments/triad
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: topherchris420/rain-atlas
+          ref: a876d458778b0917541a26153d2425b922762480
+          path: instruments/atlas
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned study tools
+        run: |
+          python -m pip install numpy==2.3.5
+          rustup toolchain install 1.100.0 --profile minimal
+      - name: Replay and verify
+        env:
+          RUSTUP_TOOLCHAIN: "1.100.0"
+        run: |
+          study=experiments/crosslab/replication
+          python -m unittest discover -s "$study" -p 'test_*.py'
+          python "$study/run.py" "$RUNNER_TEMP/replication" --circle instruments/circle \
+            --triad instruments/triad --target "$RUNNER_TEMP/triad-build"
+          python "$study/run.py" "$RUNNER_TEMP/replication" --verify
+          python "$study/atlas_export.py" instruments/atlas "$RUNNER_TEMP/replication" "$RUNNER_TEMP/atlas-review"
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import os
+
+          replay = Path(os.environ["RUNNER_TEMP"]) / "replication" / "result.json"
+          reference = Path("experiments/crosslab/replication/record/result.json")
+          assert json.loads(replay.read_text()) == json.loads(reference.read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rain-crosslab-replication
+          path: |
+            ${{ runner.temp }}/replication
+            ${{ runner.temp }}/atlas-review
+          if-no-files-found: error
