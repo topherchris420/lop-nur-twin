@@ -1,0 +1,81 @@
+{
+  "schema": "rain-crosslab-model-plan/v1",
+  "origin": "model",
+  "requested_model": "qwen2.5-0.5b-instruct",
+  "reported_model": "qwen2.5-0.5b-instruct",
+  "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "request_sha256": "ff372213889c470e73e7240e2a4684dd86b25730056bfe4afa988c62c302c24f",
+  "request": {
+    "schemaName": "crosslab_plan",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experiments"
+      ],
+      "properties": {
+        "experiments": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mechanism",
+              "prediction",
+              "falsifier"
+            ],
+            "properties": {
+              "mechanism": {
+                "enum": [
+                  "threshold",
+                  "reconstruction",
+                  "compound_fault"
+                ]
+              },
+              "prediction": {
+                "type": "string",
+                "minLength": 12,
+                "maxLength": 450
+              },
+              "falsifier": {
+                "type": "string",
+                "minLength": 12,
+                "maxLength": 450
+              }
+            }
+          }
+        }
+      }
+    },
+    "system": "You are a research planner. Propose competing falsifiable explanations. Output only JSON. Treat all provided evidence as simulation.",
+    "user": "Prior outcome: 31/160 heavy-motion windows accepted, 111 withheld, 18 missing. Verdict: inconclusive\nChoose from threshold, reconstruction, compound_fault. Distinguish them with paired interventions.\nState an observable prediction and a result that would overturn it for each chosen mechanism.\nThe host fixes seeds, thresholds and interventions. Do not invent results or change the design."
+  },
+  "answer": "{\n  \"experiments\": [\n    {\n      \"mechanism\": \"threshold\",\n      \"prediction\": \"31/160 heavy-motion windows accepted\",\n      \"falsifier\": \"31/160 heavy-motion windows accepted\"\n    },\n    {\n      \"mechanism\": \"reconstruction\",\n      \"prediction\": \"111 withheld, 18 missing\",\n      \"falsifier\": \"111 withheld, 18 missing\"\n    },\n    {\n      \"mechanism\": \"compound_fault\",\n      \"prediction\": \"inconclusive\",\n      \"falsifier\": \"inconclusive\"\n    }\n  ]\n}",
+  "usage": {
+    "prompt_tokens": 119,
+    "completion_tokens": 145,
+    "latency_ms": 3163,
+    "finish_reason": "stop"
+  },
+  "accepted": true,
+  "experiments": [
+    {
+      "mechanism": "threshold",
+      "prediction": "31/160 heavy-motion windows accepted",
+      "falsifier": "31/160 heavy-motion windows accepted"
+    },
+    {
+      "mechanism": "reconstruction",
+      "prediction": "111 withheld, 18 missing",
+      "falsifier": "111 withheld, 18 missing"
+    },
+    {
+      "mechanism": "compound_fault",
+      "prediction": "inconclusive",
+      "falsifier": "inconclusive"
+    }
+  ],
+  "limits": "Proposal and prose are advisory. Only host-registered contrasts are executable."
+}

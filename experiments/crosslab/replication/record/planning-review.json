@@ -1,0 +1,10 @@
+{
+  "model-plan": {
+    "executable_mechanisms": [],
+    "reason": "Every prediction repeats its falsifier. The text restates historical observations or a verdict."
+  },
+  "model-plan-retry": {
+    "executable_mechanisms": [],
+    "reason": "All predictions repeat the same historical counts. Inconclusive is a verdict label rather than a measured counterfactual."
+  }
+}

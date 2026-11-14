@@ -1,0 +1,30 @@
+{
+  "schema": "rain-crosslab-replication/v1",
+  "revisions": {
+    "circle": "0f231ec41f3a1bd0cf47d347dc2b6068dc5fb7da",
+    "triad": "0b9867c280f1ffbc1b958eaae44b7e85988a8674",
+    "atlas": "a876d458778b0917541a26153d2425b922762480"
+  },
+  "calibration_seeds": [94001, 94002, 94003, 94004],
+  "test_seeds": [94101, 94102, 94103, 94104, 94105, 94106, 94107, 94108],
+  "test_families": ["motion_heavy", "motion_contact_loss"],
+  "generators": ["circle", "independent_pulse"],
+  "minimum_coverage": 0.25,
+  "maximum_accepted_error": 0.05,
+  "maximum_excess_error": 0.02,
+  "error_bpm": 3,
+  "windows_per_session": 20,
+  "calibration_target": 0.8,
+  "hypotheses": {
+    "threshold": "The clean-calibrated gate withholds usable estimates. At least one fixed quality policy meets the limits in every test stratum.",
+    "reconstruction": "Beat reconstruction is a material constraint. Removing IMU beat exclusion changes paired error by at least five percentage points in one or more strata.",
+    "compound_fault": "Compound contact and motion faults change availability. Compare availability at identical scheduled times and seeds with motion alone."
+  },
+  "minimum_paired_estimates": 40,
+  "mechanism_effect_floor": 0.05,
+  "policies": ["original", "coverage_075", "fresh_coverage_065", "accept_available"],
+  "planning_baselines": {
+    "historical": ["threshold"],
+    "fixed_factorial": ["threshold", "reconstruction", "compound_fault"]
+  }
+}
