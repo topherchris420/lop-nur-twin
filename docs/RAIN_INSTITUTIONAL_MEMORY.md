@@ -30,7 +30,7 @@ output=$(mktemp -d)
 python -m unittest discover -s "$study" -p 'test_*.py'
 OPENBLAS_NUM_THREADS=1 python "$study/study.py" ../circle ../atlas-instrument "$output/correction"
 python "$study/evaluation.py" > "$output/evaluation.json"
-python "$study/verify_release.py" "$output/correction" "$output/evaluation.json"
+python "$study/verify_release.py" "$output/correction" "$output/evaluation.json" ../atlas-instrument
 ```
 
 The archived assumption challenge's refuted forecast and failed revision are

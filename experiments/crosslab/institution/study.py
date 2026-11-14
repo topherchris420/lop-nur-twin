@@ -29,6 +29,14 @@ def measure(circle, phase):
         sys.path.remove(str(circle))
 
 
+def comparable_measurements(rows):
+    """Portable measurement projection. Raw detector traces keep their exact ATLAS hash."""
+    keys = ("phase", "seed", "profile", "level", "waveform", "estimate", "coverage",
+            "reference", "fresh", "accepted", "error")
+    return [{key: row[key] for key in keys if key in row}
+            for row in sorted(rows, key=lambda row: (row["seed"], row["profile"], row["level"]))]
+
+
 def evaluate(rows, phase):
     """Use raw beat times and independent reference arithmetic in the existing independent verifier."""
     check_rows(rows, config(), phase, ["delivery"])

@@ -45,7 +45,7 @@ jobs:
           python -m unittest discover -s "$study" -p 'test_*.py'
           python "$study/study.py" instruments/circle instruments/atlas "$RUNNER_TEMP/correction"
           python "$study/evaluation.py" > "$RUNNER_TEMP/correction/evaluation.json"
-          python "$study/verify_release.py" "$RUNNER_TEMP/correction" "$RUNNER_TEMP/correction/evaluation.json"
+          python "$study/verify_release.py" "$RUNNER_TEMP/correction" "$RUNNER_TEMP/correction/evaluation.json" instruments/atlas
       - uses: actions/upload-artifact@v4
         with:
           name: rain-correction-and-evaluation

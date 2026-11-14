@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 
 from memory import Journal, Principal, digest, event
-from study import ORIGINAL, PHASES, PROTOCOL, ROOT, check_checkout, evaluate, measure
+from study import ORIGINAL, PHASES, PROTOCOL, ROOT, check_checkout, comparable_measurements, evaluate, measure
 
 AUTHOR = {"role": "R.A.I.N. correction study", "generation": "scripted"}
 SUBJECT = "delivery-coverage"
@@ -68,7 +68,9 @@ def run(circle, atlas, output):
             "origin": "synthetic", "media_type": "application/json", "object": raw,
             "provenance": {"circle_revision": ORIGINAL["circle_revision"], "registration": REGISTRATION}})
         # Score the reloaded measurement object instead of a designer-authored verdict.
-        result = evaluate(ledger.get_json(raw), phase)
+        retained = ledger.get_json(raw)
+        result = evaluate(retained, phase)
+        comparable = digest(comparable_measurements(retained))
         summaries[phase] = result
         report = ledger.append("report", {
             "experiment": registration.object,
@@ -86,10 +88,11 @@ def run(circle, atlas, output):
         head = report.hash.removeprefix("sha256:")
         observation = journal.append(INSTRUMENT, event("observation", SUBJECT,
             f"CIRCLE {phase} measured {len(rows)} matched candidates.", [plan, prediction],
-            object=raw.removeprefix("sha256:"), ledger=head))
+            object=raw.removeprefix("sha256:"), ledger=head, measurement_sha256=comparable))
         outcomes.append(journal.append(VERIFIER, event("outcome", SUBJECT,
             f"Independent {phase} scoring: {result['verdict']}.", [observation],
-            object=report.object.removeprefix("sha256:"), ledger=head, phase=phase, verdict=result["verdict"])))
+            object=report.object.removeprefix("sha256:"), ledger=head, phase=phase,
+            verdict=result["verdict"], score_sha256=digest(result))))
 
     if [summary["verdict"] for summary in summaries.values()] == ["refuted", "compatible"]:
         journal.append(FOLLOWUP, event("correction", SUBJECT,

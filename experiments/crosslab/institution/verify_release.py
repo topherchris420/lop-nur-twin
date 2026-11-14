@@ -5,6 +5,7 @@ import sys
 
 from memory import Journal, digest, validate, Principal, ZERO
 from view import standing
+from study import ORIGINAL, check_checkout, comparable_measurements
 
 ROOT = Path(__file__).resolve().parent
 
@@ -13,7 +14,16 @@ def load(path):
     return json.loads(path.read_text())
 
 
-def verify(replay, evaluation):
+def verify(replay, evaluation, atlas):
+    check_checkout(atlas, ORIGINAL["atlas_revision"])
+    sys.path.insert(0, str(atlas / "src"))
+    from rain_atlas.ledger.store import Ledger
+
+    evidence = Ledger(replay / "atlas")
+    historic = Ledger(replay / "historical-atlas" / "ledger")
+    for ledger in (evidence, historic):
+        if ledger.verify():
+            raise ValueError("Replay ledger failed ATLAS verification")
     published = load(ROOT.parents[2] / "public/research-memory/snapshot.json")
     expected = load(ROOT / "reference.json")
     fresh = load(replay / "memory.json")
@@ -36,17 +46,37 @@ def verify(replay, evaluation):
         normalized = []
         for row in records:
             item = row["event"]
-            data = {k: v for k, v in item["data"].items() if k != "ledger"}
+            omitted = {"ledger", "object"} if item["kind"] in {"observation", "outcome"} else {"ledger"}
+            data = {k: v for k, v in item["data"].items() if k not in omitted}
             normalized.append((row["actor"], row["role"], item["kind"], item["subject"],
                                item["text"], [index[r] for r in item["refs"]], data))
         return normalized
 
-    if semantic(list(history.values())) != semantic(Journal(replay / "memory.sqlite").snapshot()):
+    regenerated = Journal(replay / "memory.sqlite").snapshot()
+    entries = {entry.hash: entry for entry in evidence.entries()}
+    for row in regenerated:
+        kind = row["event"]["kind"]
+        data = row["event"]["data"]
+        if kind == "observation":
+            entry = entries["sha256:" + data["ledger"]]
+            raw = "sha256:" + data["object"]
+            if evidence.get_json(entry.object)["measured_object"] != raw:
+                raise ValueError("Replay observation is not bound to the ATLAS report")
+            if digest(comparable_measurements(evidence.get_json(raw))) != data["measurement_sha256"]:
+                raise ValueError("Replay observation measurements changed")
+        if kind == "outcome":
+            entry = entries["sha256:" + data["ledger"]]
+            if entry.object != "sha256:" + data["object"]:
+                raise ValueError("Replay outcome is not bound to the ATLAS report")
+            result = evidence.get_json(evidence.get_json(entry.object)["report_object"])
+            if result != expected[data["phase"]] or digest(result) != data["score_sha256"]:
+                raise ValueError("Replay outcome does not match the independent scorer")
+    if semantic(list(history.values())) != semantic(regenerated):
         raise ValueError("Published journal lineage or content-addressed evidence changed")
     if {k: v for k, v in evaluation.items() if k != "resources"} != load(ROOT / "evaluation-reference.json"):
         raise ValueError("Memory evaluation differs from the published scores")
-    print("Published lineage, object digests, scoring and memory evaluation match the replay.")
+    print("Published lineage, measurement projection, scoring and memory evaluation match the replay.")
 
 
 if __name__ == "__main__":
-    verify(Path(sys.argv[1]), load(Path(sys.argv[2])))
+    verify(Path(sys.argv[1]), load(Path(sys.argv[2])), Path(sys.argv[3]).resolve())
