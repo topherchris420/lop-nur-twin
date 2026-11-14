@@ -1,0 +1,306 @@
+{
+  "evidence_class": "simulated",
+  "human_review": "pending",
+  "schema": "rain-crosslab-history/v1",
+  "sources": [
+    {
+      "archive": "circle-triad-review.zip",
+      "archive_sha256": "0b238e1a988c91959691ae3618183d4325914c71c85da1f1c0b5ee3a30075c5a",
+      "id": "original",
+      "records": {
+        "execution/measurements.json": {
+          "data": {
+            "measurements": {
+              "accepted_risk": 0.0,
+              "calibration_eligible_windows": 80,
+              "matched_random_risk": 0.02104851330203443,
+              "matched_risk_reduction": 0.02104851330203443,
+              "minimum_effective_coverage": 0.19375,
+              "minimum_scenario_gain": 0.0,
+              "test_clusters": 8,
+              "test_eligible_errors": 19
+            },
+            "negative_control": {
+              "accepted": 2,
+              "accepted_errors": 1,
+              "count": 4,
+              "coverage": 0.5,
+              "error_rate": 0.5,
+              "errors": 2,
+              "selective_error_risk": 0.5
+            },
+            "scenarios": {
+              "clean": {
+                "accepted": 129,
+                "effective_coverage": 0.80625,
+                "eligible": 160,
+                "error_rate": 0.0,
+                "risk": 0.0,
+                "scheduled": 160
+              },
+              "motion_heavy": {
+                "accepted": 31,
+                "effective_coverage": 0.19375,
+                "eligible": 142,
+                "error_rate": 0.07746478873239436,
+                "risk": 0.0,
+                "scheduled": 160
+              },
+              "poor_contact": {
+                "accepted": 60,
+                "effective_coverage": 0.375,
+                "eligible": 136,
+                "error_rate": 0.0,
+                "risk": 0.0,
+                "scheduled": 160
+              },
+              "sensor_loss": {
+                "accepted": 77,
+                "effective_coverage": 0.48125,
+                "eligible": 160,
+                "error_rate": 0.05,
+                "risk": 0.0,
+                "scheduled": 160
+              }
+            }
+          },
+          "sha256": "a5aadaf7c92d0c3c54c8e06ac6e8d3152874057f9a851f1ddec1208e8663f0b4"
+        },
+        "registration.json": {
+          "data": {
+            "definition_sha256": "e8269c526c31503e930b6d0d996b502ca8e0a54c93ffa6e7660e2ba2051adabf",
+            "experiment_id": "V3D-EXP-0001",
+            "registered_at": "2026-11-13T23:50:13.537Z"
+          },
+          "sha256": "f70160744223b1c0243ad6deb62cd420bed11da166e5b175c12401926c07f607"
+        },
+        "verification.json": {
+          "data": {
+            "evidence_class": "simulated",
+            "human_review": "pending",
+            "independent_arithmetic_agreement": true,
+            "independent_empirical_replication": false,
+            "measurements": {
+              "accepted_risk": 0.0,
+              "calibration_eligible_windows": 80,
+              "matched_random_risk": 0.02104851330203443,
+              "matched_risk_reduction": 0.02104851330203443,
+              "minimum_effective_coverage": 0.19375,
+              "minimum_scenario_gain": 0.0,
+              "test_clusters": 8,
+              "test_eligible_errors": 19
+            },
+            "registry_valid": true,
+            "run_id": "V3D-EXP-0001-RUN-0001",
+            "verdict": "inconclusive",
+            "windows_sha256": "52f0fc58d2f04cbb9df2cc1d148a98bfa829f5ebd5c560318b51cb09bdd0cc3e"
+          },
+          "sha256": "264ebd8637d185c7ce0e413ed7d11601550f6862a37b2421e41f92935859c21e"
+        }
+      }
+    },
+    {
+      "archive": "circle-motion-review.zip",
+      "archive_sha256": "d562e716805924e77cf55ddce652288a0fd883f8b9126a475eeb3cc6d1e30be7",
+      "id": "motion",
+      "records": {
+        "artifact-hashes.json": {
+          "data": {
+            "circle-input.json": "255643ac80c276078c623d7c58a809bd3e21429751017e58341d87d743b7abd8",
+            "circle-triad.json": "9732b5ba1f1fd6127187c66f941756cb38859557eebeb627e0c0e37db79ba997",
+            "circle-triad.md": "548e3864e538cf83469f8773e1c37a88f7bf93babb8cd3451a70c5e9e5394cd7",
+            "independent_ppg-input.json": "4a9f6e7a767c97ab9ef27f8b97ef530af0ff29a6adbb1d8a3ca8a698a52e7a57",
+            "independent_ppg-triad.json": "eb87a99a4cecf0caadc7a28e2155e1e3b5dc885b4291c062a48ba37e236805a5",
+            "independent_ppg-triad.md": "d00bac21d3c9a4b9b029634f3c3301b06e20ee7eb77541bdc2b5bf1e676033d1",
+            "registration.json": "de76a93282d58f07a235376e909c5742168a1fb20554a95ae92ed8527bd4af8d",
+            "results.json": "85877f5053e9ca38ca1344ec7fc77007ba64dd184539d21b26ae6da2861e8e88",
+            "windows.json": "bb665ef77c8b080f277d4cce83e7eb4a67242849dffcee6092d8c27cf5e764c5"
+          },
+          "sha256": "885c9ec59e1048fcdec2050e43934f1606c3d9a89216b46229660c3de34e0aa9"
+        },
+        "registration.json": {
+          "data": {
+            "circle_commit": "0f231ec41f3a1bd0cf47d347dc2b6068dc5fb7da",
+            "human_review": "pending",
+            "protocol": {
+              "calibration_seeds": [
+                92001,
+                92002,
+                92003,
+                92004
+              ],
+              "calibration_target": 0.8,
+              "diagnostics": {
+                "beat_reconstruction": "Keep optical samples and scoring truth fixed. Omit only the IMU motion exclusion in beat detection, and compare estimates and errors.",
+                "conservative_threshold": "Keep estimates fixed. Test whether lowering the beat coverage floor meets the coverage and risk limits in both generators.",
+                "interaction": "Repeat the reconstruction ablation with optical motion removed. The two interventions can interact.",
+                "optical_motion": "Keep IMU masking and pulse truth fixed. Remove optical motion and compare unconditional coverage and error on common estimates."
+              },
+              "error_bpm": 3,
+              "limitations": [
+                "Eight paired seed clusters per generator. Overlapping windows are not independent.",
+                "The risk margin is a descriptive screen, not a powered noninferiority claim.",
+                "The second generator implements a separate beat schedule and optical waveform but shares CIRCLE acquisition timing, IMU traces, and the reconstruction code.",
+                "Proposal roles and decisions are deterministic. This is not a comparison of model-based researchers."
+              ],
+              "maximum_excess_accepted_risk": 0.02,
+              "minimum_effective_coverage": 0.25,
+              "minimum_matched_estimates": 40,
+              "minimum_mechanism_difference": 0.05,
+              "question": "What explains the heavy-motion coverage shortfall, and can a relaxed gate retain at least 25% with no more than 2 percentage points of additional accepted risk?",
+              "relaxed_minimum_beat_coverage": 0.75,
+              "schema": "rain-motion-diagnosis/v1",
+              "test_seeds": [
+                92101,
+                92102,
+                92103,
+                92104,
+                92105,
+                92106,
+                92107,
+                92108
+              ]
+            },
+            "protocol_sha256": "c8c7abc006600359781573ba44ca3218190296540c1293a2054cd4ffb70bfe40",
+            "registered_at": "2026-11-13T23:59:34.747Z",
+            "triad_commit": "0b9867c280f1ffbc1b958eaae44b7e85988a8674"
+          },
+          "sha256": "de76a93282d58f07a235376e909c5742168a1fb20554a95ae92ed8527bd4af8d"
+        },
+        "results.json": {
+          "data": {
+            "circle": {
+              "arms": {
+                "baseline": {
+                  "accepted": 29,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 141,
+                  "effective_coverage": 0.18125,
+                  "scheduled": 160
+                },
+                "both_removed": {
+                  "accepted": 146,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 160,
+                  "effective_coverage": 0.9125,
+                  "scheduled": 160
+                },
+                "mask_removed": {
+                  "accepted": 36,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 150,
+                  "effective_coverage": 0.225,
+                  "scheduled": 160
+                },
+                "optical_motion_removed": {
+                  "accepted": 29,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 144,
+                  "effective_coverage": 0.18125,
+                  "scheduled": 160
+                },
+                "relaxed": {
+                  "accepted": 48,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 141,
+                  "effective_coverage": 0.3,
+                  "scheduled": 160
+                }
+              },
+              "calibration_uncertainty_threshold": 0.073855,
+              "comparisons": {
+                "beat_reconstruction": {
+                  "clears_descriptive_effect_floor": false,
+                  "error_rate_change_on_common_estimates": -0.028368794326241134,
+                  "paired_estimates": 141
+                },
+                "beat_reconstruction_without_optical_motion": {
+                  "clears_descriptive_effect_floor": true,
+                  "error_rate_change_on_common_estimates": -0.0763888888888889,
+                  "paired_estimates": 144
+                },
+                "optical_motion": {
+                  "clears_descriptive_effect_floor": false,
+                  "error_rate_change_on_common_estimates": 0.0,
+                  "paired_estimates": 141
+                }
+              },
+              "relaxed_excess_risk": 0.0,
+              "relaxed_meets_registered_limits": true
+            },
+            "independent_ppg": {
+              "arms": {
+                "baseline": {
+                  "accepted": 33,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 144,
+                  "effective_coverage": 0.20625,
+                  "scheduled": 160
+                },
+                "both_removed": {
+                  "accepted": 150,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 160,
+                  "effective_coverage": 0.9375,
+                  "scheduled": 160
+                },
+                "mask_removed": {
+                  "accepted": 61,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 160,
+                  "effective_coverage": 0.38125,
+                  "scheduled": 160
+                },
+                "optical_motion_removed": {
+                  "accepted": 33,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 144,
+                  "effective_coverage": 0.20625,
+                  "scheduled": 160
+                },
+                "relaxed": {
+                  "accepted": 48,
+                  "accepted_errors": 0,
+                  "accepted_risk": 0.0,
+                  "available": 144,
+                  "effective_coverage": 0.3,
+                  "scheduled": 160
+                }
+              },
+              "calibration_uncertainty_threshold": 0.069111,
+              "comparisons": {
+                "beat_reconstruction": {
+                  "clears_descriptive_effect_floor": true,
+                  "error_rate_change_on_common_estimates": 0.2638888888888889,
+                  "paired_estimates": 144
+                },
+                "beat_reconstruction_without_optical_motion": {
+                  "clears_descriptive_effect_floor": false,
+                  "error_rate_change_on_common_estimates": 0.0,
+                  "paired_estimates": 144
+                },
+                "optical_motion": {
+                  "clears_descriptive_effect_floor": false,
+                  "error_rate_change_on_common_estimates": 0.0,
+                  "paired_estimates": 144
+                }
+              },
+              "relaxed_excess_risk": 0.0,
+              "relaxed_meets_registered_limits": true
+            }
+          },
+          "sha256": "85877f5053e9ca38ca1344ec7fc77007ba64dd184539d21b26ae6da2861e8e88"
+        }
+      }
+    }
+  ]
+}
