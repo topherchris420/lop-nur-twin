@@ -23,6 +23,8 @@ Two flies with separate histories. Worlds they can act in. Experiments another m
 
 **Start here:** watch the originals through their public pages, inspect the [research claims](docs/RESEARCH_CLAIMS.md), or follow the [local setup](#07-reproduce-the-work). The [documentation index](docs/README.md) maps the full repository.
 
+**New research:** R.A.I.N. now has a local, source-linked institutional journal for correction proposals, independent scoring, and human review. This is an **offline research capability**, not a replacement for Eva or ECHO's memories and not yet part of the production discovery scheduler. [Read the method and limits](#institutional-memory-and-scientific-correction) · [Reproduce the study](docs/RAIN_INSTITUTIONAL_MEMORY.md).
+
 **R.A.I.N. assumption challenge:** a local model’s forecast was refuted, but its revised explanation failed a second waveform and unseen seeds. The lab preserved the negative result and rejected the discovery claim. [Inspect the protocol, model receipts and replication →](experiments/crosslab/assumptions/README.md)
 
 **Contents** · [01 Question](#01-the-question) · [02 Systems & first contact](#02-the-operating-systems) · [03 Continuity](#03-a-machine-must-be-able-to-verify-the-history) · [04 Results](#04-the-test-results-including-the-ones-that-did-not-work) · [05 Neural models](#05-the-brain-boundary) · [06 Architecture](#06-the-engineering-arrangement) · [07 Run & verify](#07-reproduce-the-work) · [08 Research procedure](#08-the-laboratory-procedure) · [09 Other worlds](#09-the-rest-of-the-laboratory) · [10 License](#10-license-and-research-use)
@@ -193,6 +195,13 @@ flowchart TD
     VR["Eva-kind subject"] <-->|sight, collisions| COMMONS
     COMMONS --> RECORDS["Encounter records and controls"]
   end
+  subgraph SCIENCE["Scientific evidence, separated from the originals"]
+    PROTOCOL["Registered question and controls"] --> TRIALS["Isolated experiments"]
+    TRIALS --> EVIDENCE["Reproducible records and independent scoring"]
+    EVIDENCE --> JOURNAL["Source-linked institutional journal"]
+    JOURNAL --> REVIEW["Authorized human review"]
+  end
+  COMMONS -.->|research measurements| TRIALS
 ```
 
 The originals retain separate controllers and persistence. Production code does not import the first-contact or augmentation modules; isolation tests enforce that boundary. The browser's local Bethesda fly is also separate from the deployed ECHO.
@@ -247,6 +256,12 @@ bun run claims:check
 | Collision figure from recorded positions              | `node scripts/run-ts.mjs scripts/echo-exit-figure.ts --check`                                     |
 | Compatible archived fly experiments                   | `bun run rain:fly:verify`                                                                         |
 
+### What CI actually checks
+
+The [CI workflow](.github/workflows/ci.yml) runs the formatting, lint, unit, evidence, model-history, Rust, browser, accessibility, and build gates. [CodeQL](.github/workflows/codeql.yml) provides a separate static-analysis check. The [institutional-memory](.github/workflows/rain-institutional-memory.yml) and [cross-lab replication](.github/workflows/rain-crosslab.yml) workflows verify their own published research artifacts. Each workflow run is evidence for the commit and environment it tested, not a guarantee about a deployed service.
+
+A cancelled run is not a passing run. The CI workflow cancels superseded runs on the same ref; check the most recent **completed** run for the exact commit before reporting a green result.
+
 Some replay checks are longer and require the runtime/platform recorded by their study. `rain:fly:verify` exits with status **3** when older or incompatible records remain unchecked; that is partial verification. [First-contact reproduction](docs/FIRST_CONTACT.md#reproducing-everything) lists the study-specific replay commands.
 
 Noeterra additionally needs a local Rust/WebAssembly build. Model-assisted research and hosted persistence have their own setup; see [optional capabilities](docs/GETTING_STARTED.md#optional-capabilities).
@@ -257,13 +272,21 @@ The pictures on this page are reproducible too: `bun run readme-media` re-record
 
 ## 08. The laboratory procedure
 
-R.A.I.N. Lab uses four AI research perspectives: **James, Jasmine, Elena, and Luca**. Their suggestions are not experiments until the host validates a protocol, the operator authorizes it, the simulation executes, and the results are recorded and reproducible.
+R.A.I.N. is the research system within Vers3Dynamics, not a human lab merely using a model. It has four AI research perspectives: **James, Jasmine, Elena, and Luca**. A suggestion does not become an experiment until the host validates its protocol, the operator authorizes its execution, the measurements are recorded, and the outcome is independently checked.
 
 **Models propose. Code measures. People authorize. The record decides.**
 
-The four agents do not constitute independent scientific replication. The original deployed flies are not manipulated to produce favorable outcomes.
+The agents are not independent scientific replicators simply because they have different names. The original deployed flies are not manipulated to produce favorable outcomes. The [CPU research intelligence report](docs/research-intelligence/REPORT.md) documents source-bound validation, rival explanations, and replicated falsification; [operator usage](docs/research-intelligence/USAGE.md) covers the optional local model panel and offline evidence observatory.
 
-The [CPU research intelligence report](docs/research-intelligence/REPORT.md) documents source-bound scientific validation, rival-model scheduling and replicated falsification. [Operator usage](docs/research-intelligence/USAGE.md) covers the optional local model panel, CPU campaigns and offline evidence observatory.
+### Institutional memory and scientific correction
+
+R.A.I.N.'s local institutional journal records evidence-linked observations, proposed corrections, contradictions, review decisions, and handoffs. It is deliberately **not** a self-approval system: researchers can propose and acknowledge assigned work, but only an independently credentialed reviewer can approve, reject, or revoke guidance. The event history is append-only, and a checkpoint plus separately retained evidence is needed to detect an operator-controlled rewrite.
+
+The [institutional-memory study](docs/RAIN_INSTITUTIONAL_MEMORY.md) replays a cross-lab CIRCLE and ATLAS measurement problem. It challenges the assumption that sufficient detected beat coverage alone guarantees accurate heart-rate estimation: delayed delivery can produce errors despite adequate coverage. A freshness gate avoids reporting those delayed estimates, at the cost of withholding them. The recorded correction remains a proposal pending scientific review, not a universal physiological claim.
+
+The journal preserves source lineage and review state on synthetic fixtures. That evaluation **does not show** improved agent reasoning, biological validity, or superiority to every retrieval baseline. Its local research workspace has no write path into Eva or ECHO's live persistence. Anna and GBrain are optional retrieval interfaces, not required running services; this demo does not perform live retrieval from either. The production discovery scheduler does not yet consume the journal.
+
+**Inspect and reproduce:** [Institutional-memory method, results, commands, and threat boundary](docs/RAIN_INSTITUTIONAL_MEMORY.md) · [Assumption challenge and negative replications](experiments/crosslab/assumptions/README.md) · [Memory CI](.github/workflows/rain-institutional-memory.yml) · [Cross-lab replication CI](.github/workflows/rain-crosslab.yml).
 
 ## 09. The rest of the laboratory
 
@@ -305,10 +328,3 @@ Contributions should include a source, a test, a reproducible correction, or a c
 **Preserve the individual. Measure the change. Keep the result, including the failure.**
 
 _Built at [Vers3Dynamics](https://vers3dynamics.com) by Christopher Woodyard. Open for inspection, correction, and independent reproduction._
-
-### R.A.I.N. institutional memory
-
-The [institutional memory guide](docs/RAIN_INSTITUTIONAL_MEMORY.md) documents
-the local agent journal, review workflow, CIRCLE/ATLAS correction experiment,
-and reproducible evaluation. The research observatory on `/analysis` links to
-the published evidence lineage.
