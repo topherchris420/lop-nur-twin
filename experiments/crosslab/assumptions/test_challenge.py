@@ -151,3 +151,64 @@ class ArchiveAdversarialTests(unittest.TestCase):
             path.write_text(json.dumps(result))
             with self.assertRaisesRegex(ValueError,"Published result"):
                 verify(work)
+
+    def test_misattributed_model_rejected_even_when_rehashed(self):
+        import tempfile
+        import shutil
+        import json
+        from hashlib import sha256
+        from pathlib import Path
+        from verify import verify
+        record=ROOT/"record"
+        if not (record/"result.json").exists():
+            self.skipTest("No recorded inference yet")
+        for reported in (None,"another-model"):
+            with self.subTest(reported=reported), tempfile.TemporaryDirectory() as directory:
+                work=Path(directory)/"evidence"
+                shutil.copytree(record,work)
+                path=work/"proposal-model.json"
+                receipt=load(path)
+                receipt["answer"]["reportedModel"]=reported
+                path.write_text(json.dumps(receipt))
+                manifest=load(work/"sha256.json")
+                manifest[path.name]=sha256(path.read_bytes()).hexdigest()
+                (work/"sha256.json").write_text(json.dumps(manifest))
+                with self.assertRaisesRegex(ValueError,"model identity"):
+                    verify(work)
+
+    def test_atlas_does_not_admit_unverified_json(self):
+        import tempfile
+        import shutil
+        import json
+        import sys
+        from pathlib import Path
+        from types import ModuleType
+        from unittest.mock import patch
+        from atlas_export import export
+        record=ROOT/"record"
+        if not (record/"result.json").exists():
+            self.skipTest("No recorded inference yet")
+        imported=[]
+        class Ledger:
+            def __init__(self,path): pass
+            def append(self,kind,data):
+                if kind=="dataset": imported.append(data["name"])
+                from types import SimpleNamespace
+                return SimpleNamespace(object="plan")
+            def put_file(self,path):
+                from hashlib import sha256
+                return "sha256:"+sha256(path.read_bytes()).hexdigest()
+            def verify(self): return []
+            def entries(self): return imported
+        store=ModuleType("rain_atlas.ledger.store");store.Ledger=Ledger
+        observatory=ModuleType("rain_atlas.observatory.export");observatory.export=lambda a,b:None
+        with tempfile.TemporaryDirectory() as directory:
+            work=Path(directory)/"evidence"
+            shutil.copytree(record,work)
+            (work/"draft-analysis.json").write_text(json.dumps({"fabricated_discovery":True}))
+            with patch("atlas_export.check_checkout"), patch.dict(sys.modules,{
+                "rain_atlas.ledger.store":store,"rain_atlas.observatory.export":observatory}):
+                export(Path(directory),work,Path(directory)/"atlas")
+            self.assertNotIn("draft-analysis.json",imported)
+            self.assertIn("result.json",imported)
+            self.assertEqual(set(imported),set(load(work/"sha256.json"))|{"sha256.json","result.json"})

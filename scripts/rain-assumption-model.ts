@@ -48,3 +48,7 @@ writeFileSync(
   ) + "\n",
   { flag: "wx" },
 );
+
+// Preserve the raw response above even when attribution fails; never admit it.
+if (answer.reportedModel !== modelName)
+  throw new Error("Server-reported model identity differs from the requested model");

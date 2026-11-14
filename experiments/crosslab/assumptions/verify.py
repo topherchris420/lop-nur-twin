@@ -134,14 +134,26 @@ def verify(workspace):
     provenance = load(workspace/"provenance.json")
     repo = ROOT.parents[2]
     expected_sources = [ROOT/"challenge.py",ROOT/"verify.py",ROOT/"protocol.json",repo/"scripts/rain-assumption-model.ts",ROOT.parent/"replication/acquisition.py"]
-    if provenance["source_files"]!={str(p.relative_to(repo)):digest(p) for p in expected_sources}:
-        raise ValueError("Study implementation differs from the recorded run")
+    if set(provenance["source_files"])!={str(p.relative_to(repo)) for p in expected_sources}:
+        raise ValueError("Study source set differs from the registered implementation")
+    for path in expected_sources:
+        expected = provenance["source_files"][str(path.relative_to(repo))]
+        if not isinstance(expected,str) or len(expected)!=64 or any(c not in "0123456789abcdef" for c in expected):
+            raise ValueError("Invalid source digest")
+        # Original run source stays immutable when the verifier is strengthened.
+        # These files are evidence, never imported or executed. Full replay uses
+        # current code and separately compares every experimental measurement.
+        archived = ROOT/"source_archive"/(expected+".txt")
+        if digest(path)!=expected and (not archived.is_file() or digest(archived)!=expected):
+            raise ValueError("Producing source is neither current nor preserved")
     if provenance["historical_result_sha256"]!=digest(ROOT.parent/"planning/record/result.json"):
         raise ValueError("Historical evidence changed")
     first,second = (load(workspace/f"{name}-model.json") for name in ("proposal","revision"))
     if first["model_sha256"]!=second["model_sha256"] or first["model"]!=second["model"]:
         raise ValueError("Model changed between forecasts")
     for name,receipt in (("proposal",first),("revision",second)):
+        if not receipt.get("model") or receipt["answer"].get("reportedModel")!=receipt["model"]:
+            raise ValueError("Server-reported model identity does not match attribution")
         if receipt["request_sha256"]!=digest(workspace/f"{name}-request.json") or receipt["generation"]!="model":
             raise ValueError("Model receipt mismatch")
     proposal = admit(first,make_request(protocol))

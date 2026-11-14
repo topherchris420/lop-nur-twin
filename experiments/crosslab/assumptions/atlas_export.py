@@ -24,7 +24,10 @@ def export(atlas, workspace, output):
         "null_hypothesis":"The registered forecast correction screen is not met.",
         "design":p,"acceptance":p["evaluation"],"created_by":author,
     })
-    for path in sorted(workspace.glob("*.json")):
+    # Only the validated manifest and independently compared result may enter.
+    admitted = sorted(set(load(workspace/"sha256.json")) | {"sha256.json", "result.json"})
+    for name in admitted:
+        path = workspace/name
         ref = ledger.put_file(path)
         if ref!="sha256:"+digest(path):
             raise ValueError("ATLAS artifact digest changed")

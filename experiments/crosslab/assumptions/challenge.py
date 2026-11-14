@@ -14,7 +14,7 @@ import jsonschema
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[2]
-sys.path.insert(0, str(ROOT.parent / "replication"))
+sys.path.append(str(ROOT.parent / "replication"))
 from acquisition import available_rate, truth_rate
 from run import check_checkout, digest, load, put
 
