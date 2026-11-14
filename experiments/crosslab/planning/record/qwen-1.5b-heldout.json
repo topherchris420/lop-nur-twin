@@ -1,0 +1,2103 @@
+{
+  "schema": "rain-planning-benchmark-receipt/v1",
+  "mode": "heldout",
+  "model": "qwen-1.5b",
+  "model_sha256": "1adf0b11065d8ad2e8123ea110d1ec956dab4ab038eab665614adba04b6c3370",
+  "protocol_sha256": "6581916b603af341e09f9740e1aa812abb9df7c11b403858ab247e772f116660",
+  "development_receipt_sha256": "4861c51d38f94f2feedbac54a4060cefcb02392194947e7af2f98c49fe2e48f7",
+  "selected": "structured_rules",
+  "summaries": [
+    {
+      "style": "direct",
+      "cases": 18,
+      "valid": 18,
+      "mean_bits": 0.32450269280655036,
+      "mean_regret": 0.2065017136041684,
+      "fifo_bits": 0.17700146880357293,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "mean_brier": null
+    },
+    {
+      "style": "structured_rules",
+      "cases": 18,
+      "valid": 18,
+      "mean_bits": 0.2360019584047639,
+      "mean_regret": 0.2950024480059549,
+      "fifo_bits": 0.17700146880357293,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "mean_brier": 0.25296296296296295
+    }
+  ],
+  "rows": [
+    {
+      "family": "optical_sensor",
+      "seed": 18317,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "76f9caf90621b6ff9315e144425141167d8c2b5ddd594fd0f01629e9c9f3d6f9",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 169,
+        "completionTokens": 10,
+        "latencyMs": 1038,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18317,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "88e413fa9fb34ab3de9a31cf98043a986bc1c7796e3cb5ba6f8bd5af515b78de",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\"a\": [\n  0.5,\n  0.5\n], \"b\": [\n  0.5,\n  0.5\n], \"c\": [\n  0.5,\n  0.5\n]}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 197,
+        "completionTokens": 53,
+        "latencyMs": 2110,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18323,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "f7135a07a7cd45f17b01f46f1c0fb14fdc97a4a922f09bf57a907b61be7e006b",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 169,
+        "completionTokens": 10,
+        "latencyMs": 660,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18323,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "d85621f531a9708eadb11f5acfcae6d150f1920f900bddcff9e6fc06ed620731",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.5,\n    0.5\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 197,
+        "completionTokens": 63,
+        "latencyMs": 2295,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18329,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "31e9e483310e6084a6cdbf60412226d31339877d36eb67b7d127c3176292ad49",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[1,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 169,
+        "completionTokens": 10,
+        "latencyMs": 811,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18329,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "7f96cb0d02c2d468a38fece3dedbd177ad467e0620da414f857ce697acde6435",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[1,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.1,\n    0.9\n  ],\n  \"b\": [\n    0.1,\n    0.9\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 197,
+        "completionTokens": 61,
+        "latencyMs": 2448,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18331,
+      "style": "direct",
+      "choice": "b",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "f7135a07a7cd45f17b01f46f1c0fb14fdc97a4a922f09bf57a907b61be7e006b",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"b\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 169,
+        "completionTokens": 10,
+        "latencyMs": 560,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18331,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "d85621f531a9708eadb11f5acfcae6d150f1920f900bddcff9e6fc06ed620731",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.5,\n    0.5\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 197,
+        "completionTokens": 63,
+        "latencyMs": 2344,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18341,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "75d732a7b6fc27c56950b68ff2dd38def14d67f900ce8bf7fd8768895c1cefc0",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 169,
+        "completionTokens": 10,
+        "latencyMs": 848,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18341,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "5e8272e9cbb0be5d2f9eed7189594f48a7f169667d1e4c07b7cc5b815f7e1541",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.5,\n    0.5\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 197,
+        "completionTokens": 63,
+        "latencyMs": 2229,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18353,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "b99e87c9ff15b99a429dd59188bc8905e402959113e423f35ed5d5859a535dff",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[1,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 169,
+        "completionTokens": 10,
+        "latencyMs": 927,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "optical_sensor",
+      "seed": 18353,
+      "style": "structured_rules",
+      "choice": "c",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.14333333333333334,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "fe59bd9ce2ca5ab25eba5fb48c89caccde668399a7f2434e84c2bb72b8be2bab",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"optical_sensor\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"increase optical attenuation\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"b\",\"intervention\":\"delay delivery of pulse samples\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[1,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.9,\n    0.9\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.1,\n    0.9\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 197,
+        "completionTokens": 61,
+        "latencyMs": 2208,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18317,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "8e0dee6f064dcaa9e196afc97a14d0e3e654b69072a7f4acdaa63e148fc3e0a8",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 171,
+        "completionTokens": 10,
+        "latencyMs": 1070,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18317,
+      "style": "structured_rules",
+      "choice": "c",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.1433333333333333,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "0d598e6319cd9fe335d18b5b4ec8ccbc57c4e16687c44f917157829efa2e80b8",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\"a\": [\n  0.9,\n  0.9\n], \"b\": [\n  0.5,\n  0.5\n], \"c\": [\n  0.9,\n  0.1\n]}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 199,
+        "completionTokens": 53,
+        "latencyMs": 2023,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18323,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "494b1aea928de858a8f27018ccd7c2a9221ad63a6c02cc59562f4af27feb12b8",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[1,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 171,
+        "completionTokens": 10,
+        "latencyMs": 972,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18323,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.5166666666666667,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "6476c9abaa76ec6c5aacce102912045f677275b10fae22fcee9fb34ae04b70fe",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[1,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.9,\n    0.9\n  ],\n  \"b\": [\n    0.9,\n    0.9\n  ],\n  \"c\": [\n    0.9,\n    0.9\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 199,
+        "completionTokens": 61,
+        "latencyMs": 2190,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18329,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "0adf79a046206c5add68f945ad6bc028d081eac5590ae2cbfbbc908f19402d60",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 171,
+        "completionTokens": 10,
+        "latencyMs": 1044,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18329,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "b93be47bd82c84243fdc854ac0b07ca211724589b5bae48e327858973cae9cf6",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.5,\n    0.5\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 199,
+        "completionTokens": 63,
+        "latencyMs": 2191,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18331,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "58419bbd3ffb425f45cd3aa1920c3296ddc41273400ca3b9b9182f1f375bbe9b",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 171,
+        "completionTokens": 10,
+        "latencyMs": 802,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18331,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "8c0232b271ad435d1f53fdecd5295438c4ada7fdf4681bb8c1b071b2c71e0c45",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\"a\": [\n  0.5,\n  0.5\n], \"b\": [\n  0.5,\n  0.5\n], \"c\": [\n  0.5,\n  0.5\n]}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 199,
+        "completionTokens": 53,
+        "latencyMs": 2059,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18341,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "65b3cc3b3bc0830c782337b6681f7a8434f6bdea5e11d5306beb3de6981c7c4a",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 171,
+        "completionTokens": 10,
+        "latencyMs": 792,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18341,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "785f37480b90c46e3d75d3d2566bf8e280c020befdf1b962ac104286e1b09868",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[1,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\"a\": [\n  0.5,\n  0.5\n], \"b\": [\n  0.5,\n  0.5\n], \"c\": [\n  0.5,\n  0.5\n]}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 199,
+        "completionTokens": 53,
+        "latencyMs": 1811,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18353,
+      "style": "direct",
+      "choice": "b",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "ee122e647722b17480848e17a1f1814ca432223e3d6188c121584188436464a3",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[1,1]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[1,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"b\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 171,
+        "completionTokens": 10,
+        "latencyMs": 958,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "packet_queue",
+      "seed": 18353,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "3c571d27bac879d3360c816090220480289da5d1b4d446914cc1e9a73367858d",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"packet_queue\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"constrain downstream buffer size\",\"pilot_positives_under_H1_H2\":[1,1]},{\"id\":\"b\",\"intervention\":\"add a clock offset to timestamps\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified feed\",\"pilot_positives_under_H1_H2\":[1,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\"a\": [\n  0.5,\n  0.5\n],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 199,
+        "completionTokens": 60,
+        "latencyMs": 2132,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18317,
+      "style": "direct",
+      "choice": "b",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "fa47195deea151aafd2af741803c57debb708865f1c74edcffef547c074b7846",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"b\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 172,
+        "completionTokens": 10,
+        "latencyMs": 633,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18317,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "372be37698aaed95cd553308c9d5e4686ce505c90eec91797c593b8bde0a01c5",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.5,\n    0.5\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 200,
+        "completionTokens": 63,
+        "latencyMs": 2201,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18323,
+      "style": "direct",
+      "choice": "b",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "fa47195deea151aafd2af741803c57debb708865f1c74edcffef547c074b7846",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"b\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 172,
+        "completionTokens": 10,
+        "latencyMs": 488,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18323,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "372be37698aaed95cd553308c9d5e4686ce505c90eec91797c593b8bde0a01c5",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.5,\n    0.5\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 200,
+        "completionTokens": 63,
+        "latencyMs": 2212,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18329,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "2c6480ad4db829f183f4c157973d3d478a0671ae628028e4e22ce8f90e1ad114",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 172,
+        "completionTokens": 10,
+        "latencyMs": 785,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18329,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "a5c4333b29a39932aa65a6b361e26c9d926cd2f9603b844f38620ba81d0f2a9d",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.9,\n    0.9\n  ],\n  \"b\": [\n    0.9,\n    0.9\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 200,
+        "completionTokens": 63,
+        "latencyMs": 2212,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18331,
+      "style": "direct",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "2c6480ad4db829f183f4c157973d3d478a0671ae628028e4e22ce8f90e1ad114",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"a\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 172,
+        "completionTokens": 10,
+        "latencyMs": 472,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18331,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0.5310044064107189,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "a5c4333b29a39932aa65a6b361e26c9d926cd2f9603b844f38620ba81d0f2a9d",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,9]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[5,5]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.9,\n    0.9\n  ],\n  \"b\": [\n    0.9,\n    0.9\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 200,
+        "completionTokens": 63,
+        "latencyMs": 2263,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18341,
+      "style": "direct",
+      "choice": "b",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "fa47195deea151aafd2af741803c57debb708865f1c74edcffef547c074b7846",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"b\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 172,
+        "completionTokens": 10,
+        "latencyMs": 550,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18341,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "372be37698aaed95cd553308c9d5e4686ce505c90eec91797c593b8bde0a01c5",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[1,1]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"a\": [\n    0.5,\n    0.5\n  ],\n  \"b\": [\n    0.5,\n    0.5\n  ],\n  \"c\": [\n    0.5,\n    0.5\n  ]\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 200,
+        "completionTokens": 63,
+        "latencyMs": 2186,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18353,
+      "style": "direct",
+      "choice": "b",
+      "valid": true,
+      "expected_bits": 0.5310044064107189,
+      "regret_bits": 0,
+      "forecast_brier": null,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "e18ebafe1b0c1f113c7ac8122a50d38a178a88855e9b150bb6e10dd1413548c2",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "choice"
+          ],
+          "properties": {
+            "choice": {
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"Choose the experiment most likely to distinguish H1 from H2 in one repeat.\"}"
+      },
+      "answer": {
+        "text": "{\n  \"choice\": \"b\"\n}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 172,
+        "completionTokens": 10,
+        "latencyMs": 601,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "family": "reactor_temperature",
+      "seed": 18353,
+      "style": "structured_rules",
+      "choice": "a",
+      "valid": true,
+      "expected_bits": 0,
+      "regret_bits": 0.5310044064107189,
+      "forecast_brier": 0.25,
+      "fifo_bits": 0,
+      "fixed_pilot_bits": 0.5310044064107189,
+      "request_sha256": "1b0204fc81f4810196298f12707105a748bd5c16eaa3a518e6bdc73068653b48",
+      "request": {
+        "schemaName": "rain_experiment_design",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b",
+            "c"
+          ],
+          "properties": {
+            "a": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "b": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            },
+            "c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "enum": [
+                  0.1,
+                  0.5,
+                  0.9
+                ]
+              }
+            }
+          }
+        },
+        "system": "Plan a synthetic experiment with competing hypotheses H1 and H2. Return only the requested JSON.",
+        "user": "{\"domain\":\"reactor_temperature\",\"prior\":[0.5,0.5],\"budget\":1,\"candidate_experiments\":[{\"id\":\"a\",\"intervention\":\"change the simulated fan gain\",\"pilot_positives_under_H1_H2\":[5,5]},{\"id\":\"b\",\"intervention\":\"add an offset to the thermometer\",\"pilot_positives_under_H1_H2\":[9,1]},{\"id\":\"c\",\"intervention\":\"repeat the unmodified controller\",\"pilot_positives_under_H1_H2\":[9,9]}],\"pilot_trials_per_hypothesis\":10,\"task\":\"For each intervention, forecast the probability of a positive under H1 then H2. A calibrated pilot with k positives out of ten implies probability k/10. Preserve hypothesis order. The host chooses using information gain.\"}"
+      },
+      "answer": {
+        "text": "{\"a\": [\n  0.5,\n  0.5\n], \"b\": [\n  0.5,\n  0.5\n], \"c\": [\n  0.5,\n  0.5\n]}",
+        "reportedModel": "qwen-1.5b",
+        "promptTokens": 200,
+        "completionTokens": 53,
+        "latencyMs": 1865,
+        "finishReason": "stop"
+      }
+    }
+  ]
+}

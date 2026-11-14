@@ -1,0 +1,86 @@
+{
+  "asymmetric_impulse/delayed": {
+    "coverage_delta_percentile_95": [
+      -0.1,
+      -0.1
+    ],
+    "coverage_only_accepted": 70,
+    "coverage_only_errors": 0,
+    "freshness_accepted": 54,
+    "freshness_errors": 0,
+    "paired_seeds": 8,
+    "seed_clusters_with_freshness_error": 0,
+    "windows": 160,
+    "zero_event_one_sided_95_upper_seed_probability": 0.31234397806636793
+  },
+  "asymmetric_impulse/timely": {
+    "coverage_delta_percentile_95": [
+      0.0,
+      0.0
+    ],
+    "coverage_only_accepted": 70,
+    "coverage_only_errors": 0,
+    "freshness_accepted": 70,
+    "freshness_errors": 0,
+    "paired_seeds": 8,
+    "seed_clusters_with_freshness_error": 0,
+    "windows": 160,
+    "zero_event_one_sided_95_upper_seed_probability": 0.31234397806636793
+  },
+  "circle/delayed": {
+    "coverage_delta_percentile_95": [
+      -0.1,
+      -0.1
+    ],
+    "coverage_only_accepted": 65,
+    "coverage_only_errors": 0,
+    "freshness_accepted": 49,
+    "freshness_errors": 0,
+    "paired_seeds": 8,
+    "seed_clusters_with_freshness_error": 0,
+    "windows": 160,
+    "zero_event_one_sided_95_upper_seed_probability": 0.31234397806636793
+  },
+  "circle/timely": {
+    "coverage_delta_percentile_95": [
+      0.0,
+      0.0
+    ],
+    "coverage_only_accepted": 65,
+    "coverage_only_errors": 0,
+    "freshness_accepted": 65,
+    "freshness_errors": 0,
+    "paired_seeds": 8,
+    "seed_clusters_with_freshness_error": 0,
+    "windows": 160,
+    "zero_event_one_sided_95_upper_seed_probability": 0.31234397806636793
+  },
+  "independent_pulse/delayed": {
+    "coverage_delta_percentile_95": [
+      -0.1,
+      -0.1
+    ],
+    "coverage_only_accepted": 67,
+    "coverage_only_errors": 0,
+    "freshness_accepted": 51,
+    "freshness_errors": 0,
+    "paired_seeds": 8,
+    "seed_clusters_with_freshness_error": 0,
+    "windows": 160,
+    "zero_event_one_sided_95_upper_seed_probability": 0.31234397806636793
+  },
+  "independent_pulse/timely": {
+    "coverage_delta_percentile_95": [
+      0.0,
+      0.0
+    ],
+    "coverage_only_accepted": 67,
+    "coverage_only_errors": 0,
+    "freshness_accepted": 67,
+    "freshness_errors": 0,
+    "paired_seeds": 8,
+    "seed_clusters_with_freshness_error": 0,
+    "windows": 160,
+    "zero_event_one_sided_95_upper_seed_probability": 0.31234397806636793
+  }
+}
