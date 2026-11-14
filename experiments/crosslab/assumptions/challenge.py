@@ -242,6 +242,27 @@ def execute(circle, workspace):
     put(workspace/"sha256.json", {p.name: digest(p) for p in sorted(workspace.glob("*.json"))})
 
 
+def replay_roundoff(actual, expected):
+    """Count floating-point roundoff while requiring exact structure and discrete fields."""
+    if type(actual) is not type(expected):
+        raise ValueError("Replay value type changed")
+    if isinstance(actual, dict):
+        if actual.keys() != expected.keys():
+            raise ValueError("Replay row fields changed")
+        return sum(replay_roundoff(actual[k], expected[k]) for k in actual)
+    if isinstance(actual, list):
+        if len(actual) != len(expected):
+            raise ValueError("Replay measurement count changed")
+        return sum(replay_roundoff(a, b) for a, b in zip(actual, expected))
+    if isinstance(actual, float):
+        if not math.isclose(actual, expected, rel_tol=0, abs_tol=1e-12):
+            raise ValueError("Replay measurement changed beyond numerical roundoff")
+        return int(actual != expected)
+    if actual != expected:
+        raise ValueError("Replay discrete value or digest changed")
+    return 0
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
@@ -256,11 +277,15 @@ if __name__ == "__main__":
         check_checkout(args.circle.resolve(), p["circle_revision"])
         sys.path.insert(0, str(args.circle.resolve()))
         designs = list(dict.fromkeys([load(args.workspace/"selection.json")["design"], p["fixed_baseline"]]))
+        from verify import check_rows
         for phase in ("discovery", "replication"):
             actual = acquire(p, phase, designs)
             expected = load(args.workspace/f"{phase}-windows.json")
-            if json.loads(json.dumps(actual)) != expected:
-                raise ValueError(f"{phase} simulation did not reproduce")
-        print("Both waveforms and disjoint seed sets replay exactly.")
+            actual = json.loads(json.dumps(actual))
+            check_rows(actual, p, phase, designs)
+            differences = replay_roundoff(actual, expected)
+            if summary(actual) != summary(expected):
+                raise ValueError(f"{phase} scored summary changed")
+            print(f"{phase}: all discrete values and digests match, {differences} float values differ within 1e-12.")
     else:
         execute(args.circle.resolve(), args.workspace.resolve())

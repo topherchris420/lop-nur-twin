@@ -1,0 +1,161 @@
+{
+  "cases": 24,
+  "limits": "Compare structural capabilities in a controlled benchmark, with the same lexical ranker and no language model. Timing and space are descriptive. No claim against the full previous production architecture.",
+  "schema": "rain-memory-evaluation/v1",
+  "scores": {
+    "institutional": {
+      "attribution": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      },
+      "continuity": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      },
+      "contradiction": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      },
+      "correction": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      },
+      "corruption_rejected": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      },
+      "recall": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      },
+      "retrieval": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      }
+    },
+    "no-memory": {
+      "attribution": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "continuity": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "contradiction": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "correction": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "corruption_rejected": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "recall": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "retrieval": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      }
+    },
+    "retrieval-only": {
+      "attribution": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "continuity": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "contradiction": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "correction": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "corruption_rejected": {
+        "interval_95": [
+          1.1962983316807505e-17,
+          0.1379762046749802
+        ],
+        "passed": 0
+      },
+      "recall": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      },
+      "retrieval": {
+        "interval_95": [
+          0.8620237953250198,
+          1
+        ],
+        "passed": 24
+      }
+    }
+  },
+  "seed": 885013
+}

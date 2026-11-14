@@ -1,0 +1,31 @@
+{
+  "schema": "rain-memory-correction-study/v1",
+  "hypothesis": "With delayed delivery, sufficient detected beat coverage guarantees that estimates remain within 3 bpm of the full-window reference.",
+  "rival": "When delivery truncates the window's changing rate, error depends on ramp direction. Sufficient beat coverage can coexist with a biased estimate.",
+  "historical_record": "experiments/crosslab/assumptions/record/result.json",
+  "historical_scope": "Superseding an extrapolation from the archived result, not revising the archived result or attributing this new hypothesis to its model.",
+  "design": "Matched timely versus three-second delayed delivery of identical acquired samples. Compare rising, falling and constant rate. Measure ungated candidate error and the existing freshness gate separately.",
+  "discovery_waveform": "gaussian",
+  "replication_waveform": "asymmetric",
+  "discovery_seeds": [330101, 330103, 330107, 330109, 330113, 330127, 330131, 330137, 330139, 330149, 330151, 330157, 330163, 330167, 330169, 330173],
+  "replication_seeds": [451001, 451003, 451007, 451009, 451013, 451027, 451031, 451037, 451039, 451049, 451051, 451057, 451063, 451067, 451069, 451073],
+  "profiles": ["constant", "rising", "falling"],
+  "coverage_floor": 0.65,
+  "error_bpm": 3,
+  "alpha": 0.05,
+  "discovery_rule": "At least one delayed sufficient-coverage candidate exceeds the error bound.",
+  "replication_rule": "For at least 75% of seeds jointly, every paired candidate has sufficient coverage, timely and constant delayed candidates are within the error bound, rising delayed error is below -3 bpm, falling delayed error exceeds +3 bpm, and the freshness gate withholds every delayed candidate.",
+  "minimum_joint_success": 0.75,
+  "uncertainty": "Exact two-sided 95% binomial interval for the joint replication success, one Bernoulli outcome per seed, conditional on this simulator.",
+  "memory_evaluation": {
+    "schema": "rain-memory-evaluation/v1",
+    "fixtures": "24 disjoint synthetic cases from six predefined task families, generated from the published fixed seed; subject and sources randomized; expected answers derived from fixture semantics before retrieval.",
+    "seed": 885013,
+    "cases": 24,
+    "modes": ["no-memory", "retrieval-only", "institutional"],
+    "measures": ["recall", "attribution", "contradiction", "continuity", "correction", "retrieval", "corruption_rejected"],
+    "uncertainty": "95% Wilson intervals across fixture cases; shared fixture grammar limits external validity.",
+    "interpretation": "Compare structural capabilities in a controlled benchmark, with the same lexical ranker and no language model. Timing and space are descriptive. No claim against the full previous production architecture."
+  },
+  "limits": "Host-authored prospective experiment and hypotheses. Computational replication within one team and one detector, with disjoint seeds and two waveforms. No clinical or organism data."
+}
