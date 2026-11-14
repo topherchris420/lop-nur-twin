@@ -40,7 +40,7 @@ jobs:
           ref: a876d458778b0917541a26153d2425b922762480
           path: instruments/atlas
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install pinned study tools
