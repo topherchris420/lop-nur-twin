@@ -6,6 +6,8 @@
 
 R.A.I.N. LAB · VERS3DYNAMICS
 
+<sub>Recursive Architecture of Intelligent Nexus</sub>
+
 Two flies with separate histories. Worlds they can act in. Experiments another machine can check.
 
 [![CI](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/topherchris420/lop-nur-twin/actions/workflows/ci.yml)

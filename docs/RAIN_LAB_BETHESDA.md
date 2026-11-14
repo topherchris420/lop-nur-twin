@@ -1,5 +1,7 @@
 # The R.A.I.N. Lab in Bethesda
 
+**R.A.I.N.** stands for **Recursive Architecture of Intelligent Nexus**.
+
 <p align="center">
   <a href="https://rainlabteam.vercel.app/"><img src="rain-lab.webp" width="420" alt="R.A.I.N. Lab — Recursive Architecture of Intelligent Nexus: a cartoon octopus in a white suit striding with a tuning fork inside a ring of lightning"></a>
 </p>
