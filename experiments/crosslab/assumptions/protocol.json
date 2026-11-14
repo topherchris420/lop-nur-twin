@@ -1,0 +1,37 @@
+{
+  "schema": "rain-assumption-challenge/v1",
+  "circle_revision": "0f231ec41f3a1bd0cf47d347dc2b6068dc5fb7da",
+  "atlas_revision": "a876d458778b0917541a26153d2425b922762480",
+  "discovery_seeds": [108101,108103,108107,108109,108113,108127,108131,108139,108143,108149,108151,108157,108161,108163,108167,108169],
+  "replication_seeds": [109201,109207,109211,109219,109229,109231,109237,109241,109253,109261,109267,109279,109283,109291,109297,109303],
+  "discovery_waveform": "gaussian",
+  "replication_waveform": "asymmetric",
+  "catalog": {
+    "delivery": {"description": "Pair timely delivery with a three-second delay, preserving optical sample values and acquisition times.", "levels": ["timely", "delayed"]},
+    "mask_position": {"description": "Move a three-second beat-exclusion interval from early to late in the twenty-second estimation window, preserving optical samples and delivery times.", "levels": ["early", "late"]},
+    "optical_noise": {"description": "Add a motion-like chirp to optical values while preserving beat truth, timestamps and delivery times.", "levels": ["quiet", "noisy"]}
+  },
+  "profiles": ["constant", "rising", "falling"],
+  "profile_description": "Constant 90 bpm, or a linear ramp from 60 to 120 bpm or 120 to 60 bpm over the final twenty seconds. Initial rate and phase vary by seed. These are synthetic stress profiles, not validated human physiology.",
+  "window_seconds": 20,
+  "sample_rate_hz": 100,
+  "cutoff_seconds": 60,
+  "minimum_beat_coverage": 0.65,
+  "maximum_sample_age_seconds": 0.5,
+  "error_bpm": 3,
+  "event": "At least one accepted estimate in the paired intervention levels differs by more than 3 bpm from the full twenty-second beat-interval reference, for a given seed and profile.",
+  "estimand": "The same retrospective full-window mean beat-interval rate used in the previous study; not instantaneous heart rate.",
+  "selection": "Host maximizes binary mutual information from model-supplied rival forecasts at equal priors; ties use catalog order. No oracle probabilities are supplied. This is model-conditional information gain, not measured information gain.",
+  "fixed_baseline": "delivery",
+  "budget": {"model_calls": 2, "discovery_designs": 2, "replication_designs": 2, "tokens_per_call": 1800},
+  "evaluation": {
+    "alpha": 0.05,
+    "familywise_tests": 3,
+    "forecast_refutation": "A profile's frozen forecast lies outside its two-sided exact binomial interval at alpha/3 on discovery; report all three profiles. Invalid proposals stop, never default to a scripted hypothesis.",
+    "replication": "The model's revised profile probabilities are frozen before replication with disjoint seeds and the asymmetric waveform. Report Brier loss against both frozen forecasts on identical replication outcomes; a loss reduction alone is not proof of scientific discovery.",
+    "explanation": "Preserve the model's natural-language revision as model-inferred. It survives only a descriptive replication screen if all revised probabilities lie inside the familywise exact intervals; this is not causal proof or external validation.",
+    "minimum_brier_improvement": 0.05
+  },
+  "controls": ["unmasked reconstruction on identical samples", "reference-interval oracle with the same exclusion interval", "constant-rate negative control", "fixed delivery design at equal seed budget"],
+  "scope": "Offline CIRCLE signal processing only. No original organisms, persistent state, paid APIs, deployment or model weight training. Two calls to the same local model. No retries after a valid proposal, no tuning after discovery, all failed forecasts and negative findings preserved."
+}

@@ -6,6 +6,7 @@ on:
       - "experiments/crosslab/**"
       - "scripts/rain-crosslab-plan.ts"
       - "scripts/rain-planning-benchmark.ts"
+      - "scripts/rain-assumption-model.ts"
       - ".github/workflows/rain-crosslab.yml"
 
 permissions:
@@ -76,10 +77,19 @@ jobs:
           python "$study/freshness.py" instruments/circle "$RUNNER_TEMP/freshness"
           python "$study/freshness.py" instruments/circle "$RUNNER_TEMP/freshness" --verify
           diff -u "$study/record/result.json" "$RUNNER_TEMP/freshness/result.json"
+      - name: Verify model-led assumption challenge and replay both waveforms
+        run: |
+          study=experiments/crosslab/assumptions
+          python -m unittest discover -s "$study" -p 'test_*.py'
+          python "$study/verify.py" "$study/record"
+          python "$study/review.py" "$study/record"
+          python "$study/challenge.py" instruments/circle "$study/record" --replay
+          python "$study/atlas_export.py" instruments/atlas "$study/record" "$RUNNER_TEMP/assumption-atlas"
       - uses: actions/upload-artifact@v4
         with:
           name: rain-crosslab-replication
           path: |
             ${{ runner.temp }}/replication
             ${{ runner.temp }}/atlas-review
+            ${{ runner.temp }}/assumption-atlas
           if-no-files-found: error

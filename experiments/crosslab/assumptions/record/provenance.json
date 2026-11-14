@@ -1,0 +1,16 @@
+{
+  "circle_revision": "0f231ec41f3a1bd0cf47d347dc2b6068dc5fb7da",
+  "created_utc": "2026-11-14T01:44:29.642475+00:00",
+  "historical_result_sha256": "1816e898977ebb02baba47d3c3ea56864d0a83ed04ab36755ed5e039da449305",
+  "human_review": "pending",
+  "independent_lab_replication": false,
+  "numpy": "2.3.5",
+  "source_commit": "e1be385b1273d97ae9be36b74dc82dbb23a05fcd",
+  "source_files": {
+    "experiments/crosslab/assumptions/challenge.py": "1cd021c741ad18b8f929520f2a944910b64bf0a243a5aca3f8bd97fff98f2289",
+    "experiments/crosslab/assumptions/protocol.json": "0861aecee9bd7fe2952a7f264dac5e7133938c0170e12fe3040fcf4aa04512e1",
+    "experiments/crosslab/assumptions/verify.py": "e9db8185ccc8b7cc5da744ea3554b19617c5280a7caeea5ab8c65f57377d64e1",
+    "experiments/crosslab/replication/acquisition.py": "ad8bb6d8b870e7569061a663472f732d4b1a08ed1965ce018e89d1769cbe33e2",
+    "scripts/rain-assumption-model.ts": "288d0319e59b3e6c12be96834082639274f4e10debd65c9044acc188eaea6e59"
+  }
+}

@@ -21,6 +21,8 @@ Two flies with separate histories. Worlds they can act in. Experiments another m
 
 **Start here:** watch the originals through their public pages, inspect the [research claims](docs/RESEARCH_CLAIMS.md), or follow the [local setup](#07-reproduce-the-work). The [documentation index](docs/README.md) maps the full repository.
 
+**R.A.I.N. assumption challenge:** a local model’s forecast was refuted, but its revised explanation failed a second waveform and unseen seeds. The lab preserved the negative result and rejected the discovery claim. [Inspect the protocol, model receipts and replication →](experiments/crosslab/assumptions/README.md)
+
 **Contents** · [01 Question](#01-the-question) · [02 Systems & first contact](#02-the-operating-systems) · [03 Continuity](#03-a-machine-must-be-able-to-verify-the-history) · [04 Results](#04-the-test-results-including-the-ones-that-did-not-work) · [05 Neural models](#05-the-brain-boundary) · [06 Architecture](#06-the-engineering-arrangement) · [07 Run & verify](#07-reproduce-the-work) · [08 Research procedure](#08-the-laboratory-procedure) · [09 Other worlds](#09-the-rest-of-the-laboratory) · [10 License](#10-license-and-research-use)
 
 ## 01. The question

@@ -1,0 +1,13 @@
+{
+  "discovery-summary.json": "f23e9364c28b55b36641456360467c8df5f89aae10bff5f0c02d40c9fa0f906a",
+  "discovery-windows.json": "fec7e7ec9118ce5b90655985ee56be8f3e6886221cfd452449fb1d85478e5fcd",
+  "proposal-model.json": "a646db7ee18c9e5116b48cbaba56d0e859400be378496cdcbbf710aafb05d5ef",
+  "proposal-request.json": "7930cc58fec4297253ad8b651179274064e2173f1a0f807c40da85982ae89409",
+  "protocol.json": "42ae124c5a17d47935c06269bb5473e149543757308eb59488fa9410eaada85c",
+  "provenance.json": "10ab8b9829132c8a01d4cfbc485331d9b3ce6cba44b24eefe08357bedd8d3129",
+  "replication-summary.json": "c5483d330efc4e06c8e5fafdb94f632622fa5efb7ea4a89fc6df815286daceb2",
+  "replication-windows.json": "41d9c418caa53e547b7f7bccd9c9ef5f43a6b7d4b82b2063e1ff149fb0fbbd35",
+  "revision-model.json": "50210af75fad44153aadc9580252d01f52bf61426cc89d2b361511a41399b0f0",
+  "revision-request.json": "8bc140272fad521e04aba750f6ba4de092f5f506ff179262bf32ca340beda63e",
+  "selection.json": "4f1285433cf99b0694e62b636a99d49d90b9644258c576c686560620357cb7a5"
+}
