@@ -67,6 +67,12 @@ function number(value: number | null): string {
   return Number.isFinite(value) ? String(value) : "unknown";
 }
 
+function duration(milliseconds: number | null): string {
+  return milliseconds !== null && Number.isFinite(milliseconds)
+    ? `${(milliseconds / 1000).toFixed(2)} s`
+    : "unknown";
+}
+
 function assessment(value: Assessment | null, phase: string): string {
   if (value === null) return `<p class="muted">${phase}: not measured.</p>`;
   return `<section class="assessment" aria-label="${phase}">
@@ -200,19 +206,19 @@ export function renderIntelligenceObservatory(report: IntelligenceViewReport): s
     .skip { position: absolute; top: -90px; padding: 12px; background: #071318; } .skip:focus { top: 8px; }
     header { border-top: 3px solid #65cdbb; padding: 22px 0; } .eyebrow { color: #94c7c7; letter-spacing: .14em; font-size: .75rem; font-weight: 700; }
     h1 { font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.12; margin: 10px 0 18px; } h2 { font-size: 1.25rem; margin: 0 0 16px; } h3 { font-size: 1.05rem; } h4 { margin-bottom: 10px; }
-    p { margin: .6em 0; } .question { max-width: 900px; font-size: 1.15rem; } .muted { color: #afc3c9; font-size: .875rem; } code { font-family: ui-monospace, monospace; font-size: .85em; overflow-wrap: anywhere; }
+    p { margin: .6em 0; overflow-wrap: anywhere; } .question { max-width: 900px; font-size: 1.15rem; } .muted { color: #afc3c9; font-size: .875rem; } code { font-family: ui-monospace, monospace; font-size: .85em; overflow-wrap: anywhere; }
     nav { display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 0; font-size: .9rem; }
     .panel { background: #0c1e26; border: 1px solid #2c4853; border-radius: 9px; padding: 22px; margin: 20px 0; }
     .callout { border-left: 3px solid #d8aa64; background: #28251e; padding: 14px 18px; margin: 16px 0; }
-    .budget { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin: 18px 0; } .budget div { border-left: 1px solid #3a5a63; padding-left: 16px; }
-    dt { color: #afc3c9; font-size: .8rem; } dd { margin: 4px 0 0; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+    .budget { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin: 18px 0; } .budget div { min-width: 0; border-left: 1px solid #3a5a63; padding-left: 16px; }
+    dt { color: #afc3c9; font-size: .8rem; } dd { margin: 4px 0 0; font-size: 1.35rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
     .statistics { display: flex; flex-wrap: wrap; gap: 16px 28px; } .statistics dd { font-size: 1rem; }
-    .controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin: 18px 0; } label { display: grid; gap: 5px; font-size: .875rem; } .search { flex: 1 1 260px; }
-    input, select, button { font: inherit; color: #e5f0f2; background: #071318; border: 1px solid #52727d; border-radius: 5px; padding: 10px 12px; min-height: 44px; } button { cursor: pointer; } button:hover { background: #153842; }
+    .controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin: 18px 0; } label { display: grid; min-width: 0; gap: 5px; font-size: .875rem; } .search { flex: 1 1 260px; }
+    input, select, button { min-width: 0; max-width: 100%; font: inherit; color: #e5f0f2; background: #071318; border: 1px solid #52727d; border-radius: 5px; padding: 10px 12px; min-height: 44px; } button { cursor: pointer; } button:hover { background: #153842; }
     .scroll { position: relative; overflow: auto; border: 1px solid #2c4853; border-radius: 5px; } table { width: 100%; border-collapse: collapse; text-align: left; font-size: .9rem; } caption { text-align: left; padding: 12px 16px; color: #afc3c9; background: #071318; }
     th, td { padding: 14px 16px; border-bottom: 1px solid #2c4853; vertical-align: top; } thead th { color: #b6d5d8; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; background: #102a33; } th[scope="row"] { min-width: 140px; } td { min-width: 140px; } tbody tr:last-child > * { border-bottom: 0; }
     .finding { font-weight: 600; } .error { color: #ffd0b0; overflow-wrap: anywhere; } .adapter { display: block; margin-top: 6px; color: #afc3c9; font-weight: 400; font-size: .8rem; }
-    details { min-width: 260px; } summary { cursor: pointer; color: #81e6d8; padding: 2px 0; } details[open] { min-width: 340px; } .assessment { border-top: 1px solid #375560; padding: 2px 0 8px; } .checks { padding-left: 20px; font-size: .85rem; }
+    details { min-width: 0; } .design-detail { min-width: 260px; } summary { cursor: pointer; color: #81e6d8; padding: 2px 0; } .design-detail[open] { min-width: 340px; } .assessment { border-top: 1px solid #375560; padding: 2px 0 8px; } .checks { padding-left: 20px; font-size: .85rem; }
     .reviews { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } .review { border-left: 2px solid #52727d; padding: 0 16px; } .review h3 { margin: 0; } .review p { white-space: pre-wrap; overflow-wrap: anywhere; }
     .issue-list { padding-left: 20px; } .issue-list li { padding: 5px 0; } .events td:last-child { min-width: 280px; } footer { margin-top: 30px; color: #afc3c9; font-size: .8rem; }
     [hidden] { display: none !important; }
@@ -237,10 +243,10 @@ export function renderIntelligenceObservatory(report: IntelligenceViewReport): s
       <div><dt>Ceiling</dt><dd>${number(report.budget.ceiling_units)} units</dd></div>
       <div><dt>Reserved</dt><dd>${number(report.budget.reserved_units)} units</dd></div>
       <div><dt>Completed</dt><dd>${number(report.budget.completed_units)} units</dd></div>
-      <div><dt>Runtime</dt><dd>${number(report.budget.runtime_ms)} ms</dd></div>
+      <div><dt>Runtime</dt><dd title="${number(report.budget.runtime_ms)} ms">${duration(report.budget.runtime_ms)}</dd></div>
       <div><dt>Model calls</dt><dd>${number(report.budget.model_calls)}</dd></div>
     </dl>
-    <p class="muted">${measured} of ${report.designs.length} designs have measurements. Units are the plan's declared work budget; milliseconds are the reported wall time. Unknown runtime means the recorded timing is incomplete.</p>
+    <p class="muted">${measured} of ${report.designs.length} designs have measurements. Units are the plan's declared work budget; runtime is rounded wall time in seconds (exact milliseconds in the evidence JSON). Unknown runtime means the recorded timing is incomplete.</p>
   </section>
   <section id="failures" class="panel" aria-labelledby="failures-heading">
     <h2 id="failures-heading">Failures and negative findings</h2>

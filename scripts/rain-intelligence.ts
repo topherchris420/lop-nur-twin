@@ -1,7 +1,8 @@
 /** Operator entrypoint for explicitly reviewed, local-only CPU scientific campaigns. */
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { join, resolve } from "node:path";
+import { intelligenceExportPath } from "./intelligence-export-path.js";
 import { autonomyConfig } from "../src/rain/autonomy/config.js";
 import { createLocalModel } from "../src/rain/autonomy/models.js";
 import { ResearchStore } from "../src/rain/autonomy/store.js";
@@ -32,6 +33,7 @@ Modes:
 
 Options:
   --dir JOURNAL                           Default: .rain-research/cpu-intelligence
+  --archive-dir NEW_DIR                   Export raw records outside public/ and dist/
   --python INTERPRETER --qnp CLONE --drr CLONE
                                           CPU prepare/run only; map required upstreams explicitly
 
@@ -119,13 +121,23 @@ if (mode[0] === "--deliberate") {
 } else if (mode[0] === "--status") {
   result = cpuCampaignReport(store, value("--status")!);
 } else if (mode[0] === "--export") {
+  const publish = intelligenceExportPath(
+    process.cwd(),
+    store.root,
+    value("--publish-dir"),
+    "publication",
+  );
+  const archive = intelligenceExportPath(
+    process.cwd(),
+    store.root,
+    value("--archive-dir"),
+    "archive",
+  );
+  if (publish === archive && publish !== undefined)
+    throw new Error("Publication and archive require separate directories");
   const exported = exportCpuCampaign(store, value("--export")!);
-  const publish = value("--publish-dir");
   if (publish) {
-    const target = resolve(publish),
-      rel = relative(process.cwd(), target);
-    if (!rel || rel.startsWith("..") || isAbsolute(rel))
-      throw new Error("Publish export inside this repository, in a new directory");
+    const target = publish;
     mkdirSync(target); // never overwrite an earlier scientific export
     writeFileSync(
       join(target, "evidence.json"),
@@ -142,12 +154,9 @@ if (mode[0] === "--deliberate") {
       store.readResearchArtifact(exported.script.path),
       { flag: "wx" },
     );
-    cpSync(store.root, join(target, "archive"), {
-      recursive: true,
-      errorOnExist: true,
-      force: false,
-    });
   }
+  if (archive)
+    cpSync(store.root, archive, { recursive: true, errorOnExist: true, force: false });
   result = {
     evidence: exported.evidence,
     observatory: exported.observatory,

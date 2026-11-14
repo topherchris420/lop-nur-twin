@@ -53,6 +53,7 @@ export default tseslint.config(
       "shots/**",
       ".claude/worktrees/**",
       ".rain-research/**",
+      "scripts/research-validation/.venv*/**",
       "noeterra/target/**",
       "public/noeterra/**",
       // The FlyBody physics backend's environment, checkout and traces (fly-physics/).

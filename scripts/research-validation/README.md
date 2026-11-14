@@ -27,9 +27,9 @@ The input is at most 65,536 bytes and has exactly these fields:
 ```json
 {
   "adapter": "qnp-stable",
-  "parameters": {"method": "sequential"},
+  "parameters": { "method": "sequential" },
   "seeds": [84000, 84001],
-  "repositories": {"quantum-noise-profiler": "/operator/selected/clone"}
+  "repositories": { "quantum-noise-profiler": "/operator/selected/clone" }
 }
 ```
 

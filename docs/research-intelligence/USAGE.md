@@ -71,9 +71,76 @@ node scripts/run-ts.mjs scripts/rain-intelligence.ts --export STUDY --dir .rain-
 ```
 
 Export appends a fresh evidence/observatory artifact snapshot. The optional
-`--publish-dir NEW_DIRECTORY` copies that export and the journal archive into a
-new directory inside this repository; it does not deploy a website.
+`--publish-dir NEW_DIRECTORY` copies the JSON report and viewer into a new
+directory inside this repository. `--archive-dir NEW_DIRECTORY` separately
+copies full source receipts and the journal archive. Keep raw archives outside
+`public/` and `dist/`; neither option deploys a website.
 
 The supplied code supports a genuine local-model path, but automated tests use
 scripted fixtures. No live-model reasoning or research-quality improvement is
 established by those tests.
+
+## Inspect the recorded controlled study
+
+Read the [engineering report](REPORT.md) and
+[frozen results](../../public/research-intelligence/summary.json). After
+`bun run build`, serve the project with `bun run preview` and open
+`/research-intelligence/index.html`. The `fifo/`, `information/` and
+`full-validation/` subdirectories contain each arm. The `/analysis` page also
+links to the observatory. Filtering and expandable details need only the adjacent
+`observatory.js`; the data remain readable without JavaScript. This is a static
+snapshot, not a live controller.
+
+The browser check serves only the generated observatory on an ephemeral loopback
+port, applies the project's production CSP and closes its own browser/server:
+
+```powershell
+node tools/research-intelligence-check.mjs
+```
+
+Read-only record verification requires Node and installed project dependencies,
+but no Python, model service or upstream clone:
+
+```powershell
+node scripts/run-ts.mjs scripts/verify-intelligence-evidence.ts --archive docs/research-intelligence/evidence/archive
+```
+
+This rederives the study counts and raw-sample assessments, verifies the native
+registry, and checks that the archive remains unchanged. The retained
+`evidence/replay-receipt.json` records the separately executed numerical replay.
+Replaying exposed seeds checks consistency and never supplies fresh confirmation.
+
+To request a new local replay, create a dedicated Python 3.11 environment using
+`scripts/research-validation/requirements.txt`, select clean local upstream
+clones at the report's revisions, then inspect its envelope:
+
+```powershell
+node scripts/run-ts.mjs scripts/verify-intelligence-evidence.ts --archive docs/research-intelligence/evidence/archive --draft-replay
+node scripts/run-ts.mjs scripts/verify-intelligence-evidence.ts --archive docs/research-intelligence/evidence/archive --replay-reviewed EXACT_REPLAY_DIGEST --python PYTHON_EXECUTABLE --qnp QNP_CLONE --drr DRR_CLONE
+```
+
+The source/interpreter binding must match. Paths may differ, versions or source
+bytes may not. Review the printed replay cost separately from the original study.
+The verifier writes no research records. Preserve its standard output as a new
+receipt outside the immutable archive.
+
+The frozen study runner supports `--draft` and `--execute-reviewed EXACT_DIGEST`
+with explicit `--python`, `--qnp` and `--drr` mappings. A new experiment is not a
+replay: it needs a new reviewed protocol and unused seed blocks. Do not relabel
+the published seeds as an independent experiment.
+
+Engineering checks:
+
+```powershell
+bun run test:run
+bun run test:evidence
+bun run lint
+bun run format:check
+bun run build
+```
+
+For optional genuine Python tests, use a separate environment with
+`requirements-dev.txt`, set `RAIN_QNP_REPOSITORY` and `RAIN_DRR_REPOSITORY`, then
+run `python -m pytest scripts/research-validation -q` and
+`python -m ruff check scripts/research-validation`. Without the explicit mappings,
+the genuine upstream checks skip. The CI workflow supplies pinned clean clones.

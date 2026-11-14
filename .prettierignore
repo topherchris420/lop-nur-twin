@@ -9,6 +9,9 @@ coverage
 # Immutable public REA captures and generated CPU study evidence; hashes bind their exact bytes.
 docs/research-intelligence/autolab-evidence/raw/
 public/research-intelligence/
+docs/research-intelligence/evidence/
+scripts/research-validation/.venv/
+scripts/research-validation/.venv-dev/
 .claude/worktrees
 .vercel
 

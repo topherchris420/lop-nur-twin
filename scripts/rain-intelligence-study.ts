@@ -1,6 +1,7 @@
 /** Frozen CPU validation + equal-budget policy ablation. No paid or model resources. */
 import { mkdirSync, cpSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { intelligenceExportPath } from "./intelligence-export-path.js";
 import { ResearchStore } from "../src/rain/autonomy/store.js";
 import { gitState } from "../src/rain/experiments/provenance.js";
 import { sha256Json, canonicalJson } from "../src/rain/sha256.js";
@@ -146,6 +147,20 @@ if (args.includes("--draft")) {
     throw new Error(
       "The controlled study requires a fresh journal; do not rerun exposed holdouts",
     );
+  const publish = intelligenceExportPath(
+    process.cwd(),
+    store.root,
+    value("--publish-dir"),
+    "publication",
+  );
+  const archive = intelligenceExportPath(
+    process.cwd(),
+    store.root,
+    value("--archive-dir"),
+    "archive",
+  );
+  if (publish === archive && publish !== undefined)
+    throw new Error("Publication and archive require separate directories");
   const git = gitState(process.cwd(), [dir]);
   if (!git.commit || git.dirty === null)
     throw new Error("Unknown producing code revision");
@@ -216,14 +231,8 @@ if (args.includes("--draft")) {
   } finally {
     releaseFinal();
   }
-  const publish = value("--publish-dir");
   if (publish) {
-    const target = resolve(publish);
-    if (
-      !target.startsWith(resolve(process.cwd()) + "/") &&
-      !target.startsWith(resolve(process.cwd()) + "\\")
-    )
-      throw new Error("Publish inside the producing repository");
+    const target = publish;
     mkdirSync(target);
     writeFileSync(join(target, "summary.json"), canonicalJson(summary), { flag: "wx" });
     for (const result of results) {
@@ -245,11 +254,6 @@ if (args.includes("--draft")) {
         { flag: "wx" },
       );
     }
-    cpSync(store.root, join(target, "archive"), {
-      recursive: true,
-      force: false,
-      errorOnExist: true,
-    });
     const primary = results[1]!;
     writeFileSync(
       join(target, "index.html"),
@@ -267,6 +271,8 @@ if (args.includes("--draft")) {
       { flag: "wx" },
     );
   }
+  if (archive)
+    cpSync(store.root, archive, { recursive: true, force: false, errorOnExist: true });
   console.log(
     "RESULT " + JSON.stringify({ primary_passed: summary.primary_passed, counts }),
   );

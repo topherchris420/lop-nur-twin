@@ -1,0 +1,263 @@
+{
+  "created_at": "2026-11-13T22:09:45.078Z",
+  "created_by": "R.A.I.N.Operator",
+  "criteria": {
+    "failure": [
+      {
+        "id": "F1",
+        "metric": "upper",
+        "op": "<",
+        "value": 0.75
+      }
+    ],
+    "guards": [
+      {
+        "id": "G1",
+        "metric": "samples_completed",
+        "op": ">=",
+        "value": 128
+      },
+      {
+        "id": "G2",
+        "metric": "checks_passed",
+        "op": ">=",
+        "value": 1
+      }
+    ],
+    "success": [
+      {
+        "id": "S1",
+        "metric": "lower",
+        "op": ">=",
+        "value": 0.75
+      }
+    ]
+  },
+  "data_policy": {
+    "classification": "public",
+    "store_artifacts": true
+  },
+  "dependencies": [
+    "numpy",
+    "scipy"
+  ],
+  "evidence_class": "simulated",
+  "experiment_id": "V3D-EXP-0004",
+  "experiment_version": 1,
+  "hypothesis": "The correct-session probability is at least 0.75; both fixed panels must support it before a campaign claim is supported.",
+  "limitations": [
+    "All observations are seeded simulations of the imported code, not measurements of physical quantum devices or biological causality.",
+    "Intervals assume independent simulated sessions and one frozen endpoint per seed panel; family alpha covers all declared designs and both panels by union bound.",
+    "Screening and confirmation use disjoint seeds but the same implementation. This is replication on new simulations, not an independent implementation replication.",
+    "Rival probabilities and information scores are conditional on declared predictive models. Misspecified predictions can make selection ineffective.",
+    "Work units are operator-declared computational limits, not measured joules, dollars or CPU-seconds. Worker wall time is measured separately.",
+    "The worker runs explicitly trusted local source with a timeout. It is not an operating-system sandbox for hostile code, and has no cloud adapter.",
+    "Hashes detect inconsistency, not forgery by a writer able to replace the entire journal. Preserve source revisions and external timestamps for stronger audit."
+  ],
+  "metrics": [
+    {
+      "description": "mean",
+      "deterministic": true,
+      "name": "mean",
+      "unit": "ratio"
+    },
+    {
+      "description": "lower",
+      "deterministic": true,
+      "name": "lower",
+      "unit": "ratio"
+    },
+    {
+      "description": "upper",
+      "deterministic": true,
+      "name": "upper",
+      "unit": "ratio"
+    },
+    {
+      "description": "samples completed",
+      "deterministic": true,
+      "name": "samples_completed",
+      "unit": "count"
+    },
+    {
+      "description": "checks passed",
+      "deterministic": true,
+      "name": "checks_passed",
+      "unit": "ratio"
+    }
+  ],
+  "parameters": {
+    "adapter": "qnp-stable",
+    "design_id": "qnp-fixed-null",
+    "endpoint_alpha": 0.00625,
+    "parameters": {
+      "method": "fixed"
+    },
+    "phase": "confirmation",
+    "plan_sha256": "710d39a5b24fa279213b6ddbb72515d15cb7d7a15d9454f6c451ddc41edb28b7",
+    "policy": "rain-cpu-campaign/v1",
+    "seed_rule": "cpu-seeds/v1",
+    "seeds": [
+      2526444049,
+      4074579257,
+      1292866696,
+      3369817239,
+      2678279626,
+      415113291,
+      4063418009,
+      4263077729,
+      162176289,
+      721649961,
+      877316132,
+      3817796338,
+      337150899,
+      122512316,
+      2040408247,
+      3378986258,
+      3729202605,
+      1395215368,
+      4006872387,
+      2881210227,
+      734462594,
+      2721553839,
+      573081688,
+      1268740652,
+      3120317635,
+      2418629276,
+      2038788802,
+      3618613329,
+      1687851909,
+      2110798078,
+      1582726209,
+      1504757471,
+      4145655683,
+      3807396358,
+      1700190053,
+      3989706410,
+      351255349,
+      2707684498,
+      1104108343,
+      4103678087,
+      418777654,
+      1092170806,
+      844507420,
+      706720263,
+      522199142,
+      2078466824,
+      3267554984,
+      3987252644,
+      1026545108,
+      1241007856,
+      3109720648,
+      2518997859,
+      626482477,
+      1736187975,
+      374838708,
+      1897515034,
+      1600478100,
+      3814360789,
+      3010144835,
+      4000435501,
+      2326625456,
+      1424707894,
+      3940893092,
+      2567892489,
+      2409721365,
+      167693416,
+      1880270816,
+      3923841507,
+      1344379114,
+      2469062147,
+      2105571181,
+      3519301375,
+      2439557954,
+      202764550,
+      3196305144,
+      771139603,
+      3174312917,
+      3340519383,
+      943599752,
+      1320894533,
+      2542586581,
+      1857782833,
+      818827410,
+      1963079899,
+      821463313,
+      846835979,
+      1157543003,
+      639206935,
+      1394654249,
+      2692652754,
+      1101367081,
+      1188428727,
+      2546906599,
+      1200493688,
+      4101736593,
+      2834864030,
+      2230490460,
+      754281496,
+      1222601315,
+      4227694678,
+      3633401796,
+      2905008278,
+      218020455,
+      1377402464,
+      66824318,
+      671430527,
+      49653693,
+      2893898016,
+      1784900945,
+      510082181,
+      4083888872,
+      2553632615,
+      550841448,
+      115596128,
+      1389805569,
+      1953921496,
+      3341962703,
+      328589144,
+      3768949195,
+      3261541191,
+      1239571873,
+      3019675791,
+      2568442213,
+      1218028068,
+      1393004795,
+      2549458696,
+      1846653194,
+      2193975089
+    ]
+  },
+  "procedure": [
+    "Run the fixed allowlisted CPU probe on every registered seed.",
+    "Check independent controls, derive fixed-n bounds, and submit measurements to the existing registry."
+  ],
+  "question": "Does qnp-stable correctly handle at least 0.75 of the registered simulated sessions?",
+  "rationale": "Host-derived operational hypothesis. Narrative hypotheses and rival predictions remain attributed plan data.",
+  "runner": {
+    "adapter": "qnp-stable",
+    "kind": "external",
+    "repository": "topherchris420/lop-nur-twin"
+  },
+  "schema_version": "rain-experiment/v1",
+  "seed": null,
+  "subsystem": {
+    "component": "bounded-cpu-research",
+    "paths": [],
+    "repository": "topherchris420/lop-nur-twin"
+  },
+  "title": "CPU qnp-fixed-null confirmation",
+  "variables": {
+    "controls": [
+      "known simulated truth",
+      "independent analytical or numeric reference",
+      "disjoint confirmation seeds"
+    ],
+    "dependent": [
+      "correct-session proportion"
+    ],
+    "independent": [
+      "registered method"
+    ]
+  }
+}

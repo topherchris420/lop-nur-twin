@@ -1,0 +1,536 @@
+{
+  "artifacts": [
+    {
+      "bytes": 19458,
+      "kind": "raw-simulation-evidence",
+      "name": "probe.json",
+      "note": "host-supplied bytes checked against the declared hash; never fetched",
+      "sha256": "7a38f016a407d36f4682d687ad6d0787b7718f5149d39b1cb4685e4ddf71196d",
+      "stored": true
+    }
+  ],
+  "definition": {
+    "created_at": "2026-11-13T22:09:57.179Z",
+    "created_by": "R.A.I.N.Operator",
+    "criteria": {
+      "failure": [
+        {
+          "id": "F1",
+          "metric": "upper",
+          "op": "<",
+          "value": 0.75
+        }
+      ],
+      "guards": [
+        {
+          "id": "G1",
+          "metric": "samples_completed",
+          "op": ">=",
+          "value": 64
+        },
+        {
+          "id": "G2",
+          "metric": "checks_passed",
+          "op": ">=",
+          "value": 1
+        }
+      ],
+      "success": [
+        {
+          "id": "S1",
+          "metric": "lower",
+          "op": ">=",
+          "value": 0.75
+        }
+      ]
+    },
+    "data_policy": {
+      "classification": "public",
+      "store_artifacts": true
+    },
+    "dependencies": [
+      "numpy",
+      "scipy"
+    ],
+    "evidence_class": "simulated",
+    "experiment_id": "V3D-EXP-0011",
+    "experiment_version": 1,
+    "hypothesis": "The correct-session probability is at least 0.75; both fixed panels must support it before a campaign claim is supported.",
+    "limitations": [
+      "All observations are seeded simulations of the imported code, not measurements of physical quantum devices or biological causality.",
+      "Intervals assume independent simulated sessions and one frozen endpoint per seed panel; family alpha covers all declared designs and both panels by union bound.",
+      "Screening and confirmation use disjoint seeds but the same implementation. This is replication on new simulations, not an independent implementation replication.",
+      "Rival probabilities and information scores are conditional on declared predictive models. Misspecified predictions can make selection ineffective.",
+      "Work units are operator-declared computational limits, not measured joules, dollars or CPU-seconds. Worker wall time is measured separately.",
+      "The worker runs explicitly trusted local source with a timeout. It is not an operating-system sandbox for hostile code, and has no cloud adapter.",
+      "Hashes detect inconsistency, not forgery by a writer able to replace the entire journal. Preserve source revisions and external timestamps for stronger audit."
+    ],
+    "metrics": [
+      {
+        "description": "mean",
+        "deterministic": true,
+        "name": "mean",
+        "unit": "ratio"
+      },
+      {
+        "description": "lower",
+        "deterministic": true,
+        "name": "lower",
+        "unit": "ratio"
+      },
+      {
+        "description": "upper",
+        "deterministic": true,
+        "name": "upper",
+        "unit": "ratio"
+      },
+      {
+        "description": "samples completed",
+        "deterministic": true,
+        "name": "samples_completed",
+        "unit": "count"
+      },
+      {
+        "description": "checks passed",
+        "deterministic": true,
+        "name": "checks_passed",
+        "unit": "ratio"
+      }
+    ],
+    "parameters": {
+      "adapter": "qnp-stable",
+      "design_id": "qnp-fixed-null",
+      "endpoint_alpha": 0.00625,
+      "parameters": {
+        "method": "fixed"
+      },
+      "phase": "screen",
+      "plan_sha256": "b0ab42e0c90261c2b2152f0461492f82cba517c936fe4a42608292190e6bf101",
+      "policy": "rain-cpu-campaign/v1",
+      "seed_rule": "cpu-seeds/v1",
+      "seeds": [
+        2047147283,
+        1512861644,
+        1172089001,
+        2166273049,
+        4253541042,
+        378252114,
+        1734337031,
+        3784860181,
+        2266482350,
+        3198791601,
+        1505266834,
+        1987557351,
+        1188006094,
+        3956957450,
+        510974401,
+        1021479099,
+        2643385764,
+        3453245498,
+        1577718999,
+        306311459,
+        3314728717,
+        4172447304,
+        1758554321,
+        424565631,
+        113746791,
+        3467913884,
+        1357433849,
+        3011857432,
+        1452398704,
+        2802362675,
+        410178948,
+        1319648827,
+        2616689937,
+        1208473913,
+        3402106073,
+        1590627788,
+        3917714464,
+        3171438394,
+        814644106,
+        1637621229,
+        1613365511,
+        284466502,
+        2188703884,
+        204060430,
+        886806393,
+        2466108468,
+        2858167970,
+        3669223241,
+        2783399134,
+        1828525260,
+        2874867420,
+        4018052500,
+        1127853515,
+        850501310,
+        3469187692,
+        685640854,
+        1508580857,
+        4223160631,
+        920798476,
+        2447991342,
+        917142544,
+        370033090,
+        4202187887,
+        252610174
+      ]
+    },
+    "procedure": [
+      "Run the fixed allowlisted CPU probe on every registered seed.",
+      "Check independent controls, derive fixed-n bounds, and submit measurements to the existing registry."
+    ],
+    "question": "Does qnp-stable correctly handle at least 0.75 of the registered simulated sessions?",
+    "rationale": "Host-derived operational hypothesis. Narrative hypotheses and rival predictions remain attributed plan data.",
+    "runner": {
+      "adapter": "qnp-stable",
+      "kind": "external",
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "schema_version": "rain-experiment/v1",
+    "seed": null,
+    "subsystem": {
+      "component": "bounded-cpu-research",
+      "paths": [],
+      "repository": "topherchris420/lop-nur-twin"
+    },
+    "title": "CPU qnp-fixed-null screen",
+    "variables": {
+      "controls": [
+        "known simulated truth",
+        "independent analytical or numeric reference",
+        "disjoint confirmation seeds"
+      ],
+      "dependent": [
+        "correct-session proportion"
+      ],
+      "independent": [
+        "registered method"
+      ]
+    }
+  },
+  "definition_sha256": "6b262f1ab28e91361aa758af9f15e3001bd6b9d8d62f488352bb5c970e562996",
+  "duration_ms": 4677,
+  "error": null,
+  "evaluation": {
+    "failure": [
+      {
+        "holds": true,
+        "id": "F1",
+        "metric": "upper",
+        "observed": 0.3685352038641385,
+        "op": "<",
+        "value": 0.75
+      }
+    ],
+    "guards": [
+      {
+        "holds": true,
+        "id": "G1",
+        "metric": "samples_completed",
+        "observed": 64,
+        "op": ">=",
+        "value": 64
+      },
+      {
+        "holds": true,
+        "id": "G2",
+        "metric": "checks_passed",
+        "observed": 1,
+        "op": ">=",
+        "value": 1
+      }
+    ],
+    "rule": "rain-criteria/v1",
+    "success": [
+      {
+        "holds": false,
+        "id": "S1",
+        "metric": "lower",
+        "observed": 0,
+        "op": ">=",
+        "value": 0.75
+      }
+    ],
+    "summary": "Failure criterion triggered: F1. The hypothesis is not supported."
+  },
+  "evidence_class": "simulated",
+  "experiment_id": "V3D-EXP-0011",
+  "finished_at": "2026-11-13T22:10:02.415Z",
+  "hypothesis_verdict": "not_supported",
+  "inputs": {
+    "key": "qnp-fixed-null:screen",
+    "registration_sha256": "827df543ba67e8d023baa66141cd16af245ecb6bc6c866c6e888dc365f3ce2c2"
+  },
+  "interpretation": {
+    "deterministic": "Failure criterion triggered: F1. The hypothesis is not supported. Simulated data: this characterizes the simulator and analysis pipeline, not a physical system.",
+    "model": null
+  },
+  "kind": "external",
+  "limitations": [
+    "All observations are seeded simulations of the imported code, not measurements of physical quantum devices or biological causality.",
+    "Intervals assume independent simulated sessions and one frozen endpoint per seed panel; family alpha covers all declared designs and both panels by union bound.",
+    "Screening and confirmation use disjoint seeds but the same implementation. This is replication on new simulations, not an independent implementation replication.",
+    "Rival probabilities and information scores are conditional on declared predictive models. Misspecified predictions can make selection ineffective.",
+    "Work units are operator-declared computational limits, not measured joules, dollars or CPU-seconds. Worker wall time is measured separately.",
+    "The worker runs explicitly trusted local source with a timeout. It is not an operating-system sandbox for hostile code, and has no cloud adapter.",
+    "Hashes detect inconsistency, not forgery by a writer able to replace the entire journal. Preserve source revisions and external timestamps for stronger audit.",
+    "All observations are seeded simulations of the imported code, not measurements of physical quantum devices or biological causality.",
+    "Intervals assume independent simulated sessions and one frozen endpoint per seed panel; family alpha covers all declared designs and both panels by union bound.",
+    "Screening and confirmation use disjoint seeds but the same implementation. This is replication on new simulations, not an independent implementation replication.",
+    "Rival probabilities and information scores are conditional on declared predictive models. Misspecified predictions can make selection ineffective.",
+    "Work units are operator-declared computational limits, not measured joules, dollars or CPU-seconds. Worker wall time is measured separately.",
+    "The worker runs explicitly trusted local source with a timeout. It is not an operating-system sandbox for hostile code, and has no cloud adapter.",
+    "Hashes detect inconsistency, not forgery by a writer able to replace the entire journal. Preserve source revisions and external timestamps for stronger audit."
+  ],
+  "measurements": {
+    "checks_passed": 1,
+    "lower": 0,
+    "mean": 0.15625,
+    "samples_completed": 64,
+    "upper": 0.3685352038641385
+  },
+  "models": [],
+  "observations": [
+    "Host-operated CPU probe; no model assigned this run's verdict."
+  ],
+  "parameters": {
+    "adapter": "qnp-stable",
+    "design_id": "qnp-fixed-null",
+    "endpoint_alpha": 0.00625,
+    "parameters": {
+      "method": "fixed"
+    },
+    "phase": "screen",
+    "plan_sha256": "b0ab42e0c90261c2b2152f0461492f82cba517c936fe4a42608292190e6bf101",
+    "policy": "rain-cpu-campaign/v1",
+    "seed_rule": "cpu-seeds/v1",
+    "seeds": [
+      2047147283,
+      1512861644,
+      1172089001,
+      2166273049,
+      4253541042,
+      378252114,
+      1734337031,
+      3784860181,
+      2266482350,
+      3198791601,
+      1505266834,
+      1987557351,
+      1188006094,
+      3956957450,
+      510974401,
+      1021479099,
+      2643385764,
+      3453245498,
+      1577718999,
+      306311459,
+      3314728717,
+      4172447304,
+      1758554321,
+      424565631,
+      113746791,
+      3467913884,
+      1357433849,
+      3011857432,
+      1452398704,
+      2802362675,
+      410178948,
+      1319648827,
+      2616689937,
+      1208473913,
+      3402106073,
+      1590627788,
+      3917714464,
+      3171438394,
+      814644106,
+      1637621229,
+      1613365511,
+      284466502,
+      2188703884,
+      204060430,
+      886806393,
+      2466108468,
+      2858167970,
+      3669223241,
+      2783399134,
+      1828525260,
+      2874867420,
+      4018052500,
+      1127853515,
+      850501310,
+      3469187692,
+      685640854,
+      1508580857,
+      4223160631,
+      920798476,
+      2447991342,
+      917142544,
+      370033090,
+      4202187887,
+      252610174
+    ]
+  },
+  "provenance": {
+    "producer": {
+      "commit": "5d96a3e0a93e2dc8e7cdc40a264f0a74b6d1d2d4",
+      "dirty": false,
+      "execution_binding_sha256": "2568f2fb1d95df1252366330d6b6abc29db0b3ad0afd6e912ebfba778ba00faf",
+      "producer": "rain-cpu-campaign/v1",
+      "repository": "topherchris420/lop-nur-twin",
+      "source_sha256": "2568f2fb1d95df1252366330d6b6abc29db0b3ad0afd6e912ebfba778ba00faf",
+      "upstream": {
+        "adapter_sha256": "859918f1153c5bb7eb81903b61581d925acd20a998c05183f01114f7a898b428",
+        "commit": "6dfecb6cb1b33f86cba17b0b242d564f6fdcf969",
+        "dependencies": {
+          "numpy": "2.4.6",
+          "python": "3.11.9",
+          "quantum-noise-profiler": "source tree; distribution metadata unavailable",
+          "scipy": "1.17.1"
+        },
+        "diagnostic_output": {
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "dirty": false,
+        "module_import_mode": "fixed numeric modules; package initializer bypassed",
+        "repository": "topherchris420/quantum-noise-profiler",
+        "source_sha256": {
+          "pyproject.toml": "3ae39cd63c1f73e3a0b37afe71a4835bc6a0e0885fcfb3fd462dbe6972fbac0e",
+          "src/qnp/__init__.py": "5595391c8977f7ddc2a70b415d012cb9e8d19b4ae79f322c89597f28333e4ae2",
+          "src/qnp/adapters/__init__.py": "3c45923dad6135c64236f8d04f51f1b992a0bc271b19328d22c1dfc2a92bb91b",
+          "src/qnp/adapters/cirq_adapter.py": "a906ba2953f73a7e7e6bfe3d4a770fb52bf685d92da25580a4dd2a45318fd8cb",
+          "src/qnp/adapters/qiskit_adapter.py": "e032e1fc0ec4a96904f3ab2785a169eb477b26f21a0817ce6a1e02589fe14af2",
+          "src/qnp/alerts.py": "b6a70976d69638e6f2d7b94503e1d016b5dd72f67718f2eeb296e499bf7102cf",
+          "src/qnp/drift.py": "22272f5dd4c9b62ba097425be500b037679bfa6833a7e8a31bd100f7fa19ce10",
+          "src/qnp/forecast.py": "617d506d6215d8c1a5cd2448d3c10fc2998e784ed380ebf8f46acd67d442bb2b",
+          "src/qnp/hardware.py": "4e1b5b6aecbdaf0181b537641a693b648c25fa42c209c11c4de795ee51e0b484",
+          "src/qnp/inferred.py": "b24021084383bfecefc69954ce43f19b706ec4c82c03aa2e3bd3af65e899bdd6",
+          "src/qnp/legacy/__init__.py": "53ce0d1f9571880f8918d84d555e1f195165702289a23e9c4d3a714797eb7579",
+          "src/qnp/legacy/v01_drift.py": "9a468ef2596b94abb8b7a4285fb09fcd57eb5563a36f133120debaaebca4ea27",
+          "src/qnp/measured.py": "f5d4819bf55ff9925e85a77b483d76c920d20543255c2491c1975c2240b178d3",
+          "src/qnp/models.py": "4d52569e22793e17295da9b06ee9bff48f48bc0a5ec411ef14adc5ca52feaa5f",
+          "src/qnp/profiler.py": "8c92c57a891422307bc0b32ef504d054dfed4c29da5a3c5a42760b46c0891dea",
+          "src/qnp/sequential.py": "867be160989e82d3373f63c113852c96a0899c2ae570825aae18996777863928",
+          "src/qnp/sim.py": "e02e4ecbc078c7d5df96d854b382e38ec8876076a3491eddb216799978da33f1",
+          "src/qnp/stats.py": "e417a558f7920785aeef1b684187c20b8a43572487ebae3d1924fecddb87c50b",
+          "src/qnp/store.py": "a4faa15e0823f7bc4401254a9a2845ae41459489dc89137b94bd3e5f63a02657"
+        },
+        "worker_sha256": "5dc3f70d0c7100a7184385b9b215473214febdef9dd315f4685b122e9c8f238a"
+      }
+    },
+    "recorded_at": "2026-11-13T22:10:02.608Z",
+    "recorded_by": {
+      "environment": {
+        "cpu_count": 8,
+        "machine": "arm64",
+        "node": "24.22.1",
+        "os": "win32",
+        "os_release": "10.0.26200",
+        "runtime": "node"
+      },
+      "git": {
+        "branch": "feat/research-intelligence",
+        "changed_paths": 0,
+        "commit": "5d96a3e0a93e2dc8e7cdc40a264f0a74b6d1d2d4",
+        "dirty": false,
+        "note": null
+      }
+    },
+    "source": "external_submission",
+    "submission_sha256": "618bc19d2d4bc202ef8a25040ecc6006a22bae0fb1f478578d0bd0164ff0aefb"
+  },
+  "reproduces": null,
+  "reproduction": null,
+  "run_id": "V3D-EXP-0011-RUN-0001",
+  "schema_version": "rain-experiment-run/v1",
+  "seed": null,
+  "series": {
+    "correct_sessions": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "started_at": "2026-11-13T22:09:57.738Z",
+  "statistics": {
+    "correct_sessions": {
+      "max": 1,
+      "mean": 0.15625,
+      "median": 0,
+      "min": 0,
+      "n": 64,
+      "note": null,
+      "stdev": 0.365962527,
+      "variance": 0.133928571
+    }
+  },
+  "status": "failed"
+}

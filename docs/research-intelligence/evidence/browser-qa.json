@@ -1,0 +1,57 @@
+{
+  "schema": "rain-observatory-browser-check/v2",
+  "checked_at": "2026-11-13T23:57:45.328Z",
+  "browser": "Chrome/151.0.7922.71",
+  "study_id": "DS-3c580e24-270f-4dc1-9df2-f3bd3714f964",
+  "plan_sha256": "b0ab42e0c90261c2b2152f0461492f82cba517c936fe4a42608292190e6bf101",
+  "html_sha256": "5c832de8d1ea14a9e65ebc84df3d7014f2002b09f429a6c92bd11a3734ae7d7c",
+  "script_sha256": "0b057d0e3934cd39985ccb6a431df8f3aa825faf5ab367b278fa19cd7ac4cb3d",
+  "evidence_sha256": "487ce010a0687ca9658faff5c9dd27b9d872fa63739867239eb3b62978283701",
+  "production_csp": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' https://api.adsb.lol https://129-213-139-78.sslip.io https://raw.githubusercontent.com; manifest-src 'self'; upgrade-insecure-requests",
+  "checks": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "rows": 4,
+      "issues": 1,
+      "keyboard_filter_and_details": true,
+      "document_overflow": false,
+      "accessibility": {
+        "passes": 48,
+        "violations": [],
+        "incomplete": 0
+      },
+      "errors": [],
+      "cspViolations": [],
+      "requested_paths": [
+        "/",
+        "/observatory.js"
+      ]
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "rows": 4,
+      "issues": 1,
+      "keyboard_filter_and_details": true,
+      "document_overflow": false,
+      "accessibility": {
+        "passes": 49,
+        "violations": [],
+        "incomplete": 1
+      },
+      "errors": [],
+      "cspViolations": [],
+      "requested_paths": [
+        "/",
+        "/observatory.js"
+      ]
+    }
+  ],
+  "limitations": [
+    "Automated checks do not establish full WCAG conformance or screen-reader usability.",
+    "This checks the exported information-policy report; it does not execute research."
+  ]
+}
