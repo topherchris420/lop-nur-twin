@@ -6,13 +6,22 @@ OUT=Path(__file__).resolve().parents[1] / 'docs' / 'media' / 'readme'
 OUT.mkdir(parents=True,exist_ok=True)
 W,H=1840,1060
 B='#F0EEEA'; PAPER='#FBFAF7'; I='#202322'; MUT='#626765'; LIGHT='#B8B7B2'; FAINT='#DDDAD4'; RED='#B34736'; BLUE='#3B6B8E'; BLUEP='#E8EFF1'; YELLOW='#DDD3BA'; MATH='#404543'
+# Fonts: Lato + DejaVu Sans Mono (Ubuntu/Debian: apt install fonts-lato fonts-dejavu-core).
+# Override locations with LATO_DIR / DEJAVU_DIR. Byte-identical output requires the same
+# font files and Pillow/libwebp versions used to produce the checked-in assets.
+import os, sys
+LATO=Path(os.environ.get('LATO_DIR','/usr/share/fonts/truetype/lato'))
+DEJAVU=Path(os.environ.get('DEJAVU_DIR','/usr/share/fonts/truetype/dejavu'))
 F={
- 'r':'/usr/share/fonts/truetype/lato/Lato-Regular.ttf',
- 'm':'/usr/share/fonts/truetype/lato/Lato-Medium.ttf',
- 'b':'/usr/share/fonts/truetype/lato/Lato-Bold.ttf',
- 'mono':'/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf',
+ 'r':LATO/'Lato-Regular.ttf',
+ 'm':LATO/'Lato-Medium.ttf',
+ 'b':LATO/'Lato-Bold.ttf',
+ 'mono':DEJAVU/'DejaVuSansMono.ttf',
 }
-def font(sz,ft='r'): return ImageFont.truetype(F[ft],sz)
+_missing=[str(p) for p in F.values() if not p.is_file()]
+if _missing:
+ sys.exit('Missing font files:\n  '+'\n  '.join(_missing)+'\nInstall fonts-lato and fonts-dejavu-core, or set LATO_DIR / DEJAVU_DIR.')
+def font(sz,ft='r'): return ImageFont.truetype(str(F[ft]),sz)
 def line(d,points,color=I,width=2,joint='curve'):
  d.line(points, fill=color, width=width,joint=joint)
 def text(d,xy,s,size=20,color=I,ft='r',anchor=None):
