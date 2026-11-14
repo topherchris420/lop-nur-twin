@@ -183,13 +183,13 @@ The commons' novelty compartment is a separate research model. A familiarity sig
 
 ## 06. The engineering arrangement
 
-![Isometric technical illustration of ECHO's persistent headless Bethesda with sealed checkpoints, Eva's separately operated Python garden with its own state history, and an isolated commons containing research-only simulated fly subjects.](docs/media/readme/engineering-arrangement-systems.webp)
+![Technical architecture drawing of ECHO's controller, organism state, sealed checkpoints and read-only witness, Eva's separate Python garden process, and the isolated first-contact commons. A no-write boundary separates research from the production originals.](docs/media/readme/engineering-arrangement-systems.webp)
 
-_Figure A. The original flies occupy separate persistent environments. First-contact studies use isolated research subjects. This illustration is explanatory, not photographic or evidence of biological life._
+_Figure A. Runtime boundaries for the two original flies and isolated research subjects. Diagrammed software components and repository paths, not simulated hardware._
 
-![Isometric research-architecture illustration showing preregistered questions, isolated experiments, independently scored reproducible records, a source-linked institutional journal, and authorized human review.](docs/media/readme/engineering-arrangement-evidence.webp)
+![Technical drawing showing five research stages: protocol registration, isolated experiments, independent verification, source-linked journal, and human review. The lower panels reference the implementation directories.](docs/media/readme/engineering-arrangement-evidence.webp)
 
-_Figure B. R.A.I.N.'s scientific evidence and review chain. AI research proposals cannot authorize experiments or approve their own scientific claims._
+_Figure B. Evidence and review boundaries. Both figures are source-rendered technical plates, reproducible with [the figure generator](scripts/render-readme-engineering-figures.py); they do not represent fabricated physical devices or measured outcomes._
 
 The originals retain separate controllers and persistence. Production code does not import the first-contact or augmentation modules; isolation tests enforce that boundary. The browser's local Bethesda fly is also separate from the deployed ECHO.
 
