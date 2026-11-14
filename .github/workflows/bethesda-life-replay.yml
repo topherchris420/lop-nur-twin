@@ -240,7 +240,7 @@ jobs:
       contents: write
       issues: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: replay-record
 
@@ -360,7 +360,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ needs.chain.outputs.node }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: chain
       - name: Reproduce the chain
