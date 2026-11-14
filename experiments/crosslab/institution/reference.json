@@ -1,0 +1,122 @@
+{
+  "discovery": {
+    "cells": {
+      "constant/delayed": {
+        "candidate_errors": 0,
+        "reported": 0,
+        "reported_error_rate": null,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "constant/timely": {
+        "candidate_errors": 0,
+        "reported": 16,
+        "reported_error_rate": 0.0,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "falling/delayed": {
+        "candidate_errors": 16,
+        "reported": 0,
+        "reported_error_rate": null,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "falling/timely": {
+        "candidate_errors": 0,
+        "reported": 16,
+        "reported_error_rate": 0.0,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "rising/delayed": {
+        "candidate_errors": 16,
+        "reported": 0,
+        "reported_error_rate": null,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "rising/timely": {
+        "candidate_errors": 0,
+        "reported": 16,
+        "reported_error_rate": 0.0,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      }
+    },
+    "joint_interval_95": [
+      0.7940927857921773,
+      1.0
+    ],
+    "joint_seed_successes": 16,
+    "phase": "discovery",
+    "seeds": 16,
+    "verdict": "refuted"
+  },
+  "replication": {
+    "cells": {
+      "constant/delayed": {
+        "candidate_errors": 0,
+        "reported": 0,
+        "reported_error_rate": null,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "constant/timely": {
+        "candidate_errors": 0,
+        "reported": 16,
+        "reported_error_rate": 0.0,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "falling/delayed": {
+        "candidate_errors": 16,
+        "reported": 0,
+        "reported_error_rate": null,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "falling/timely": {
+        "candidate_errors": 0,
+        "reported": 16,
+        "reported_error_rate": 0.0,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "rising/delayed": {
+        "candidate_errors": 16,
+        "reported": 0,
+        "reported_error_rate": null,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      },
+      "rising/timely": {
+        "candidate_errors": 0,
+        "reported": 16,
+        "reported_error_rate": 0.0,
+        "reported_errors": 0,
+        "scheduled": 16,
+        "sufficient_coverage": 16
+      }
+    },
+    "joint_interval_95": [
+      0.7940927857921773,
+      1.0
+    ],
+    "joint_seed_successes": 16,
+    "phase": "replication",
+    "seeds": 16,
+    "verdict": "compatible"
+  }
+}

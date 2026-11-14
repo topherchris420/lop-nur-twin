@@ -1252,6 +1252,12 @@ function AnalysisView() {
           >
             Open the recorded research campaign
           </a>
+          <a
+            href="/research-memory/index.html"
+            className="text-primary focus-visible:ring-ring mt-3 ml-4 inline-block rounded underline underline-offset-2 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            Trace an institutional memory correction
+          </a>
         </section>
 
         <section aria-labelledby="sources-heading" className="mt-10">
