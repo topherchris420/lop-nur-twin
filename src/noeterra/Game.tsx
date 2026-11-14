@@ -272,8 +272,9 @@ export function Game({ engine, session, you, onExit, onReplace, notice }: GamePr
   };
   const viewCiv: number | null =
     focusCiv ??
-    (selected !== null ? (state?.provinces[selected]?.owner ?? null) : null) ??
-    (state ? (state.civs.find((c) => c.alive)?.id ?? null) : null);
+    (selected === null ? undefined : state?.provinces[selected]?.owner) ??
+    state?.civs.find((c) => c.alive)?.id ??
+    null;
 
   const mind: Mind | null = useMemo(() => {
     if (!state || viewCiv === null) return null;
