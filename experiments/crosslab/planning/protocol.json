@@ -1,0 +1,13 @@
+{
+  "schema": "rain-planning-benchmark/v1",
+  "development_seeds": [1471, 1472, 1473],
+  "heldout_seeds": [18317, 18323, 18329, 18331, 18341, 18353],
+  "families": ["optical_sensor", "packet_queue", "reactor_temperature"],
+  "probabilities": {"low": 0.1, "high": 0.9, "unknown": 0.5},
+  "budget": 1,
+  "prior": [0.5, 0.5],
+  "selection_metric": "expected binary information gain in bits",
+  "forecast_metric": "expected Brier loss against the sealed simulator",
+  "learning_rule": "Select the structured prompt with the lowest mean development regret, then freeze it before held-out evaluation.",
+  "freshness": {"seeds": [95701, 95702, 95703, 95704, 95705, 95706, 95707, 95708], "beat_coverage": 0.65, "age_seconds": 0.5, "delay_seconds": 3, "error_bpm": 3, "resamples": 4000}
+}

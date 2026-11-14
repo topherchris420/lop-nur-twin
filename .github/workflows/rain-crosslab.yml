@@ -5,6 +5,7 @@ on:
     paths:
       - "experiments/crosslab/**"
       - "scripts/rain-crosslab-plan.ts"
+      - "scripts/rain-planning-benchmark.ts"
       - ".github/workflows/rain-crosslab.yml"
 
 permissions:
@@ -64,6 +65,17 @@ jobs:
           reference = Path("experiments/crosslab/replication/record/result.json")
           assert json.loads(replay.read_text()) == json.loads(reference.read_text())
           PY
+      - name: Re-score planning receipts and replay freshness
+        if: ${{ hashFiles('experiments/crosslab/planning/verify_benchmark.py') != '' }}
+        run: |
+          study=experiments/crosslab/planning
+          for model in qwen-0.5b qwen-1.5b; do
+            python "$study/verify_benchmark.py" "$study/protocol.json" \
+              "$study/record/$model-dev.json" "$study/record/$model-heldout.json"
+          done
+          python "$study/freshness.py" instruments/circle "$RUNNER_TEMP/freshness"
+          python "$study/freshness.py" instruments/circle "$RUNNER_TEMP/freshness" --verify
+          diff -u "$study/record/result.json" "$RUNNER_TEMP/freshness/result.json"
       - uses: actions/upload-artifact@v4
         with:
           name: rain-crosslab-replication
