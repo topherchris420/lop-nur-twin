@@ -37,7 +37,7 @@ This produces an advisory proposal and cannot select code, change criteria, exec
 
 ## Reproduce and export to ATLAS
 
-With Python 3.12, NumPy 2.3.5, Rust 1.100.0 and clean sibling checkouts at the revisions in `protocol.json`:
+With Python 3.12, NumPy 2.3.5, jsonschema 4.26.0, Rust 1.100.0 and clean sibling checkouts at the revisions in `protocol.json`:
 
 ```bash
 export OPENBLAS_NUM_THREADS=1 RUSTUP_TOOLCHAIN=1.100.0
