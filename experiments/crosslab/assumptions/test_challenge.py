@@ -93,3 +93,61 @@ class AssumptionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ArchiveAdversarialTests(unittest.TestCase):
+    def test_archive_and_stricter_audit(self):
+        from verify import verify
+        from review import audit
+        record = ROOT/"record"
+        if not (record/"sha256.json").exists():
+            self.skipTest("No recorded inference yet")
+        verify(record)
+        result = audit(record)
+        self.assertFalse(result["scientific_milestone_established"])
+        for cell in result["strata"].values():
+            if cell["accepted"]==0:
+                self.assertIsNone(cell["conditional_error_risk"])
+                self.assertIsNone(cell["descriptive_exact_95_error_interval"])
+
+    def test_edited_evidence_rejected_even_when_rehashed(self):
+        import tempfile
+        import shutil
+        import json
+        from hashlib import sha256
+        from pathlib import Path
+        from verify import verify
+        record=ROOT/"record"
+        if not (record/"sha256.json").exists():
+            self.skipTest("No recorded inference yet")
+        with tempfile.TemporaryDirectory() as directory:
+            work=Path(directory)/"evidence"
+            shutil.copytree(record,work)
+            path=work/"replication-windows.json"
+            rows=load(path)
+            rows[0]["estimate"] += 15
+            path.write_text(json.dumps(rows))
+            manifest=load(work/"sha256.json")
+            manifest[path.name]=sha256(path.read_bytes()).hexdigest()
+            (work/"sha256.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError,"arithmetic"):
+                verify(work)
+
+    def test_edited_result_rejected(self):
+        import tempfile
+        import shutil
+        import json
+        from pathlib import Path
+        from verify import verify
+        record=ROOT/"record"
+        if not (record/"result.json").exists():
+            self.skipTest("No recorded inference yet")
+        with tempfile.TemporaryDirectory() as directory:
+            work=Path(directory)/"evidence"
+            shutil.copytree(record,work)
+            path=work/"result.json"
+            result=load(path)
+            result["forecast_correction_screen_passed"]=True
+            path.write_text(json.dumps(result))
+            with self.assertRaisesRegex(ValueError,"Published result"):
+                verify(work)

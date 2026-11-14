@@ -1,0 +1,94 @@
+{
+  "baseline_comparison": {
+    "discovery": {
+      "delivery": {
+        "accepted": 48,
+        "accepted_errors": 0,
+        "scheduled": 96
+      }
+    },
+    "replication": {
+      "delivery": {
+        "accepted": 48,
+        "accepted_errors": 0,
+        "scheduled": 96
+      }
+    }
+  },
+  "brier_improvement": 0.23999999999999994,
+  "forecast_correction_screen_passed": false,
+  "human_review": "pending",
+  "independent_lab_replication": false,
+  "profiles": {
+    "constant": {
+      "discovery": {
+        "events": 0,
+        "probability_interval_familywise_95": [
+          0.0,
+          0.2586024063272121
+        ],
+        "seeds": 16
+      },
+      "original_forecast": 0.7,
+      "original_refuted_on_discovery": true,
+      "replication": {
+        "events": 0,
+        "probability_interval_familywise_95": [
+          0.0,
+          0.2586024063272121
+        ],
+        "seeds": 16
+      },
+      "revised_forecast": 0.5,
+      "revision_compatible_with_replication": false
+    },
+    "falling": {
+      "discovery": {
+        "events": 0,
+        "probability_interval_familywise_95": [
+          0.0,
+          0.2586024063272121
+        ],
+        "seeds": 16
+      },
+      "original_forecast": 0.7,
+      "original_refuted_on_discovery": true,
+      "replication": {
+        "events": 0,
+        "probability_interval_familywise_95": [
+          0.0,
+          0.2586024063272121
+        ],
+        "seeds": 16
+      },
+      "revised_forecast": 0.5,
+      "revision_compatible_with_replication": false
+    },
+    "rising": {
+      "discovery": {
+        "events": 0,
+        "probability_interval_familywise_95": [
+          0.0,
+          0.2586024063272121
+        ],
+        "seeds": 16
+      },
+      "original_forecast": 0.7,
+      "original_refuted_on_discovery": true,
+      "replication": {
+        "events": 0,
+        "probability_interval_familywise_95": [
+          0.0,
+          0.2586024063272121
+        ],
+        "seeds": 16
+      },
+      "revised_forecast": 0.5,
+      "revision_compatible_with_replication": false
+    }
+  },
+  "replication_brier_original": 0.48999999999999994,
+  "replication_brier_revised": 0.25,
+  "selected_design": "delivery",
+  "simulation_only": true
+}

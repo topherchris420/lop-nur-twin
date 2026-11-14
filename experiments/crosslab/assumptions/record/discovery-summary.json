@@ -1,0 +1,178 @@
+{
+  "delivery": {
+    "constant": {
+      "event_count": 0,
+      "levels": {
+        "delayed": {
+          "accepted": 0,
+          "errors": 0,
+          "mean_oracle_signed_error": -7.579867400409057e-08,
+          "mean_signed_error_all_available": -0.00039706250000204335,
+          "mean_unmasked_signed_error": -0.00039706250000204335,
+          "scheduled": 16
+        },
+        "timely": {
+          "accepted": 16,
+          "errors": 0,
+          "mean_oracle_signed_error": -7.579867400409057e-08,
+          "mean_signed_error_all_available": 0.00034368749999824644,
+          "mean_unmasked_signed_error": 0.00034368749999824644,
+          "scheduled": 16
+        }
+      },
+      "seed_count": 16,
+      "seed_events": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seeds": [
+        108101,
+        108103,
+        108107,
+        108109,
+        108113,
+        108127,
+        108131,
+        108139,
+        108143,
+        108149,
+        108151,
+        108157,
+        108161,
+        108163,
+        108167,
+        108169
+      ]
+    },
+    "falling": {
+      "event_count": 0,
+      "levels": {
+        "delayed": {
+          "accepted": 0,
+          "errors": 0,
+          "mean_oracle_signed_error": -3.364520928528236e-08,
+          "mean_signed_error_all_available": 5.8390098125,
+          "mean_unmasked_signed_error": 5.8390098125,
+          "scheduled": 16
+        },
+        "timely": {
+          "accepted": 16,
+          "errors": 0,
+          "mean_oracle_signed_error": -3.364520928528236e-08,
+          "mean_signed_error_all_available": 1.3869802499999997,
+          "mean_unmasked_signed_error": 1.3869802499999997,
+          "scheduled": 16
+        }
+      },
+      "seed_count": 16,
+      "seed_events": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seeds": [
+        108101,
+        108103,
+        108107,
+        108109,
+        108113,
+        108127,
+        108131,
+        108139,
+        108143,
+        108149,
+        108151,
+        108157,
+        108161,
+        108163,
+        108167,
+        108169
+      ]
+    },
+    "rising": {
+      "event_count": 0,
+      "levels": {
+        "delayed": {
+          "accepted": 0,
+          "errors": 0,
+          "mean_oracle_signed_error": 1.1543028755056639e-08,
+          "mean_signed_error_all_available": -5.9761306875,
+          "mean_unmasked_signed_error": -5.9761306875,
+          "scheduled": 16
+        },
+        "timely": {
+          "accepted": 16,
+          "errors": 0,
+          "mean_oracle_signed_error": 1.1543028755056639e-08,
+          "mean_signed_error_all_available": -1.4090166249999996,
+          "mean_unmasked_signed_error": -1.4090166249999996,
+          "scheduled": 16
+        }
+      },
+      "seed_count": 16,
+      "seed_events": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seeds": [
+        108101,
+        108103,
+        108107,
+        108109,
+        108113,
+        108127,
+        108131,
+        108139,
+        108143,
+        108149,
+        108151,
+        108157,
+        108161,
+        108163,
+        108167,
+        108169
+      ]
+    }
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "schema": {
+    "additionalProperties": false,
+    "properties": {
+      "assumption": {
+        "maxLength": 1000,
+        "minLength": 20,
+        "type": "string"
+      },
+      "forecasts": {
+        "additionalProperties": false,
+        "properties": {
+          "delivery": {
+            "additionalProperties": false,
+            "properties": {
+              "constant": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "falling": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "rising": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              }
+            },
+            "required": [
+              "constant",
+              "rising",
+              "falling"
+            ],
+            "type": "object"
+          },
+          "mask_position": {
+            "additionalProperties": false,
+            "properties": {
+              "constant": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "falling": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "rising": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              }
+            },
+            "required": [
+              "constant",
+              "rising",
+              "falling"
+            ],
+            "type": "object"
+          },
+          "optical_noise": {
+            "additionalProperties": false,
+            "properties": {
+              "constant": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "falling": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "rising": {
+                "items": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              }
+            },
+            "required": [
+              "constant",
+              "rising",
+              "falling"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "delivery",
+          "mask_position",
+          "optical_noise"
+        ],
+        "type": "object"
+      },
+      "rival": {
+        "maxLength": 1000,
+        "minLength": 20,
+        "type": "string"
+      }
+    },
+    "required": [
+      "assumption",
+      "rival",
+      "forecasts"
+    ],
+    "type": "object"
+  },
+  "schemaName": "rain_assumption_proposal",
+  "system": "You are R.A.I.N.'s local scientific planner. Distinguish a prediction from a measurement. Return only the requested JSON. Your output cannot execute code or change the protocol.",
+  "user": "{\"candidate_experiments\": {\"delivery\": {\"description\": \"Pair timely delivery with a three-second delay, preserving optical sample values and acquisition times.\", \"levels\": [\"timely\", \"delayed\"]}, \"mask_position\": {\"description\": \"Move a three-second beat-exclusion interval from early to late in the twenty-second estimation window, preserving optical samples and delivery times.\", \"levels\": [\"early\", \"late\"]}, \"optical_noise\": {\"description\": \"Add a motion-like chirp to optical values while preserving beat truth, timestamps and delivery times.\", \"levels\": [\"quiet\", \"noisy\"]}}, \"event\": \"At least one accepted estimate in the paired intervention levels differs by more than 3 bpm from the full twenty-second beat-interval reference, for a given seed and profile.\", \"historical_measurements\": {\"asymmetric_impulse/delayed\": {\"coverage_delta_percentile_95\": [-0.1, -0.1], \"coverage_only_accepted\": 70, \"coverage_only_errors\": 0, \"freshness_accepted\": 54, \"freshness_errors\": 0, \"paired_seeds\": 8, \"seed_clusters_with_freshness_error\": 0, \"windows\": 160, \"zero_event_one_sided_95_upper_seed_probability\": 0.31234397806636793}, \"asymmetric_impulse/timely\": {\"coverage_delta_percentile_95\": [0.0, 0.0], \"coverage_only_accepted\": 70, \"coverage_only_errors\": 0, \"freshness_accepted\": 70, \"freshness_errors\": 0, \"paired_seeds\": 8, \"seed_clusters_with_freshness_error\": 0, \"windows\": 160, \"zero_event_one_sided_95_upper_seed_probability\": 0.31234397806636793}, \"circle/delayed\": {\"coverage_delta_percentile_95\": [-0.1, -0.1], \"coverage_only_accepted\": 65, \"coverage_only_errors\": 0, \"freshness_accepted\": 49, \"freshness_errors\": 0, \"paired_seeds\": 8, \"seed_clusters_with_freshness_error\": 0, \"windows\": 160, \"zero_event_one_sided_95_upper_seed_probability\": 0.31234397806636793}, \"circle/timely\": {\"coverage_delta_percentile_95\": [0.0, 0.0], \"coverage_only_accepted\": 65, \"coverage_only_errors\": 0, \"freshness_accepted\": 65, \"freshness_errors\": 0, \"paired_seeds\": 8, \"seed_clusters_with_freshness_error\": 0, \"windows\": 160, \"zero_event_one_sided_95_upper_seed_probability\": 0.31234397806636793}, \"independent_pulse/delayed\": {\"coverage_delta_percentile_95\": [-0.1, -0.1], \"coverage_only_accepted\": 67, \"coverage_only_errors\": 0, \"freshness_accepted\": 51, \"freshness_errors\": 0, \"paired_seeds\": 8, \"seed_clusters_with_freshness_error\": 0, \"windows\": 160, \"zero_event_one_sided_95_upper_seed_probability\": 0.31234397806636793}, \"independent_pulse/timely\": {\"coverage_delta_percentile_95\": [0.0, 0.0], \"coverage_only_accepted\": 67, \"coverage_only_errors\": 0, \"freshness_accepted\": 67, \"freshness_errors\": 0, \"paired_seeds\": 8, \"seed_clusters_with_freshness_error\": 0, \"windows\": 160, \"zero_event_one_sided_95_upper_seed_probability\": 0.31234397806636793}}, \"methods\": \"CIRCLE averages valid beat intervals ending in the last 20 seconds. The gate requires at least 65% interval coverage and an optical sample acquired in the last 0.5 seconds available by the decision. Motion episodes exclude intervals with either endpoint inside them. Reference is all true intervals ending in the same window. Data are simulated.\", \"profiles\": \"Constant 90 bpm, or a linear ramp from 60 to 120 bpm or 120 to 60 bpm over the final twenty seconds. Initial rate and phase vary by seed. These are synthetic stress profiles, not validated human physiology.\", \"task\": \"State your working scientific assumption explaining these past observations, and a competing explanation. For every candidate and profile give [probability of the event under your assumption, probability under your rival]. Use distinct, testable explanations. The host will choose one design by your forecasts' expected information gain at equal priors. These are your predictions, not known simulator probabilities. You may doubt the previous result. Do not manufacture outcomes. No new experimental results are available.\"}"
+}

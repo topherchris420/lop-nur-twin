@@ -1,0 +1,8 @@
+{
+  "design": "delivery",
+  "model_conditional_bits": {
+    "delivery": 0.1187091007693073,
+    "mask_position": 0.1187091007693073,
+    "optical_noise": 0.1187091007693073
+  }
+}
