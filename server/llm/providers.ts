@@ -87,6 +87,9 @@ export class AnthropicAdapter implements LlmAdapter {
   constructor(private readonly options: AnthropicOptions) {
     this.client = new Anthropic({
       apiKey: options.apiKey,
+      // The v1 SDK defaults to bearer authorization. Keep the API-key header
+      // for Messages endpoints configured for the existing transport contract.
+      defaultHeaders: { "x-api-key": options.apiKey, authorization: null },
       // The handler owns retries so it can count them; the SDK's would be invisible.
       maxRetries: 0,
       ...(options.fetchImpl ? { fetch: options.fetchImpl } : {}),

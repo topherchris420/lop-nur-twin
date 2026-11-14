@@ -450,6 +450,7 @@ describe("anthropic adapter (official SDK, fake transport)", () => {
     const sent = up.calls[0]!;
     expect(sent.url).toMatch(/\/v1\/messages$/);
     expect(sent.headers.get("x-api-key")).toBe(KEY);
+    expect(sent.headers.has("authorization")).toBe(false);
     expect(sent.headers.get("anthropic-version")).toBeTruthy();
     expect(sent.body["model"]).toBe(DEFAULT_ANTHROPIC_MODEL);
     expect((sent.body["output_config"] as { format: { type: string } }).format.type).toBe(
