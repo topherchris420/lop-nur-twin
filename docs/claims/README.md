@@ -246,7 +246,7 @@ changes that digest, so evidence cannot move under a claim unseen.
 - then asked it again on <b>40</b> new research subjects in nine conditions: <b>inconclusive</b><br><sub>`readme.04.metrology-prose` · [`docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json`](../../docs/benchmarks/echo-metrology/plasticity-locomotor-v1/heldout/summary.json) · evidence `155d6f3b8132`</sub>
 - | Memory with continuously moving food | Negative: <b>1.2</b> fewer meals per life |<br><sub>`readme.04.memory` · [`docs/benchmarks/fly-individuality/report.json`](../../docs/benchmarks/fly-individuality/report.json) · evidence `8843200a9fa1`</sub>
 - | FlyWire FAFB v783 reproduction | <b>10</b> / <b>12</b> registered criteria met |<br><sub>`readme.04.connectome` · 2 records in [`docs/benchmarks/fly-neural/`](../../docs/benchmarks/fly-neural/) · evidence `65a3e8af5169`</sub>
-- **<b>246</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 84 records in 27 folders under `/`, with `scripts/claims/check.ts` · evidence `524e8e0c5afb`</sub>
+- **<b>246</b> of the <b>352</b> quantities**<br><sub>`readme.04.recomputed` · 84 records in 27 folders under `/`, with `scripts/claims/check.ts` · evidence `6c15941bd361`</sub>
 
 #### 05. The brain boundary
 

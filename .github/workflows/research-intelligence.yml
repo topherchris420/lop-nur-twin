@@ -1,0 +1,46 @@
+name: CPU research intelligence
+
+on:
+  pull_request:
+    paths:
+      - scripts/research-validation/**
+      - server/rain/cpuWorker*
+      - src/rain/research/intelligence*
+      - .github/workflows/research-intelligence.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  genuine-cpu-probes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/checkout@v4
+        with:
+          repository: topherchris420/quantum-noise-profiler
+          ref: 6dfecb6cb1b33f86cba17b0b242d564f6fdcf969
+          path: .research-dependencies/qnp
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: topherchris420/dynamic-resonance-rooting
+          ref: 454b4db228cb80af2439c92d8b1a321e71aae6e5
+          path: .research-dependencies/drr
+          persist-credentials: false
+      - name: Install pinned optional CPU validation dependencies
+        run: python -m pip install -r scripts/research-validation/requirements-dev.txt
+      - name: Check adapter boundaries and unchanged upstream numerical code
+        env:
+          RAIN_QNP_REPOSITORY: ${{ github.workspace }}/.research-dependencies/qnp
+          RAIN_DRR_REPOSITORY: ${{ github.workspace }}/.research-dependencies/drr
+        run: python -m pytest scripts/research-validation -q
+      - name: Check Python adapter code
+        run: python -m ruff check scripts/research-validation

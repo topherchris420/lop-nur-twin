@@ -1,0 +1,751 @@
+{
+  "snapshot_date": "2026-11-13",
+  "scope": "Anonymous public pages; public documentation; documented public health/OpenAPI reads; source inspection of public repositories. No authenticated product job, rental, credit, data mutation, private endpoint, or installation executed.",
+  "rea": {
+    "package_version": "6.8.0",
+    "provider": "rea-cdp-browser v2",
+    "browser": "HeadlessChrome/151.0.7922.34",
+    "installed_skill_version": "37",
+    "live_server_expected_skill_version": "49",
+    "skill_mismatch": "Used live tool schemas. No REA setup or unrelated engine change made."
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_51303247511938faad78e91bbd840e717fa6824035aed0bcb7adff2ca1ca9a05",
+      "operation": "inspect_web_page",
+      "url": "https://docs.autolab.ai/",
+      "title": "Autolab docs - Autolab Docs",
+      "capture_window": {
+        "started_at": "2026-11-13T21:35:33.055Z",
+        "ended_at": "2026-11-13T21:35:34.038Z",
+        "observation_ms": 750
+      },
+      "confidence": "observed",
+      "authority": "external-service",
+      "completeness": {
+        "status": "policy_filtered",
+        "conditions": ["attach_limited", "policy_filtered"],
+        "policy_filtered_sections": [
+          "console_text",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames",
+          "workers"
+        ],
+        "truncated_sections": [],
+        "unavailable_sections": [],
+        "excluded": [
+          {
+            "section": "console_text",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "json_body_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "metadata",
+            "reason": "disallowed_origin",
+            "count": 6
+          },
+          {
+            "section": "resources",
+            "reason": "disallowed_origin",
+            "count": 5
+          },
+          {
+            "section": "resources",
+            "reason": "unsupported_url",
+            "count": 1
+          },
+          {
+            "section": "script_sources",
+            "reason": "not_approved",
+            "count": 6
+          },
+          {
+            "section": "scripts",
+            "reason": "unattributed_origin",
+            "count": 4
+          },
+          {
+            "section": "storage_keys",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "websocket_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "workers",
+            "reason": "out_of_target_scope",
+            "count": 1
+          }
+        ],
+        "dropped_events": {
+          "scripts": 0,
+          "network_requests": 0,
+          "console_events": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0,
+          "webmcp_tools": 0,
+          "timeline_events": 0,
+          "total": 0
+        }
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Worker targets are a final inventory snapshot, not worker-session observation. Their attached flag describes any debugging client; this page-session collector does not observe worker network, console, or script events, and short-lived workers may be absent from the snapshot.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ],
+      "selection_policy": "Raw accessibility text omitted from tracked excerpt; only generic UI controls listed.",
+      "selected_controls": [
+        {
+          "role": "heading",
+          "name": "Overview",
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "role": "heading",
+          "name": "What Autolab is ¶",
+          "states": [
+            {
+              "name": "level",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "role": "heading",
+          "name": "The mental model ¶",
+          "states": [
+            {
+              "name": "level",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "evidence_id": "ev_9569363bc1584e0f3cdda6035cc88bde4bbc79b08548f0e5714abb582fd6a9b1",
+      "operation": "inspect_web_page",
+      "url": "https://www.autolab.ai/",
+      "title": "Autolab | AI Model Optimization, Automated by Agents",
+      "capture_window": {
+        "started_at": "2026-11-13T21:35:34.218Z",
+        "ended_at": "2026-11-13T21:35:35.114Z",
+        "observation_ms": 750
+      },
+      "confidence": "observed",
+      "authority": "external-service",
+      "completeness": {
+        "status": "policy_filtered",
+        "conditions": ["attach_limited", "policy_filtered"],
+        "policy_filtered_sections": [
+          "console_text",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames",
+          "workers"
+        ],
+        "truncated_sections": [],
+        "unavailable_sections": [],
+        "excluded": [
+          {
+            "section": "console_text",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "json_body_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "metadata",
+            "reason": "disallowed_origin",
+            "count": 12
+          },
+          {
+            "section": "metadata",
+            "reason": "unsupported_url",
+            "count": 2
+          },
+          {
+            "section": "resources",
+            "reason": "disallowed_origin",
+            "count": 7
+          },
+          {
+            "section": "resources",
+            "reason": "unsupported_url",
+            "count": 1
+          },
+          {
+            "section": "script_sources",
+            "reason": "not_approved",
+            "count": 8
+          },
+          {
+            "section": "scripts",
+            "reason": "disallowed_origin",
+            "count": 1
+          },
+          {
+            "section": "scripts",
+            "reason": "unattributed_origin",
+            "count": 4
+          },
+          {
+            "section": "storage_keys",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "websocket_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "workers",
+            "reason": "out_of_target_scope",
+            "count": 2
+          }
+        ],
+        "dropped_events": {
+          "scripts": 0,
+          "network_requests": 0,
+          "console_events": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0,
+          "webmcp_tools": 0,
+          "timeline_events": 0,
+          "total": 0
+        }
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Worker targets are a final inventory snapshot, not worker-session observation. Their attached flag describes any debugging client; this page-session collector does not observe worker network, console, or script events, and short-lived workers may be absent from the snapshot.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ],
+      "selection_policy": "Raw accessibility text omitted from tracked excerpt; only generic UI controls listed.",
+      "selected_controls": [
+        {
+          "role": "tab",
+          "name": "CLI",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            },
+            {
+              "name": "selected",
+              "value": true
+            }
+          ]
+        },
+        {
+          "role": "tab",
+          "name": "Claude Code",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            },
+            {
+              "name": "selected",
+              "value": false
+            }
+          ]
+        },
+        {
+          "role": "tab",
+          "name": "Codex",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            },
+            {
+              "name": "selected",
+              "value": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "evidence_id": "ev_90ee8b80dbfdc9417de7b81220c32dd5da5955cbff270eee92795d3301b28de0",
+      "operation": "inspect_web_page",
+      "url": "https://app.autolab.ai/",
+      "title": "Explore - autolab",
+      "capture_window": {
+        "started_at": "2026-11-13T21:35:35.221Z",
+        "ended_at": "2026-11-13T21:35:36.289Z",
+        "observation_ms": 750
+      },
+      "confidence": "observed",
+      "authority": "external-service",
+      "completeness": {
+        "status": "policy_filtered",
+        "conditions": ["attach_limited", "policy_filtered"],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames",
+          "workers"
+        ],
+        "truncated_sections": [],
+        "unavailable_sections": [],
+        "excluded": [
+          {
+            "section": "console_events",
+            "reason": "disallowed_origin",
+            "count": 2
+          },
+          {
+            "section": "console_text",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "json_body_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "metadata",
+            "reason": "disallowed_origin",
+            "count": 20
+          },
+          {
+            "section": "metadata",
+            "reason": "unsupported_url",
+            "count": 1
+          },
+          {
+            "section": "resources",
+            "reason": "disallowed_origin",
+            "count": 17
+          },
+          {
+            "section": "script_sources",
+            "reason": "not_approved",
+            "count": 57
+          },
+          {
+            "section": "scripts",
+            "reason": "disallowed_origin",
+            "count": 10
+          },
+          {
+            "section": "scripts",
+            "reason": "unattributed_origin",
+            "count": 4
+          },
+          {
+            "section": "storage_keys",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "websocket_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "workers",
+            "reason": "out_of_target_scope",
+            "count": 1
+          }
+        ],
+        "dropped_events": {
+          "scripts": 0,
+          "network_requests": 0,
+          "console_events": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0,
+          "webmcp_tools": 0,
+          "timeline_events": 0,
+          "total": 0
+        }
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Worker targets are a final inventory snapshot, not worker-session observation. Their attached flag describes any debugging client; this page-session collector does not observe worker network, console, or script events, and short-lived workers may be absent from the snapshot.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ],
+      "selection_policy": "Raw accessibility text omitted from tracked excerpt; only generic UI controls listed.",
+      "selected_controls": [
+        {
+          "role": "button",
+          "name": "Search Ctrl K",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "role": "button",
+          "name": "Log in with GitHub",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "role": "heading",
+          "name": "Explore",
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "role": "button",
+          "name": "New hill",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "role": "heading",
+          "name": "Hottest lists",
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "role": "heading",
+          "name": "Hottest hills",
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "evidence_id": "ev_33c373f3aeb5110af7fc931035de17c4b13de41adc14e29d0d4fcaaa57383c93",
+      "operation": "inspect_web_page",
+      "url": "https://www.autolab.ai/",
+      "capture_window": {
+        "started_at": "2026-11-13T21:37:42.265Z",
+        "ended_at": "2026-11-13T21:37:43.259Z",
+        "observation_ms": 750
+      },
+      "confidence": "observed",
+      "authority": "external-service",
+      "completeness": {
+        "status": "policy_filtered",
+        "conditions": ["attach_limited", "policy_filtered"],
+        "policy_filtered_sections": [
+          "console_text",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames",
+          "workers"
+        ],
+        "truncated_sections": [],
+        "unavailable_sections": [],
+        "excluded": [
+          {
+            "section": "console_text",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "json_body_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "metadata",
+            "reason": "disallowed_origin",
+            "count": 12
+          },
+          {
+            "section": "metadata",
+            "reason": "unsupported_url",
+            "count": 2
+          },
+          {
+            "section": "resources",
+            "reason": "disallowed_origin",
+            "count": 7
+          },
+          {
+            "section": "resources",
+            "reason": "unsupported_url",
+            "count": 1
+          },
+          {
+            "section": "script_sources",
+            "reason": "not_approved",
+            "count": 8
+          },
+          {
+            "section": "scripts",
+            "reason": "disallowed_origin",
+            "count": 1
+          },
+          {
+            "section": "scripts",
+            "reason": "unattributed_origin",
+            "count": 13
+          },
+          {
+            "section": "storage_keys",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "websocket_shapes",
+            "reason": "not_approved",
+            "count": null
+          },
+          {
+            "section": "workers",
+            "reason": "out_of_target_scope",
+            "count": 2
+          }
+        ],
+        "dropped_events": {
+          "scripts": 0,
+          "network_requests": 0,
+          "console_events": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0,
+          "webmcp_tools": 0,
+          "timeline_events": 0,
+          "total": 0
+        }
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Worker targets are a final inventory snapshot, not worker-session observation. Their attached flag describes any debugging client; this page-session collector does not observe worker network, console, or script events, and short-lived workers may be absent from the snapshot.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ],
+      "external_action": "The helper selected only the Codex tab on the anonymous public marketing page. REA observed the resulting state; REA did not perform the action.",
+      "selected_controls": [
+        {
+          "role": "tab",
+          "name": "CLI",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            },
+            {
+              "name": "selected",
+              "value": false
+            }
+          ]
+        },
+        {
+          "role": "tab",
+          "name": "Claude Code",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            },
+            {
+              "name": "selected",
+              "value": false
+            }
+          ]
+        },
+        {
+          "role": "tab",
+          "name": "Codex",
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "focused",
+              "value": true
+            },
+            {
+              "name": "invalid",
+              "value": "false"
+            },
+            {
+              "name": "selected",
+              "value": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "local_raw_files": [
+    {
+      "path": "raw/rea-public-2026-11-13-final.json",
+      "sha256": "1fa4ba98fea1209cc57cf99fe0defd3d055b9d29a44e02a1692d76652e3ab487",
+      "bytes": 777845,
+      "records": 6
+    },
+    {
+      "path": "raw/openapi-2026-11-13.json",
+      "sha256": "60d6bcf4b961f15a9b40166817b0b6cd4db4a9c76ac4965e26e0d14f8f0631d8"
+    },
+    {
+      "path": "raw/health-2026-11-13.json",
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288"
+    }
+  ],
+  "public_api": {
+    "openapi_url": "https://app.autolab.ai/api/v1/openapi.json",
+    "health_url": "https://app.autolab.ai/api/v1/health",
+    "health": {
+      "status": "ok"
+    },
+    "method": "GET only",
+    "openapi_version": "3.1.0",
+    "api_version": "1.0.0",
+    "path_count": 12,
+    "interpretation": "The schema documents contracts; successful job execution, authorization enforcement, artifact capture, and scheduler behavior were not tested."
+  },
+  "public_repositories": [
+    {
+      "repository": "https://github.com/autolab-ai/hills",
+      "commit": "26fe93f494278816cd82b242387c654ed801955f",
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/autolab-ai/EV-estimation",
+      "commit": "cc3ccbfcec920a45f7ccabb2d2e7e1c3b0a3c840",
+      "license": "MIT"
+    }
+  ],
+  "exclusions": "Raw records and fresh browser profile remain ignored local evidence. This excerpt intentionally excludes public user profiles, local absolute paths, script bodies, storage values, cookies, auth headers, and unrelated browsing. It is an excerpt, not a complete REA evidence bundle."
+}

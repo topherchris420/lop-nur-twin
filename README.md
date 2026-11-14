@@ -259,6 +259,8 @@ R.A.I.N. Lab uses four AI research perspectives: **James, Jasmine, Elena, and Lu
 
 The four agents do not constitute independent scientific replication. The original deployed flies are not manipulated to produce favorable outcomes.
 
+The [CPU research intelligence report](docs/research-intelligence/REPORT.md) documents source-bound scientific validation, rival-model scheduling and replicated falsification. [Operator usage](docs/research-intelligence/USAGE.md) covers the optional local model panel, CPU campaigns and offline evidence observatory.
+
 ## 09. The rest of the laboratory
 
 The geographic twin, hidden Bethesda city, Noeterra, and Blacksite are distinct systems within the same environment, each with its own execution model. The [documentation index](docs/README.md) connects their guides.
