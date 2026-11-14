@@ -5,6 +5,7 @@ import {
   createLocalModel,
   parseStructured,
   type StructuredRequest,
+  type ModelAnswer,
 } from "../src/rain/autonomy/models.js";
 
 const [protocolFile, output, mode, choiceFile] = process.argv.slice(3);
@@ -112,7 +113,23 @@ const cases = protocol.families.flatMap((f) =>
 );
 const strategies =
   mode === "develop" ? styles.filter(structured) : (["direct", selected!] as const);
-const rows = [];
+interface EvaluationRow {
+  family: string;
+  seed: number;
+  style: Style;
+  choice: Label | null;
+  valid: boolean;
+  expected_bits: number;
+  regret_bits: number;
+  forecast_brier: number | null;
+  fifo_bits: number;
+  fixed_pilot_bits: number;
+  request_sha256: string;
+  request: StructuredRequest;
+  answer: ModelAnswer;
+}
+
+const rows: EvaluationRow[] = [];
 for (const problem of cases) {
   const publicProblem = problem.design.map(({ id, intervention, pair }) => ({
     id,
