@@ -303,3 +303,10 @@ Contributions should include a source, a test, a reproducible correction, or a c
 **Preserve the individual. Measure the change. Keep the result, including the failure.**
 
 _Built at [Vers3Dynamics](https://vers3dynamics.com) by Christopher Woodyard. Open for inspection, correction, and independent reproduction._
+
+### R.A.I.N. institutional memory
+
+The [institutional memory guide](docs/RAIN_INSTITUTIONAL_MEMORY.md) documents
+the local agent journal, review workflow, CIRCLE/ATLAS correction experiment,
+and reproducible evaluation. The research observatory on `/analysis` links to
+the published evidence lineage.

@@ -95,6 +95,19 @@ if __name__ == "__main__":
     unittest.main()
 
 
+
+class NumericReplayTests(unittest.TestCase):
+    def test_replay_accepts_only_float_roundoff(self):
+        from challenge import replay_roundoff
+
+        expected = [{"value": 0.25, "accepted": True, "sha256": "abc"}]
+        self.assertEqual(replay_roundoff(expected, expected), 0)
+        self.assertEqual(replay_roundoff([{**expected[0], "value": 0.25 + 1e-14}], expected), 1)
+        for field, changed in (("value", 0.2501), ("accepted", False), ("sha256", "abd")):
+            with self.assertRaises(ValueError):
+                replay_roundoff([{**expected[0], field: changed}], expected)
+
+
 class ArchiveAdversarialTests(unittest.TestCase):
     def test_archive_and_stricter_audit(self):
         from verify import verify

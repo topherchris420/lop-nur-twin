@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Institutional memory | R.A.I.N.</title>
+    <link rel="stylesheet" href="./observatory.css" />
+    <script src="./observatory.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <nav><a href="/analysis">← Research observatory</a></nav>
+      <header>
+        <p class="eyebrow">R.A.I.N. · Institutional memory</p>
+        <h1>Evidence and revisions</h1>
+        <p>
+          Follow a hypothesis from a failed forecast through a handoff, independent
+          scoring, replication, and a correction awaiting scientific review.
+        </p>
+      </header>
+      <p id="status" role="status">Loading the published record…</p>
+      <section id="ledger" class="workspace" hidden>
+        <aside aria-label="Records">
+          <label for="filter">Filter the journal</label>
+          <input id="filter" type="search" />
+          <ol id="entries"></ol>
+        </aside>
+        <article id="details" aria-label="Selected record" aria-live="polite"></article>
+      </section>
+      <section aria-labelledby="evaluation-title">
+        <h2 id="evaluation-title">Independent scoring</h2>
+        <div id="evaluation"></div>
+      </section>
+    </main>
+  </body>
+</html>

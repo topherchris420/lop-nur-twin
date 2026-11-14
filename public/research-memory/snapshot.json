@@ -1,0 +1,367 @@
+{
+  "evaluation": {
+    "discovery": {
+      "cells": {
+        "constant/delayed": {
+          "candidate_errors": 0,
+          "reported": 0,
+          "reported_error_rate": null,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "constant/timely": {
+          "candidate_errors": 0,
+          "reported": 16,
+          "reported_error_rate": 0.0,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "falling/delayed": {
+          "candidate_errors": 16,
+          "reported": 0,
+          "reported_error_rate": null,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "falling/timely": {
+          "candidate_errors": 0,
+          "reported": 16,
+          "reported_error_rate": 0.0,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "rising/delayed": {
+          "candidate_errors": 16,
+          "reported": 0,
+          "reported_error_rate": null,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "rising/timely": {
+          "candidate_errors": 0,
+          "reported": 16,
+          "reported_error_rate": 0.0,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        }
+      },
+      "joint_interval_95": [0.7940927857921773, 1.0],
+      "joint_seed_successes": 16,
+      "phase": "discovery",
+      "seeds": 16,
+      "verdict": "refuted"
+    },
+    "replication": {
+      "cells": {
+        "constant/delayed": {
+          "candidate_errors": 0,
+          "reported": 0,
+          "reported_error_rate": null,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "constant/timely": {
+          "candidate_errors": 0,
+          "reported": 16,
+          "reported_error_rate": 0.0,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "falling/delayed": {
+          "candidate_errors": 16,
+          "reported": 0,
+          "reported_error_rate": null,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "falling/timely": {
+          "candidate_errors": 0,
+          "reported": 16,
+          "reported_error_rate": 0.0,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "rising/delayed": {
+          "candidate_errors": 16,
+          "reported": 0,
+          "reported_error_rate": null,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        },
+        "rising/timely": {
+          "candidate_errors": 0,
+          "reported": 16,
+          "reported_error_rate": 0.0,
+          "reported_errors": 0,
+          "scheduled": 16,
+          "sufficient_coverage": 16
+        }
+      },
+      "joint_interval_95": [0.7940927857921773, 1.0],
+      "joint_seed_successes": 16,
+      "phase": "replication",
+      "seeds": 16,
+      "verdict": "compatible"
+    }
+  },
+  "records": [
+    {
+      "actor": "circle-reconstruction",
+      "event": {
+        "data": {
+          "atlas_revision": "a876d458778b0917541a26153d2425b922762480",
+          "circle_revision": "0f231ec41f3a1bd0cf47d347dc2b6068dc5fb7da",
+          "ledger": "133fb62f83704259b2888910b1b354c5f7fcf5b77588955ebc483adf867f1362",
+          "object": "5077c0d4cf413820b00de4ee7d4f0e4779ec94646fe33cb2612706529cf3afdb"
+        },
+        "kind": "software",
+        "refs": [],
+        "subject": "delivery-coverage",
+        "text": "Archived assumption challenge. The revised forecast failed the preregistered screen."
+      },
+      "hash": "5cfd3917a7a80e2f89e86ba99b65dea6bd62715a24279e45fd9ead8f7b107c81",
+      "prev": "0000000000000000000000000000000000000000000000000000000000000000",
+      "recorded_ns": 1794677407064302906,
+      "role": "instrument",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 1
+    },
+    {
+      "actor": "experiment-planner",
+      "event": {
+        "data": {},
+        "kind": "hypothesis",
+        "refs": ["5cfd3917a7a80e2f89e86ba99b65dea6bd62715a24279e45fd9ead8f7b107c81"],
+        "subject": "delivery-coverage",
+        "text": "With delayed delivery, sufficient detected beat coverage guarantees that estimates remain within 3 bpm of the full-window reference."
+      },
+      "hash": "e9a997e65cd701543a2ec030bff11f6ce53331ba917bbe85c72a3e0222fc8154",
+      "prev": "5cfd3917a7a80e2f89e86ba99b65dea6bd62715a24279e45fd9ead8f7b107c81",
+      "recorded_ns": 1794677407064552280,
+      "role": "researcher",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 2
+    },
+    {
+      "actor": "experiment-planner",
+      "event": {
+        "data": {},
+        "kind": "disagreement",
+        "refs": ["e9a997e65cd701543a2ec030bff11f6ce53331ba917bbe85c72a3e0222fc8154"],
+        "subject": "delivery-coverage",
+        "text": "When delivery truncates the window's changing rate, error depends on ramp direction. Sufficient beat coverage can coexist with a biased estimate."
+      },
+      "hash": "73b4ba6f38cf9ac5258d6cb54a33dddc71c9fcc5319ae8a73f1a76abb3850a89",
+      "prev": "e9a997e65cd701543a2ec030bff11f6ce53331ba917bbe85c72a3e0222fc8154",
+      "recorded_ns": 1794677407064741344,
+      "role": "researcher",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 3
+    },
+    {
+      "actor": "experiment-planner",
+      "event": {
+        "data": {
+          "assignee": "replication-researcher",
+          "question": "Does bias reverse with ramp direction on new seeds and another waveform?"
+        },
+        "kind": "handoff",
+        "refs": [
+          "e9a997e65cd701543a2ec030bff11f6ce53331ba917bbe85c72a3e0222fc8154",
+          "73b4ba6f38cf9ac5258d6cb54a33dddc71c9fcc5319ae8a73f1a76abb3850a89",
+          "5cfd3917a7a80e2f89e86ba99b65dea6bd62715a24279e45fd9ead8f7b107c81"
+        ],
+        "subject": "delivery-coverage",
+        "text": "Separate candidate estimation error from the existing gate's withholding."
+      },
+      "hash": "b9094d8bcfba7b06a963f888110b1c225861273cafed9aee3011dbefe4c6adc9",
+      "prev": "73b4ba6f38cf9ac5258d6cb54a33dddc71c9fcc5319ae8a73f1a76abb3850a89",
+      "recorded_ns": 1794677407064869906,
+      "role": "researcher",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 4
+    },
+    {
+      "actor": "replication-researcher",
+      "event": {
+        "data": {},
+        "kind": "receipt",
+        "refs": ["b9094d8bcfba7b06a963f888110b1c225861273cafed9aee3011dbefe4c6adc9"],
+        "subject": "delivery-coverage",
+        "text": "Resumed the registered question and its original evidence."
+      },
+      "hash": "55e8da685330dc8fb7eb9e1b4271f8901d64751fe08bc5713b0e051e24d62495",
+      "prev": "b9094d8bcfba7b06a963f888110b1c225861273cafed9aee3011dbefe4c6adc9",
+      "recorded_ns": 1794677407065072620,
+      "role": "researcher",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 5
+    },
+    {
+      "actor": "replication-researcher",
+      "event": {
+        "data": {
+          "registration": "8067c37824fe18731668bc35cc0d2bfc5e9ca44a84",
+          "sha256": "29df44dc1fa31fe00c36fdbaa6b6dd44058cbfe40432833bbe7acd1e7e22ddae"
+        },
+        "kind": "protocol",
+        "refs": [
+          "e9a997e65cd701543a2ec030bff11f6ce53331ba917bbe85c72a3e0222fc8154",
+          "73b4ba6f38cf9ac5258d6cb54a33dddc71c9fcc5319ae8a73f1a76abb3850a89",
+          "55e8da685330dc8fb7eb9e1b4271f8901d64751fe08bc5713b0e051e24d62495"
+        ],
+        "subject": "delivery-coverage",
+        "text": "Matched timely versus three-second delayed delivery of identical acquired samples. Compare rising, falling and constant rate. Measure ungated candidate error and the existing freshness gate separately."
+      },
+      "hash": "a410511d52a194c78ba7788b1fff6ccfe450817d1047cd61707a82259b3a5e2c",
+      "prev": "55e8da685330dc8fb7eb9e1b4271f8901d64751fe08bc5713b0e051e24d62495",
+      "recorded_ns": 1794677407065237317,
+      "role": "researcher",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 6
+    },
+    {
+      "actor": "replication-researcher",
+      "event": {
+        "data": {},
+        "kind": "prediction",
+        "refs": [
+          "a410511d52a194c78ba7788b1fff6ccfe450817d1047cd61707a82259b3a5e2c",
+          "73b4ba6f38cf9ac5258d6cb54a33dddc71c9fcc5319ae8a73f1a76abb3850a89"
+        ],
+        "subject": "delivery-coverage",
+        "text": "For at least 75% of seeds jointly, every paired candidate has sufficient coverage, timely and constant delayed candidates are within the error bound, rising delayed error is below -3 bpm, falling delayed error exceeds +3 bpm, and the freshness gate withholds every delayed candidate."
+      },
+      "hash": "14eeb62e07f38a61f2a69cb9b61ae8f9dcce0bff6509262398fbefed75abc438",
+      "prev": "a410511d52a194c78ba7788b1fff6ccfe450817d1047cd61707a82259b3a5e2c",
+      "recorded_ns": 1794677407065409465,
+      "role": "researcher",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 7
+    },
+    {
+      "actor": "circle-reconstruction",
+      "event": {
+        "data": {
+          "ledger": "c413d57209a3c6120229c10dcf137e912e2a9d9bd5f193077fb60336cbe4ccb6",
+          "measurement_sha256": "6133843ed9349350c20987a7ec3d514afa90dbd6685d7403e84b248b0cbbac07",
+          "object": "60c5bf1441fcb49e069ea61ea542c3b87ccba47a82aa303f2c79e0a3625489f5"
+        },
+        "kind": "observation",
+        "refs": [
+          "a410511d52a194c78ba7788b1fff6ccfe450817d1047cd61707a82259b3a5e2c",
+          "14eeb62e07f38a61f2a69cb9b61ae8f9dcce0bff6509262398fbefed75abc438"
+        ],
+        "subject": "delivery-coverage",
+        "text": "CIRCLE discovery measured 96 matched candidates."
+      },
+      "hash": "64f3a6d6428c449b9eb7a22a8cd26cffb3873fc53affdcf3b64f4a6bfb0ee2fc",
+      "prev": "14eeb62e07f38a61f2a69cb9b61ae8f9dcce0bff6509262398fbefed75abc438",
+      "recorded_ns": 1794677409559948531,
+      "role": "instrument",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 8
+    },
+    {
+      "actor": "independent-scorer",
+      "event": {
+        "data": {
+          "ledger": "c413d57209a3c6120229c10dcf137e912e2a9d9bd5f193077fb60336cbe4ccb6",
+          "object": "98310bb63f3f4f759aaf47ead2c778feb6a1e0a0c2a5a13108cf24a542b6c17f",
+          "phase": "discovery",
+          "score_sha256": "338e7c0f882907e0756afadc37a90325f77583afe46c77b2289f78a76227f80c",
+          "verdict": "refuted"
+        },
+        "kind": "outcome",
+        "refs": ["64f3a6d6428c449b9eb7a22a8cd26cffb3873fc53affdcf3b64f4a6bfb0ee2fc"],
+        "subject": "delivery-coverage",
+        "text": "Independent discovery scoring: refuted."
+      },
+      "hash": "7c0e78815c1d2c12dd8751dedc032aff23982f94d6cf43824bdabe5371915f8e",
+      "prev": "64f3a6d6428c449b9eb7a22a8cd26cffb3873fc53affdcf3b64f4a6bfb0ee2fc",
+      "recorded_ns": 1794677409560383152,
+      "role": "verifier",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 9
+    },
+    {
+      "actor": "circle-reconstruction",
+      "event": {
+        "data": {
+          "ledger": "08d625af9111ab50e43e9c785d1222fbfc3cbf7e84349206747a006ed3434ca8",
+          "measurement_sha256": "e66eac9ceadcf56a34dc4940159cefb8d35e40907aa0a2dce2acbfbc76b6c0f2",
+          "object": "afc93dd99c7b1706de65143cca5cbf6270747c5578521839798ec9c9105b54d4"
+        },
+        "kind": "observation",
+        "refs": [
+          "a410511d52a194c78ba7788b1fff6ccfe450817d1047cd61707a82259b3a5e2c",
+          "14eeb62e07f38a61f2a69cb9b61ae8f9dcce0bff6509262398fbefed75abc438"
+        ],
+        "subject": "delivery-coverage",
+        "text": "CIRCLE replication measured 96 matched candidates."
+      },
+      "hash": "3c96e581bbfe0672038d36c6ec63f0b19cf658349829c41a92326c282158afd8",
+      "prev": "7c0e78815c1d2c12dd8751dedc032aff23982f94d6cf43824bdabe5371915f8e",
+      "recorded_ns": 1794677412023297383,
+      "role": "instrument",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 10
+    },
+    {
+      "actor": "independent-scorer",
+      "event": {
+        "data": {
+          "ledger": "08d625af9111ab50e43e9c785d1222fbfc3cbf7e84349206747a006ed3434ca8",
+          "object": "75b95e912f9bd3fc075dd0ccdf63758b654bf51f473e8cce4b13bdb2f0176a56",
+          "phase": "replication",
+          "score_sha256": "2cf5a8422decaf490e68b52c77ff3705a8e215a01a3b3d5efab564c7b50de657",
+          "verdict": "compatible"
+        },
+        "kind": "outcome",
+        "refs": ["3c96e581bbfe0672038d36c6ec63f0b19cf658349829c41a92326c282158afd8"],
+        "subject": "delivery-coverage",
+        "text": "Independent replication scoring: compatible."
+      },
+      "hash": "9d0e26653130959fc62b7c1f3fdee7eea4fa47b321fc43b9701c70addd8256f5",
+      "prev": "3c96e581bbfe0672038d36c6ec63f0b19cf658349829c41a92326c282158afd8",
+      "recorded_ns": 1794677412023846957,
+      "role": "verifier",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 11
+    },
+    {
+      "actor": "replication-researcher",
+      "event": {
+        "data": {},
+        "kind": "correction",
+        "refs": [
+          "e9a997e65cd701543a2ec030bff11f6ce53331ba917bbe85c72a3e0222fc8154",
+          "7c0e78815c1d2c12dd8751dedc032aff23982f94d6cf43824bdabe5371915f8e",
+          "9d0e26653130959fc62b7c1f3fdee7eea4fa47b321fc43b9701c70addd8256f5"
+        ],
+        "subject": "delivery-coverage",
+        "text": "In this simulator, sufficient coverage does not guarantee accuracy when delivery delays truncate a changing rate. Candidates underestimate rising rates and overestimate falling rates. The freshness gate withholds these candidates, leaving reported error undefined in the delayed arm."
+      },
+      "hash": "125774fc78af1bdd35109ae6483e0adc5f63cf283df0ad1daaeccd7a756a727f",
+      "prev": "9d0e26653130959fc62b7c1f3fdee7eea4fa47b321fc43b9701c70addd8256f5",
+      "recorded_ns": 1794677412024195409,
+      "role": "researcher",
+      "schema": "rain-institutional-memory/v1",
+      "seq": 12
+    }
+  ],
+  "schema": "rain-memory-observatory/v1",
+  "standing": {},
+  "subjects": ["delivery-coverage"]
+}
