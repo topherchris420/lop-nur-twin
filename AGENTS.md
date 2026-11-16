@@ -228,7 +228,8 @@ either file.
   that was installed. `patchShader` throws on a missing anchor, and
   `src/gfx/shaderPatches.test.ts` runs every patch in the project against the
   installed shader library: add a new `onBeforeCompile` to its list (it fails
-  on a file that patches shaders and is not there). Build a patched chunk when
+  on a file that patches shaders and is not there, and on a splice its
+  materials never run). Build a patched chunk when
   a material compiles, not when the module loads, so a broken patch costs one
   picture and not every page that imports the file.
 

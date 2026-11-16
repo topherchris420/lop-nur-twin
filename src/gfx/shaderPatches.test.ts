@@ -14,10 +14,16 @@
  * It checks that the splices still land, and that every `#include` the result
  * names still exists. It does not compile GLSL: a patch that lands and then
  * reads a variable three renamed is caught in a browser, by the route checks.
+ *
+ * And it keeps itself complete, because a check that covers what someone
+ * remembered to add is how `/live` went unchecked: it fails on a file that
+ * rewrites a shader and is not listed below, on a bare `.replace()` on a
+ * shader's source, and on a `patchShader("name", …)` in the source that the
+ * materials listed here never ran.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
 import { PlateField } from "../bethesda/rain/ResonanceFace";
 import { figureMaterial } from "../bethesda/rain/figures";
@@ -33,6 +39,18 @@ import { rippleWater } from "../garden/scene/props";
 import { applyHardSurface, HARD_SURFACE_PRESETS } from "./greeble";
 import { applyGroundDetail, GROUND_DETAIL_PRESETS } from "./groundDetail";
 import { patchShader, ShaderAnchorError } from "./shaderPatch";
+import type * as ShaderPatch from "./shaderPatch";
+
+/** The name of every splice site that ran, as its module passed it to `patchShader`. */
+const ran = vi.hoisted(() => new Set<string>());
+vi.mock("./shaderPatch", async (original) => {
+  const actual = await original<typeof ShaderPatch>();
+  const patchShader: typeof actual.patchShader = (site, source, splices) => {
+    ran.add(site);
+    return actual.patchShader(site, source, splices);
+  };
+  return { ...actual, patchShader };
+});
 
 const SRC = path.resolve(import.meta.dirname, "..");
 
@@ -233,6 +251,32 @@ describe("shader patches against the installed three", () => {
       }
     });
   }
+
+  it("runs every splice site that is written", () => {
+    // A second patch added to a listed file is not run by listing the file.
+    // Every `patchShader("name", …)` in the source has to have run here.
+    // (Not cleared first: a chunk a module patches once and keeps runs once.)
+    for (const materials of Object.values(SITES)) materials().forEach(compile);
+    const written = patching.flatMap(({ file, text }) =>
+      [...text.matchAll(/\bpatchShader\(\s*(["`])((?:(?!\1).)+)\1/g)].map((match) => ({
+        file,
+        site: match[2] ?? "",
+      })),
+    );
+    expect(written.length).toBeGreaterThan(20);
+    // A name built from a template (`soldier shade (${label})`) matches any value of it.
+    const pattern = (site: string) =>
+      new RegExp(
+        `^${site
+          .split(/\$\{[^}]*\}/)
+          .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+          .join(".+")}$`,
+      );
+    const names = [...ran];
+    expect(
+      written.filter(({ site }) => !names.some((name) => pattern(site).test(name))),
+    ).toEqual([]);
+  });
 
   it("game/render/shadowCascade.ts: the cascade installs", () => {
     // It skips itself, quietly in production, when three's light loop is not
