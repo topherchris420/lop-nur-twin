@@ -75,8 +75,18 @@ function fly(
   });
 }
 
+/**
+ * No wall-clock budget unless a test sets one. The layer's default (5 ms on
+ * `performance.now`) switches an advisor off for the rest of the run the first
+ * time a consultation is slow, and on a loaded machine the first one is: the
+ * fly then steps identically, as it must, but no prediction is ever counted,
+ * and the assertions on the record fail for a reason that is not in the code.
+ * The study itself runs the same way (`evaluate.ts`); the budget has its own
+ * test below, on a clock the test controls.
+ */
 const opts = (o: Partial<AugmentationOptions> = {}): AugmentationOptions => ({
   subject: "research-augmentation-test",
+  budgetMs: Number.POSITIVE_INFINITY,
   ...o,
 });
 

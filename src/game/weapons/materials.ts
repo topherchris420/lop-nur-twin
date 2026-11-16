@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/noise";
+import { patchShader } from "@/gfx/shaderPatch";
 import { WEAR_HALF, WEAR_LOCAL } from "./geometry";
 
 /**
@@ -463,18 +464,24 @@ export function applyEdgeWear<M extends THREE.MeshStandardMaterial>(
   material.userData.edgeWear = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", `#include <common>\n${WEAR_VERTEX_HEAD}`)
-      .replace(
+    shader.vertexShader = patchShader("weapon edge wear (vertex)", shader.vertexShader, [
+      ["#include <common>", `#include <common>\n${WEAR_VERTEX_HEAD}`],
+      [
         "#include <begin_vertex>",
         `#include <begin_vertex>\nvWearLocal = ${WEAR_LOCAL};\nvWearHalf = ${WEAR_HALF};`,
-      );
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\n${WEAR_FRAGMENT_HEAD}`)
-      .replace(
-        "#include <metalnessmap_fragment>",
-        `#include <metalnessmap_fragment>\n${WEAR_FRAGMENT}`,
-      );
+      ],
+    ]);
+    shader.fragmentShader = patchShader(
+      "weapon edge wear (fragment)",
+      shader.fragmentShader,
+      [
+        ["#include <common>", `#include <common>\n${WEAR_FRAGMENT_HEAD}`],
+        [
+          "#include <metalnessmap_fragment>",
+          `#include <metalnessmap_fragment>\n${WEAR_FRAGMENT}`,
+        ],
+      ],
+    );
   };
   material.customProgramCacheKey = () => "weapon-edge-wear-v1";
   material.needsUpdate = true;
@@ -655,13 +662,15 @@ export function getWeaponMaterials(): WeaponMaterials {
   });
   // Centre stays clear; the rim thickens. A constant alpha is a grey plate.
   lens.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace(
-      "#include <opaque_fragment>",
-      `float lensFres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 2.4);
+    shader.fragmentShader = patchShader("optic lens (fresnel)", shader.fragmentShader, [
+      [
+        "#include <opaque_fragment>",
+        `float lensFres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 2.4);
        diffuseColor.a = mix(0.08, 0.5, lensFres);
        outgoingLight += vec3(0.85, 0.92, 1.0) * lensFres * lensFres * 0.55;
        #include <opaque_fragment>`,
-    );
+      ],
+    ]);
   };
   lens.customProgramCacheKey = () => "lens-fresnel-v2";
 

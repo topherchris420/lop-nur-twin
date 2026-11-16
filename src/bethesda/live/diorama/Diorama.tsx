@@ -41,7 +41,8 @@ const MARK_BELOW_PX = 34;
  * (`scene.ts`). The picture is drawn only from what the witness served; the
  * marks laid over it (where the fly is, north, the wind, a scale) are placed
  * from the same frame. Calls `onUnavailable` if the browser cannot draw it,
- * and the page then shows the flat map instead.
+ * when the model is made or on any later frame, and the page then shows the
+ * flat map instead.
  */
 export default function Diorama({
   samples,
@@ -134,7 +135,18 @@ export default function Diorama({
       }
       const elapsed = now - lastRaf;
       lastRaf = now;
-      const view = s.render(samples.current ?? [], now, reduced.matches);
+      let view: ReturnType<DioramaScene["render"]>;
+      try {
+        view = s.render(samples.current ?? [], now, reduced.matches);
+      } catch (e) {
+        // A shader that will not build throws here on every frame, and nothing
+        // above a frame callback can catch it: stop, and let the page show the
+        // flat map rather than an empty bench.
+        stopped = true;
+        cancelAnimationFrame(frame);
+        state.current.onUnavailable(e instanceof Error ? e.message : String(e));
+        return;
+      }
       // A frame's cost shows as the time to the next display frame after a drawn one.
       if (drewLast) {
         if (adaptive.sample(elapsed)) resize();

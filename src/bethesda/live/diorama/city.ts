@@ -26,6 +26,7 @@ import { mulberry32 } from "../../../lib/noise.js";
 import type { ClayLibrary, ClaySettings } from "../../../garden/scene/clay.js";
 import { withCascade } from "../../../garden/scene/clay.js";
 import { blob } from "../../../garden/scene/geometry.js";
+import { patchShader } from "../../../gfx/shaderPatch.js";
 import { awnings, rooftopUnit, streetTrees, treeShape } from "../../furniture.js";
 import {
   bounds,
@@ -548,16 +549,19 @@ function building(tiles: Tiles, b: Building) {
  * every 3.3 m, and fades them to an even tone where they would be smaller
  * than a pixel.
  */
-const FACADE_PATCH: NonNullable<ClaySettings["patch"]> = {
+/** Exported for `src/gfx/shaderPatches.test.ts`, which runs the patch against the installed three. */
+export const FACADE_PATCH: NonNullable<ClaySettings["patch"]> = {
   key: "city-facade",
   apply(shader) {
-    shader.vertexShader = shader.vertexShader.replace(
-      "void main() {",
-      "attribute vec4 facade;\nvarying vec4 vFacade;\nvoid main() {\n  vFacade = facade;",
-    );
-    const fragment = shader.fragmentShader
-      .replace("void main() {", "varying vec4 vFacade;\nvoid main() {")
-      .replace(
+    shader.vertexShader = patchShader("city facade (vertex)", shader.vertexShader, [
+      [
+        "void main() {",
+        "attribute vec4 facade;\nvarying vec4 vFacade;\nvoid main() {\n  vFacade = facade;",
+      ],
+    ]);
+    const fragment = patchShader("city facade (fragment)", shader.fragmentShader, [
+      ["void main() {", "varying vec4 vFacade;\nvoid main() {"],
+      [
         "#include <roughnessmap_fragment>",
         /* glsl */ `#include <roughnessmap_fragment>
   float cityRecess = 0.0;
@@ -593,13 +597,13 @@ const FACADE_PATCH: NonNullable<ClaySettings["patch"]> = {
     float bevel = max( 0.16, 1.5 * px );
     cityRecess -= CITY_UNIT * 0.22 * ( 1.0 - smoothstep( - bevel, 0.0, d ) ) * storey * ( 1.0 - far );
   }`,
-      )
-      .replace(
+      ],
+      // The clay material's own relief line (`clay.ts`), not three's.
+      [
         "normal = clayRelief( - vViewPosition, normal, h, faceDirection );",
         "h += cityRecess;\n    normal = clayRelief( - vViewPosition, normal, h, faceDirection );",
-      );
-    if (!fragment.includes("h += cityRecess") || !fragment.includes("float cityRecess"))
-      throw new Error("diorama: the clay shader changed; update city.ts");
+      ],
+    ]);
     // A city metre, in the view space the relief is measured in.
     shader.fragmentShader = fragment.replace(/CITY_UNIT/g, MODEL_SCALE.toFixed(7));
   },

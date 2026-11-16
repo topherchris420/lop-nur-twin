@@ -161,7 +161,7 @@ bun run a11y     # axe-core on every route + CSP violations
 bun run routes   # deep links, refreshes, hostile parameters, spatial queries,
                  # keyboard order, filtering, mobile reflow, reduced motion,
                  # what state parameters set, ?liveTraffic= staying opt-in,
-                 # focus without WebGL
+                 # focus without WebGL, /live with and without its clay model
 ```
 
 `bun run a11y` gates `/analysis`, `/compare` and `/evaluation` on serious and
@@ -189,6 +189,18 @@ duplicated parameter must make none. Finally it opens `/` and `/play` in a
 browser that cannot start WebGL and walks the Tab order: every stop must be
 something on screen, and the walk must reach the routes the fallback names. The
 twin's controls once stayed in the Tab order behind its fallback, invisible.
+
+Last it opens `/live`, answering for the observer itself (an `unavailable`
+witness, so the check never reads the living fly and the page must say it draws
+no fly of its own). The clay model has to reach its first picture with no page
+errors; then the model's chunk is made to fail, and again WebGL is taken away,
+and each time the page must keep its heading and its words and show the flat
+map instead. That check exists because it once did not: a three.js release
+reworded a shader line the clay material patched, the model's module threw as
+it loaded, and with no boundary around it the whole page became the router's
+error text while every check stayed green. `src/gfx/shaderPatches.test.ts` is
+the other half: it runs every shader patch in the project against the installed
+three in the unit tests, so the upgrade fails before it is merged.
 
 The route suite has proved real bugs into existence: a manifest fetch whose
 effect aborted its own request and left the panel reading "Reading the

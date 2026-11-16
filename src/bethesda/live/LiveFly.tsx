@@ -1,4 +1,13 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Box, Map as MapIcon, Minus, Plus, RotateCcw, RotateCw } from "lucide-react";
 import type { LifeObservation, ObservedWeather, Witness } from "../life/observation";
 import { NEARBY_M } from "../life/observation";
@@ -33,6 +42,34 @@ import {
 
 /** The clay model and its renderer load after the page's words (`diorama/`). */
 const Diorama = lazy(() => import("./diorama/Diorama"));
+
+/**
+ * The clay model can fail before `Diorama` ever runs: its chunk is fetched and
+ * evaluated on its own, and a module that throws there (a shader patch a three
+ * release broke, a chunk a deploy renamed) rejects the lazy import, which
+ * React rethrows while rendering. `onUnavailable` is never called for that,
+ * and with no boundary here the error climbed to the router and replaced the
+ * whole page: the witness's words, which need no model, went with the picture.
+ * Whatever the model throws, the flat map is the picture.
+ */
+class ModelBoundary extends Component<
+  { children: ReactNode; onFailed: () => void },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onFailed();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 /** The flat map never went closer than this (CSS px per city metre). */
 const FLAT_ZOOM_MAX = 16;
@@ -95,23 +132,31 @@ export default function LiveFly() {
             zoom={Math.min(FLAT_ZOOM_MAX, zoom)}
           />
         ) : (
-          <Suspense fallback={null}>
-            <Diorama
-              samples={samples}
-              observation={o}
-              status={view.status}
-              zoom={zoom}
-              onZoom={setZoom}
-              turn={turn}
-              onUnavailable={() => setModelFailed(true)}
-            />
-          </Suspense>
+          <ModelBoundary onFailed={() => setModelFailed(true)}>
+            <Suspense fallback={null}>
+              <Diorama
+                samples={samples}
+                observation={o}
+                status={view.status}
+                zoom={zoom}
+                onZoom={setZoom}
+                turn={turn}
+                onUnavailable={() => setModelFailed(true)}
+              />
+            </Suspense>
+          </ModelBoundary>
         )}
         <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
           <StatusPill status={view.status} />
           {o?.checkpointing ? (
             <span className="hud-panel px-2 py-1 font-mono text-[10px] tracking-widest uppercase">
               committing a checkpoint, clock paused
+            </span>
+          ) : null}
+          {modelFailed ? (
+            // A substitute picture is labelled as one, like everything else here.
+            <span className="hud-panel text-muted-foreground px-2 py-1 font-mono text-[10px] tracking-widest uppercase">
+              flat map: the clay model could not be drawn
             </span>
           ) : null}
         </div>

@@ -220,6 +220,18 @@ either file.
 - The `<Canvas>` runs with `logarithmicDepthBuffer: true`. Any custom
   `ShaderMaterial` must include the logdepth chunks — use
   `createHardSurfaceShaderMaterial()` rather than rolling your own.
+- **A shader patch goes through `patchShader`** (`src/gfx/shaderPatch.ts`),
+  never a bare `.replace()`. three rewords its chunks between releases, and
+  `.replace()` on a line that is gone returns the shader unchanged without a
+  word. r187 moved one line the clay material patched and `/live` served an
+  error page under a green CI, because nothing ran the patch against the three
+  that was installed. `patchShader` throws on a missing anchor, and
+  `src/gfx/shaderPatches.test.ts` runs every patch in the project against the
+  installed shader library: add a new `onBeforeCompile` to its list (it fails
+  on a file that patches shaders and is not there, and on a splice its
+  materials never run). Build a patched chunk when
+  a material compiles, not when the module loads, so a broken patch costs one
+  picture and not every page that imports the file.
 
 ## The first-person mode (`src/game/`)
 
@@ -533,8 +545,9 @@ of `.env.example`, the R.A.I.N. names in `tools/jev-secret-scan.mjs` and
 `src/game/pilot/secretBoundary.test.ts`, and the `verify:rain-lab`/`rain:*`
 scripts. Individual continuity adds the files its own section lists. Its autonomous researcher adds `src/rain/autonomy/`,
 `tools/rain-autonomous.mjs` and the `.rain-research/` line of `.gitignore`. The unlisted
-`/live` page adds `src/routes/live.tsx` and the observer's origin in the
-`connect-src` of all three CSP copies. The unlisted `/metrology` page adds
+`/live` page adds `src/routes/live.tsx`, the observer's origin in the
+`connect-src` of all three CSP copies and the `/live` section of
+`tools/routes.mjs`. The unlisted `/metrology` page adds
 `src/routes/metrology.tsx` (the bench's section lists the rest).
 
 - **Two OSM derivatives, two hashes.** `data/osm.json` builds the road and
