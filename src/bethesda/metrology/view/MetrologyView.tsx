@@ -396,6 +396,10 @@ export default function MetrologyView() {
   const [gate, setGate] = useState<Gate | null>(null);
   const ref = list[chosen];
   useEffect(() => {
+    // Every route names itself: without this the tab kept the twin's title.
+    document.title = "ECHO intelligence metrology bench — research subjects only";
+  }, []);
+  useEffect(() => {
     let live = true;
     setGate(null);
     ref?.load().then(

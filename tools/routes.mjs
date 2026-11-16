@@ -20,6 +20,9 @@
  *    axe rule can confirm actually works;
  *  - a browser without WebGL, where the 3D routes' fallbacks must be all that
  *    focus can reach — a control hidden behind a fallback is still a Tab stop;
+ *  - `/live`, whose words must outlive its picture: the clay model is one lazy
+ *    chunk, and when a dependency upgrade broke it the whole page went with it.
+ *    The observer is answered here, so the check never touches the living fly;
  *  - evidence filtering, the one interactive control on `/analysis`;
  *  - reduced motion, which must reach the store rather than only the stylesheet;
  *  - a narrow viewport, where a wide table can silently push the page sideways.
@@ -41,6 +44,8 @@ await import("../scripts/ts-hooks.mjs");
 const { TEMPORAL_SNAPSHOT_DATES, snapshotDateForYear } =
   await import("../src/lib/temporal.ts");
 const { SITE_SIZE, TIMELINE_BOUNDS } = await import("../src/lib/layout.ts");
+const { WITNESS_ORIGIN } = await import("../src/bethesda/live/witnessFeed.ts");
+const { witness } = await import("../src/bethesda/life/observation.ts");
 
 const previewOrigin = process.argv[2] ?? "http://localhost:4173";
 const devOrigin = process.argv[3] ?? "http://localhost:5173";
@@ -113,6 +118,8 @@ for (const [path, expectedTitleFragment, settle] of [
   ["/evaluation", "Blacksite evaluation", 2500],
   ["/play", "Blacksite", 6000],
   ["/noeterra", "Noeterra", 4000],
+  // Unlisted, and linked from the README: it reads only files built into it.
+  ["/metrology", "metrology bench", 2500],
 ]) {
   const { page, errors, status } = await open(`${previewOrigin}${path}`, { settle });
   check(`${path} direct load returns 200`, status === 200, `HTTP ${status}`);
@@ -1001,6 +1008,122 @@ for (const [path, ways] of [
     errors[0] ?? "clean",
   );
   await page.close();
+}
+
+/* ------------------------------------------------------------------ */
+/* 12. /live: the page outlives its picture                            */
+/* ------------------------------------------------------------------ */
+
+console.log("\n=== /live: the page outlives its picture ===");
+{
+  // The observer is answered here: the check must not depend on the living
+  // fly's server, and must never add a reader to it. "unavailable" is a
+  // witness the page has to handle anyway, and it is the honest one for a
+  // check to serve: there is no fly here, and the page must say so.
+  const answerObserver = (failing) => (request) => {
+    const url = request.url();
+    if (url.startsWith(WITNESS_ORIGIN)) {
+      const served = witness(
+        null,
+        Date.now(),
+        "the route checks answer for the observer",
+      );
+      void request.respond({
+        status: 200,
+        contentType: "text/event-stream",
+        headers: { "access-control-allow-origin": "*", "cache-control": "no-store" },
+        body: `data: ${JSON.stringify(served)}\n\n`,
+      });
+    } else if (failing?.test(url)) void request.abort();
+    else void request.continue();
+  };
+  const describe = (page) =>
+    page.evaluate(() => ({
+      mains: document.querySelectorAll("main").length,
+      heading: document.querySelector("h1")?.textContent ?? "",
+      model: document.querySelector(".diorama canvas") !== null,
+      flatMap: [...document.querySelectorAll("canvas")].some(
+        (canvas) => canvas.closest(".diorama") === null,
+      ),
+      text: document.body.innerText,
+    }));
+
+  const live = await open(`${previewOrigin}/live`, {
+    settle: 1500,
+    onRequest: answerObserver(null),
+  });
+  check("/live direct load returns 200", live.status === 200, `HTTP ${live.status}`);
+  const drawn = await live.page
+    .waitForFunction(
+      () =>
+        document.querySelector(".diorama canvas")?.classList.contains("opacity-100") ===
+        true,
+      { timeout: 120000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  check(
+    "/live draws the clay model",
+    drawn,
+    drawn ? "first picture shown" : "never shown",
+  );
+  const shown = await describe(live.page);
+  check(
+    "/live has one main and its heading",
+    shown.mains === 1 && shown.heading === "The Bethesda fly, live",
+    `${shown.mains} main, "${shown.heading}"`,
+  );
+  check(
+    "/live without a witness draws no fly of its own",
+    shown.text.includes("This page draws no fly of its own in its place"),
+    "the page's own words",
+  );
+  check(
+    "/live loads without page errors",
+    live.errors.length === 0,
+    live.errors[0] ?? "clean",
+  );
+  await live.page.close();
+
+  // The model's chunk fails to load: a deploy renamed it, or the module threw
+  // while evaluating, as it did when three r187 moved a line its shader patch
+  // was anchored to. Either way it is the lazy import that rejects.
+  const broken = await open(`${previewOrigin}/live`, {
+    settle: 6000,
+    onRequest: answerObserver(/\/assets\/Diorama-[^/]*\.js$|\/diorama\/Diorama\.tsx/),
+  });
+  const fallen = await describe(broken.page);
+  check(
+    "/live keeps its words when the model fails to load",
+    fallen.mains === 1 && fallen.heading === "The Bethesda fly, live",
+    `${fallen.mains} main, "${fallen.heading.slice(0, 40)}"`,
+  );
+  check(
+    "/live shows the flat map when the model fails to load",
+    fallen.flatMap && !fallen.model,
+    fallen.flatMap ? "flat map" : "no picture",
+  );
+  await broken.page.close();
+
+  const bare = await open(`${previewOrigin}/live`, {
+    settle: 3000,
+    webgl: false,
+    onRequest: answerObserver(null),
+  });
+  const plain = await describe(bare.page);
+  check(
+    "/live without WebGL: the flat map and the words",
+    plain.flatMap && !plain.model && plain.heading === "The Bethesda fly, live",
+    plain.flatMap ? "flat map" : "no picture",
+  );
+  check(
+    "/live without WebGL: no page errors",
+    bare.errors.length === 0,
+    bare.errors[0] ?? "clean",
+  );
+  await bare.page.close();
 }
 
 await browser.close();
