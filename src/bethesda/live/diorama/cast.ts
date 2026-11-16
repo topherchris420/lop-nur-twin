@@ -32,6 +32,7 @@ import {
   type FlyPosture,
 } from "../../../garden/scene/fly.js";
 import { blob, merge, tint } from "../../../garden/scene/geometry.js";
+import { patchShader } from "../../../gfx/shaderPatch.js";
 import type { GaitParams } from "../../fly/gait.js";
 import { resolveParams } from "../../fly/params.js";
 import { NEARBY_MAX } from "../../life/observation.js";
@@ -71,7 +72,8 @@ const LIFT_SETTLE = 0.3;
 const PULL = { value: 0 };
 const pulled = new WeakSet<THREE.Material>();
 
-function pull(m: THREE.Material) {
+/** Exported for `src/gfx/shaderPatches.test.ts`, which runs the patch against the installed three. */
+export function pull(m: THREE.Material) {
   if (pulled.has(m)) return;
   pulled.add(m);
   const compile = m.onBeforeCompile,
@@ -79,12 +81,13 @@ function pull(m: THREE.Material) {
   m.onBeforeCompile = (shader, renderer) => {
     compile.call(m, shader, renderer);
     shader.uniforms.uPuppetPull = PULL;
-    shader.vertexShader = shader.vertexShader
-      .replace("void main() {", "uniform float uPuppetPull;\nvoid main() {")
-      .replace(
+    shader.vertexShader = patchShader("puppet (depth pull)", shader.vertexShader, [
+      ["void main() {", "uniform float uPuppetPull;\nvoid main() {"],
+      [
         "#include <project_vertex>",
         "#include <project_vertex>\n  gl_Position.z -= uPuppetPull * gl_Position.w;",
-      );
+      ],
+    ]);
   };
   m.customProgramCacheKey = () => `${key.call(m)}:pulled`;
   m.needsUpdate = true;

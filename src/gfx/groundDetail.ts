@@ -4,6 +4,7 @@ import { getQualityProfile } from "@/lib/quality";
 import { SITE_SEED } from "@/lib/noise";
 import { STRUCTURES } from "@/lib/layout";
 import type { QualityTier } from "@/lib/store";
+import { patchShader } from "./shaderPatch";
 
 /**
  * Close-range ground look development.
@@ -523,8 +524,8 @@ export function applyGroundDetail<M extends THREE.MeshStandardMaterial>(
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
 
-    shader.vertexShader = shader.vertexShader
-      .replace(
+    shader.vertexShader = patchShader("ground detail (vertex)", shader.vertexShader, [
+      [
         "#include <common>",
         `#include <common>
 varying vec3 vGdWorld;
@@ -532,29 +533,32 @@ varying vec3 vGdWorld;
 attribute float gdCompact;
 varying float vGdCompact;
 #endif`,
-      )
+      ],
       // `transformed` is final here and the logdepth / clipping chunks that
       // follow `<project_vertex>` are left exactly where three put them
-      .replace(
+      [
         "#include <project_vertex>",
         `vGdWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
 #ifdef GD_COMPACT
 vGdCompact = gdCompact;
 #endif
 #include <project_vertex>`,
-      );
+      ],
+    ]);
 
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\n${HEAD}`)
-      .replace("void main() {", `void main() {\n  vec3 gdBump = vec3(0.0);`)
-      .replace(
-        "#include <metalnessmap_fragment>",
-        `#include <metalnessmap_fragment>\n${SURFACE}`,
-      )
-      .replace(
-        "#include <normal_fragment_maps>",
-        `#include <normal_fragment_maps>\n${NORMAL}`,
-      );
+    shader.fragmentShader = patchShader(
+      "ground detail (fragment)",
+      shader.fragmentShader,
+      [
+        ["#include <common>", `#include <common>\n${HEAD}`],
+        ["void main() {", `void main() {\n  vec3 gdBump = vec3(0.0);`],
+        [
+          "#include <metalnessmap_fragment>",
+          `#include <metalnessmap_fragment>\n${SURFACE}`,
+        ],
+        ["#include <normal_fragment_maps>", `#include <normal_fragment_maps>\n${NORMAL}`],
+      ],
+    );
   };
 
   // Defines switch the injection, and the GLSL string itself is versioned:

@@ -30,6 +30,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import { patchShader } from "@/gfx/shaderPatch";
 import { ENERGY_CAP, STILL, buildFigure, seat, strobeRate, type Figure } from "./chladni";
 import { PERSPECTIVES, type Perspective } from "./contracts";
 import { RESONANCE } from "./labLayout";
@@ -237,8 +238,11 @@ interface Target {
  * One plate's surface: a standard metal material whose colour, roughness and
  * glow are patched with the figure's sand, and, with `relief`, whose vertices
  * swing with it. Keeps two figures, so the sand can move from one to the next.
+ *
+ * Exported for `src/gfx/shaderPatches.test.ts`, which runs the patch against
+ * the installed three.
  */
-class PlateField {
+export class PlateField {
   readonly material: THREE.MeshStandardMaterial;
   readonly u: FieldUniforms;
   private a: Figure = STILL;
@@ -286,9 +290,9 @@ class PlateField {
     const u = this.u;
     this.material.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, u);
-      shader.vertexShader = shader.vertexShader
-        .replace("#include <common>", `#include <common>\n${HEAD}\n${VERTEX_HEAD}`)
-        .replace(
+      shader.vertexShader = patchShader("resonance plate (vertex)", shader.vertexShader, [
+        ["#include <common>", `#include <common>\n${HEAD}\n${VERTEX_HEAD}`],
+        [
           "#include <beginnormal_vertex>",
           relief
             ? /* glsl */ `#include <beginnormal_vertex>
@@ -300,29 +304,32 @@ float rDx = 6.0 * (rSwing(vPlate + vec2(0.01, 0.0)) - rLift) / (0.01 * uHalf);
 float rDy = 6.0 * (rSwing(vPlate + vec2(0.0, 0.01)) - rLift) / (0.01 * uHalf);
 objectNormal = normalize(vec3(-rDx, -rDy, 1.0));`
             : `#include <beginnormal_vertex>\nvPlate = uv * 2.0 - 1.0;\nfloat rLift = 0.0;`,
-        )
-        .replace(
-          "#include <begin_vertex>",
-          "#include <begin_vertex>\ntransformed.z += rLift;",
-        );
-      shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", `#include <common>\n${HEAD}\n${FRAGMENT_HEAD}`)
-        .replace("#include <color_fragment>", `#include <color_fragment>\n${SAND}`)
-        .replace(
-          "#include <roughnessmap_fragment>",
-          "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.92, rSand);",
-        )
-        .replace(
-          "#include <metalnessmap_fragment>",
-          "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.0, rSand);",
-        )
-        .replace(
-          "#include <emissivemap_fragment>",
-          /* glsl */ `#include <emissivemap_fragment>
+        ],
+        ["#include <begin_vertex>", "#include <begin_vertex>\ntransformed.z += rLift;"],
+      ]);
+      shader.fragmentShader = patchShader(
+        "resonance plate (fragment)",
+        shader.fragmentShader,
+        [
+          ["#include <common>", `#include <common>\n${HEAD}\n${FRAGMENT_HEAD}`],
+          ["#include <color_fragment>", `#include <color_fragment>\n${SAND}`],
+          [
+            "#include <roughnessmap_fragment>",
+            "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.92, rSand);",
+          ],
+          [
+            "#include <metalnessmap_fragment>",
+            "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.0, rSand);",
+          ],
+          [
+            "#include <emissivemap_fragment>",
+            /* glsl */ `#include <emissivemap_fragment>
 totalEmissiveRadiance += rSandColor * rSand * uLevel * 0.08;
 float rEdge = smoothstep(0.93, 1.0, max(abs(vPlate.x), abs(vPlate.y)));
 totalEmissiveRadiance += vec3(0.05, 0.22, 0.22) * rEdge * uHover;`,
-        );
+          ],
+        ],
+      );
     };
     const cacheKey = `rain-resonance:${relief ? 1 : 0}`;
     this.material.customProgramCacheKey = () => cacheKey;

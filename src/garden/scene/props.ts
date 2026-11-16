@@ -10,6 +10,7 @@ import { groundHeight, LAYOUT, stoneTop } from "../core/layout.js";
 import type { Quality } from "../core/quality.js";
 import { STAGES, swayFrame } from "../core/stage.js";
 import { add, addScaled, cross, normalize, scale, sub, type V3 } from "../core/vec.js";
+import { patchShader } from "../../gfx/shaderPatch.js";
 import { casterMaterial, withCascade, type ClayLibrary } from "./clay.js";
 import {
   blob,
@@ -1135,6 +1136,64 @@ export interface Saucer {
   };
 }
 
+/**
+ * The saucer's rainwater surface: wind ruffles and raindrop rings, as a slope
+ * on the normal. Exported for `src/gfx/shaderPatches.test.ts`, which runs the
+ * patch against the installed three.
+ */
+export function rippleWater(shader: THREE.WebGLProgramParametersWithUniforms) {
+  shader.vertexShader = patchShader("saucer water (vertex)", shader.vertexShader, [
+    ["#include <common>", "#include <common>\nvarying vec3 vWaterPos;"],
+    [
+      "#include <project_vertex>",
+      "#include <project_vertex>\nvWaterPos = (modelMatrix * vec4(transformed, 1.0)).xyz;",
+    ],
+  ]);
+  shader.fragmentShader = patchShader("saucer water (fragment)", shader.fragmentShader, [
+    [
+      "#include <common>",
+      /* glsl */ `#include <common>
+varying vec3 vWaterPos;
+uniform float uTime, uRain, uWind;
+float wHash( vec2 p ) { return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
+vec2 waterSlope( vec2 p ) {
+  vec2 s = vec2( 0.0 );
+  // Wind ruffles: a few travelling waves.
+  for ( int i = 0; i < 4; i ++ ) {
+    float fi = float( i );
+    vec2 dir = normalize( vec2( cos( fi * 2.1 + 0.4 ), sin( fi * 2.1 + 0.4 ) ) );
+    float k = 90.0 + 70.0 * fi;
+    float ph = dot( p, dir ) * k - uTime * ( 2.0 + fi );
+    s += dir * cos( ph ) * k * 0.00002 * uWind;
+  }
+  // Raindrops: expanding rings at seeded places and times.
+  for ( int i = 0; i < 6; i ++ ) {
+    float fi = float( i );
+    float cycle = uTime * 0.7 + fi * 0.37;
+    float id = floor( cycle );
+    float age = fract( cycle );
+    vec2 c = vec2( wHash( vec2( id, fi ) ), wHash( vec2( fi, id ) ) ) * 0.26 - 0.13;
+    vec2 d = p - c;
+    float r = length( d );
+    float front = age * 0.06;
+    float ring = exp( -pow( ( r - front ) / 0.004, 2.0 ) ) * ( 1.0 - age );
+    s += normalize( d + 1e-5 ) * ring * 0.25 * uRain;
+  }
+  return s;
+}`,
+    ],
+    [
+      "#include <normal_fragment_maps>",
+      /* glsl */ `#include <normal_fragment_maps>
+{
+  vec2 sl = waterSlope( vWaterPos.xz - vec2( ${L.saucer.x.toFixed(4)}, ${L.saucer.z.toFixed(4)} ) );
+  vec3 nW = normalize( vec3( -sl.x, 1.0, -sl.y ) );
+  normal = normalize( ( viewMatrix * vec4( nW, 0.0 ) ).xyz );
+}`,
+    ],
+  ]);
+}
+
 function saucer(lib: ClayLibrary): Saucer {
   const s = L.saucer;
   const y0 = groundHeight(s.x, s.z);
@@ -1199,54 +1258,7 @@ function saucer(lib: ClayLibrary): Saucer {
       }),
       (shader) => {
         Object.assign(shader.uniforms, uniforms);
-        shader.vertexShader = shader.vertexShader
-          .replace("#include <common>", "#include <common>\nvarying vec3 vWaterPos;")
-          .replace(
-            "#include <project_vertex>",
-            "#include <project_vertex>\nvWaterPos = (modelMatrix * vec4(transformed, 1.0)).xyz;",
-          );
-        shader.fragmentShader = shader.fragmentShader
-          .replace(
-            "#include <common>",
-            /* glsl */ `#include <common>
-varying vec3 vWaterPos;
-uniform float uTime, uRain, uWind;
-float wHash( vec2 p ) { return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
-vec2 waterSlope( vec2 p ) {
-  vec2 s = vec2( 0.0 );
-  // Wind ruffles: a few travelling waves.
-  for ( int i = 0; i < 4; i ++ ) {
-    float fi = float( i );
-    vec2 dir = normalize( vec2( cos( fi * 2.1 + 0.4 ), sin( fi * 2.1 + 0.4 ) ) );
-    float k = 90.0 + 70.0 * fi;
-    float ph = dot( p, dir ) * k - uTime * ( 2.0 + fi );
-    s += dir * cos( ph ) * k * 0.00002 * uWind;
-  }
-  // Raindrops: expanding rings at seeded places and times.
-  for ( int i = 0; i < 6; i ++ ) {
-    float fi = float( i );
-    float cycle = uTime * 0.7 + fi * 0.37;
-    float id = floor( cycle );
-    float age = fract( cycle );
-    vec2 c = vec2( wHash( vec2( id, fi ) ), wHash( vec2( fi, id ) ) ) * 0.26 - 0.13;
-    vec2 d = p - c;
-    float r = length( d );
-    float front = age * 0.06;
-    float ring = exp( -pow( ( r - front ) / 0.004, 2.0 ) ) * ( 1.0 - age );
-    s += normalize( d + 1e-5 ) * ring * 0.25 * uRain;
-  }
-  return s;
-}`,
-          )
-          .replace(
-            "#include <normal_fragment_maps>",
-            /* glsl */ `#include <normal_fragment_maps>
-{
-  vec2 sl = waterSlope( vWaterPos.xz - vec2( ${L.saucer.x.toFixed(4)}, ${L.saucer.z.toFixed(4)} ) );
-  vec3 nW = normalize( vec3( -sl.x, 1.0, -sl.y ) );
-  normal = normalize( ( viewMatrix * vec4( nW, 0.0 ) ).xyz );
-}`,
-          );
+        rippleWater(shader);
       },
     ),
   ) as Saucer["water"];

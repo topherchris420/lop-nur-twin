@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { patchShader } from "../../gfx/shaderPatch";
 import {
   blend,
   ellipsoid,
@@ -873,8 +874,11 @@ type Finish = "glove" | "sleeve";
  * sleeve) and, on the sleeve, a four-tone arid camouflage in object space.
  * Object space is weapon space here, so the pattern is glued to the arm and
  * never swims with sway.
+ *
+ * Exported for `src/gfx/shaderPatches.test.ts`, which runs the patch against
+ * the installed three.
  */
-function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
+export function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({
     name: finish === "glove" ? "arm-glove" : "arm-sleeve",
     color: 0xffffff,
@@ -884,20 +888,21 @@ function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
     envMapIntensity: finish === "glove" ? 0.55 : 0.45,
   });
   material.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader
-      .replace(
+    shader.vertexShader = patchShader("first-person arms (vertex)", shader.vertexShader, [
+      [
         "#include <common>",
         `#include <common>
          attribute vec2 surface;
          varying vec2 vSurface;
          varying vec3 vObj;`,
-      )
-      .replace(
+      ],
+      [
         "#include <begin_vertex>",
         `#include <begin_vertex>
          vSurface = surface;
          vObj = position;`,
-      );
+      ],
+    ]);
     const camo =
       finish === "sleeve"
         ? `
@@ -923,38 +928,43 @@ function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
         : `vec2 vmW = abs(fract(vUv * vec2(90.0, 40.0)) - 0.5);
            float vmGrid = smoothstep(0.42, 0.5, max(vmW.x, vmW.y));
            float vmH = vmGrid * 0.00004 + (vmNoise(vObj * 900.0) - 0.5) * 0.00006;`;
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        "#include <common>",
-        `#include <common>
+    shader.fragmentShader = patchShader(
+      "first-person arms (fragment)",
+      shader.fragmentShader,
+      [
+        [
+          "#include <common>",
+          `#include <common>
          varying vec2 vSurface;
          varying vec3 vObj;
          ${NOISE_GLSL}`,
-      )
-      .replace(
-        "#include <color_fragment>",
-        `#include <color_fragment>
+        ],
+        [
+          "#include <color_fragment>",
+          `#include <color_fragment>
          ${camo}`,
-      )
-      .replace(
-        "#include <roughnessmap_fragment>",
-        `float roughnessFactor = roughness * vSurface.x;`,
-      )
-      .replace(
-        "#include <normal_fragment_maps>",
-        `#include <normal_fragment_maps>
+        ],
+        [
+          "#include <roughnessmap_fragment>",
+          `float roughnessFactor = roughness * vSurface.x;`,
+        ],
+        [
+          "#include <normal_fragment_maps>",
+          `#include <normal_fragment_maps>
          ${relief}
          normal = vmPerturb(-vViewPosition, normal, vmH, faceDirection);`,
-      )
-      .replace(
-        "#include <aomap_fragment>",
-        `#include <aomap_fragment>
+        ],
+        [
+          "#include <aomap_fragment>",
+          `#include <aomap_fragment>
          float vmAo = vSurface.y;
          reflectedLight.indirectDiffuse *= vmAo;
          reflectedLight.indirectSpecular *= vmAo;
          reflectedLight.directDiffuse *= mix(1.0, vmAo, 0.55);
          reflectedLight.directSpecular *= vmAo;`,
-      );
+        ],
+      ],
+    );
   };
   // The sleeve samples `vUv`; make sure the UV chunk is compiled in.
   if (finish === "sleeve") {

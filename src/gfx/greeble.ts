@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { mulberry32 } from "@/lib/noise";
+import { patchShader } from "./shaderPatch";
 
 /**
  * Hard-surface look development for the desert airfield twin.
@@ -440,18 +441,18 @@ export function applyHardSurface<M extends THREE.MeshStandardMaterial>(
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
 
-    shader.vertexShader = shader.vertexShader
-      .replace(
+    shader.vertexShader = patchShader("hard surface (vertex)", shader.vertexShader, [
+      [
         "#include <common>",
         `#include <common>
 varying vec3 vHsPos;
 varying vec3 vHsNormal;
 varying vec3 vHsWorldNormal;
 varying float vHsWorldY;`,
-      )
+      ],
       // `transformed` and `objectNormal` are final by the time project_vertex
       // runs, and this keeps the logdepth/clipping chunks after us untouched
-      .replace(
+      [
         "#include <project_vertex>",
         `vHsPos = transformed;
 vHsNormal = objectNormal;
@@ -462,32 +463,38 @@ vHsWorldY = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).y;
 vHsWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
 #endif
 #include <project_vertex>`,
-      );
+      ],
+    ]);
 
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\n${HARD_SURFACE_HEAD}`)
-      .replace(
-        "void main() {",
-        `void main() {
+    shader.fragmentShader = patchShader(
+      "hard surface (fragment)",
+      shader.fragmentShader,
+      [
+        ["#include <common>", `#include <common>\n${HARD_SURFACE_HEAD}`],
+        [
+          "void main() {",
+          `void main() {
   vec2 hsSeamSlope = vec2(0.0);
   vec3 hsSeamT1 = vec3(1.0, 0.0, 0.0);
   vec3 hsSeamT2 = vec3(0.0, 1.0, 0.0);
   vec3 hsRimNormal = vec3(0.0);`,
-      )
-      .replace(
-        "#include <metalnessmap_fragment>",
-        `#include <metalnessmap_fragment>\n${HARD_SURFACE_SURFACE}`,
-      )
-      .replace(
-        "#include <normal_fragment_maps>",
-        `#include <normal_fragment_maps>\n${HARD_SURFACE_NORMAL}`,
-      )
-      // gl_FragColor is assigned by <opaque_fragment>, which sits immediately
-      // before this include in every lit material
-      .replace(
-        "#include <tonemapping_fragment>",
-        `${HARD_SURFACE_RIM}\n#include <tonemapping_fragment>`,
-      );
+        ],
+        [
+          "#include <metalnessmap_fragment>",
+          `#include <metalnessmap_fragment>\n${HARD_SURFACE_SURFACE}`,
+        ],
+        [
+          "#include <normal_fragment_maps>",
+          `#include <normal_fragment_maps>\n${HARD_SURFACE_NORMAL}`,
+        ],
+        // gl_FragColor is assigned by <opaque_fragment>, which sits immediately
+        // before this include in every lit material
+        [
+          "#include <tonemapping_fragment>",
+          `${HARD_SURFACE_RIM}\n#include <tonemapping_fragment>`,
+        ],
+      ],
+    );
   };
 
   // the injection is switched by a #define, so it has to be part of the key

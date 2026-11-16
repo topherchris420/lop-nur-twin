@@ -95,6 +95,14 @@ the geometry here is procedurally built and UVs are inconsistent.
   `<dithering_fragment>` / `<normal_fragment_maps>` etc. keeps every three.js
   feature. A raw `ShaderMaterial` throws away shadows, fog and log depth and
   you will re-implement them badly.
+- **Inject with `patchShader()`** from `src/gfx/shaderPatch.ts`, not
+  `.replace()`. An anchor that a three release reworded makes `.replace()`
+  return the shader untouched, and the material quietly renders as stock three;
+  `patchShader` throws, naming the site and the line. Add the material to
+  `src/gfx/shaderPatches.test.ts`, which runs every patch against the installed
+  three without a renderer, so an upgrade that moves a line fails the unit
+  tests. Prefer anchoring on an `#include <chunk>` line over a statement inside
+  a chunk: includes are renamed rarely, statements are rewritten often.
 - **If you must write a raw `ShaderMaterial`**, use
   `createHardSurfaceShaderMaterial()` from `src/gfx/greeble.ts`, or copy its
   includes. A custom shader **must** contain, in the vertex stage:

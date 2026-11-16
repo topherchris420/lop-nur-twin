@@ -36,6 +36,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { seededNoise2D } from "@/lib/noise";
+import { patchShader } from "@/gfx/shaderPatch";
 import {
   B,
   BONE_COUNT,
@@ -3018,9 +3019,7 @@ const FIGURE_RIM = /* glsl */ `
 `;
 
 function patch(source: string, needle: string, insert: string): string {
-  if (!source.includes(needle))
-    throw new Error(`figures: missing shader chunk ${needle}`);
-  return source.replace(needle, insert);
+  return patchShader("lab figures", source, [[needle, insert]]);
 }
 
 /** The figures' material: per-vertex colour and PBR, a cloth weave, a rim. */

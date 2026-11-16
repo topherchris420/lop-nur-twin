@@ -36,6 +36,7 @@ import { strokeAt } from "../../bethesda/fly/wing.js";
 import type { FlyPose } from "../core/performance.js";
 import { boil } from "../core/stopMotion.js";
 import { cross, type V3 } from "../core/vec.js";
+import { patchShader } from "../../gfx/shaderPatch.js";
 import { withCascade, type ClayLibrary, type ClayMaterial } from "./clay.js";
 
 const P = resolveParams();
@@ -105,23 +106,30 @@ const EYE_NORMAL = /* glsl */ `
   }
 `;
 
-const EYE_PATCH = {
+/** Exported for `src/gfx/shaderPatches.test.ts`, which runs the patch against the installed three. */
+export const EYE_PATCH = {
   key: "compound-eye",
   apply(shader: THREE.WebGLProgramParametersWithUniforms) {
     const c = EYE_CENTRE;
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nvarying vec3 vEyeAxis;")
-      .replace(
+    shader.vertexShader = patchShader("compound eye (vertex)", shader.vertexShader, [
+      ["#include <common>", "#include <common>\nvarying vec3 vEyeAxis;"],
+      [
         "#include <project_vertex>",
         `#include <project_vertex>\nvEyeAxis = mat3( modelViewMatrix ) * ( transformed - vec3( sign( transformed.x ) * ${c[0]}, ${c[1]}, ${c[2]} ) );`,
-      );
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\n${EYE_DECL}`)
-      .replace("#include <color_fragment>", `#include <color_fragment>\n${EYE_COLOR}`)
-      .replace(
-        "#include <normal_fragment_maps>",
-        `#include <normal_fragment_maps>\n${EYE_NORMAL}`,
-      );
+      ],
+    ]);
+    shader.fragmentShader = patchShader(
+      "compound eye (fragment)",
+      shader.fragmentShader,
+      [
+        ["#include <common>", `#include <common>\n${EYE_DECL}`],
+        ["#include <color_fragment>", `#include <color_fragment>\n${EYE_COLOR}`],
+        [
+          "#include <normal_fragment_maps>",
+          `#include <normal_fragment_maps>\n${EYE_NORMAL}`,
+        ],
+      ],
+    );
   },
 };
 

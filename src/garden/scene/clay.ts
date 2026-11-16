@@ -26,6 +26,7 @@
  * legs cast real shadows on a pear without a garden-sized shadow map.
  */
 import * as THREE from "three";
+import { patchShader } from "../../gfx/shaderPatch.js";
 
 export interface WindSettings {
   /** Which local axis runs from the root to the tip: y for blades, z for leaves. */
@@ -111,19 +112,20 @@ const DIR_INFO = "getDirectionalLightInfo( directionalLight, directLight );";
 
 function patchCascade(fragmentShader: string): string {
   if (!fragmentShader.includes("#include <lights_fragment_begin>")) return fragmentShader;
-  const chunk = THREE.ShaderChunk.lights_fragment_begin;
-  if (!chunk.includes(DIR_INFO))
-    throw new Error("garden: Three's light loop changed; update clay.ts");
-  const patched = chunk
-    .replace(
-      "IncidentLight directLight;",
-      `IncidentLight directLight;\n${CASCADE_PRELUDE}`,
-    )
-    .replace(
-      DIR_INFO,
-      `${DIR_INFO}\n\t\tdirectLight.color *= ( UNROLLED_LOOP_INDEX == 0 ? 1.0 - gardenNear : UNROLLED_LOOP_INDEX == ${NEAR_CASCADE} ? gardenNear : 1.0 );`,
-    );
-  return fragmentShader.replace("#include <lights_fragment_begin>", patched);
+  const patched = patchShader(
+    "garden (two-cascade sun)",
+    THREE.ShaderChunk.lights_fragment_begin,
+    [
+      ["IncidentLight directLight;", `IncidentLight directLight;\n${CASCADE_PRELUDE}`],
+      [
+        DIR_INFO,
+        `${DIR_INFO}\n\t\tdirectLight.color *= ( UNROLLED_LOOP_INDEX == 0 ? 1.0 - gardenNear : UNROLLED_LOOP_INDEX == ${NEAR_CASCADE} ? gardenNear : 1.0 );`,
+      ],
+    ],
+  );
+  return patchShader("garden (light loop)", fragmentShader, [
+    ["#include <lights_fragment_begin>", patched],
+  ]);
 }
 
 let extraPrograms = 0;
@@ -264,21 +266,38 @@ const NORMAL_BODY = /* glsl */ `
   }
 `;
 
-/** The physical lighting chunk with the soft clay terminator (diffuse only). */
-const LIGHTS = THREE.ShaderChunk.lights_physical_pars_fragment
-  .replace(
-    "vec3 irradiance = dotNL * directLight.color;",
-    /* glsl */ `float clayNL = dot( geometryNormal, directLight.direction );
+/**
+ * The physical lighting chunk with the soft clay terminator (diffuse only).
+ *
+ * Built when a clay material is first compiled, not when this module loads: a
+ * three release that rewords the chunk then fails the one material (and the
+ * unit test that runs this patch), where a throw at import took down every
+ * page that so much as imported the garden.
+ */
+let lights: string | null = null;
+function clayLights(): string {
+  lights ??= patchShader(
+    "clay (soft terminator)",
+    THREE.ShaderChunk.lights_physical_pars_fragment,
+    [
+      [
+        "vec3 irradiance = dotNL * directLight.color;",
+        /* glsl */ `float clayNL = dot( geometryNormal, directLight.direction );
 	float clayWrapped = saturate( ( clayNL + uClayWrap ) / ( 1.0 + uClayWrap ) );
 	vec3 irradiance = ( clayWrapped + uClayScatter * max( clayWrapped - dotNL, 0.0 ) ) * directLight.color;
 	vec3 claySpecular = dotNL * directLight.color;`,
-  )
-  .replace(
-    "reflectedLight.directSpecular += irradiance * BRDF_GGX_Multiscatter(",
-    "reflectedLight.directSpecular += claySpecular * BRDF_GGX_Multiscatter(",
+      ],
+      // The specular lobe keeps the unwrapped light. three r187 computes the
+      // BRDF first and applies its multiscatter compensation after; before
+      // that this line called `BRDF_GGX_Multiscatter(` directly.
+      [
+        "reflectedLight.directSpecular += irradiance * specularBRDF",
+        "reflectedLight.directSpecular += claySpecular * specularBRDF",
+      ],
+    ],
   );
-if (!LIGHTS.includes("clayWrapped") || !LIGHTS.includes("claySpecular * BRDF_GGX"))
-  throw new Error("clay: Three's physical lighting chunk changed; update clay.ts");
+  return lights;
+}
 
 /** Adds the clay changes (and the two-cascade sun) to a standard material. */
 export function clayify<M extends THREE.MeshStandardMaterial>(
@@ -320,22 +339,24 @@ export function clayify<M extends THREE.MeshStandardMaterial>(
       shader.uniforms.uWind = WIND;
       shader.uniforms.uClayWind = windUniform;
     }
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", `#include <common>\n${VERTEX_DECL}`)
-      .replace("#include <begin_vertex>", `#include <begin_vertex>\n${WIND_BODY}`)
-      .replace("#include <project_vertex>", `#include <project_vertex>\n${VERTEX_BODY}`);
+    shader.vertexShader = patchShader("clay (vertex)", shader.vertexShader, [
+      ["#include <common>", `#include <common>\n${VERTEX_DECL}`],
+      ["#include <begin_vertex>", `#include <begin_vertex>\n${WIND_BODY}`],
+      ["#include <project_vertex>", `#include <project_vertex>\n${VERTEX_BODY}`],
+    ]);
     shader.fragmentShader = patchCascade(
-      shader.fragmentShader
-        .replace("#include <common>", `#include <common>\n${FRAGMENT_DECL}`)
-        .replace(
+      patchShader("clay (fragment)", shader.fragmentShader, [
+        ["#include <common>", `#include <common>\n${FRAGMENT_DECL}`],
+        [
           "#include <lights_physical_pars_fragment>",
-          `uniform float uClayWrap;\nuniform vec3 uClayScatter;\n${LIGHTS}`,
-        )
-        .replace("#include <color_fragment>", `#include <color_fragment>\n${MAP_BODY}`)
-        .replace(
+          `uniform float uClayWrap;\nuniform vec3 uClayScatter;\n${clayLights()}`,
+        ],
+        ["#include <color_fragment>", `#include <color_fragment>\n${MAP_BODY}`],
+        [
           "#include <normal_fragment_maps>",
           `#include <normal_fragment_maps>\n${NORMAL_BODY}`,
-        ),
+        ],
+      ]),
     );
     s.patch?.apply(shader);
   };
@@ -369,12 +390,13 @@ export function casterMaterial(o: {
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uWind = WIND;
     shader.uniforms.uClayWind = windUniform;
-    shader.vertexShader = shader.vertexShader
-      .replace(
+    shader.vertexShader = patchShader("clay (wind-bent shadow)", shader.vertexShader, [
+      [
         "#include <common>",
         `#include <common>\nuniform vec4 uWind;\nuniform vec3 uClayWind;`,
-      )
-      .replace("#include <begin_vertex>", `#include <begin_vertex>\n${WIND_BODY}`);
+      ],
+      ["#include <begin_vertex>", `#include <begin_vertex>\n${WIND_BODY}`],
+    ]);
   };
   m.customProgramCacheKey = () => `clay-caster-wind-${wind.axis}${o.map ? "-cut" : ""}`;
   return m;

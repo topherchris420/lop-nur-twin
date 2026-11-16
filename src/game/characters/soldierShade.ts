@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { patchShader } from "../../gfx/shaderPatch";
 
 /**
  * Shade for the single skinned soldier material.
@@ -162,10 +163,7 @@ function replaceChunk(
   insert: string,
   label: string,
 ): string {
-  if (!source.includes(needle)) {
-    throw new Error(`soldierShade: missing shader chunk ${label}`);
-  }
-  return source.replace(needle, insert);
+  return patchShader(`soldier shade (${label})`, source, [[needle, insert]]);
 }
 
 /** Route per-vertex PBR plus the fabric / dust term into a standard material. */
