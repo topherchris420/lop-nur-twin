@@ -219,7 +219,9 @@ function flyMaterials(lib: ClayLibrary) {
         side: THREE.DoubleSide,
         iridescence: 1,
         iridescenceIOR: 1.38,
-        iridescenceThicknessRange: [220, 720],
+        // three r187 split `iridescenceThicknessRange` in two; the old name warns and is on its way out.
+        iridescenceThicknessMinimum: 220,
+        iridescenceThicknessMaximum: 720,
         envMapIntensity: 0.9,
       }),
     ),
