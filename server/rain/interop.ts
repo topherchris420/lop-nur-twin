@@ -170,18 +170,36 @@ export function createInteropHandler(config: InteropConfig) {
           ),
         );
       const sha = String(proposal.sha256);
-      mkdirSync(config.queueDir, { recursive: true });
-      const path = join(config.queueDir, `${sha}.json`);
+      mkdirSync(config.queueDir, { recursive: true, mode: 0o700 });
+      const name = `${sha}.json`;
       let status: "queued_for_operator_review" | "duplicate" =
         "queued_for_operator_review";
-      if (existsSync(path)) status = "duplicate";
-      else if (queued(config.queueDir) >= MAX_QUEUE)
-        return fail(
-          429,
-          "queue_full",
-          "The review queue is full; the operator has not caught up.",
-        );
-      else writeFileSync(path, JSON.stringify(proposal, null, 2) + "\n", { flag: "wx" });
+      if (queued(config.queueDir) >= MAX_QUEUE) {
+        // Full: never write. A proposal already in the queue is still a duplicate.
+        if (!readdirSync(config.queueDir).includes(name))
+          return fail(
+            429,
+            "queue_full",
+            "The review queue is full; the operator has not caught up.",
+          );
+        status = "duplicate";
+      } else {
+        // One exclusive create, readable by the operator's account only: no
+        // separate existence check that the file system could race.
+        try {
+          writeFileSync(
+            join(config.queueDir, name),
+            JSON.stringify(proposal, null, 2) + "\n",
+            {
+              flag: "wx",
+              mode: 0o600,
+            },
+          );
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+          status = "duplicate";
+        }
+      }
       const position =
         readdirSync(config.queueDir)
           .filter((n) => /^[a-f0-9]{64}\.json$/.test(n))

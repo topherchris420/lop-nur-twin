@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  statSync,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -137,6 +138,10 @@ describe("agent-interop/v1 routes", () => {
     expect(receipt.authorizes_execution).toBe(false);
     expect(receipt.status).toBe("queued_for_operator_review");
     expect(readdirSync(queueDir)).toHaveLength(1);
+    if (process.platform !== "win32")
+      expect(statSync(join(queueDir, readdirSync(queueDir)[0]!)).mode & 0o777).toBe(
+        0o600,
+      );
     const again = await body(
       await call("/api/rain/interop/v1/proposals", {
         method: "POST",
