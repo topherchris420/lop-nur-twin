@@ -212,6 +212,37 @@ with provenance and limitations. Tokens are held in memory only. A proposal
 submission needs James's own approval gate first; the Lab's policy then
 queues it. Two independent gates.
 
+### Architecture as built
+
+```mermaid
+flowchart TB
+  subgraph James["James desktop (Rust, topherchris420/james)"]
+    UI["Team page · Lab page"] --> RT["james-agents runtime<br/>step · delegate · approve · recover"]
+    RT --> JN[("team/journal.jsonl<br/>agent-event/v1 chain")]
+    RT --> MP["model ports<br/>Ollama · LM Studio · llama.cpp · scripted"]
+    MP --> LB["james-loopback<br/>(loopback only)"]
+    RT --> WS[("workspace folder<br/>reads · approved writes")]
+    LI["james-lab::interop"] --> LB
+    CJ["james-interop<br/>canonical JSON · SHA-256"]
+    RT -.-> CJ
+    LI -.-> CJ
+  end
+  subgraph Spec["agent-interop/v1 (vendored byte for byte, manifest pinned in both)"]
+    SC["schemas · fixtures · MANIFEST.sha256"]
+  end
+  subgraph Lab["R.A.I.N. Lab (TypeScript, topherchris420/lop-nur-twin)"]
+    IO["server/rain/interop.ts<br/>token scopes · loopback only"] --> EV[("sealed evidence<br/>docs/benchmarks/rain-collaboration")]
+    IO --> Q[("proposal queue<br/>for the operator")]
+    CO["src/rain/collaboration<br/>roster · journal · claim ledger"] --> NB["existing numerical backend<br/>compile · authorize · execute · verify"]
+    CO --> CR["rain-criteria/v1"]
+    CO --> EV
+    OR["Eva · ECHO<br/>(not read or written)"]
+  end
+  LB -- "GET status / evidence (read token)<br/>POST proposal (propose token + person's approval)" --> IO
+  CJ -.same rule.- SC
+  SC -.same rule.- CO
+```
+
 ## 6. Limits stated up front
 
 - No OS sandbox. Bounded tools are enforced by James's host code, not the OS.
