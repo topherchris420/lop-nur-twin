@@ -18,3 +18,10 @@ Protocol `src/rain/collaboration/protocols/collab-eval-v1.json` (sha256 `1aa5afa
 
 Reading this honestly: the arms differ in the window they measure and in the checks they run, and these seats were written by the same team that wrote the benchmark. The table measures those protocols on this deterministic substrate. It does not show that collaboration between language-model agents helps.
 
+## Demonstration B: the natural-frequency assumption
+
+Outcome of the corrected claim C-3 under its preregistered criteria (`assumption-v1.json`): **supported** (passed: All 2 success criteria held and no failure criterion triggered.). Template-window test (A2): passed: All 1 success criteria held and no failure criterion triggered..
+
+Held-out measurements: corrected prediction within one grid step on 12/12 systems, closer than the naive w0 on 12/12; the 10 s template window misplaced the peak on 8/12; records re-verified: 100.0%.
+
+The correction is textbook physics. What the episode shows is the lab's protocol proposing the simplification, challenging it, testing a discriminating design, recording the contradiction and revising both the claim and its own template method, with each step in a hash-chained journal (`episode-assumption-v1.json`) and the sealed interop evidence (`evidence-E-assumption-v1.json`).

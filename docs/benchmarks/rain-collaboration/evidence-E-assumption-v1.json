@@ -1,0 +1,225 @@
+{
+  "schema": "rain-interop-evidence/v1",
+  "episode_id": "E-assumption-v1",
+  "title": "Is a driven oscillator's displacement response largest at its natural frequency?",
+  "question": "Does driving at the undamped natural frequency maximize a damped oscillator's displacement, and does the lab's 10 s template window show where the response peaks?",
+  "outcome": "supported",
+  "claims": [
+    {
+      "claim_id": "C-1",
+      "statement": "Driving at the undamped natural frequency w0 = sqrt(k/m) maximizes RMS displacement.",
+      "author": "rain-james",
+      "generation": "scripted",
+      "standing": "refuted",
+      "evidence_run_ids": [
+        "NR-1a3d76cda097d03c8718a3e8",
+        "NR-91d4b7950d99a50534d2e7ea"
+      ],
+      "open_challenges": 0,
+      "supersedes": null
+    },
+    {
+      "claim_id": "M-1",
+      "statement": "The lab's 10-second numerical template window (scientific/example.ts) measures where a driven oscillator responds most.",
+      "author": "host",
+      "generation": "host",
+      "standing": "superseded",
+      "evidence_run_ids": [
+        "NR-1a3d76cda097d03c8718a3e8"
+      ],
+      "open_challenges": 0,
+      "supersedes": null
+    },
+    {
+      "claim_id": "C-2",
+      "statement": "RMS displacement is larger at 1.9799 rad/s than at w0 = 2 rad/s when the transient has decayed.",
+      "author": "rain-jasmine",
+      "generation": "scripted",
+      "standing": "superseded",
+      "evidence_run_ids": [
+        "NR-889439000c0f142fd098b72b"
+      ],
+      "open_challenges": 0,
+      "supersedes": null
+    },
+    {
+      "claim_id": "C-3",
+      "statement": "Steady displacement peaks at w_r = sqrt(w0^2 - 2 gamma^2), below w0, and a response comparison needs a window of at least 8/gamma.",
+      "author": "rain-jasmine",
+      "generation": "scripted",
+      "standing": "supported",
+      "evidence_run_ids": [
+        "HT-C3-ad1397f597be"
+      ],
+      "open_challenges": 0,
+      "supersedes": "C-2"
+    },
+    {
+      "claim_id": "M-2",
+      "statement": "Response comparisons use a window of at least 8/gamma; the 10 s template is not used to locate a response peak.",
+      "author": "host",
+      "generation": "host",
+      "standing": "supported",
+      "evidence_run_ids": [
+        "HT-A2-ad1397f597be"
+      ],
+      "open_challenges": 0,
+      "supersedes": "M-1"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "NR-1a3d76cda097d03c8718a3e8",
+      "purpose": "template window, drive at w0",
+      "record_sha256": "5c317fe28a484d497651ec73f2cac19c76f967b9c497fd9c47aa0f4cb15d2d56",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "omega_rad_s": 2,
+        "rms_treatment_m": 0.5370294053940075,
+        "reference_max_error_m": 9.395601220651972e-9,
+        "execution_steps": 2000,
+        "duration_s": 10
+      },
+      "replay_verified": true
+    },
+    {
+      "run_id": "NR-76c99aceb17e182333f7ceca",
+      "purpose": "template window, drive at 0.9 w0",
+      "record_sha256": "fef14cb52c2184620dd51e37bab56c4ab41125df117a2ac253df9d7a26b889c1",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "omega_rad_s": 1.8,
+        "rms_treatment_m": 0.5373464823217641,
+        "reference_max_error_m": 8.020637265460095e-9,
+        "execution_steps": 2000,
+        "duration_s": 10
+      },
+      "replay_verified": true
+    },
+    {
+      "run_id": "NR-91d4b7950d99a50534d2e7ea",
+      "purpose": "8/gamma window, drive at w0",
+      "record_sha256": "2180e74c5b53d1df0cbc19057de0fbcfa907d3969fb3ef6e6b758b21be6ca726",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "omega_rad_s": 2,
+        "rms_treatment_m": 0.7961311112794037,
+        "reference_max_error_m": 1.6590300050411955e-8,
+        "execution_steps": 8000,
+        "duration_s": 40
+      },
+      "replay_verified": true
+    },
+    {
+      "run_id": "NR-889439000c0f142fd098b72b",
+      "purpose": "8/gamma window, drive at w_r",
+      "record_sha256": "f0b0716e0b7236cb7cd96dfd5d356229e204fc22dde89ffbcf11487731b1fefc",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "omega_rad_s": 1.9798989873223332,
+        "rms_treatment_m": 0.797581745283291,
+        "reference_max_error_m": 1.6294816163053838e-8,
+        "execution_steps": 8000,
+        "duration_s": 40
+      },
+      "replay_verified": true
+    },
+    {
+      "run_id": "NR-15e362cc2151f2585caaa5c4",
+      "purpose": "replication: 1.5x window, half timestep, w0",
+      "record_sha256": "acdd603fe352e339e544104c3d6e06f9f40d8c9ffd61e151b6d9cff83ed766bd",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "omega_rad_s": 2,
+        "rms_treatment_m": 0.8248102881091026,
+        "reference_max_error_m": 1.0398977234871154e-9,
+        "execution_steps": 24000,
+        "duration_s": 60
+      },
+      "replay_verified": true
+    },
+    {
+      "run_id": "NR-77383f7e93471abb74e18b88",
+      "purpose": "replication: 1.5x window, half timestep, w_r",
+      "record_sha256": "54e84eca6ff54dd0544eb2a8abf780202371491e5912d4057c964ca4fdde3bf8",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "omega_rad_s": 1.9798989873223332,
+        "rms_treatment_m": 0.8324535684242428,
+        "reference_max_error_m": 1.0208029976865873e-9,
+        "execution_steps": 24000,
+        "duration_s": 60
+      },
+      "replay_verified": true
+    },
+    {
+      "run_id": "HT-C3-ad1397f597be",
+      "purpose": "held-out test of C-3 (312 backend runs; record_sha256 is the digest of their record digests)",
+      "record_sha256": "ad1397f597be7357df843beeb52ab0b4f81755c4f9f2252a6dec3be69264160e",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "corrected_within_step": 12,
+        "corrected_better": 12,
+        "template_misplaces_peak": 8,
+        "runs_verified_share": 1
+      },
+      "replay_verified": true
+    },
+    {
+      "run_id": "HT-A2-ad1397f597be",
+      "purpose": "held-out test of the template window, A2 (same 312 runs)",
+      "record_sha256": "ad1397f597be7357df843beeb52ab0b4f81755c4f9f2252a6dec3be69264160e",
+      "status": "passed",
+      "verdict": "supported",
+      "measurements": {
+        "corrected_within_step": 12,
+        "corrected_better": 12,
+        "template_misplaces_peak": 8,
+        "runs_verified_share": 1
+      },
+      "replay_verified": true
+    }
+  ],
+  "challenges": [
+    {
+      "challenge_id": "X-1",
+      "by": "rain-jasmine",
+      "target_claim_id": "C-1",
+      "generation": "scripted",
+      "text": "Steady displacement amplitude peaks at sqrt(w0^2 - 2 gamma^2) = 1.9799 rad/s, below w0 = 2 rad/s; compare those two frequencies.",
+      "resolution": "upheld",
+      "resolved_by_run": "NR-889439000c0f142fd098b72b"
+    },
+    {
+      "challenge_id": "X-2",
+      "by": "rain-jasmine",
+      "target_claim_id": "M-1",
+      "generation": "scripted",
+      "text": "The 10 s window is shorter than 8/gamma = 40.0 s, so the RMS is dominated by the start-up transient.",
+      "resolution": "rejected",
+      "resolved_by_run": "NR-91d4b7950d99a50534d2e7ea"
+    }
+  ],
+  "limitations": [
+    "Simulated evidence: a linear damped oscillator integrated by the lab's numerical backend, not a physical measurement.",
+    "Every seat in this episode is a rule-based policy (scripted). No language model wrote these claims or challenges.",
+    "The correction is textbook physics; the episode shows the lab's protocol catching and testing it, not a new discovery.",
+    "Replication re-runs a deterministic simulator with perturbed numerics; it detects numerical sensitivity, not sampling variability.",
+    "A digest shows a record is intact, not that it is true. The lab's authorizations here are scripted demonstration authorizations, not a person's review."
+  ],
+  "provenance": {
+    "lab_commit": "060ee4c4ed1a9d473bb6f68c37702ea1cf82d19f",
+    "protocol_sha256": "5428a48c5ab4dd58da8363aadc15e389e0da52ac87ac30554772339c865a980c",
+    "journal_head_sha256": "95f5818b4272fa999ff9a5d93fd549f5bb68ed85e1451f33a83b88b0263abba6",
+    "roster_sha256": "80b4c6987205f1466dafe77ce0e05b3912765d461ced66a0dd6203e03474ab53",
+    "evidence_class": "simulated"
+  },
+  "sha256": "7765daf106a7308863a24fe62465435cf310a8d71d00aad3ddff1483d11356be"
+}
