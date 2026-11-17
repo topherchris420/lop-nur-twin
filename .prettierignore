@@ -168,3 +168,8 @@ docs/benchmarks/ecology-trace/
 # What the claims register's bindings recompute: written by
 # `scripts/claim-bindings.ts` and checked byte for byte by its `--check`.
 docs/claims/
+
+# agent-interop/v1 is vendored byte for byte into the James repository.
+docs/interop/
+# Written by scripts/rain-collaboration.ts.
+docs/benchmarks/rain-collaboration/

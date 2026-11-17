@@ -11,6 +11,7 @@ import { MAX_BODY_BYTES, createJevDecisionHandler } from "./server/jev/handler.j
 import { createLlmDecisionHandler } from "./server/llm/handler.js";
 import { createGlideDecisionHandler } from "./server/glide/handler.js";
 import { createRainHandler } from "./server/rain/handler.js";
+import { createInteropHandler } from "./server/rain/interop.js";
 import { isAllowedApiHost } from "./server/hostCheck.js";
 import { configureRuntime } from "./src/rain/runtime.js";
 import { LIMITS } from "./src/bethesda/rain/contracts.js";
@@ -207,6 +208,39 @@ function rainApi(env: Record<string, string>, typesafe: Record<string, string>):
 }
 
 /**
+ * Serves `/api/rain/interop/v1/*`, the optional agent-interop/v1 interface for
+ * the James desktop (`server/rain/interop.ts`). Off unless
+ * `RAIN_INTEROP_READ_TOKEN` and/or `RAIN_INTEROP_PROPOSE_TOKEN` is set; the
+ * tokens are read here and passed by value, never `VITE_`-prefixed. Only the
+ * local dev and preview servers mount it, so a deployment has no such route.
+ */
+function rainInteropApi(env: Record<string, string>): Plugin {
+  const root = process.cwd();
+  const commit = () => {
+    try {
+      return execFileSync("git", ["rev-parse", "HEAD"], {
+        cwd: root,
+        encoding: "utf8",
+      }).trim();
+    } catch {
+      return null;
+    }
+  };
+  return decisionApi(
+    "rain-interop",
+    (path) => path.startsWith("/api/rain/interop/"),
+    createInteropHandler({
+      readToken: env["RAIN_INTEROP_READ_TOKEN"],
+      proposeToken: env["RAIN_INTEROP_PROPOSE_TOKEN"],
+      evidenceDir: `${root}/docs/benchmarks/rain-collaboration`,
+      queueDir: env["RAIN_INTEROP_QUEUE_DIR"] || `${root}/.rain-interop/proposals`,
+      labCommit: commit,
+    }),
+    16 * 1024,
+  );
+}
+
+/**
  * Mount one decision handler at one path on the dev and preview servers.
  *
  * Every request is held to the server's `allowedHosts` (`server/hostCheck.ts`)
@@ -320,6 +354,7 @@ export default defineConfig(({ mode }) => ({
       createDiscoveryHandler(loadEnv(mode, process.cwd(), "RAIN_"), process.cwd()),
       2048,
     ),
+    rainInteropApi(loadEnv(mode, process.cwd(), "RAIN_")),
     rainApi(
       loadEnv(mode, process.cwd(), "RAIN_"),
       loadEnv(mode, process.cwd(), "TYPESAFE_"),

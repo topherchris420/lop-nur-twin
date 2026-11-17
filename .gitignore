@@ -88,3 +88,6 @@ fly-neural/*.egg-info/
 .fly-homeostasis/
 .fly-feeding/
 .fly-lifetimes/
+
+# Proposals James submitted through agent-interop/v1, for the operator to review.
+.rain-interop/

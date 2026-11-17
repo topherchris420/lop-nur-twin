@@ -110,6 +110,8 @@ for (const variable of [
   "RAIN_LLM_API_KEY",
   "RAIN_OPENAI_API_KEY",
   "RAIN_REGISTRY_SECRET",
+  "RAIN_INTEROP_READ_TOKEN",
+  "RAIN_INTEROP_PROPOSE_TOKEN",
 ]) {
   const value = (process.env[variable] ?? "").trim();
   if (value.length < 12) continue;
