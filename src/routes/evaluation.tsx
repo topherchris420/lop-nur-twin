@@ -48,12 +48,17 @@ export const Route = createFileRoute("/evaluation")({
   component: EvaluationView,
 });
 
+/**
+ * Blacksite runs are archived under date-prefixed directories (20xx-...).
+ * Other research programs also write evaluation.json with different schemas;
+ * those must not appear in the Blacksite archive picker.
+ */
 const ARCHIVED = import.meta.glob<{ default: unknown }>(
-  "/docs/benchmarks/**/evaluation.json",
+  "/docs/benchmarks/20*/**/evaluation.json",
 );
 /** Shadow agreement written beside an archived evaluation by `--shadow`. */
 const ARCHIVED_SHADOW = import.meta.glob<{ default: unknown }>(
-  "/docs/benchmarks/**/shadow.json",
+  "/docs/benchmarks/20*/**/shadow.json",
 );
 /**
  * The decision records archived beside each evaluation, one `*.eval.json.gz`
@@ -63,7 +68,7 @@ const ARCHIVED_SHADOW = import.meta.glob<{ default: unknown }>(
  * because each entry is only a URL string; a lazy one cost a chunk apiece.
  */
 const ARCHIVED_DECISION_URLS = import.meta.glob<string>(
-  "/docs/benchmarks/**/*.eval.json.gz",
+  "/docs/benchmarks/20*/**/*.eval.json.gz",
   { query: "?url", import: "default", eager: true },
 );
 const ARCHIVED_DECISIONS: Record<string, () => Promise<string>> = Object.fromEntries(
