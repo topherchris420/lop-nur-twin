@@ -1,0 +1,104 @@
+{
+  "schema": "rain-collab-assumption-protocol/v1",
+  "title": "Is a driven oscillator's displacement response largest at its natural frequency?",
+  "assumptions": [
+    {
+      "id": "A1",
+      "statement": "Driving at the undamped natural frequency w0 = sqrt(k/m) maximizes RMS displacement.",
+      "origin": "Proposed by the hypothesis seat (rain-james, scripted) as the common simplification under test."
+    },
+    {
+      "id": "A2",
+      "statement": "The lab's 10-second numerical template window (scientific/example.ts) measures where a driven oscillator responds most.",
+      "origin": "The lab's own existing numerical template; its compiler already states that the RMS includes transients."
+    }
+  ],
+  "exploratory_episode": {
+    "oscillator": { "mass": 1, "stiffness": 4, "damping": 0.4, "force": 1 },
+    "note": "One fixed exploratory system (w0 = 2 rad/s, gamma = 0.2 1/s, damping ratio 0.1). Its runs motivate the correction; they are not the test of it."
+  },
+  "correction": {
+    "id": "C-3",
+    "statement": "Steady displacement peaks at w_r = sqrt(w0^2 - 2 gamma^2), below w0, and a response comparison needs a window of at least 8/gamma.",
+    "status_of_physics": "Textbook result for linear damped oscillators. What is tested here is whether this lab's protocol catches and confirms it on unseen systems, not whether it is new."
+  },
+  "held_out_test": {
+    "systems": 12,
+    "seed": "unsigned 32-bit integer from the first 8 hex digits of sha256(protocol_sha256 + ':held-out:' + i), i = 0..11, protocol_sha256 being the canonical-JSON SHA-256 of this file",
+    "generator": {
+      "random_stream": "mulberry32(seed), draws in this order",
+      "mass_kg": [0.5, 2.0],
+      "omega0_rad_s": [1.0, 3.0],
+      "damping_ratio": [0.15, 0.35],
+      "force_n": 1
+    },
+    "grid": "drive ratios u = 0.80, 0.82, ..., 1.04 (13 points) of each system's w0",
+    "long_window": "max(8/gamma, 20 periods of the lowest drive), timestep at 2% of the fastest rate",
+    "template_window": "10 s, dt 0.01 s, sample every 10 steps",
+    "measured_peak": "the grid ratio with the largest RMS displacement in the long window (u_long) and in the template window (u_template)",
+    "predictions": { "naive": "u = 1.00", "corrected": "u = sqrt(1 - 2 zeta^2)" },
+    "metrics": {
+      "corrected_within_step": "systems where |u_corrected - u_long| <= 0.0201",
+      "corrected_better": "systems where |u_corrected - u_long| < |1 - u_long|",
+      "template_misplaces_peak": "systems where |u_template - u_long| > 0.0201",
+      "runs_verified_share": "share of the backend records that re-verify"
+    },
+    "criteria_C3": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "records_verify",
+          "metric": "runs_verified_share",
+          "op": ">=",
+          "value": 1
+        }
+      ],
+      "success": [
+        {
+          "id": "within_one_step",
+          "metric": "corrected_within_step",
+          "op": ">=",
+          "value": 10
+        },
+        { "id": "beats_naive", "metric": "corrected_better", "op": ">=", "value": 10 }
+      ],
+      "failure": [
+        {
+          "id": "no_better_than_naive",
+          "metric": "corrected_better",
+          "op": "<=",
+          "value": 6
+        }
+      ]
+    },
+    "criteria_A2_misleads": {
+      "rule": "rain-criteria/v1",
+      "note": "supported means the template window misplaces the peak (A2 is refuted); failed means it does not (A2 stands).",
+      "guards": [
+        {
+          "id": "records_verify",
+          "metric": "runs_verified_share",
+          "op": ">=",
+          "value": 1
+        }
+      ],
+      "success": [
+        {
+          "id": "misplaces_often",
+          "metric": "template_misplaces_peak",
+          "op": ">=",
+          "value": 4
+        }
+      ],
+      "failure": [
+        {
+          "id": "rarely_misplaces",
+          "metric": "template_misplaces_peak",
+          "op": "<=",
+          "value": 1
+        }
+      ]
+    }
+  },
+  "reporting": "The exploratory runs, every held-out run digest, both criteria outcomes and the claim ledger are written to docs/benchmarks/rain-collaboration/. A failed or inconclusive outcome is reported as such."
+}

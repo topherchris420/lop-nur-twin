@@ -1,0 +1,938 @@
+{
+  "schema": "rain-collab-episode/v1",
+  "protocol_sha256": "5428a48c5ab4dd58da8363aadc15e389e0da52ac87ac30554772339c865a980c",
+  "roster": [
+    {
+      "responsibility": "hypothesis",
+      "holder": "James",
+      "agent_id": "rain-james",
+      "why": "Lead Scientist and pattern-seeker in R.A.I.N.'s team: proposes."
+    },
+    {
+      "responsibility": "design",
+      "holder": "Luca",
+      "agent_id": "rain-luca",
+      "why": "Field Topographer / Theorist: shapes the geometry of a test."
+    },
+    {
+      "responsibility": "criticism",
+      "holder": "Jasmine",
+      "agent_id": "rain-jasmine",
+      "why": "The team's sceptical devil's advocate: objects before anything is believed."
+    },
+    {
+      "responsibility": "falsification",
+      "holder": "Jasmine",
+      "agent_id": "rain-jasmine",
+      "why": "Designs the experiment most likely to prove the claim wrong."
+    },
+    {
+      "responsibility": "verification",
+      "holder": "Elena",
+      "agent_id": "rain-elena",
+      "why": "Math purist: re-checks records, digests and numerical error."
+    },
+    {
+      "responsibility": "replication",
+      "holder": "host",
+      "agent_id": "host",
+      "why": "The host re-executes on fresh simulators with perturbed numerics."
+    },
+    {
+      "responsibility": "memory_revision",
+      "holder": "host",
+      "agent_id": "host",
+      "why": "The host writes the claim ledger; revisions supersede, never delete."
+    }
+  ],
+  "roster_sha256": "80b4c6987205f1466dafe77ce0e05b3912765d461ced66a0dd6203e03474ab53",
+  "provenance": {
+    "commit": "060ee4c4ed1a9d473bb6f68c37702ea1cf82d19f",
+    "platform": "linux-x64",
+    "node": "v22.23.4"
+  },
+  "outcome": "supported",
+  "c3": {
+    "status": "passed",
+    "verdict": "supported",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "records_verify",
+          "metric": "runs_verified_share",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "within_one_step",
+          "metric": "corrected_within_step",
+          "op": ">=",
+          "value": 10,
+          "observed": 12,
+          "holds": true
+        },
+        {
+          "id": "beats_naive",
+          "metric": "corrected_better",
+          "op": ">=",
+          "value": 10,
+          "observed": 12,
+          "holds": true
+        }
+      ],
+      "failure": [
+        {
+          "id": "no_better_than_naive",
+          "metric": "corrected_better",
+          "op": "<=",
+          "value": 6,
+          "observed": 12,
+          "holds": false
+        }
+      ],
+      "summary": "All 2 success criteria held and no failure criterion triggered."
+    }
+  },
+  "a2": {
+    "status": "passed",
+    "verdict": "supported",
+    "evaluation": {
+      "rule": "rain-criteria/v1",
+      "guards": [
+        {
+          "id": "records_verify",
+          "metric": "runs_verified_share",
+          "op": ">=",
+          "value": 1,
+          "observed": 1,
+          "holds": true
+        }
+      ],
+      "success": [
+        {
+          "id": "misplaces_often",
+          "metric": "template_misplaces_peak",
+          "op": ">=",
+          "value": 4,
+          "observed": 8,
+          "holds": true
+        }
+      ],
+      "failure": [
+        {
+          "id": "rarely_misplaces",
+          "metric": "template_misplaces_peak",
+          "op": "<=",
+          "value": 1,
+          "observed": 8,
+          "holds": false
+        }
+      ],
+      "summary": "All 1 success criteria held and no failure criterion triggered."
+    }
+  },
+  "held_out": [
+    {
+      "system_id": "research-oscillator-c820de2a3767",
+      "oscillator": {
+        "mass": 0.878482,
+        "stiffness": 7.19034,
+        "damping": 1.02435,
+        "force": 1
+      },
+      "zeta": 0.20378735337696272,
+      "u_long": 0.96,
+      "u_template": 0.94,
+      "u_corrected": 0.9575705870625026,
+      "run_digests": [
+        "70d2b79131c46c4ae1d7ee2576ac6fc8b306746f87aa236d9fbcc151786feee7",
+        "5b3449e01070132b97b9e157521700804ba7c2f5c9ffe1f777265b1be6f30272",
+        "44cf366125e5d2fe3785015f67632e3ff60d3336b4d3014f8d112aded79fce2e",
+        "e8697310c00624d49c0922c8b9b26b486a0c79284b291744b62076ccbe6528d2",
+        "463da5ce7f8185971b7be05e86fb58d94f531d9a8582c10536caeab62fc161c2",
+        "a94a14fac0902afd9ae8baf7eca8c8d68ec114ac508dd9c4531c2335730b7c87",
+        "be128b6165568b6675b93b4a727b23c17e4164d222663666d651fce0db622884",
+        "91eff72dd86d3ec58d32561ee2545818b656dc28fff2def146be93e368ca640f",
+        "a71803a88b5a8b951592924e8de485a1a5c13e1bc92ae6497d085398e805c76d",
+        "b6c9a466f5e9d964e3ae66855d8ac5e4456ef9f4c98a776c3b6ad32ccac365ff",
+        "6a17bda9931fc795c1ad3aa6e745b01342dde45d5001d4a8bd1beb984a864c56",
+        "dae819b1ee7792cad2a89f54d4f10d346b8cf8b8b99a778b13593fb23ccbfc93",
+        "559fba79840df3026393b2b3e0d1bca275af8649cd7396c65ae68b5392408cc4",
+        "59ab4d9275c745893ae477269c5efbb72978e2eeed65bc35be7efc1a01ba12dd",
+        "26f033aaa4eec420715f73b3c74232387ad1b8253775e82f2a84ea019f58fd4c",
+        "fa1f101f8b815a80cb53dabdc0dd9edc389ca1b7a602f2d14311bf1c4d2c28a7",
+        "fdd3b1ee4f1416ee3423cb57dd8534b5a0e85e0d613fe817f1ec0bc2702b1592",
+        "a43dfedab374ebfc48fd33b1f63c068bf965984b36258c747a66019dbed81e5c",
+        "bcd1dbe9bff937470f38f9b83c8990c735e88540f2f1f36fe8590d91a9729774",
+        "0d233ceb928b8a06db5e8d67bd609c9df06ac5c09a6be95446ef46cd8ea1e5af",
+        "ef2e268d415e64eb81d79e7d3dc1789a37603ff33f9a1b7980c88a152fb88072",
+        "948eb069739b839d653d898c416c0520bd88abaec616177902beff815caeea82",
+        "4cbec96a40ec77305863c54d15030bfcc235cba77d15d2417be6592bf7703046",
+        "22ebca007e38a4e80582c81ea30339c74c076c410999579514929ee2e00195e2",
+        "3b591fa26e44d295adf012b9f724434ce7ddcaffd1411e5440b19f273770085b",
+        "10d0d50e4d5332a8a754990cc339511a025067246395a17a49182514efb47bcf"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-001ec5501338",
+      "oscillator": {
+        "mass": 1.08362,
+        "stiffness": 4.29922,
+        "damping": 0.665319,
+        "force": 1
+      },
+      "zeta": 0.1541226932847201,
+      "u_long": 0.98,
+      "u_template": 0.9,
+      "u_corrected": 0.9759571664931449,
+      "run_digests": [
+        "c915d909c525e9f70c2d9d03d4ec38e6d8a9810a706ce08b34ba76f48daf5c30",
+        "ba73e1383fff468acb34a7fe835076e921a0d88cc5a6352e11cf5bff50f2490c",
+        "7d08ed7bfb80b41663354d77a913c58027a1cb59dad748104d42508baa43caa2",
+        "74166280c51bea32109e9c451826474cd4b6811a7d60387e612664c2a23a9f6c",
+        "f58e84bab0824872d7605f4add6b41319a7cf34128053cc184846ed6dfed3a80",
+        "4768c318ec9d9afeecaffaf1342d41b98693a8462b53ed21ac9a3da0c0b83805",
+        "f9835589e9e85616da615154b3fbc3af19c1b0ca85c2a955d00ad1983791e46a",
+        "fb81e02b678b99cd37b77f6887dd9919a5f2b4a880befd2f290a144e41f2824c",
+        "b59a571ed5fec123330e8e367330edb24916f353bb76b899ed08ea2c30e71922",
+        "1321575086da37a333d685e7f39bc3cc7ae8ed83d20bdda67a3a50278c5b02a6",
+        "4d00d73abb150326fc1978eb9c064b210326c219a24d96cd883b42b8a8f0f370",
+        "240fe7b34d8941234d6405a35baf8dc550800787b86d1cf17da333eb44c848cf",
+        "5db83c4253609cac250bb4242fcaa143c210bece3dae5461c1d5b144bfd32be3",
+        "2cf0284d8f37b0ac916b5089c8e9423474986ebc229bffb8b008258b691759df",
+        "cebf22bd774a4b80ee44c9b941b1fda3765a4f4fd5b6f3d6b39c90f12d6a947a",
+        "3131a336b81b8fc70149f8c5b0d33cc9d4a1be6fe01a095ddb20aebbcc000ffe",
+        "5bca5765694ca6ff6fb6cb1040eeea050607e488086b6aadcf942f9f1f00fe29",
+        "d5485d840d6420e724ea45d94c3a37a8d5423a28afbdee24c1ef074296663362",
+        "303ec12c97d710f7b3300e219bfa94e311f64273ccef349503cbc1f8ff768b79",
+        "ff950fe55cb3cad1d590582e8e6d0b92abd708574953750d49430e2d80ff703b",
+        "75997612c4489cc91a6d6fa758c8e6370caa8a01aed635b5dfeb52234c9e715b",
+        "7a6c7951d04cf2575bd7bff353e6ec3be01827c2249ac6b42971f9f5cf3f4bab",
+        "1eb7be3be7f7462906b6af02d5e63ef43cce08a3e5cbfc5bb68afe4ac52b5eb0",
+        "bd1b4810aebafd73c2b3a5c361f54673274ab4519492b595c8596a77494ec161",
+        "c2523cb01b55429aa41f251f602c5ee2d348e502a2a062bcfcc93ed8703449da",
+        "48e888d85789b094c76ed9c88971ea70c2a9829d3b350ff22f958cfddefcdb4b"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-29261fa13be0",
+      "oscillator": {
+        "mass": 0.665884,
+        "stiffness": 0.831879,
+        "damping": 0.312621,
+        "force": 1
+      },
+      "zeta": 0.21001909460654822,
+      "u_long": 0.96,
+      "u_template": 1,
+      "u_corrected": 0.9548737926036568,
+      "run_digests": [
+        "788eea02331c166bb6554bc333a313b82155f91ccfaa92ad91f8098ecec01a0f",
+        "297a1b524c4603bc25ff7b4eb51e0942da170d06138a48c1393bcc3549477be1",
+        "340d33c479d5cb87491a88073fd44d943d95ace4cb6e21dd7402c90b0391ce53",
+        "dc5fc60e06f859f36090b99343ba8f3d401cf06480013f42877e5b0095f9a843",
+        "1ff74b832554f4b106f22d3b61beadba44ef9e3f3be2a89dcc777d39880c7e4a",
+        "947189d8bdbd2a0ab867ced40a2f4af0555a592b33ec458bcae0846d2510a3e5",
+        "cc70c56f3bc00b6f8e9dc743deddc8e440a65c64892a682144b73cd60caac646",
+        "67519123a34e1c5ba53be683f57a070a75a209e49fa97f179c002af19b671531",
+        "bb292b3079b0bec896df98e300f553e847aed20dd71bf22110b16d19929b9966",
+        "14fc208c17213686ed07f6f509646e8a567234f7e7f76f8a679eeb8f0d2aba33",
+        "ae9942b163fd09f9cac996c5ca1a7d04ceb8ff4a27098cc990daa04503158c3f",
+        "300600d05a2645853455f80a370ab1c5ca7c0a8452e1c351b68978759ea60bff",
+        "b90a96a5ab01ba66f811d21664b29db8c2944c922052bcd54c16d60176cee95e",
+        "b02b476adf266bf2d2ad37b2dc1b95d851c73a1b20e455924fdf2504bdd8b8e8",
+        "04dadbeaaf3630393997afa1db7c67d5d994975a394b13fd3e159581dcf52b93",
+        "b3eab8200176c5473e647003c184e60f4dad87304d28b398ae803985275adf26",
+        "3dc19584cd0c46605076a39792d01a6df895ae07ad4cbdff48f61a6edf9e403d",
+        "530aca0457c503ebcc953fdbb994f8bfa1aa4e31a8f8f1cffe1fc0cffcbace3b",
+        "a0827c8f664300190f16ad653f7cfef7c7ba478c2ff6334406bac198447e7363",
+        "a713c8fbd0e2b4edbc5d63574ff74f56f98d8af710eb493cd569ce0e565ca801",
+        "088ce1bcd732bc08ca0ab673803a56d77cd8730a9d2df42e2c1bb91925ddd165",
+        "12e54ef8b35fcab93d91acf278a94c3a8e55a110fe2ad44dea0d6fbfade04f07",
+        "360cd2d63d09e3be785760b78137d580417cde9082bdeb005062d86597c4581c",
+        "807dee766e9c6e40dfc334b55760a67fb41dee28adfa66d607d276da73100fe2",
+        "c896aaa0d17e77f7fa8d5496ad32538059c3c9fe16c85eac390eb12ea45b56cb",
+        "44ed503767910e9ff12fba2cd5beb730835512e13005406e0c6234fa7c6a40f8"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-d462be89f006",
+      "oscillator": {
+        "mass": 1.71198,
+        "stiffness": 5.74968,
+        "damping": 1.33278,
+        "force": 1
+      },
+      "zeta": 0.2124013587531317,
+      "u_long": 0.96,
+      "u_template": 0.96,
+      "u_corrected": 0.9538193359329884,
+      "run_digests": [
+        "67649848675ed4a351f772cbe7a72dc9d3927216960b877f0a641604c1bf2a99",
+        "da5f6d7af86be49b913bd68132b9c7b4af4800541c8319f4c7a07597766f241d",
+        "7283819262b9d1d1fc2c7ef916bca263a524ed85ba2738f30e6b38f1302c3df2",
+        "b217e32a4afaac77c4b9486ae7418c96f1674ca409bf707a03d621b9f77d18d8",
+        "bd6f941f2207d13332388a89dc78b392fd579af47caa0664654cb099d1828d5a",
+        "bbf1ec2ee2fc0bbb5071d54e4e8b70daf96383402f4fb0efd5a727af1f3f5193",
+        "9c51887aecf17ca8cdd512abc2ea7377d7654a07dc04bc428ba1a91adde3aace",
+        "c42f338aeb71ece466e292d9782903935848d91379b5b43f334751d76f85be50",
+        "08fd91f602f9a8312ff5449261955ecffc9dfeab059914e5f7f47f1dd51f03da",
+        "2866e0b7461761e264ff2ccb56f2241bf002881b0f6d15335e85ea64a22ad449",
+        "bd9223cc7a7b439ae6118ebdf451c59f9bcf043740dd479fc53ba5fa6fd17b3c",
+        "dcacafe687ed206f0f998b6abf6650ffe4c5ea4082e49d9ee879e39d4e85db8e",
+        "c99b2a67711106311b4d2eaaea10a3ad5b7098cdc2a6004f5bbd34a3837a15bb",
+        "1d00fddd541614ec10e8b06c690e531661d9da81c6ce64093ec627dfcb3c1e48",
+        "d75a0432d645f678f898c9fe565648cc54aff664c979eea1256b67df98561e61",
+        "0f2132893c2edabbc2671f2e43b687f4e86c182d91fef85ae731db56dcc9d0bb",
+        "2ad0aa5d6c09bae84669320d6698bdad9b7a3af28b2c33b1e236f3e0385e1ecd",
+        "6bd770ead5774e86bbf6a6037cbb774aa760f2209a504eba880ad5354bda7d27",
+        "ea817b67cb44b14777e93496c41eeda62d1f72353ec1a0236aa750363643abcd",
+        "ded6478bbe5fe581ae2c5adfd3fb93be6fd672de6eb1c744cbe69139306e3915",
+        "e70f758e536f0d25225f206888a8e6e5410643d03e27503c310bcc1dbc7896f9",
+        "17ae0c76b146ec8f24c6fd18ad6b1503cada16254d1ab13bdf8605b3c9a37826",
+        "18a852f3a226712612ea20d1a4ae46a03d1a7ad8b4c4c1d8a9a6e9be50ed9168",
+        "0e1b2dd79d7ce4c54f0bfba47d9e7d085a4b9e0d173c1f133dc3812b7e41b01f",
+        "9572ae68ef5b25afa3e7f2177b1c3844d92fa4272889452f029f9ff08a3c6612",
+        "48f480cf78fbedda75b6535781abcf20403db33257cffb9822db103ebe98224e"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-e4edc4b417c3",
+      "oscillator": {
+        "mass": 1.38113,
+        "stiffness": 3.75972,
+        "damping": 0.978846,
+        "force": 1
+      },
+      "zeta": 0.21477777750745874,
+      "u_long": 0.96,
+      "u_template": 0.88,
+      "u_corrected": 0.9527544345621872,
+      "run_digests": [
+        "8d827a67a2bdb5d2694eea9b480a6c5d693488b3159077c585a7f54526faedb6",
+        "67e60142d62e3d6f57044e6bcf7feceb5dfca49ca24ae074f4ba2bef01b51093",
+        "fd075f31ce9f0f515114a47e97aabf4b7335222becd0909c524e376afa223559",
+        "96c016282b02c52f00a77280387209701d21189c7f69c6e22b737f2536c29b91",
+        "3d094deccb136c2c9c8de08d634cd2ba3599aa85c35a5506c8d42d6641fc2054",
+        "6ddbe052d57b57928ae418c8d080ba46f310ed85d0183e33abd08da066ccbbec",
+        "b81ced2be5ad6057238f85e38ba55b74a0a907bddbcc0d89151c3074f2376dd6",
+        "76ff43a2b2503fc0fc3cd6f01cdbc29a08faf14bd363987ce0127e9d99a13ef4",
+        "18116aa65160b5fb010dda59abab3dc5f1bf7eadfce8985deefbf9972502e118",
+        "5f55eed3533317c50c5c60fff57e6cf16544c5d08da59b7be119d094a32170bd",
+        "b7b1f3055b27abc5b7b3c3c02fd9cac04a063549f856953acfb9141a968248d4",
+        "884da972d72487a5df400d09964f89f4bbf2d16a76edebd6574277a96d91e461",
+        "2cfd2294e6b2a3aef417ca45e8af1c1d01ea60bb14b530a58b72be7dee2ddfcd",
+        "b6b6632f519e1eac01238fc68acf7dd647c5d398023497fdf7091b45d56f12d1",
+        "d25dba691f672b25e9f6849c3c9f344e3a94d6c26e278a19e37d83ff942ddae3",
+        "f603808e7adedf9f68576d74c7377355704b8f11d769dacd39bccde8e0d98f48",
+        "14477b6dac0308b50d50a571de0c590a3e6fe1b6c2b2df2d026b52fac7bf3ac1",
+        "008c6f39a9ed3b2b7ba34202e5283a3b9a20ee721256dacbbcf11b1ad2f7693b",
+        "33787e22411fbb265dc981b716aac82f7aefc6a847d71c43147de54402954de4",
+        "7d7b38e295b55f8d8cf94ba0452d434b7603c8a329e3a1cb7b5afe59ca16f082",
+        "2eca180b07767c1e080b4c22b9ccebbc7403e5279eaa1688d41949676b4501c0",
+        "a5bc044ab2f737548a5261f669b5716b65ceeb9a9296ab13aaa971de7917c6f1",
+        "e9f3c586389718a47531790d1efc7e6866f4c83532374940f49f63cded9496a3",
+        "88825d06d99b134521c94fcbbc9db8d87520b551817bfabdf25333ae963c7a4f",
+        "f688790a0d34785adfb435b72ec7848eda652e0414017b8fe66d5a3499524258",
+        "5eb23ad7215bac52079c282d6397c405771182fc5fbcf2c507fab608739f571c"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-5beabf9c7c6a",
+      "oscillator": {
+        "mass": 1.37239,
+        "stiffness": 6.61168,
+        "damping": 1.99404,
+        "force": 1
+      },
+      "zeta": 0.3309856649858425,
+      "u_long": 0.88,
+      "u_template": 0.8,
+      "u_corrected": 0.8836837551679669,
+      "run_digests": [
+        "a80d34ef1c6e71f2dba1e26a79b08714dd313de038532a5cf8c95fd512e24224",
+        "c22b72dea062508684341872454d6d3eabb7f90d350efe54ca41ec7dfac60250",
+        "02414684cd39a942754fa788b51979216d07a29103f676a86efc4b5a1573ba2d",
+        "1a6634fc240e48158befe41df2651707d922cda8d6c6e4f41d8a112572ecab24",
+        "dfeccedecc961a581ed3be143dfd91f3f7fa28e1e8191c9c38516a13b2e630f9",
+        "6b2068a9d8ed5c918e72f715040867d269f1d23fb6426b5a35bf704d0b65fa21",
+        "c23c8f526bca347cf04726c65c57d7155ebb283f80763e687e514939fc9dc966",
+        "85891d09f9302790625e81f7f76c52568af185485deb2acc7facca47d020eb86",
+        "25a9fadb9ce36f9b4eef447d90043779a693914be93ae93f08e75c4eaa99d96e",
+        "304b483c80fa5c823130cab89c55d475d9c73202719eb95fdbe686f50d704dcc",
+        "d5c5ff1b2633f2b33ca482c38011d32a3bf94f96e31595cafb41a823aa0e887e",
+        "a6cc2048d6007ed626efa47d630f5e0e67627ee6b9db1837114dce9b0dde78f8",
+        "3f7443a2f3f8b3404bf0317df419b063af90e9c5df88cc65c40659276e07cf19",
+        "31f2a1a5dc974e2803b3c9591fb2047a8012636685ffecb2afd79e4e642a8726",
+        "8f6a43b2217d1a29dbb7e94f8ce752b2960478a29e98e5cbd8afabf65a93bec3",
+        "eaa084b65ea8d67bb377983a9b8a533fcbf90b5033effdd2c26cc20b6f33e07f",
+        "8f2d1274c0fa19400724e22bab47c6ff3bc21c21e0b9b8a78c3463d17b093108",
+        "613111b9ae5391f5bf6760f9d38d393431049d9aff352ec87a843f180a049069",
+        "924698faa407237b5f76c8bf3132079823d4db73741c149e09b57dfe025aec27",
+        "062dee52b7c56839d86a12cf1a5c74ef7afb0cf0bea635d96c0ef89126e21008",
+        "58e592ed2c79e060f587339f9079e662ca12757662e47c78519ac3a5df042f9f",
+        "738fde58f67ba191e310ceff5bdc80ef770722e818b3a96b44deb05a0053f777",
+        "c4d7b4680091a9e7385ba0fb03a83de0dda8af8282ca9296d24fdc557e114936",
+        "807309dc853f1ce8580d01633084287ac5ca78dcc48888b9216f444dc720e1b3",
+        "ac20da6378d9e7d1142af7d8d0ce1c9aec4ff1389eaed84ca8d460e688473055",
+        "3c57b471fc6f576ae5d74d62bc133f6220ee44fed8178f75268c95e1e4999541"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-9c1c653e61f1",
+      "oscillator": {
+        "mass": 1.19796,
+        "stiffness": 3.44454,
+        "damping": 0.890074,
+        "force": 1
+      },
+      "zeta": 0.2190833356136466,
+      "u_long": 0.94,
+      "u_template": 0.86,
+      "u_corrected": 0.9507917669567804,
+      "run_digests": [
+        "df62f8350cbe8a4f3f61522a0794670794cb1efc23679a4b2cd1c4ac0b5cf231",
+        "a9da365524d955cdfd2f46b8c0ed21c60a40b6234a805ae804a0623e93423ac1",
+        "f4f00d1a0b420cdc40c117e434369916ff68565613de88fb35b9a84c06e9db73",
+        "de65fe9d473530be797354d7f3aacaf9fcf5b354395ef80356c641f897900493",
+        "27dfc64d729a6176935a94837027c36ef7378687692ed75551d1f2e3467d450e",
+        "0eddba5a5042fb3d44144d484dea29026b5a68453753f3a8fe078b46809100da",
+        "6dff70463861f6fe99efc2294d558e63119e1c1a864f8e43e6a0efca4025363f",
+        "7f79e9425e8d85e777a15fea97218393a630ba5d83e8ad2c138c0becd0142e92",
+        "d06cd911651b7712c4c5375ecc4184e4e59f1e9d9394b5a556c7ccf8ed2524df",
+        "602f6c5b3e1365102c2fa35a804e46b8add479847e4c4d0385192baf424a77b4",
+        "bb0f82d2abf344012f3dc74e6d3e8beb847d2129098a3707d10c85863b0374e8",
+        "a408cec66574dc6b24c8d9d869775ebec1b9c349051b6058249876be2d9747e0",
+        "bed67eb104871b90890d0e30b201cc5813e8e22328a4cf80d70746a64cb27c88",
+        "27d8b03f6bad42267d078011a78d2ea928397091d989cf499f90906c66b392fc",
+        "e25adea7267dc20b1a4a1846416f2cdaf26912bdbffc010ff0422cff6ece31ee",
+        "7660c1c7f9e8bbe1403870f33ccff41045dc0d49541b4d5839e908e46c5fbe80",
+        "a407a62082960222ef9e98a958fc6dd0f5364282cfe939e84b796e9dc4b96424",
+        "20ff5f0d10c580303565068864ad8e26806262cbf4b16c8e49509046d6da6525",
+        "ac228c03b00b05595c3f52c8597b9132ae02b3c61a2f894a5403e462bf880439",
+        "4eeded029f3de0c7948b6930d5ead686eea4200c4ee5e044f30481a05c79218d",
+        "39eb216388dcf301f234bfed4cba3e94a9066ec4434daf3bdd730e58faffa084",
+        "cdff67d4e8b047e157d163e1760d0a68229f81aff516b2c5f059d577f0734220",
+        "d8b36e5f07ecd3ca6d17727c738263c7a9b8f32322f1b83ef0462f5d745c0d7d",
+        "a62eba6bbfce1a48a4ccd4b2b79707079508c796e663c0ac83363a6ba0227b9c",
+        "3a6daf99c209c0f8846ac92984893162bb3c32255722cafb42a98a6b7e7dfd03",
+        "89aba590a9a6dfe63f35d1c20cf6006422578899b8d18496974a60a8b4581f28"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-12a8e5bba5cb",
+      "oscillator": {
+        "mass": 1.73604,
+        "stiffness": 8.22321,
+        "damping": 1.36528,
+        "force": 1
+      },
+      "zeta": 0.18067213568109236,
+      "u_long": 0.96,
+      "u_template": 0.96,
+      "u_corrected": 0.9668066811813342,
+      "run_digests": [
+        "e5379e16ea66ced71debbec08b93a09e0996415fca0ffe45249465de0be26973",
+        "01da180b13ebf0afe123972a03c47849c6f096f4cc6f4c828c0ce1d5fd1e191e",
+        "3a1b6a1ba96655660e61110c0f9faf80860fde7ee2b147fe2d833cc2731a3ed1",
+        "1eac615d5eec2fc964963922087a2b05506f8345db5daf78d8264fd9f4dcbd98",
+        "58d069c0ba949e030ec327d420b127fa8b26ae1fe6146264c5f494b8b642b599",
+        "0b87d952822c38983a0c7c6a33fe451997734f5e2b8de7bc463f8c200b9318c9",
+        "a40f6c0f6f4addc82ebbd24d0accb0e8d2214ceb2e654fecaddcaf8aada9d3e0",
+        "f7cd4d87d9db0baa20c8fa62434e82f0120f5825363647fe8b69d496978013b8",
+        "c980b5353fa83637b32d192192f93d1bea929720c6b2cea35db85fd4c0be4ad2",
+        "51efdb56e5d30a8b63cf925ee9782a6338375b30bb292a703700ac77db8340ba",
+        "56bce234b0926a2496bce35523dacf6f00fe945977e360d2f5cd44b68fd6ece9",
+        "72ddd3ef2eb419b76bb33102bcfc8b7786c21925ef15ce53cec9ef9931b719cb",
+        "9d13fbdf5d43120230016acdfbabd7caede36116f7899fae4a9b3867095dc907",
+        "4f7984de05b77f17435b7fb7a46fd681aae24dc84f8370b7a4e654cb6839db7c",
+        "15e46592d5b40cbadf600c78b2ae63ac79ff5deff34465038a9562e318f05757",
+        "28b1058e0356ec84c6dcb9fdf97d71005e7609e089f31b2b80de8bd0d81dbed5",
+        "ef9b57fc11963a6ad7b0946b4e088304dba68c7c3590908ee7ada9e4193b7a77",
+        "6e79dcf764f4a8878a07e534bf366b92b7aaaa0709ae3b91d9d81803fa8dc285",
+        "1badcccdf195fff65827d88b1b5a450508657a781347d8d24d1d6ca78c0894f3",
+        "8889b057bdd42b3b9e00c6097e460c08304ec7f9708cd8580b526aeabb7a45c0",
+        "3d6d721243176f8560f8181e00cf219fcfd1b26fecc1d2073da55be1d7b4005d",
+        "7434d01a1c88d88eef931aebb2286f917118846b17f7ec1f9f031214db99e314",
+        "e2f645b8c3c1753e094ad81e6eb113aaa9dde3ce2a4cc770934d0074ee007570",
+        "1280e582fd10b3de67099ac9eaf7229b91bc010a135e56fac2add9e0df206515",
+        "01df75ede58cd2f73bb992ebca2d4e2ab715b51f51096e2ad21b75c9513b3b9f",
+        "9b5ce3a7c47afcd91e24fc930e019f9df9c428eca8e1599a3fec58d3c0083ab0"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-b62df44ceabc",
+      "oscillator": {
+        "mass": 1.83229,
+        "stiffness": 5.33127,
+        "damping": 1.70055,
+        "force": 1
+      },
+      "zeta": 0.27204889451291264,
+      "u_long": 0.92,
+      "u_template": 0.84,
+      "u_corrected": 0.9230269757643079,
+      "run_digests": [
+        "07be9c0081c6aca6a09a647883489527bcc448052c02efe5941d20350def4241",
+        "0ea3304f1561daa7030cd7d90d016e07cf185ca7ed40aaaa72d254263c4fd57d",
+        "f147aedf31b6de2d2dc6787d2453882f0a78d74a4268d5f096a754f531b6d9a2",
+        "112a5cc54f013c1bb78516c8b2ec209e3af65d1c0ca1927faa9f3e135159a0e2",
+        "cc3413add01bd4502b6d558ef84d99ad5469574e6c7f69eddc72b27942109ef0",
+        "e20588ed24740e762cab5aed74a2e039592ed2de87c4809abc13b97813b3d16c",
+        "a877f45538c8ee67ade332243fcd84320e4fcb637ff33a9d98936020ce709077",
+        "d3276cb711c4b2e7e1165852eadb039777d8b35028afedaaf2be798e04a15f0b",
+        "b801b898accec3486a1665d1f3f905e4f5548c70b95982d26fec53c3757967a3",
+        "e2a16240ba56653bd7b198a8fbe41abd177c8afd18ecbf6dd9a239b29f2d43b5",
+        "db0fe1125b8b778cbf2347473de83c40a50ba28474c8e0cb1b80a6a7a5901e7e",
+        "3ec646adf20c28e60b1340d74ba231b315cf9d108961f26ad2952336c7378f84",
+        "463b75af8550cc0d2e6096f39cefd083d8afb51d38ba3d849cb7246c6dda4389",
+        "b542a22db2946baed99470908e426c0e6234d19e33980977266f3e96bed3390a",
+        "40438c6e02f54e87bb515f0b0c15e562ea3b19c1d38bfcefe634d9bb94aaf359",
+        "98f3a05507c9b64f90d4108754ee19ae10704cbbabcc304998ed226e1f5f741d",
+        "e59a23d81a857faad1bc513043e2009549ad922285edcf655cf160b7bbcfb8eb",
+        "1038ab44a09b09e4a1de21e4129c75d4de2827885a52d018a2b93c2e57dbd65e",
+        "03e5d1a08c977ceb188f0880ed04487105582d8c9e4bd3c51ed2c9e7f46ed98e",
+        "0268d47d64a8f7c456c661b6ef34d357d939e5acc7753b494644a0795ac04948",
+        "734c3233c2cd6ff28b968055f7463eb2d4a62188de922e294db514a719cefe15",
+        "9a5bd9b07bbd134daf3572c3a2d42fc073187933f850a25c2e349d1be994a887",
+        "80db1aa9ba2b966126b10e0bda2f5e57de9e9e8c44a4a1fd993b52cc187839f7",
+        "0af55ecb3eeeed62120c0ff35592f8eed4b32a7d960ab64200ed07cdf7776e9b",
+        "ea5cc01e535448b3ecdfd0b1410b8f72b615f8f812155477ddadc4f96884f6c0",
+        "6cb3500eda6eab895528a6c3644490f98d6d3357d7d44e7336bb62e64566fac1"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-581014265c49",
+      "oscillator": {
+        "mass": 0.98792,
+        "stiffness": 5.00073,
+        "damping": 1.48164,
+        "force": 1
+      },
+      "zeta": 0.3332998409131914,
+      "u_long": 0.88,
+      "u_template": 0.92,
+      "u_corrected": 0.8819424199427548,
+      "run_digests": [
+        "233e5c59e424e30c0ca9c9b894a79633135e07ca6eb6e9b5d41ecc12cce92883",
+        "a2d365e9e0c90b9f2f25372be724af57ff0dabea299fcfcc75774d817de11fd6",
+        "bf740f884cedd8c1526ca2f62199b7c027378370a870978720182b0d44e39cdd",
+        "4203992cebd443467107aef317ccc5d8ecd6504de99cb961485fee9c030f434c",
+        "85a7d497e9ca54f05bd095f94bf5ee4486497c0ae56dba2cc3e45729d516ee52",
+        "79e51b089dd4f3728a59de88dc06c0d3216170f62282e999ea996b12671ef931",
+        "8ac261c4bac2a736ebded9b8fec98dc4946342097c70c285c4b06d168d6829ef",
+        "549ed54c14bc649df20734061a9e36e6907770ed43a3997228ab34b8b2136619",
+        "ecc263cd73c76a8b043ba7df9b9e33ef96be02c45940c8eeb736faab44aea369",
+        "d4753efc5361240353f9d8320298276acb921eebe47c582e9258d12e0d65a39d",
+        "726c6f1a6e6dd743a96441175c762d5ebd4f02af52176d7634ff405f4d91dc54",
+        "43c06afae39fe3db1e38178e7d1272dfb7af9a1180cfb88697733039c205dbf1",
+        "9ab8a617ed98c24f737b0e336775e3e2d9357b61a2f88347aaec8f273d69238b",
+        "8236b3045f77ef732d1569dc7d37ad815fbe133c87f05fefd425ad97f9e16503",
+        "19c6d99c6bbf212557533abd9c81cc05e546bf74759de1dc9d506ef6b2aa8923",
+        "363f84b928fdd65874b53500e8006120a02a839aef45b1fffce2cdb6a99552f5",
+        "222efde519092ff214ef3515a3c82d111c8ee8f5995ec4f8aeca8b03c07d407a",
+        "3bde0d34c0c74a6dac71c2294a921cd0842f66eaedd68ec2ae639257d08fb13d",
+        "b3f1500e2d2d740486f17e678d301169f09edfc02d08237516f44b2d6ef23d97",
+        "d797fe86372ef79b42673f7efeb7100a1b8c2a59b670a96b0ec393d88a91fb89",
+        "42c54642d00b162a2cf348be2706c65a367287553afec6b874762aa1fa17716e",
+        "33861bfa3a374f2a6d07c1b20827b38b2e54c585b84dc17e4a6fb48de1a840f9",
+        "6a2b7ead3ad6601eddb6775d0b094875686b6fa68fd4becc4267da8251c61d04",
+        "934ccbc5f53d72246ad21c6441f1d5ac45b0f7b225ac2d5b61ffef4e814e22f7",
+        "d8af18f70cba1e46769061f4ef4107657afa3025240963efb0a5680dc91c1250",
+        "c31a77de550ed44c01d5f8b7a4a0fedffaab9daf3da1dada11c5de79d35b90a4"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-75b1a1819c82",
+      "oscillator": {
+        "mass": 1.63628,
+        "stiffness": 5.90338,
+        "damping": 1.19841,
+        "force": 1
+      },
+      "zeta": 0.19279521360544394,
+      "u_long": 0.96,
+      "u_template": 0.92,
+      "u_corrected": 0.9621122653940456,
+      "run_digests": [
+        "eab8940f55da8c6b3ab45a1807306da3109f10fba033e9b97533ce64aeb7754d",
+        "347784c6be10d886dd3ef0d3cdcb13eaacb709a1818895eea938c8e14d7ad534",
+        "1b812f69f0262540732470b2e5769c9645ae50e2c51487a848221ae4f7ca193c",
+        "5f22089696465a0cd528b933de42bdc4a1aa6c6652dd66b73508a33cf76e6edd",
+        "892c766a09563905087ea407dc0055a90bd579539f6168073827085eac467800",
+        "81a6d1c855fb91a17b95d968c42c7963b5d7374d46323a204572e82d05aac47f",
+        "722bb3b15d486be2fb7adc6aa81d07a26df369c0094ae013c52966348292bb66",
+        "32d2bac42aebb1575cb1e8b03886e99de0e8074e4c460e6cf604be0170df55db",
+        "db0de77f4af5d70ba41bf3199f5eef6f85d1a94d0dc51bda03289285cfe816a1",
+        "c22242d8a729c89284c82dabe2974fe7a454567de1b276099787088bdfb97ff0",
+        "42559eea034cf922d70ec048ddca2fec7a051c9e47f85b4d6a76c2dc9c5d2618",
+        "650017896b6662d9583dcc1f2206f14cc68617fae528d72ec0cfa06c0da59049",
+        "87c2f10c1cb67d26b350891ad98d564c95ed1ddad6dd9b3ff75f1dd8072cb8ce",
+        "ab2a4e6c107f64499882083505f98029fda3da2dcc7f0a393919d573106f0714",
+        "3e18d387444faf3549757dd34118807f49bbce15da0f525426b24a8065beb821",
+        "e24bf245ee499042a28a97ea56f3881e0ed116b3e4c25394aa34f9613ce80c84",
+        "e2b38a135346d910229c7f16446ccd629b8617e44734b955b2119ed6330f5648",
+        "bd5f67a1154eca6c9b22a74e00094db7fa4919a0f2d0a4ee76d12dab0eb7b155",
+        "df708aeb80315dfb0aaf4f16e62835a52601379f45a0051d358dc499558ebcc5",
+        "18a27f7f0f20dacb54ff1d66c24bae77acedd673fd6df66353236372fcf33776",
+        "8ec231eaf962814c19b6e416f08c5d9aee688b1ea417e7030a765d2443877055",
+        "e2081b9599c8d277b389e3cc808b70d5b34a1308bac1133402435c97027e257f",
+        "03aab294457d430322b57b0b7c6fd8e7930ef2829d7276572b4185938dcdc593",
+        "4b42576b86b07c22021026b0cef0435186502672c9fb3a819a78f265f6f97837",
+        "0036e3056ac32403071f86f7ad3de9c9f0ebdee73f715a6669f703c12b341d01",
+        "5b63bd1d17cd98dff64675824bbde14cf5c79cda8759e7487cd777a4a3d26b17"
+      ],
+      "verified": 26,
+      "runs": 26
+    },
+    {
+      "system_id": "research-oscillator-68b7eab206b6",
+      "oscillator": {
+        "mass": 1.21819,
+        "stiffness": 4.20142,
+        "damping": 0.945598,
+        "force": 1
+      },
+      "zeta": 0.2089878244526537,
+      "u_long": 0.96,
+      "u_template": 0.94,
+      "u_corrected": 0.9553262157300477,
+      "run_digests": [
+        "ab144b0a2cd097836f9da25e1e966b8af77073b70fcd1b8375cb0fcfe70d3242",
+        "56431f23f24c888c641204e04067960c44defba07561351430c96a47da40d3dc",
+        "b79ce81ec00ac08b9873f3c675e1acc1411339c4a0968849756ca88c4ecb5e2a",
+        "88d2a4b469f67756edc2ed0b37963944fe136a7513825e60dc4d28d30fcdb5e3",
+        "7bc117bebe49d4186ecdb8912bc202d3f43aa3e990e4158c6c2d48045b869d3e",
+        "a2c0ab4a82cfbfe70dff5bb161ab59e780352745d5fecf10c3caeba3e3d2f434",
+        "f80123ec4683fa6e1deb993f688e9405c321f6bf4dc42c06e3bfcc2e769f390b",
+        "480a20dcb3aa79b92eed7ce2b881a748c79586ab64309d99cd197e92f5557dca",
+        "0cd561dea19fe03f88faaf4d8278db06c0682cc12f290ea8219b1185526af4c3",
+        "b3046c19320e99c0739f50572b49b78074a1a34cb2a7014124bbf8b9b83d6c5f",
+        "c513106b75692e1553cfb44e0381130233e69599a3b054776088a5b85084344e",
+        "88bb5fa51aad55626c2c5bf67003fde82843e0c5e1c0807996e350a6aa6202ce",
+        "9d39e359d98ce081fa1b6a62ad8542813d5c5370d83d29feda83763a91c46e45",
+        "ca687add60693025354ed1834a20c8bd1efda42e4cbd136c2054fb876ad72817",
+        "c9f45c6158ce0ef8cdb46410104463f7bbf58a99d3b4ea89b9c79226104cbdda",
+        "8b6fab8bfe21d72069da7f43a1890a40c3dbb9ab076c35572c2761554eb98906",
+        "0f629c11ccdbed7e6e65c5c79ed9c91435e6b92753428e53246db0ac47095bf2",
+        "402ef3f4121072c6943e131cbb297f99182d97c148391751cc2de5373c9ce86c",
+        "c2a52fd4c8d84e2642618bf43d8afd3d521e4ca9309a0009305a88488639304d",
+        "35193bdd2a83129006cae8740c47c3433f56dcaba14011c37a97ecc006f3bb7f",
+        "72500cfd643a88a5d8a7e5b44ab7fa9bd983db03905c37d9afaec1e55a83852a",
+        "f2f7f211ca6d7b4110495165a536553d750516109b18cadb0b22fca456fb147a",
+        "72e45ca53ea94e2996530e3926f9b9f0816e1b217dd33103f0c5af9857b7045d",
+        "0ef6253c7a37f3eee1292a91dac912f6c70e73eccee78512e1d2f0fc20717cd5",
+        "003bb78d062e1ce5cd1e94723c638139837a1fb530b6357f3c6c0ac17b486898",
+        "9924036090019c8860b16c81b5f7290a80816838129647b08fd8bad18a0b5403"
+      ],
+      "verified": 26,
+      "runs": 26
+    }
+  ],
+  "journal": [
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 1,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "episode.opened",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "subject_id": "research-oscillator-6b88a7cffd61",
+        "protocol_sha256": "5428a48c5ab4dd58da8363aadc15e389e0da52ac87ac30554772339c865a980c",
+        "roster_sha256": "80b4c6987205f1466dafe77ce0e05b3912765d461ced66a0dd6203e03474ab53",
+        "oscillator": {
+          "mass": 1,
+          "stiffness": 4,
+          "damping": 0.4,
+          "force": 1
+        }
+      },
+      "prev": null,
+      "sha256": "27c572d50e6b62a80f590800df0270d676dd7fd14190f6bae347ed491d58c266"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 2,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "rain-james",
+      "kind": "message.hypothesis",
+      "task_id": "E-assumption-v1",
+      "generation": "scripted",
+      "data": {
+        "claim_id": "C-1",
+        "statement": "Driving at the undamped natural frequency w0 = sqrt(k/m) maximizes RMS displacement."
+      },
+      "prev": "27c572d50e6b62a80f590800df0270d676dd7fd14190f6bae347ed491d58c266",
+      "sha256": "0655639636c10f655975031f75b4f94c07d95b279d5dd54783731bd391516eb6"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 3,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "rain-luca",
+      "kind": "message.design",
+      "task_id": "E-assumption-v1",
+      "generation": "scripted",
+      "data": {
+        "compare": [
+          2,
+          1.8
+        ],
+        "window": "template (10 s)"
+      },
+      "prev": "0655639636c10f655975031f75b4f94c07d95b279d5dd54783731bd391516eb6",
+      "sha256": "aac7765101647645f2495c9ac5bab0078ac7a2e6d3e672bd8dfe9abf20a9e455"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 4,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "run.recorded",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "runs": [
+          "5c317fe28a484d497651ec73f2cac19c76f967b9c497fd9c47aa0f4cb15d2d56",
+          "fef14cb52c2184620dd51e37bab56c4ab41125df117a2ac253df9d7a26b889c1"
+        ],
+        "rms": [
+          0.5370294053940075,
+          0.5373464823217641
+        ]
+      },
+      "prev": "aac7765101647645f2495c9ac5bab0078ac7a2e6d3e672bd8dfe9abf20a9e455",
+      "sha256": "a52ff06d7f07755a51812a556d7a016a1cfff33d8e976d8037aa476aeccf84b4"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 5,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "rain-jasmine",
+      "kind": "message.challenge",
+      "task_id": "E-assumption-v1",
+      "generation": "scripted",
+      "data": {
+        "challenges": [
+          "X-1",
+          "X-2"
+        ]
+      },
+      "prev": "a52ff06d7f07755a51812a556d7a016a1cfff33d8e976d8037aa476aeccf84b4",
+      "sha256": "f9926460e5f1c7fcca80ef01c149c813f0f2dacbf0ddfe24f8ae87067bc3694a"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 6,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "rain-jasmine",
+      "kind": "message.falsification",
+      "task_id": "E-assumption-v1",
+      "generation": "scripted",
+      "data": {
+        "compare": [
+          2,
+          1.9798989873223332
+        ],
+        "window_s": 40
+      },
+      "prev": "f9926460e5f1c7fcca80ef01c149c813f0f2dacbf0ddfe24f8ae87067bc3694a",
+      "sha256": "0322c1fe3dfa068873c6bd1da458bc799d4733528576763eaf8ec07af32d24a7"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 7,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "run.recorded",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "runs": [
+          "2180e74c5b53d1df0cbc19057de0fbcfa907d3969fb3ef6e6b758b21be6ca726",
+          "f0b0716e0b7236cb7cd96dfd5d356229e204fc22dde89ffbcf11487731b1fefc"
+        ],
+        "rms": [
+          0.7961311112794037,
+          0.797581745283291
+        ]
+      },
+      "prev": "0322c1fe3dfa068873c6bd1da458bc799d4733528576763eaf8ec07af32d24a7",
+      "sha256": "f5270440f2ca759bcc7d01ff69830095367306c2409ba775300b7e7f064aa12c"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 8,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "message.replication",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "runs": [
+          "acdd603fe352e339e544104c3d6e06f9f40d8c9ffd61e151b6d9cff83ed766bd",
+          "54e84eca6ff54dd0544eb2a8abf780202371491e5912d4057c964ca4fdde3bf8"
+        ],
+        "rms": [
+          0.8248102881091026,
+          0.8324535684242428
+        ]
+      },
+      "prev": "f5270440f2ca759bcc7d01ff69830095367306c2409ba775300b7e7f064aa12c",
+      "sha256": "c148dd7f788ba6fb05142b3dbb31ae3619d46ddb07446539582589730a3a97e9"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 9,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "rain-elena",
+      "kind": "message.verification",
+      "task_id": "E-assumption-v1",
+      "generation": "scripted",
+      "data": {
+        "records_verified": true,
+        "max_reference_error_m": 1.6590300050411955e-8
+      },
+      "prev": "c148dd7f788ba6fb05142b3dbb31ae3619d46ddb07446539582589730a3a97e9",
+      "sha256": "486b34c1562cf801505560a1adeb8a8783d2fc7bdc3440901c412ddcc634ffcd"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 10,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "claim.standing",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "C-1": "refuted",
+        "C-2": "supported",
+        "M-1": "insufficient"
+      },
+      "prev": "486b34c1562cf801505560a1adeb8a8783d2fc7bdc3440901c412ddcc634ffcd",
+      "sha256": "8e7d2495a00b8a375b559804857972e9cc6b92615e0f97a264da1923750d0880"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 11,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "message.revision",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "revised": [
+          [
+            "C-2",
+            "C-3"
+          ],
+          [
+            "M-1",
+            "M-2"
+          ]
+        ]
+      },
+      "prev": "8e7d2495a00b8a375b559804857972e9cc6b92615e0f97a264da1923750d0880",
+      "sha256": "d8c76d134e3791d19ed7e0c99a3bd45d1ad4ceb2f4f023b01ea02e0c08143fab"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 12,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "run.recorded",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "held_out_test_sha256": "ad1397f597be7357df843beeb52ab0b4f81755c4f9f2252a6dec3be69264160e",
+        "runs": 312,
+        "measurements": {
+          "corrected_within_step": 12,
+          "corrected_better": 12,
+          "template_misplaces_peak": 8,
+          "runs_verified_share": 1
+        },
+        "c3": "passed",
+        "a2_misleads": "passed"
+      },
+      "prev": "d8c76d134e3791d19ed7e0c99a3bd45d1ad4ceb2f4f023b01ea02e0c08143fab",
+      "sha256": "8ca3c153faf452488e96924063833eebe8ad0c6a6797c3a7e676b1dfd232dad3"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 13,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "claim.standing",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "C-1": "refuted",
+        "M-1": "superseded",
+        "C-2": "superseded",
+        "C-3": "supported",
+        "M-2": "supported"
+      },
+      "prev": "8ca3c153faf452488e96924063833eebe8ad0c6a6797c3a7e676b1dfd232dad3",
+      "sha256": "fd4f5451dd7a62c8062b1b4cc6d96db155fb95a3d00f21885abae714aca2d168"
+    },
+    {
+      "schema": "agent-event/v1",
+      "system": "rain-lab",
+      "seq": 14,
+      "at": "2026-11-16T15:00:00.000Z",
+      "actor": "host",
+      "kind": "episode.closed",
+      "task_id": "E-assumption-v1",
+      "generation": "host",
+      "data": {
+        "outcome": "supported",
+        "c3": "All 2 success criteria held and no failure criterion triggered.",
+        "a2": "All 1 success criteria held and no failure criterion triggered."
+      },
+      "prev": "fd4f5451dd7a62c8062b1b4cc6d96db155fb95a3d00f21885abae714aca2d168",
+      "sha256": "95f5818b4272fa999ff9a5d93fd549f5bb68ed85e1451f33a83b88b0263abba6"
+    }
+  ],
+  "evidence_sha256": "7765daf106a7308863a24fe62465435cf310a8d71d00aad3ddff1483d11356be"
+}

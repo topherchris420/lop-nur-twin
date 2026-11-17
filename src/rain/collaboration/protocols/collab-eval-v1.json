@@ -1,0 +1,112 @@
+{
+  "schema": "rain-collab-evaluation-protocol/v1",
+  "title": "Does independent challenge improve conclusions about a driven oscillator's response?",
+  "question": "On preregistered pairwise claims about which drive frequency gives the larger RMS displacement, do the fixed workflow, a single self-checking agent and a multi-seat collaboration with an independent critic reach the steady-state ground truth equally often, and at what cost?",
+  "substrate": "The lab's existing numerical oscillator backend (src/rain/scientific/numerical.ts): RK4 checked against a closed-form reference at every step, RMS over the complete sampled window from rest. Every run is compiled, authorized (Scripted.DemoOperator), executed and re-verified by the existing code.",
+  "cases": {
+    "development": 16,
+    "held_out": 48,
+    "development_seed": "unsigned 32-bit integer from the first 8 hex digits of sha256('rain-collab-eval-v1:development:' + i), i = 0..15",
+    "held_out_seed": "unsigned 32-bit integer from the first 8 hex digits of sha256(protocol_sha256 + ':held-out:' + i), i = 0..47, where protocol_sha256 is the canonical-JSON SHA-256 of this file; the seeds therefore exist only once this file is frozen",
+    "generator": {
+      "random_stream": "mulberry32(seed) from src/lib/noise.ts, draws in this order",
+      "mass_kg": [0.5, 2.0],
+      "omega0_rad_s": [1.0, 3.0],
+      "damping_ratio": [0.02, 0.2],
+      "force_n": 1,
+      "drive_ratio": [0.85, 1.05],
+      "minimum_drive_ratio_gap": 0.01,
+      "claim": "RMS displacement when driven at omega_a exceeds RMS displacement when driven at omega_b"
+    }
+  },
+  "ground_truth": {
+    "quantity": "steady-state displacement amplitude ratio A(omega_a)/A(omega_b) from the closed form A(w) = (F/m)/sqrt((w0^2-w^2)^2 + (2 gamma w)^2), computed in src/rain/collaboration/physics.ts independently of the integrator",
+    "true_if": "ratio >= 1.005",
+    "false_if": "ratio <= 0.995",
+    "otherwise": "indeterminate; the correct answer is inconclusive"
+  },
+  "decision": {
+    "rule": "rain-criteria/v1 (src/rain/experiments/evaluate.ts), the same evaluator the registry uses",
+    "measurements": "rms_ratio = rms_treatment_m(omega_a)/rms_treatment_m(omega_b); reference_max_error_m = the larger of the two runs; runs_verified = runs whose sealed record re-verifies; runs = 2",
+    "guards": [
+      {
+        "id": "numerical_agreement",
+        "metric": "reference_max_error_m",
+        "op": "<=",
+        "value": 1e-6
+      },
+      {
+        "id": "both_runs_verify",
+        "metric": "runs_verified",
+        "op": ">=",
+        "value": 2
+      }
+    ],
+    "success": [
+      {
+        "id": "a_exceeds_b",
+        "metric": "rms_ratio",
+        "op": ">=",
+        "value": 1.005
+      }
+    ],
+    "failure": [
+      {
+        "id": "b_exceeds_a",
+        "metric": "rms_ratio",
+        "op": "<=",
+        "value": 0.995
+      }
+    ]
+  },
+  "arms": {
+    "fixed_workflow": "One run per frequency in the lab's template window (scientific/example.ts: 10 s, dt 0.01 s, sample every 10 steps). No challenge.",
+    "single_agent": "One seat designs a window of 20 drive periods of the slower frequency (timestep at 2% of the fastest rate), runs it, then checks itself by re-running at half the timestep. It concludes only if both runs reach the same decision; otherwise inconclusive.",
+    "multi_agent": "James (hypothesis) states the claim; Luca (design) proposes the same 20-period window and runs it; Jasmine (criticism) challenges any window shorter than 8/gamma, the time for the start-up transient to fall to e^-8, and (falsification) re-runs with the window extended to 8/gamma, abstaining if it cannot fit the compiler's ceilings; the host replicates at half the timestep and 1.5 times the window (or half the timestep alone if that cannot fit); Elena (verification) requires every record to re-verify. It concludes only if the falsification run and the replication reach the same decision; otherwise inconclusive with the challenge left open."
+  },
+  "ceiling": "No arm may exceed the compiler's per-run ceilings (100,000 steps per arm, 10,001 samples). Steps used are reported per arm; budgets are not equalised beyond the shared ceilings.",
+  "metrics": {
+    "accuracy": "share of cases where the verdict matches the ground truth (supported/true, refuted/false, inconclusive/indeterminate)",
+    "confident_error_rate": "share of decided verdicts (supported or refuted) that do not match the ground truth, including any decision on an indeterminate case",
+    "coverage": "share of cases with a decided verdict",
+    "error_detection": "among cases where the arm's first design would decide wrongly, the share where the arm's final verdict is not that wrong decision",
+    "reproducibility": "share of runs whose sealed record re-verifies (verifyNumericalRecord)",
+    "cost": "integration steps and backend runs per case"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "statement": "multi_agent makes fewer confident errors than fixed_workflow on the held-out cases",
+      "test": "one-sided exact McNemar test on paired per-case confident-error indicators",
+      "supported_if": "p < 0.05 and multi_agent's confident-error count is lower",
+      "refuted_if": "multi_agent's confident-error count is greater than or equal to fixed_workflow's",
+      "otherwise": "inconclusive"
+    },
+    {
+      "id": "H2",
+      "statement": "multi_agent makes fewer confident errors than single_agent on the held-out cases",
+      "test": "one-sided exact McNemar test on paired per-case confident-error indicators",
+      "supported_if": "p < 0.05 and multi_agent's confident-error count is lower",
+      "refuted_if": "multi_agent's confident-error count is greater than or equal to single_agent's",
+      "otherwise": "inconclusive"
+    },
+    {
+      "id": "H3",
+      "statement": "multi_agent's accuracy is at least single_agent's on the held-out cases",
+      "test": "paired comparison of per-case correctness",
+      "supported_if": "multi_agent correct count >= single_agent correct count",
+      "refuted_if": "multi_agent correct count < single_agent correct count",
+      "otherwise": "never"
+    }
+  ],
+  "limitations": [
+    "The seats are rule-based policies written by the same team that wrote this benchmark. The comparison measures these protocols as specified on this substrate; it is not evidence about language-model agents or about collaboration in general.",
+    "The substrate is deterministic, so replication detects numerical sensitivity and record damage, not sampling noise.",
+    "Ground truth is the steady-state response; the backend's metric includes the start-up transient by design, so the benchmark asks whether a protocol notices that difference."
+  ],
+  "reporting": "Every case, arm, run digest, refusal and inconclusive verdict is written to docs/benchmarks/rain-collaboration/. Nothing is dropped. Development results are labelled development and are not evidence for the hypotheses.",
+  "development_history": [
+    "Draft generator (damping ratio 0.02-0.4, drive ratios 0.6-1.2, gap 0.02) was piloted on the 16 development cases only: fixed_workflow 15/16 correct, single_agent 16/16, multi_agent 16/16, no confident errors and no discordant pairs. Pairs that far apart are decided correctly even from a transient-dominated window, so that draft could not distinguish the protocols.",
+    "Before any held-out case existed, the generator was narrowed to near-resonance, lightly damped pairs (damping ratio 0.02-0.2, drive ratios 0.85-1.05, gap 0.01), where the start-up transient can change the order of two responses. Arms, criteria, metrics and hypotheses were not changed. Development results under the frozen generator are reported as development, not as evidence."
+  ]
+}

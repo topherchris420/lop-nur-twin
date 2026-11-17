@@ -1572,6 +1572,48 @@ gate.
   entries marked as such that exist to be refused or flagged); `fixture.ts`
   builds an index from it in memory.
 
+### Research collaboration (`src/rain/collaboration/`) and agent interop (`src/rain/interop/`)
+
+Bounded multi-seat research over the existing numerical backend, and the
+optional `agent-interop/v1` interface for the James desktop. Read
+`docs/RAIN_COLLABORATION.md` and `docs/interop/agent-interop-v1/README.md`
+first. Outside these folders they add `server/rain/interop.ts` (with its
+test), `scripts/rain-collaboration.ts`, `scripts/interop-fixtures.ts`,
+`docs/benchmarks/rain-collaboration/`, `docs/interop/`, `rainInteropApi` in
+`vite.config.ts`, the `RAIN_INTEROP_` lines of `.env.example`, the interop
+names in `tools/jev-secret-scan.mjs` and `secretBoundary.test.ts`, and the
+`.rain-interop/` line of `.gitignore`. The rule they keep: **seats propose and
+challenge; the host runs experiments; `rain-criteria/v1` decides.**
+
+- **The perspectives are assigned, never edited.** `roster.ts` names James,
+  Jasmine, Luca and Elena by `meeting/perspectives.ts` and gives them `rain-`
+  agent ids. The proposer never criticises, falsifies or verifies its own
+  claim. A changed roster changes `rosterSha256()`, which every result names.
+- **No second simulator.** Experiments go through `experiment.ts` into the
+  existing compiler, authorization, executor and `verifyNumericalRecord`.
+  Authorizations by a script are `Scripted.DemoOperator` and say so.
+- **Standing is derived.** The claim ledger takes standing from cited runs and
+  open challenges; only a run resolves a challenge; revisions supersede and
+  delete nothing. Never set a standing by hand or from agreement.
+- **Preregistered, frozen, reported as run.** `protocols/*.json` are frozen
+  before their held-out seeds exist (the seeds derive from each protocol's
+  canonical digest). Change a criterion only in a new protocol file. Run
+  `--evaluate`/`--demo` from a clean commit, commit what they write, and keep
+  `--check` passing on the recording platform. Never edit
+  `docs/benchmarks/rain-collaboration/` by hand.
+- **Never an original.** Every subject id passes `refuseOriginal`; the module
+  imports nothing from the life, fly, garden, augmentation or deployment code
+  and touches no file, process, network or environment (a test scans it).
+- **Interop is read-only or review-only.** `server/rain/interop.ts` is off
+  without a token, answers loopback peers only, serves only evidence that
+  passes its schema and digest, and queues proposals with
+  `"authorizes_execution": false`. Never give it a route to the registry, a
+  simulator, an organism, the controller or an agent's memory. The
+  specification in `docs/interop/agent-interop-v1/` is vendored byte for byte
+  into the James repository: regenerate its fixtures with
+  `node scripts/run-ts.mjs scripts/interop-fixtures.ts` and update
+  `AGENT_INTEROP_V1_MANIFEST_SHA256` in both repositories together.
+
 ## The live fly garden's exhibit (`src/garden/`)
 
 The clay exhibit page for the live fly garden (<http://150.136.49.49/>), whose

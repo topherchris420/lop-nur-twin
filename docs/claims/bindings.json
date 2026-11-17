@@ -2195,7 +2195,7 @@
         "352"
       ],
       "model": "scripts/claims/check.ts",
-      "evidence_sha256": "3b4bfa8b7cd6ccbce643307533b2fbb40fd8ccca910f8060407a1d2342255874",
+      "evidence_sha256": "1264fe179e9151db3347b5551c5ade679918a4e44378680f59d2882e94c9b135",
       "records": [
         "README.md",
         "docs/ECHO_COLLISION.md",
@@ -2285,7 +2285,7 @@
     }
   ],
   "records": {
-    "README.md": "acafa1da082f7ec2af3188d86a1661717316e839dfb7318b5efd280a16d9608e",
+    "README.md": "042a20fe0923a9a2844e2c14b45470025100518b8073f23bd67a97f0a8f6568d",
     "docs/ECHO_COLLISION.md": "8b7f74f11e56442915e750e175e2ca0938572a1f4e9445b4318ea5dd0ac6a264",
     "docs/RESEARCH_CLAIMS.md": "2c6907e050d136ac576d03d5e9b8a21a757dc614b7b4b4729cc9a787c263753f",
     "docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json": "c54f261d0b382e7ad388f790fab6d40b5976fca48696011338a2db4ec6f6fc40",

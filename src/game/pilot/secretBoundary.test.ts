@@ -134,6 +134,23 @@ describe("credential boundary", () => {
       .sort();
     expect(readers).toEqual(["api/rain/_config.ts", "vite.config.ts"]);
   });
+  it("the interop tokens are read only by the local server's configuration", () => {
+    const readers = [
+      ...walk(join(ROOT, "server")),
+      ...walk(join(ROOT, "api")),
+      ...walk(join(ROOT, "src")),
+    ]
+      .concat([join(ROOT, "vite.config.ts")])
+      .filter((path) => !/\.test\.ts$/.test(path))
+      .filter((path) =>
+        /RAIN_INTEROP_(READ|PROPOSE)_TOKEN["']\s*\]|process\.env\.RAIN_INTEROP_/.test(
+          read(path),
+        ),
+      )
+      .map(rel)
+      .sort();
+    expect(readers).toEqual(["vite.config.ts"]);
+  });
   it("the runtime under src/rain names no credential and reads no environment itself", () => {
     const offenders = walk(join(ROOT, "src", "rain")).filter((path) =>
       /TYPESAFE_API_KEY|RAIN_LLM_API_KEY|RAIN_REGISTRY_SECRET|process\.env/.test(
