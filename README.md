@@ -275,6 +275,16 @@ The journal preserves source lineage and review state on synthetic fixtures. Tha
 
 **Inspect and reproduce:** [Institutional-memory method, results, commands, and threat boundary](docs/RAIN_INSTITUTIONAL_MEMORY.md) · [Assumption challenge and negative replications](experiments/crosslab/assumptions/README.md) · [Memory CI](.github/workflows/rain-institutional-memory.yml) · [Cross-lab replication CI](.github/workflows/rain-crosslab.yml).
 
+### Research collaboration and the James interface
+
+R.A.I.N.'s research seats can now work a question together inside one bounded episode. The perspectives keep their identities; a roster gives James the hypothesis, Luca the design, Jasmine the criticism and falsification, and Elena the verification, while the host replicates and keeps the ledger. Every message is a hash-chained record, every experiment runs through the existing numerical compiler, authorization, executor and verifier, and a claim's standing comes from the evidence and its open challenges, never from agreement. Every seat in this release is a rule-based policy.
+
+A preregistered comparison on held-out oscillator cases found that the lab's fixed template window made confident errors that both a single self-checking agent and the multi-seat protocol avoided, and that the independent critic **added cost without reducing errors further**. A second preregistered episode proposed the common assumption that a damped oscillator responds most at its natural frequency, challenged it, and confirmed the textbook correction on unseen systems, while showing that the lab's own template window misplaces the response peak. Both are simulations judged by the registry's criteria, not discoveries.
+
+The optional, versioned interface for the [James desktop](https://github.com/topherchris420/james) is off unless the operator sets a token: it serves sealed evidence to loopback clients and queues proposals for the operator, authorizing and running nothing.
+
+**Inspect and reproduce:** [Collaboration rules, commands and limits](docs/RAIN_COLLABORATION.md) · [Generated results](docs/benchmarks/rain-collaboration/README.md) · [Shared interface specification](docs/interop/agent-interop-v1/README.md).
+
 ## 09. The rest of the laboratory
 
 The geographic twin, hidden Bethesda city, Noeterra, and Blacksite are distinct systems within the same environment, each with its own execution model. The [documentation index](docs/README.md) connects their guides.

@@ -188,3 +188,43 @@ describe("agent-interop/v1 routes", () => {
     expect(existsSync(join(queueDir, "x.json"))).toBe(false);
   });
 });
+
+describe("the committed collaboration evidence", () => {
+  it("passes the shared schema and is what the read scope serves", async () => {
+    const evidenceDir = join(
+      import.meta.dirname,
+      "..",
+      "..",
+      "docs",
+      "benchmarks",
+      "rain-collaboration",
+    );
+    const handle = createInteropHandler({
+      readToken: READ,
+      evidenceDir,
+      queueDir: join(tmpdir(), "rain-interop-unused"),
+      labCommit: () => null,
+    });
+    const call = (path: string) =>
+      handle(
+        new Request(`http://127.0.0.1:4173${path}`, {
+          headers: { authorization: `Bearer ${READ}` },
+        }),
+        { clientKey: "127.0.0.1" },
+      );
+    const status = await body(await call("/api/rain/interop/v1/status"));
+    const episodes = status.episodes as Array<{
+      episode_id: string;
+      evidence_sha256: string;
+    }>;
+    expect(episodes.map((e) => e.episode_id)).toEqual(["E-assumption-v1"]);
+    const evidence = await body(
+      await call("/api/rain/interop/v1/evidence?episode=E-assumption-v1"),
+    );
+    expect(checkRecord("rain-interop-evidence/v1", evidence)).toEqual([]);
+    expect(evidence.sha256).toBe(episodes[0]!.evidence_sha256);
+    expect((evidence.provenance as { evidence_class: string }).evidence_class).toBe(
+      "simulated",
+    );
+  });
+});
