@@ -33,7 +33,7 @@ import { episodeEvidence } from "../src/rain/collaboration/evidence.ts";
 import { ROSTER, rosterSha256 } from "../src/rain/collaboration/roster.ts";
 
 const OUT = join(import.meta.dirname, "..", "docs", "benchmarks", "rain-collaboration");
-const mode = process.argv[2] ?? "--dev";
+const mode = process.argv.slice(2).find((a) => a.startsWith("--")) ?? "--dev";
 const git = (...args: string[]) => execFileSync("git", args, { encoding: "utf8" }).trim();
 
 function provenance(recorded?: { commit: string; platform: string; node: string }) {
