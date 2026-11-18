@@ -18,7 +18,12 @@ pub struct MemoryEntry {
     pub text: String,
     /// How much it mattered, 0..1.
     pub salience: f64,
-    /// How it felt, -1 (wronged) .. 1 (helped).
+    /// A signed number the host assigns to the event, -1 (the event harmed this
+    /// civilization) .. 1 (it helped). It is not a felt state. It is read by
+    /// `remember`, where -0.5 or below adds a grievance, 0.5 or above adds a
+    /// favour and a negative value lowers trust slightly; by `consolidate`,
+    /// which sums it into the archive; and by `chronicle`, which prints it.
+    /// See docs/MORAL_STATUS.md, "Keep the names honest".
     pub valence: f64,
 }
 
@@ -41,6 +46,7 @@ pub struct ArchiveLine {
     pub count: u32,
     pub first: u32,
     pub last: u32,
+    /// The sum of the folded entries' `valence`: a number, not a felt state.
     pub valence: f64,
 }
 
@@ -186,7 +192,7 @@ impl Memory {
                     .filter_map(|c| names.get(c).map(|s| s.as_str()))
                     .collect();
                 format!(
-                    "{} x{} involving {} (turns {}-{}, feeling {:+.1})",
+                    "{} x{} involving {} (turns {}-{}, valence {:+.1})",
                     l.kind.replace('_', " "),
                     l.count,
                     if who.is_empty() {
@@ -249,5 +255,25 @@ mod tests {
         assert_eq!(r[0].kind, "battle");
         let r = m.recall(10, &[2], 1);
         assert_eq!(r[0].kind, "trade");
+    }
+
+    /// The chronicle is shown to model seats. It prints valence as a number
+    /// under its own name, not as a feeling a model might take up and report
+    /// as its own (docs/MORAL_STATUS.md).
+    #[test]
+    fn chronicle_reports_valence_not_feeling() {
+        let mut m = Memory::new(0, 3);
+        m.archive.push(ArchiveLine {
+            kind: "battle_lost".into(),
+            about: vec![1],
+            count: 3,
+            first: 2,
+            last: 9,
+            valence: -1.5,
+        });
+        let names = BTreeMap::from([(1, "Rome".to_string())]);
+        let lines = m.chronicle(&names);
+        assert_eq!(lines, vec!["battle lost x3 involving Rome (turns 2-9, valence -1.5)"]);
+        assert!(lines.iter().all(|l| !l.contains("feeling")));
     }
 }

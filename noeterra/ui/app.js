@@ -762,7 +762,7 @@ async function renderMind() {
             el(
               "span",
               { class: "small" },
-              ` · salience ${fmt(e.salience, 2)}, feeling ${e.valence > 0 ? "+" : ""}${fmt(e.valence, 1)}`,
+              ` · salience ${fmt(e.salience, 2)}, valence ${e.valence > 0 ? "+" : ""}${fmt(e.valence, 1)}`,
             ),
           ),
         ),

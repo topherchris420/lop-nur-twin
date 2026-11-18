@@ -40,6 +40,13 @@ export interface PhysiologyState {
   water: number;
   fatigue: number;
   sleepPressure: number;
+  /**
+   * Energetic insufficiency, 0..1: a numerical regulatory state, not a
+   * feeling. It rises when supply falls short, relaxes during protection, and
+   * its only effect on the fly is to help trigger and release protective mode
+   * (it is also reported in the organism status). Read
+   * docs/MORAL_STATUS.md before giving it any further effect.
+   */
   stress: number;
   temperatureC: number;
   protective: boolean;
