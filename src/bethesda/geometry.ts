@@ -1,8 +1,13 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { TessellateModifier } from "three/addons/modifiers/TessellateModifier.js";
-import { mulberry32 } from "../lib/noise";
-import { metricBoxUV, surfaceMaterial, foliageTexture } from "./materials";
+import {
+  metricBoxUV,
+  surfaceMaterial,
+  crownGeometry,
+  leafSpray,
+  facadeMaterial,
+} from "./materials";
 import {
   createDetailMaterials,
   detailedBuildings,
@@ -26,38 +31,6 @@ import { groundAt } from "./terrain";
 import { buildLandmarks, createLandmarkMaterials } from "./landmarks";
 import { signalRigs } from "./signals";
 import { awnings, rooftopUnit, STREET_TREE, streetTrees } from "./furniture";
-function texture(style: "brick" | "stone" | "glass") {
-  const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 256;
-  const c = canvas.getContext("2d")!;
-  const rng = mulberry32(style === "brick" ? 63 : style === "glass" ? 88 : 94);
-  c.fillStyle = style === "brick" ? "#846757" : style === "stone" ? "#b5afa0" : "#6b7b82";
-  c.fillRect(0, 0, 256, 256);
-  for (let y = 0; y < 256; y += 8)
-    for (let x = 0; x < 256; x += 22) {
-      c.fillStyle = `rgba(25,25,25,${0.06 + rng() * 0.14})`;
-      c.fillRect(x + (y % 16 ? 11 : 0), y, 21, 7);
-    }
-  for (let y = 18; y < 256; y += 64)
-    for (let x = 16; x < 256; x += 64) {
-      c.fillStyle = "#3c4649";
-      c.fillRect(x - 3, y - 3, 38, 43);
-      c.fillStyle = rng() < 0.13 ? "#afa88a" : rng() < 0.5 ? "#49636d" : "#647d86";
-      c.fillRect(x, y, 32, 36);
-      c.fillStyle = "#a5a79e";
-      c.fillRect(x + 15, y, 2, 36);
-      c.fillRect(x, y + 18, 32, 2);
-      c.fillStyle = "rgba(15,25,30,.25)";
-      c.fillRect(x, y, 32, 8);
-    }
-  const map = new THREE.CanvasTexture(canvas);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  map.repeat.set(0.06, 0.07);
-  map.anisotropy = 4;
-  return map;
-}
 export function createCityGeometry() {
   const group = new THREE.Group();
   let buildingBase: number | null = null;
@@ -77,21 +50,10 @@ export function createCityGeometry() {
     grass = material("#647c55"),
     roof = surfaceMaterial("limestone", "#888982"),
     metal = material("#38413e", 0.7),
-    trunk = material("#685043"),
-    leaf = material("#4b6740");
-  const foliage = [leaf, material("#657a48"), material("#3e5d3c")];
-  const leafCards = new THREE.MeshStandardMaterial({
-    map: foliageTexture(),
-    alphaTest: 0.45,
-    side: THREE.DoubleSide,
-    roughness: 0.94,
-  });
-  const brick = new THREE.MeshStandardMaterial({
-      map: texture("brick"),
-      roughness: 0.94,
-    }),
-    stone = new THREE.MeshStandardMaterial({ map: texture("stone"), roughness: 0.88 }),
-    glass = new THREE.MeshStandardMaterial({ map: texture("glass"), roughness: 0.48 });
+    trunk = material("#685043");
+  const brick = facadeMaterial("brick"),
+    stone = facadeMaterial("stone"),
+    glass = facadeMaterial("glass");
   function add(g: THREE.BufferGeometry, m: THREE.Material, drape = false) {
     if (g.index) {
       const old = g;
@@ -99,7 +61,11 @@ export function createCityGeometry() {
       old.dispose();
     }
     for (const key of Object.keys(g.attributes))
-      if (!["position", "normal", "uv"].includes(key)) g.deleteAttribute(key);
+      if (
+        !["position", "normal", "uv"].includes(key) &&
+        !(key === "color" && m === detail.canopy)
+      )
+        g.deleteAttribute(key);
     g.computeBoundingBox();
     const center = g.boundingBox!.getCenter(new THREE.Vector3());
     const positions = g.getAttribute("position");
@@ -129,7 +95,8 @@ export function createCityGeometry() {
     angle = 0,
   ) {
     const g = new THREE.BoxGeometry(w, h, d);
-    metricBoxUV(g);
+    // The glazing ray starts at a normalised position on each individual pane.
+    if (m !== detail.glass && m !== detail.warmGlass) metricBoxUV(g);
     g.rotateY(angle);
     g.translate(p.x, y, p.z);
     add(g, m);
@@ -308,7 +275,7 @@ export function createCityGeometry() {
           ),
         );
       }
-      if (detailed && i === 1) {
+      if (i === 1) {
         const p = s.getAttribute("position"),
           n = s.getAttribute("normal"),
           uv = s.getAttribute("uv");
@@ -335,16 +302,14 @@ export function createCityGeometry() {
     stem.translate(p.x, h / 2, p.z);
     add(stem, trunk);
     crowns.forEach(({ x, z, y, r, stretch, leafTilts }, branch) => {
-      const crown = new THREE.IcosahedronGeometry(r, 1);
-      crown.scale(1, stretch, 1);
-      crown.translate(x, y, z);
-      add(crown, foliage[branch % foliage.length]!);
-      leafTilts.forEach((tilt, k) => {
-        const leaves = new THREE.PlaneGeometry(4.8, 4.1);
-        leaves.rotateX(tilt);
-        leaves.rotateY((k * Math.PI) / 3 + branch);
-        leaves.translate(x, h + 1, z);
-        add(leaves, leafCards);
+      add(crownGeometry(x, y, z, r, stretch), detail.canopy);
+      // Distant crowns retain two silhouettes instead of collapsing to solid balls.
+      const tilts = leafTilts.length ? leafTilts : [-0.36, 0.42];
+      tilts.forEach((tilt, k) => {
+        add(
+          leafSpray(x, y, z, r, stretch, branch + (k * Math.PI) / tilts.length, tilt),
+          detail.leaves,
+        );
       });
       if (close) {
         const direction = new THREE.Vector3(x - p.x, 1.5, z - p.z);

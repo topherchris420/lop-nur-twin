@@ -181,9 +181,9 @@ export class EnvironmentLighting {
    * Returns a radiance map for the given sun state, rebuilding only when the
    * light has moved enough to matter.
    */
-  get(options: EnvironmentOptions): THREE.Texture {
+  get(options: EnvironmentOptions, size = 256): THREE.Texture {
     const bucket = Math.round((options.elevationRad * 180) / Math.PI / 3);
-    const key = `${bucket}|${options.dayFactor.toFixed(2)}`;
+    const key = `${size}|${bucket}|${options.dayFactor.toFixed(2)}`;
     if (this.cachedTarget && this.cachedKey === key) return this.cachedTarget.texture;
 
     const elev = options.elevationRad;
@@ -214,7 +214,7 @@ export class EnvironmentLighting {
     u["uSunIntensity"]!.value = 46 * Math.pow(above, 0.6) * day;
     u["uTurbidity"]!.value = 1.4 + (1 - above) * 1.8;
 
-    const target = this.pmrem.fromScene(this.scene, 0, 1, 200);
+    const target = this.pmrem.fromScene(this.scene, 0, 1, 200, { size });
     this.cachedTarget?.dispose();
     this.cachedKey = key;
     this.cachedTarget = target;

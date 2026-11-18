@@ -52,9 +52,9 @@ const CLAY_TILE = 0.05;
 const srgb = (hex: number) => new THREE.Color(hex);
 
 const PALETTE = {
-  ground: srgb(0x8fb05c),
+  ground: srgb(0x929669),
   slab: srgb(0x7f8f5c),
-  park: srgb(0x5d9a3c),
+  park: srgb(0x78874e),
   pavement: srgb(0xcdc3ae),
   asphalt: srgb(0x4d4a48),
   path: srgb(0xe0cf9f),
@@ -67,8 +67,8 @@ const PALETTE = {
   ),
   houseRoofs: [0xb04f35, 0x91463a, 0x566270, 0x74513f, 0x4a5c58].map(srgb),
   blockWalls: [
-    0xd8cbb0, 0xbdb5a4, 0xb9553a, 0xcb7a50, 0x98b1bf, 0x86a2b0, 0xe0d7c2, 0xc9aa80,
-    0xa3aeb2, 0xd9b45a,
+    0xd8cbb0, 0xbdb5a4, 0xb9553a, 0xcb7a50, 0x98b1bf, 0x98a3a2, 0xe0d7c2, 0xc9aa80,
+    0xa3aeb2, 0xc3b192,
   ].map(srgb),
   blockRoofs: [0x9a968c, 0xb9a98a, 0x7d8a8f, 0xa66a4f, 0x6f8f7a, 0xcfc8b8, 0x7a6a5f].map(
     srgb,
@@ -592,8 +592,17 @@ export const FACADE_PATCH: NonNullable<ClaySettings["patch"]> = {
     float share = ( 4.0 * pane.x * pane.y ) / ( cell.x * cell.y ) * storey;
     float glass = mix( inside, share * 0.8, far );
     vec3 paneColour = mix( vec3( 0.045, 0.06, 0.085 ), vec3( 0.62, 0.56, 0.42 ), step( 0.86, seed ) * 0.55 );
+    // Sky at the head of the glazing, ground bounce at the sill, and a
+    // narrow frame. Subpixel trim fades into the averaged distant pane.
+    float glassDetail = inside * (1.0 - far);
+    float frameWidth = 0.058;
+    float mullion = (1.0 - smoothstep(frameWidth, frameWidth + px, abs(f.x)))
+                      * (1.0 - smoothstep(0.05, 0.22, px));
+    float sky = smoothstep(-pane.y, pane.y, f.y + 0.1);
+    paneColour = mix(paneColour * 0.72, paneColour + vec3(0.04, 0.068, 0.082), sky);
+    paneColour = mix(paneColour, vec3(0.24, 0.23, 0.20), mullion * glassDetail);
     diffuseColor.rgb = mix( diffuseColor.rgb, paneColour, glass * 0.92 );
-    roughnessFactor = mix( roughnessFactor, 0.22, inside * ( 1.0 - far ) );
+    roughnessFactor = mix( roughnessFactor, 0.17, glassDetail * (1.0 - mullion) );
     float bevel = max( 0.16, 1.5 * px );
     cityRecess -= CITY_UNIT * 0.22 * ( 1.0 - smoothstep( - bevel, 0.0, d ) ) * storey * ( 1.0 - far );
   }`,
@@ -770,8 +779,8 @@ export function buildCity(lib: ClayLibrary, textureSize: number): CityModel {
     vertexColors: true,
     roughness: 0.66,
     scale: CLAY_TILE,
-    relief: 0.016,
-    smudge: 0.16,
+    relief: 0.008,
+    smudge: 0.1,
     wrap: 0.34,
   });
   const facade = lib.get("city-facade", {
@@ -779,7 +788,7 @@ export function buildCity(lib: ClayLibrary, textureSize: number): CityModel {
     vertexColors: true,
     roughness: 0.6,
     scale: CLAY_TILE,
-    relief: 0.016,
+    relief: 0.008,
     smudge: 0.14,
     wrap: 0.32,
     patch: FACADE_PATCH,

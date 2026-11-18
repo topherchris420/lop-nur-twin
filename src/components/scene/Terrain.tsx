@@ -2,9 +2,9 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { SITE_SIZE, TERRAIN_ENTITY_ID } from "@/lib/layout";
 import { flattenFactor, gravelField, mottle, rawHeight, wadiMask } from "@/lib/terrain";
-import { makeGroundNormalTexture } from "@/lib/textures";
+import { makeGroundNormalTexture, makeLakebedColorTexture } from "@/lib/textures";
 import { applyGroundDetailPreset, groundDetailFor } from "@/gfx/groundDetail";
-import { SITE_SEED } from "@/lib/noise";
+import { seededNoise2D, SITE_SEED } from "@/lib/noise";
 import { useTwinStore, type QualityTier } from "@/lib/store";
 import { getQualityProfile } from "@/lib/quality";
 
@@ -20,6 +20,12 @@ const C_GRAVEL = new THREE.Color("#5c5644");
 const C_PLAYA = new THREE.Color("#d5cdb6");
 const C_WADI = new THREE.Color("#7a6c4a");
 const C_COMPACT = new THREE.Color("#c8bca0");
+
+// Illustrative mineral deposits. The pigment follows long low spots and the
+// banks of the existing washes, with broken edges where gravel shows through.
+const mineral = seededNoise2D(SITE_SEED + 49);
+const C_SALT = new THREE.Color("#e0d8bc");
+const C_SILT = new THREE.Color("#9b7d60");
 
 const geometryCache = new Map<number, THREE.PlaneGeometry>();
 
@@ -49,16 +55,27 @@ function* terrainGeometrySteps(segments: number): Generator<void, THREE.PlaneGeo
     const x = pos.getX(i);
     const z = pos.getZ(i);
     const flat = flattenFactor(x, z);
-    pos.setY(i, rawHeight(x, z) * flat);
+    const height = rawHeight(x, z);
+    pos.setY(i, height * flat);
     compact[i] = 1 - flat;
 
     const m = mottle(x, z);
     const t = THREE.MathUtils.clamp(m * 0.5 + 0.5, 0, 1);
     scratch.lerpColors(C_DARK, C_BASE, THREE.MathUtils.smoothstep(t, 0.1, 0.9));
     scratch.lerp(C_DUST, Math.pow(Math.max(0, m), 2.2) * 0.58);
-    scratch.lerp(C_GRAVEL, gravelField(x, z) * 0.7);
+    const gravel = gravelField(x, z);
+    scratch.lerp(C_GRAVEL, gravel * 0.7);
     scratch.lerp(C_PLAYA, THREE.MathUtils.smoothstep(t, 0.82, 1) * 0.58);
-    scratch.lerp(C_WADI, wadiMask(x, z) * 0.6);
+    const wash = wadiMask(x, z);
+    const bed = mineral(x / 720, z / 440);
+    const layer = height * 0.43 + bed * 1.6 + m * 0.13;
+    // Broad depositional terraces resolve even on the lowest mesh tier.
+    const terrace = 1 - THREE.MathUtils.smoothstep(Math.abs(layer + 0.32), 0.09, 0.46);
+    const low = 1 - THREE.MathUtils.smoothstep(layer, -1.25, 0.45);
+    const salt = (low * 0.32 + terrace * 0.38 + wash * (1 - wash) * 0.9) * (1 - gravel);
+    scratch.lerp(C_SILT, flat * (1 - low) * (0.18 + 0.1 * bed));
+    scratch.lerp(C_SALT, flat * salt);
+    scratch.lerp(C_WADI, wash * 0.58);
     scratch.lerp(C_COMPACT, (1 - flat) * 0.55);
 
     colors[i * 3] = scratch.r;
@@ -170,6 +187,13 @@ export function Terrain() {
     };
   }, [qualityTier, reducedMotion, segments]);
 
+  const lakebedMap = useMemo(() => {
+    const tex = makeLakebedColorTexture(SITE_SEED + 79);
+    tex.repeat.setScalar(SITE_SIZE / 760);
+    return tex;
+  }, []);
+  useEffect(() => () => lakebedMap.dispose(), [lakebedMap]);
+
   const normalMap = useMemo(() => {
     const tex = makeGroundNormalTexture(SITE_SEED + 7);
     tex.repeat.set(320, 320);
@@ -184,15 +208,16 @@ export function Terrain() {
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
       vertexColors: true,
+      map: lakebedMap,
       roughness: 0.96,
       metalness: 0,
       normalMap,
-      normalScale: new THREE.Vector2(0.4, 0.4),
+      normalScale: new THREE.Vector2(0.25, 0.25),
     });
     return applyGroundDetailPreset(mat, qualityTier, "desert", {
       compactAttribute: true,
     });
-  }, [normalMap, qualityTier]);
+  }, [lakebedMap, normalMap, qualityTier]);
 
   useEffect(() => () => material.dispose(), [material]);
 

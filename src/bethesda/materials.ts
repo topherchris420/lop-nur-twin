@@ -1,6 +1,6 @@
 /** Metre-scaled procedural materials. No image assets or runtime fetches. */
 import * as THREE from "three";
-import { mulberry32 } from "../lib/noise";
+import { mulberry32, seededNoise2D } from "../lib/noise";
 import { applyHardSurface } from "../gfx/greeble";
 
 type Surface = "brick" | "paving" | "asphalt" | "limestone";
@@ -72,6 +72,78 @@ export function surfaceMaterial(kind: Surface, tint = "#ffffff") {
     roughness: 1,
   });
 }
+/** A repeating four-storey elevation for the distant massing. Panes, frames
+ * and masonry share UVs, so the reflected sky ends at the reveal. */
+export function facadeMaterial(style: "brick" | "stone" | "glass") {
+  const size = 256;
+  const random = mulberry32(style === "brick" ? 63 : style === "glass" ? 88 : 94);
+  const layer = (base: string) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, size, size);
+    return ctx;
+  };
+  const color = layer(
+    style === "brick" ? "#856b59" : style === "stone" ? "#b9b3a6" : "#56656a",
+  );
+  const rough = layer("#dadada");
+  const height = layer("#aaaaaa");
+  const course = style === "brick" ? 4 : 16;
+  const block = style === "brick" ? 12 : 64;
+  if (style !== "glass") {
+    for (let y = 0; y < size; y += course)
+      for (let x = -block; x < size; x += block) {
+        color.fillStyle = `rgba(40,31,25,${0.05 + random() * 0.17})`;
+        color.fillRect(x + (((y / course) % 2) * block) / 2, y, block - 1, course - 0.8);
+      }
+  }
+  for (let y = 0; y < size; y += 64)
+    for (let x = 0; x < size; x += 64) {
+      const w = style === "glass" ? 57 : 33;
+      const h = style === "glass" ? 55 : 37;
+      const left = x + (64 - w) / 2,
+        top = y + 8;
+      color.fillStyle = "#4e4c46";
+      color.fillRect(left - 2, top - 2, w + 4, h + 5);
+      const reflection = color.createLinearGradient(0, top, 0, top + h);
+      const shade = random();
+      reflection.addColorStop(0, shade < 0.25 ? "#687d82" : "#50666f");
+      reflection.addColorStop(1, shade < 0.25 ? "#3f5052" : "#2e3a3c");
+      color.fillStyle = reflection;
+      color.fillRect(left, top, w, h);
+      rough.fillStyle = "#383838";
+      rough.fillRect(left, top, w, h);
+      height.fillStyle = "#626262";
+      height.fillRect(left, top, w, h);
+      if (shade > 0.58) {
+        color.fillStyle = "rgba(174,164,145,.55)";
+        color.fillRect(left, top + 1, w, h * (0.2 + (shade - 0.58) * 1.4));
+      }
+      for (const ctx of [color, rough, height]) {
+        ctx.fillStyle = ctx === color ? "#7d827f" : "#b6b6b6";
+        ctx.fillRect(left + w / 2 - 0.8, top, 1.6, h);
+        ctx.fillRect(left - 2, top + h, w + 4, 2);
+      }
+    }
+  const map = (ctx: CanvasRenderingContext2D, srgb = false) => {
+    const texture = new THREE.CanvasTexture(ctx.canvas);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(0.06, 0.07);
+    texture.anisotropy = 4;
+    if (srgb) texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  };
+  return new THREE.MeshStandardMaterial({
+    map: map(color, true),
+    roughness: 1,
+    roughnessMap: map(rough),
+    bumpMap: map(height),
+    bumpScale: 0.035,
+  });
+}
+
 export function architecturalStone(color: string) {
   const m = new THREE.MeshStandardMaterial({ color, roughness: 0.86 });
   applyHardSurface(m, {
@@ -109,26 +181,83 @@ export function foliageTexture() {
   canvas.width = canvas.height = 256;
   const c = canvas.getContext("2d")!,
     random = mulberry32(77191);
-  for (let i = 0; i < 420; i++) {
-    const a = random() * Math.PI * 2,
-      radius = Math.sqrt(random()) * 110;
-    const x = 128 + Math.cos(a) * radius,
-      y = 128 + Math.sin(a) * radius * 0.87;
-    c.fillStyle = `hsl(${77 + random() * 21} ${22 + random() * 12}% ${28 + random() * 29}%)`;
+  // Small sprays share a stem and leaf angle. Gaps between them survive
+  // mipmapping, while a lighter upper surface catches the sky.
+  c.lineCap = "round";
+  for (let twig = 0; twig < 32; twig++) {
+    const angle = random() * Math.PI * 2;
+    const reach = 50 + 65 * Math.sqrt(random());
+    const bx = 128 + Math.cos(angle) * reach * 0.36;
+    const by = 137 + Math.sin(angle) * reach * 0.3;
+    const dx = Math.cos(angle) * reach * 0.73;
+    const dy = Math.sin(angle) * reach * 0.66 - 7;
+    c.strokeStyle = "#555339";
+    c.lineWidth = 1.6;
     c.beginPath();
-    c.ellipse(
-      x,
-      y,
-      5 + random() * 6,
-      2 + random() * 3,
-      random() * Math.PI,
-      0,
-      Math.PI * 2,
-    );
-    c.fill();
+    c.moveTo(bx, by);
+    c.lineTo(bx + dx, by + dy);
+    c.stroke();
+    const light = 28 + random() * 15 + (1 - (by + dy) / 256) * 9;
+    for (let pair = 1; pair <= 8; pair++) {
+      const t = pair / 9;
+      for (const side of [-1, 1]) {
+        const a = angle + side * (0.55 + random() * 0.6);
+        const length = 4 + random() * 4;
+        const lx = bx + dx * t + Math.cos(a) * length;
+        const ly = by + dy * t + Math.sin(a) * length;
+        c.fillStyle = `hsl(${77 + random() * 14} 27% ${light + random() * 8}%)`;
+        c.beginPath();
+        c.ellipse(lx, ly, length, length * 0.4, a, 0, Math.PI * 2);
+        c.fill();
+      }
+    }
   }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
   return texture;
+}
+
+const canopyNoise = seededNoise2D(0x6272616e);
+
+/** Dense inner leaves, with light lost towards the underside and the centres
+ * of clusters. Crown centres and radii still come from the city's tree model. */
+export function crownGeometry(
+  x: number,
+  y: number,
+  z: number,
+  radius: number,
+  stretch: number,
+) {
+  const geometry = new THREE.IcosahedronGeometry(1, 1);
+  const p = geometry.getAttribute("position");
+  const colors = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) {
+    const nx = p.getX(i),
+      ny = p.getY(i),
+      nz = p.getZ(i);
+    const breakup = canopyNoise(x + nx * 2.1 + ny, z + nz * 2.1 - ny);
+    const r = radius * (0.7 + 0.12 * breakup);
+    p.setXYZ(i, x + nx * r, y + ny * r * stretch, z + nz * r);
+    const light = 0.62 + 0.21 * ny + 0.18 * breakup;
+    colors.set([light * 0.52, light * 0.68, light * 0.29], i * 3);
+  }
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  return geometry;
+}
+
+export function leafSpray(
+  x: number,
+  y: number,
+  z: number,
+  radius: number,
+  stretch: number,
+  angle: number,
+  tilt: number,
+) {
+  const spray = new THREE.PlaneGeometry(radius * 2.55, radius * 2.55 * stretch);
+  spray.rotateX(tilt);
+  spray.rotateY(angle);
+  spray.translate(x, y, z);
+  return spray;
 }

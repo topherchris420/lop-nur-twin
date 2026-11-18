@@ -34,6 +34,7 @@ import { installCascadeShadows } from "../game/render/shadowCascade";
 import { armMaterial } from "../game/weapons/arms";
 import { applyEdgeWear, getWeaponMaterials } from "../game/weapons/materials";
 import { casterMaterial, clayify, withCascade } from "../garden/scene/clay";
+import { windowGlass } from "../bethesda/glazing";
 import { EYE_PATCH } from "../garden/scene/fly";
 import { rippleWater } from "../garden/scene/props";
 import { applyHardSurface, HARD_SURFACE_PRESETS } from "./greeble";
@@ -111,6 +112,7 @@ const texture = () => new THREE.Texture();
  * patches: each variant that changes which text is spliced in.
  */
 const SITES: Record<string, () => THREE.Material[]> = {
+  "bethesda/glazing.ts": () => [windowGlass(false), windowGlass(true)],
   "garden/scene/clay.ts": () => {
     const shared = { detail: texture() };
     return [

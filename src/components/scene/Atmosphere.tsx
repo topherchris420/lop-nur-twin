@@ -7,7 +7,7 @@ import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
 import { sunState } from "@/lib/sunState";
-import { makeCloudShadowTexture } from "@/lib/textures";
+import { EnvironmentLighting, SUN, sunElevationRad } from "@/game/render/environment";
 import { ENVIRONMENT_ENTITY_ID, SITE_SIZE } from "@/lib/layout";
 import { climateDustFactor, getClimateMonth } from "@/lib/siteData";
 import { getQualityProfile } from "@/lib/quality";
@@ -15,12 +15,11 @@ import { getQualityProfile } from "@/lib/quality";
 const SUN_DISTANCE = 1800;
 const SHADOW_FOCUS = new THREE.Vector3(1018, 0, 1410);
 const FOG_DENSITY_DAY = 0.0003;
-const SUN_AZIMUTH_DEG = 112;
 /** Where the moon's directional light sits; its direction is `sunState.moonDirection`. */
 const MOON_POSITION = sunState.moonDirection.clone().multiplyScalar(1400).toArray();
 
 const DAY = {
-  fogColor: new THREE.Color("#d8c29b"),
+  fogColor: new THREE.Color("#d9d8d0"),
   hemiSky: new THREE.Color("#cfe2f8"),
   hemiGround: new THREE.Color("#b39d78"),
   sunWarm: new THREE.Color("#fff1da"),
@@ -86,7 +85,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   const climate = getClimateMonth(environmentMonth);
   const dustFactor = climateDustFactor(climate);
   const quality = getQualityProfile(qualityTier);
-  const { scene } = useThree();
+  const { scene, gl } = useThree();
 
   // A box around the built-up area rather than the whole site: 300 m at 2048
   // is a 0.29 m texel against 0.98 m, and the near cascade covers what is
@@ -95,16 +94,19 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   // Clear-sky desert is a hard key and a comparatively weak sky. Shadowed sand
   // measured 0.54 of lit sand, where it should sit nearer 0.2 — the key was
   // being swamped, so nothing had a lit side and a shade side.
-  const SUN_KEY = groundLevel ? 5.6 : 3.4;
-  const HEMI_SCALE = groundLevel ? 0.36 : 1;
+  const SUN_KEY = groundLevel ? 5.6 : 3.9;
+  const HEMI_SCALE = groundLevel ? 0.36 : 0.78;
 
   const sky = useMemo(() => {
     const s = new Sky();
     s.scale.setScalar(30000);
     const u = s.material.uniforms;
-    if (u.turbidity) u.turbidity.value = groundLevel ? 9.5 : 6;
+    // Sky includes a procedural cloud deck by default. Keep only sparse
+    // high wisps over the basin; the dominant veil here is airborne dust.
+    if (u.cloudCoverage) u.cloudCoverage.value = 0.22;
+    if (u.turbidity) u.turbidity.value = groundLevel ? 6.2 : 5.7;
     if (u.rayleigh) u.rayleigh.value = groundLevel ? 2.05 : 2.8;
-    if (u.mieCoefficient) u.mieCoefficient.value = groundLevel ? 0.012 : 0.008;
+    if (u.mieCoefficient) u.mieCoefficient.value = groundLevel ? 0.0085 : 0.008;
     if (u.mieDirectionalG) u.mieDirectionalG.value = groundLevel ? 0.8 : 0.85;
     return s;
   }, [groundLevel]);
@@ -116,7 +118,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   /** 1 = full day, 0 = full night; eased toward the toggle each frame */
   const dayFactor = useRef(1);
 
-  const fog = useMemo(() => new THREE.FogExp2("#d8c29b", 0.0003), []);
+  const fog = useMemo(() => new THREE.FogExp2(DAY.fogColor, FOG_DENSITY_DAY), []);
   // Fog is compiled into every lit program. A passive effect runs after the first
   // frame has rendered, which linked every shader in the scene without fog and then
   // linked them all again with it: 16 of the 33 programs at tier 2, ~1.5 s of blocked
@@ -132,6 +134,29 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   // AgX pass owns it and the renderer must stay linear (`Effects.tsx`);
   // below that the renderer applies AgX itself so every tier shares a look.
   useRendererToneMapping({ postprocessing: quality.postprocessing });
+
+  // The orbital camera can also come right down to a facade. Give glass
+  // and metal sky radiance there. Blacksite owns its own environment map.
+  useLayoutEffect(() => {
+    if (groundLevel) return;
+    const previous = scene.environment;
+    const intensity = scene.environmentIntensity;
+    const probe = new EnvironmentLighting(gl);
+    scene.environment = probe.get(
+      {
+        elevationRad: sunElevationRad(night ? 0 : 1),
+        azimuthRad: THREE.MathUtils.degToRad(SUN.azimuthDeg),
+        dayFactor: night ? 0 : 1,
+      },
+      128,
+    );
+    scene.environmentIntensity = night ? 0.16 : 0.64;
+    return () => {
+      scene.environment = previous;
+      scene.environmentIntensity = intensity;
+      probe.dispose();
+    };
+  }, [gl, scene, night, groundLevel]);
 
   // aim the sun's shadow frustum at the built-up area
   useEffect(() => {
@@ -168,8 +193,8 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
         : d + Math.sign(target - d) * Math.min(Math.abs(target - d), delta * 0.45);
     dayFactor.current = next;
 
-    const elev = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(-26, 29, next));
-    const az = THREE.MathUtils.degToRad(SUN_AZIMUTH_DEG);
+    const elev = sunElevationRad(next);
+    const az = THREE.MathUtils.degToRad(SUN.azimuthDeg);
     sunDir.set(
       Math.sin(az) * Math.cos(elev),
       Math.sin(elev),
@@ -217,7 +242,11 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     fog.color.copy(scratchColor.lerpColors(NIGHT.fogColor, DAY.fogColor, next));
     fog.density = THREE.MathUtils.lerp(
       groundLevel ? 0.00045 : 0.00022,
-      groundLevel ? 0.00095 : FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
+      // Keep distant relief just legible in dry months. At the previous
+      // fixed density the horizon was fully opaque even on a clear day.
+      groundLevel
+        ? 0.00023 + dustFactor * 0.00029
+        : FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
       next,
     );
 
@@ -267,51 +296,8 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
           speed={reducedMotion ? 0 : 0.4}
         />
       </group>
-      <CloudShadows />
       <DustLayer />
     </group>
-  );
-}
-
-/**
- * Soft cloud shadows drifting across the plain. A single ground-hugging plane
- * just above the flattened site scrolls a seamless coverage texture; it fades
- * out at night when there is no sun to cast them.
- */
-function CloudShadows() {
-  const night = useTwinStore((s) => s.night);
-  const reducedMotion = useTwinStore((s) => s.reducedMotion);
-  const matRef = useRef<THREE.MeshBasicMaterial>(null);
-  const tex = useMemo(() => {
-    const t = makeCloudShadowTexture(SITE_SEED + 770);
-    t.repeat.set(2.2, 2.2);
-    return t;
-  }, []);
-  const opacity = useRef(0);
-
-  useFrame((_, delta) => {
-    if (!reducedMotion) {
-      tex.offset.x += delta * 0.0016;
-      tex.offset.y += delta * 0.0006;
-    }
-    const target = night ? 0 : 0.9;
-    opacity.current = reducedMotion
-      ? target
-      : opacity.current + (target - opacity.current) * Math.min(1, delta * 0.6);
-    if (matRef.current) matRef.current.opacity = opacity.current;
-  });
-
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 2, 0]} frustumCulled={false}>
-      <planeGeometry args={[SITE_SIZE * 1.65, SITE_SIZE * 1.65]} />
-      <meshBasicMaterial
-        ref={matRef}
-        map={tex}
-        transparent
-        opacity={0}
-        depthWrite={false}
-      />
-    </mesh>
   );
 }
 
