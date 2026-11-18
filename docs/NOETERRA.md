@@ -224,7 +224,9 @@ capital, retake lost land, pursue claims, contain a threatening rival, avenge
 grievances, prosper) and the numbered menu of legal actions.
 
 Memory is written by the host from what the realm witnessed: each entry has a
-kind, the powers it concerns, a salience and a feeling. Beliefs follow from it —
+kind, the powers it concerns, a salience and a valence (a signed number for
+whether the event harmed or helped the realm, not a felt state; see
+[moral status](MORAL_STATUS.md)). Beliefs follow from it —
 trust falls with betrayal and broken promises and rises with kept ones;
 grievances and favours accumulate. Memory is bounded (96 entries); the least
 memorable entry (salience × recency) is folded into a counted archive ("battle

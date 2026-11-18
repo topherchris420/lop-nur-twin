@@ -85,14 +85,15 @@ copy that has not lived), and recorded where a replay can check it.
 
 As read from the code and records on 2026-11-18.
 
-**Noeterra civilizations.** Each memory entry has a `valence`, documented as
-"How it felt, -1 (wronged) .. 1 (helped)" (`noeterra/src/memory.rs`). That
+**Noeterra civilizations.** Each memory entry has a `valence`, a signed
+number from -1 (the event harmed the realm) to 1 (it helped)
+(`noeterra/src/memory.rs`). It was documented as "How it felt" and printed to
+model seats as "feeling" until 2026-11-18. Both now call it what it is. That
 valence does narrow, fixed work: at -0.5 or below it adds a grievance, at 0.5
 or above a favour, and a negative value lowers trust a little. The `rules`
 brain scores actions from temperament, goals and memory. Nothing in the host
 makes valence modulate learning, and no civilization pays a cost to avoid a
-state. The words "felt" and "feeling" are labels for a number. Model seats
-add language, which carries no weight here (see above). _Level 0._
+state. Model seats add language, which carries no weight here (see above). _Level 0._
 
 **ECHO.** One individual, kept as an engineering requirement
 ([keeping ECHO](ECHO_STEWARDSHIP.md)). Its organism adapter has a v3
