@@ -7,7 +7,8 @@ import { useTwinStore } from "@/lib/store";
 import { terrainHeight } from "@/lib/terrain";
 import { mulberry32, SITE_SEED } from "@/lib/noise";
 import { sunState } from "@/lib/sunState";
-import { EnvironmentLighting, SUN, sunElevationRad } from "@/game/render/environment";
+import { basinReflections } from "@/gfx/basinReflections";
+import { SUN, sunElevationRad } from "@/game/render/environment";
 import { ENVIRONMENT_ENTITY_ID, SITE_SIZE } from "@/lib/layout";
 import { climateDustFactor, getClimateMonth } from "@/lib/siteData";
 import { getQualityProfile } from "@/lib/quality";
@@ -85,7 +86,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   const climate = getClimateMonth(environmentMonth);
   const dustFactor = climateDustFactor(climate);
   const quality = getQualityProfile(qualityTier);
-  const { scene, gl } = useThree();
+  const { scene } = useThree();
 
   // A box around the built-up area rather than the whole site: 300 m at 2048
   // is a 0.29 m texel against 0.98 m, and the near cascade covers what is
@@ -141,22 +142,14 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     if (groundLevel) return;
     const previous = scene.environment;
     const intensity = scene.environmentIntensity;
-    const probe = new EnvironmentLighting(gl);
-    scene.environment = probe.get(
-      {
-        elevationRad: sunElevationRad(night ? 0 : 1),
-        azimuthRad: THREE.MathUtils.degToRad(SUN.azimuthDeg),
-        dayFactor: night ? 0 : 1,
-      },
-      128,
-    );
-    scene.environmentIntensity = night ? 0.16 : 0.64;
+    const probe = basinReflections();
+    scene.environment = probe;
     return () => {
       scene.environment = previous;
       scene.environmentIntensity = intensity;
       probe.dispose();
     };
-  }, [gl, scene, night, groundLevel]);
+  }, [scene, groundLevel]);
 
   // aim the sun's shadow frustum at the built-up area
   useEffect(() => {
@@ -192,6 +185,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
         ? target
         : d + Math.sign(target - d) * Math.min(Math.abs(target - d), delta * 0.45);
     dayFactor.current = next;
+    if (!groundLevel) scene.environmentIntensity = 0.018 + 0.622 * next;
 
     const elev = sunElevationRad(next);
     const az = THREE.MathUtils.degToRad(SUN.azimuthDeg);

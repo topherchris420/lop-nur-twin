@@ -11,6 +11,7 @@ import {
   VERTICAL_OFFSET,
 } from "./terrain";
 import { cityFoot, type FootTarget } from "./locomotion";
+import { crownGeometry } from "./materials";
 import { CitySimulation } from "./simulation";
 import { TRANSIT_VERSION } from "./streetscape";
 
@@ -54,6 +55,15 @@ describe("real Bethesda bare-earth elevation", () => {
   });
 });
 describe("civilian presentation", () => {
+  it("keeps the visible canopy on the fly's landing ellipsoid", () => {
+    const crown = crownGeometry(-15, 7, 18, 1.8, 1.15);
+    const p = crown.getAttribute("position");
+    for (let i = 0; i < p.count; i++) {
+      const radius = Math.hypot(p.getX(i) + 15, (p.getY(i) - 7) / 1.15, p.getZ(i) - 18);
+      expect(radius).toBeCloseTo(1.8, 5);
+    }
+    crown.dispose();
+  });
   it("keeps a planted foot fixed in world space during forward travel", () => {
     const a: FootTarget = { y: 0, z: 0, planted: false },
       b = { ...a };

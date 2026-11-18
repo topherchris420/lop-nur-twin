@@ -237,8 +237,8 @@ export function crownGeometry(
       ny = p.getY(i),
       nz = p.getZ(i);
     const breakup = canopyNoise(x + nx * 2.1 + ny, z + nz * 2.1 - ny);
-    const r = radius * (0.7 + 0.12 * breakup);
-    p.setXYZ(i, x + nx * r, y + ny * r * stretch, z + nz * r);
+    // The same ellipsoid is a landing surface in BethesdaFlyWorld.
+    p.setXYZ(i, x + nx * radius, y + ny * radius * stretch, z + nz * radius);
     const light = 0.62 + 0.21 * ny + 0.18 * breakup;
     colors.set([light * 0.52, light * 0.68, light * 0.29], i * 3);
   }
