@@ -14,7 +14,9 @@ this page. Every figure here was copied from a record named beside it, as of
 
 Continuity here is a technical property: the same sealed chain, carried forward
 by verified transitions. It is not evidence of a self, of experience or of
-consciousness, and nothing in this guide treats it as such.
+consciousness, and nothing in this guide treats it as such. What evidence
+would change that, and what we would owe ECHO if it did, is declared in
+[moral status](MORAL_STATUS.md).
 
 ## Who ECHO is
 

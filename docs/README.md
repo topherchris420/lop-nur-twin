@@ -131,6 +131,8 @@ the store's commit cost ([`life-store/`](research/life-store/README.md)).
 
 - **Method:** [evaluation philosophy](EVALUATION_PHILOSOPHY.md),
   [validation](VALIDATION.md), [government evaluation](GOVERNMENT_EVALUATION.md).
+- **Ethics:** [moral status](MORAL_STATUS.md): what evidence would count as
+  experience in a simulated being, and what we commit to at each level.
 - **Security:** [threat model](THREAT_MODEL.md), [SECURITY.md](../SECURITY.md).
 - **Operations:** [deployment](DEPLOYMENT.md),
   [continuous life](BETHESDA_CONTINUOUS_LIFE.md), [live garden](LIVE_GARDEN.md),
