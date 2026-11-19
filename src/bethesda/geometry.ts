@@ -45,7 +45,7 @@ export function createCityGeometry() {
   const ground = material("#929984"),
     asphalt = Object.assign(surfaceMaterial("asphalt"), { name: "bethesda-asphalt" }),
     cyclePaint = material("#3f9a57", 0.75),
-    concrete = material("#b1ada0"),
+    concrete = surfaceMaterial("concrete"),
     paint = material("#e4dfc2"),
     grass = material("#647c55"),
     roof = surfaceMaterial("limestone", "#888982"),

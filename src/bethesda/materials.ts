@@ -3,10 +3,12 @@ import * as THREE from "three";
 import { mulberry32, seededNoise2D } from "../lib/noise";
 import { applyHardSurface } from "../gfx/greeble";
 
-type Surface = "brick" | "paving" | "asphalt" | "limestone";
+type Surface = "brick" | "paving" | "asphalt" | "limestone" | "concrete";
 export function surfaceMaterial(kind: Surface, tint = "#ffffff") {
   const size = 512,
-    random = mulberry32({ brick: 191, paving: 772, asphalt: 331, limestone: 82 }[kind]);
+    random = mulberry32(
+      { brick: 191, paving: 772, asphalt: 331, limestone: 82, concrete: 394 }[kind],
+    );
   const color = document.createElement("canvas"),
     relief = document.createElement("canvas"),
     rough = document.createElement("canvas");
@@ -21,7 +23,9 @@ export function surfaceMaterial(kind: Surface, tint = "#ffffff") {
         ? "#8c867c"
         : kind === "asphalt"
           ? "#515352"
-          : "#c0b6a2";
+          : kind === "concrete"
+            ? "#ada99d"
+            : "#c0b6a2";
   c.fillRect(0, 0, size, size);
   b.fillStyle = "#777777";
   b.fillRect(0, 0, size, size);
@@ -44,6 +48,34 @@ export function surfaceMaterial(kind: Surface, tint = "#ffffff") {
         r.fillStyle = `rgb(${185 + value * 40},${185 + value * 40},${185 + value * 40})`;
         r.fillRect(x + offset + 1.5, y + 1.5, w - 3, h - 3);
       }
+  }
+  if (kind === "asphalt" || kind === "concrete") {
+    // Overlap stains across tile edges so the same metres can span a whole street.
+    for (let patch = 0; patch < 70; patch++) {
+      const cx = random() * size,
+        cy = random() * size,
+        radius = 7 + random() * 61;
+      const tone = random() > 0.38 ? "40,37,29" : "218,210,186";
+      for (const x of [cx - size, cx, cx + size])
+        for (const y of [cy - size, cy, cy + size]) {
+          if (x + radius < 0 || x - radius > size || y + radius < 0 || y - radius > size)
+            continue;
+          const stain = c.createRadialGradient(x, y, 0, x, y, radius);
+          stain.addColorStop(0, `rgba(${tone},0.19)`);
+          stain.addColorStop(1, `rgba(${tone},0)`);
+          c.fillStyle = stain;
+          c.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+        }
+    }
+    if (kind === "concrete") {
+      // The recessed expansion joints sit in the same texels in colour and relief.
+      c.fillStyle = "#736f63";
+      b.fillStyle = "#303030";
+      for (const ctx of [c, b]) {
+        ctx.fillRect(0, 0, 2, size);
+        ctx.fillRect(0, 0, size, 2);
+      }
+    }
   }
   for (let i = 0; i < 42000; i++) {
     const x = random() * size,
@@ -218,6 +250,52 @@ export function foliageTexture() {
   return texture;
 }
 
+/** Layer the same branch sprays across the crown. The cutout between twigs
+ * survives around its silhouette, with progressively darker leaves behind. */
+export function canopyTexture(spray: THREE.CanvasTexture) {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  const random = mulberry32(0x63726f77);
+  const tile = document.createElement("canvas");
+  tile.width = tile.height = size;
+  const layer = tile.getContext("2d")!;
+  for (const shade of [0.55, 0.76, 1]) {
+    // Tint once per layer. Atlas offsets and orientations wrap without a seam.
+    layer.clearRect(0, 0, size, size);
+    layer.drawImage(spray.image, 0, 0);
+    layer.globalCompositeOperation = "source-atop";
+    layer.fillStyle = `rgba(13,28,17,${1 - shade})`;
+    layer.fillRect(0, 0, size, size);
+    layer.globalCompositeOperation = "source-over";
+    for (let i = 0; i < 28; i++) {
+      const x = random() * size,
+        y = random() * size;
+      const width = 64 + 78 * random(),
+        angle = random() * Math.PI * 2;
+      for (const dx of [-size, 0, size])
+        for (const dy of [-size, 0, size]) {
+          const px = x + dx,
+            py = y + dy;
+          if (px < -width || py < -width || px > size + width || py > size + width)
+            continue;
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(angle);
+          ctx.drawImage(tile, -width / 2, -width / 2, width, width);
+          ctx.restore();
+        }
+    }
+  }
+  const map = new THREE.CanvasTexture(canvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  map.repeat.set(2, 1);
+  map.anisotropy = 4;
+  return map;
+}
+
 const canopyNoise = seededNoise2D(0x6272616e);
 
 /** Dense inner leaves, with light lost towards the underside and the centres
@@ -232,6 +310,8 @@ export function crownGeometry(
   const geometry = new THREE.IcosahedronGeometry(1, 1);
   const p = geometry.getAttribute("position");
   const colors = new Float32Array(p.count * 3);
+  const uv = geometry.getAttribute("uv");
+  const offset = canopyNoise(x, z);
   for (let i = 0; i < p.count; i++) {
     const nx = p.getX(i),
       ny = p.getY(i),
@@ -239,8 +319,9 @@ export function crownGeometry(
     const breakup = canopyNoise(x + nx * 2.1 + ny, z + nz * 2.1 - ny);
     // The same ellipsoid is a landing surface in BethesdaFlyWorld.
     p.setXYZ(i, x + nx * radius, y + ny * radius * stretch, z + nz * radius);
-    const light = 0.62 + 0.21 * ny + 0.18 * breakup;
-    colors.set([light * 0.52, light * 0.68, light * 0.29], i * 3);
+    const light = 0.78 + 0.21 * ny + 0.16 * breakup;
+    colors.set([light, light, light * 0.94], i * 3);
+    uv.setXY(i, uv.getX(i) + offset, uv.getY(i) + offset);
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   return geometry;

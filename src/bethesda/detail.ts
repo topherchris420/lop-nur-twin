@@ -3,7 +3,12 @@ import * as THREE from "three";
 import { windowGlass } from "./glazing";
 import { mulberry32 } from "../lib/noise";
 import { buildingAt, distance, lerp, pathWays, type Building, type Point } from "./model";
-import { architecturalStone, foliageTexture, surfaceMaterial } from "./materials";
+import {
+  architecturalStone,
+  canopyTexture,
+  foliageTexture,
+  surfaceMaterial,
+} from "./materials";
 import {
   PLANTER,
   STREET_BENCH,
@@ -26,14 +31,16 @@ export interface CityBuilder {
 // The arrival blocks that get this detail (placed in `furniture.ts`).
 export { detailedBuildings } from "./furniture";
 export function createDetailMaterials() {
+  const spray = foliageTexture();
   return {
     canopy: new THREE.MeshStandardMaterial({
-      color: "#818f65",
+      map: canopyTexture(spray),
+      alphaTest: 0.28,
       vertexColors: true,
       roughness: 1,
     }),
     leaves: new THREE.MeshStandardMaterial({
-      map: foliageTexture(),
+      map: spray,
       alphaTest: 0.34,
       side: THREE.DoubleSide,
       roughness: 0.92,
