@@ -710,6 +710,8 @@ void main() {
 /* ------------------------------------------------------------------ */
 
 export interface GreebleOptions {
+  /** Keep only cabinet silhouettes when the camera cannot resolve the fittings. */
+  detail?: "near" | "far";
   /** Seed; the same seed must always produce the same deck. */
   seed: number;
   /** Deck extent along local x, in metres. */
@@ -743,13 +745,20 @@ export function makeRoofEquipment(
   w: number,
   h: number,
   d: number,
+  detail: "near" | "far" = "near",
 ) {
+  const casing = kind === "duct" ? 0x999f9c : kind === "condenser" ? 0xa9aa9f : 0x868c83;
+  if (detail === "far") {
+    const box = new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0);
+    coat(box, casing);
+    return box;
+  }
   const parts: THREE.BufferGeometry[] = [];
   const part = (g: THREE.BufferGeometry, y: number, finish: number, z = 0) => {
     coat(g, finish);
     parts.push(g.translate(0, y, z));
   };
-  const casing = kind === "duct" ? 0x999f9c : kind === "condenser" ? 0xa9aa9f : 0x868c83;
+
   part(new THREE.BoxGeometry(w, h - 0.08, d), h / 2, casing);
   part(new THREE.BoxGeometry(w * 0.95, 0.08, d * 0.94), 0.04, 0x515b56);
   part(new THREE.BoxGeometry(w * 1.025, 0.045, d * 1.025), h - 0.0225, 0xb9bcb3);
@@ -803,6 +812,7 @@ export function makeGreebleGeometry({
   maxHeight = 1.6,
   rows = 3,
   pipes = true,
+  detail = "near",
 }: GreebleOptions): THREE.BufferGeometry {
   const random = mulberry32(seed);
   const parts: THREE.BufferGeometry[] = [];
@@ -882,6 +892,7 @@ export function makeGreebleGeometry({
         sx,
         sy,
         sz,
+        detail,
       );
       push(equipment, x, 0, cz, railRotation);
 

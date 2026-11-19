@@ -214,6 +214,33 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
   return m;
 }
 
+/** Only one level is drawn. The plain, original envelope also remains the
+ * source for static collisions at every distance, including on the first frame. */
+function RoofDetail({
+  near,
+  far,
+  material,
+  position,
+}: {
+  near: THREE.BufferGeometry;
+  far: THREE.BufferGeometry;
+  material: THREE.Material;
+  position: [number, number, number];
+}) {
+  const lod = useMemo(() => {
+    const object = new THREE.LOD();
+    const close = new THREE.Mesh(near, material),
+      distant = new THREE.Mesh(far, material);
+    close.userData.noCollide = true;
+    for (const mesh of [close, distant]) mesh.castShadow = mesh.receiveShadow = true;
+    distant.visible = false;
+    object.addLevel(close, 0);
+    object.addLevel(distant, 110, 0.12);
+    return object;
+  }, [near, far, material]);
+  return <primitive object={lod} position={position} />;
+}
+
 /**
  * Procedural roof clutter. One merged geometry, one draw call; the seed is
  * derived from the structure id so a given roof is always identical.
@@ -237,20 +264,21 @@ function GreebleDeck({
   maxHeight?: number;
   rows?: number;
 }) {
-  const geometry = useMemo(
-    () => makeGreebleGeometry({ seed, width, depth, count, maxHeight, rows }),
-    [seed, width, depth, count, maxHeight, rows],
+  const [near, far] = useMemo(() => {
+    const options = { seed, width, depth, count, maxHeight, rows };
+    return [
+      makeGreebleGeometry(options),
+      makeGreebleGeometry({ ...options, detail: "far" }),
+    ] as const;
+  }, [seed, width, depth, count, maxHeight, rows]);
+  useEffect(
+    () => () => {
+      near.dispose();
+      far.dispose();
+    },
+    [near, far],
   );
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  return (
-    <mesh
-      geometry={geometry}
-      material={material}
-      position={position}
-      castShadow
-      receiveShadow
-    />
-  );
+  return <RoofDetail near={near} far={far} material={material} position={position} />;
 }
 
 function useSharedMaterials(): SharedMaterials {
@@ -771,8 +799,21 @@ function Quonset({ def, m }: BuilderProps) {
 
 function Warehouse({ def, m }: BuilderProps) {
   const [w, h, d] = def.size;
-  const condenser = useMemo(() => makeRoofEquipment("condenser", 2, 1.2, 2), []);
-  useEffect(() => () => condenser.dispose(), [condenser]);
+  const [condenser, farCondenser] = useMemo(
+    () =>
+      [
+        makeRoofEquipment("condenser", 2, 1.2, 2),
+        makeRoofEquipment("condenser", 2, 1.2, 2, "far"),
+      ] as const,
+    [],
+  );
+  useEffect(
+    () => () => {
+      condenser.dispose();
+      farCondenser.dispose();
+    },
+    [condenser, farCondenser],
+  );
   const surrounds = useMemo(() => {
     const parts: THREE.BufferGeometry[] = [];
     const doorH = h * 0.72,
@@ -828,13 +869,12 @@ function Warehouse({ def, m }: BuilderProps) {
       ))}
       {/* roof plant — HVAC units */}
       {[-0.15, 0.15].map((f) => (
-        <mesh
+        <RoofDetail
           key={`ac${f}`}
           material={m.equipment}
-          geometry={condenser}
-          castShadow
-          receiveShadow
-          position={[w * 0.3, h + 0.22, d * f]}
+          near={condenser}
+          far={farCondenser}
+          position={[w * 0.3, h + 0.2, d * f]}
         />
       ))}
       {/* procedural plant deck filling the rest of the roof, inset from the
@@ -850,6 +890,7 @@ function Warehouse({ def, m }: BuilderProps) {
       />
       <mesh
         geometry={surrounds}
+        userData={{ noCollide: true }}
         material={m.metalDark}
         position={[0, 0, d / 2]}
         castShadow

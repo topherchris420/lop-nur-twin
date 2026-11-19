@@ -258,6 +258,15 @@ describe("shader patches against the installed three", () => {
     expect(c.count).toBe(p.count);
     expect(new Set(c.array).size).toBeGreaterThan(3);
     expect(equipment.groups).toHaveLength(0);
+    const far = makeGreebleGeometry({
+      seed: 67,
+      width: 12,
+      depth: 8,
+      count: 16,
+      detail: "far",
+    });
+    expect(far.getIndex()!.count).toBeLessThan(equipment.getIndex()!.count / 2);
+    far.dispose();
     equipment.dispose();
   });
 
