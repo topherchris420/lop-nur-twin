@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   prettier:
-    if: github.event.head_commit.message != 'chore: format README visual showcase'
+    if: "!contains(github.event.head_commit.message, 'chore: format README visual showcase')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
