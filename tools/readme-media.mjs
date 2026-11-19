@@ -15,7 +15,8 @@
  *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | garden | metrology | noeterra | noeterra-tarim | gallery | tour)
  *   node tools/readme-media.mjs --origin http://localhost:5199 --site https://lop-nur-twin.vercel.app
  *   node tools/readme-media.mjs --only garden --garden https://150-136-49-49.sslip.io
- *   node tools/readme-media.mjs --only gallery   -> current world stills, no GIF encoders needed
+ *   node tools/shots.mjs --only blacksite        -> first capture a real game engagement
+ *   node tools/readme-media.mjs --only gallery   -> world stills, including that gameplay frame
  *   node tools/readme-media.mjs --only tour      -> opening plates and public research records
  *
  * It writes docs/media/readme/*.gif and the gallery stills in
@@ -621,7 +622,8 @@ async function captureNoeterra(page, scenario, name) {
 
 /**
  * Full-size stills, taken directly from the viewers. A clean checkout needs
- * neither an earlier GIF run nor a folder of intermediate frames.
+ * neither an earlier GIF run nor a folder of intermediate frames. The
+ * Blacksite still comes from the separately framed match in tools/shots.mjs.
  */
 async function stageGallery(page, photograph) {
   await mkdir(FRAMES, { recursive: true });
@@ -729,11 +731,17 @@ async function photographGallery(page, staging) {
   );
   await shot("rain-lab");
 
-  await page.setViewport({ width: 1200, height: 720 });
-  await page.goto(`${site}/play?quality=0`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("::-p-text(Press any key to continue)");
-  await page.keyboard.press("Enter");
-  await page.waitForSelector('a[href="/evaluation"]', { visible: true });
+  // Reuse the real match capture from tools/shots.mjs. That tool chooses
+  // a valid sightline and frames an active opponent. A menu is not gameplay.
+  const gameplay = await readFile("docs/screenshot-blacksite.png");
+  await page.setViewport({ width: 1200, height: 675, deviceScaleFactor: 1 });
+  await page.setContent(`<!doctype html><meta charset="utf-8"><style>
+    html, body { margin: 0; width: 100%; height: 100%; background: #101416 }
+    img { display: block; width: 100%; height: 100%; object-fit: cover }
+    </style><img alt="" src="data:image/png;base64,${gameplay.toString("base64")}">`);
+  await page.evaluate(() =>
+    Promise.all([...document.images].map((image) => image.decode())),
+  );
   await shot("blacksite");
 }
 

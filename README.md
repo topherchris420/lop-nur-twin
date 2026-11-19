@@ -1,21 +1,47 @@
 # Lop Nur Twin
 
-Start above the dry lakebed at Lop Nur. Select a building to see how much is known about it and where the model fills in the gaps. From the same application you can walk the streets of Bethesda, follow an experiment through R.A.I.N. Lab, play Blacksite, or watch rival civilizations redraw the map in Noeterra. Two simulated flies, Eva and ECHO, keep living on their own servers between visits.
+**One landscape. Several worlds. A clear boundary between evidence and imagination.**
 
-**[Enter Lop Nur](https://lop-nur-twin.vercel.app/)** · **[Find Bethesda](#bethesda)** · **[Visit R.A.I.N. Lab](#rain-lab)** · **[Open Noeterra](https://lop-nur-twin.vercel.app/noeterra)** · **[Play Blacksite](https://lop-nur-twin.vercel.app/play)** · **[Meet Eva and ECHO](#eva-and-echo)** · [Run locally](#07-reproduce-the-work)
+Begin over the desert airfield at Lop Nur. Inspect the evidence behind a modeled structure, rewind the historical record, then follow a different door: walk Bethesda, witness R.A.I.N. Lab's research, explore Noeterra's changing civilizations, enter Blacksite's fictional first-person simulation, or observe Eva and ECHO in their persistent environments. These are connected experiences, but they do not all make the same claims about reality.
+
+**[Explore the 3D twin](https://lop-nur-twin.vercel.app/)** · **[Walk Bethesda](#bethesda)** · **[Visit R.A.I.N. Lab](#rain-lab)** · **[Play Blacksite](https://lop-nur-twin.vercel.app/play)** · **[Explore Noeterra](https://lop-nur-twin.vercel.app/noeterra)** · **[Observe ECHO live](https://lop-nur-twin.vercel.app/live)** · [Run locally](#07-reproduce-the-work)
 
 <picture>
   <source media="(max-width: 600px)" srcset="docs/media/readme/gallery/worlds-mobile.webp">
-  <img src="docs/media/readme/gallery/worlds.webp" alt="Three views from the application. Evidence colours on the Lop Nur airfield, a tree-lined Bethesda street, and Noeterra’s political map of the Tarim Basin.">
+  <img src="docs/media/readme/gallery/worlds.webp" alt="Real application screenshots of the Lop Nur evidence lens, the tree-lined Bethesda simulation, and Noeterra's civilization map." width="1440">
 </picture>
 
-Full screenshots from the running application · [Lop Nur evidence lens](docs/media/readme/gallery/twin.jpg) · [Bethesda street](docs/media/readme/gallery/bethesda.jpg) · [Noeterra map](docs/media/readme/gallery/noeterra.jpg)
+_Actual application captures, not concept art. The airfield has an evidence ledger; Bethesda and Noeterra are simulations; Blacksite is fiction. [View the complete visual field guide](docs/media/readme/GALLERY.md)._
+
+<table>
+  <tr>
+    <td width="33%">
+      <a href="docs/screenshot-blacksite.png"><img src="docs/screenshot-blacksite.png" alt="A first-person Blacksite match underway at the modeled airfield, with a combatant in view."></a>
+      <strong>PLAY / BLACKSITE</strong><br>
+      <sub>An actual gameplay frame, not the title screen. <a href="https://lop-nur-twin.vercel.app/play">Launch the game</a>.</sub>
+    </td>
+    <td width="33%">
+      <a href="docs/media/readme/gallery/rain-lab.jpg"><img src="docs/media/readme/gallery/rain-lab.jpg" alt="The simulated R.A.I.N. Lab in Bethesda and its room directory."></a>
+      <strong>RESEARCH / R.A.I.N. LAB</strong><br>
+      <sub>Enter the lab and follow recorded experiments. <a href="https://lop-nur-twin.vercel.app/research-intelligence/">Open the observatory</a>.</sub>
+    </td>
+    <td width="33%">
+      <a href="docs/media/readme/gallery/garden.jpg"><img src="docs/media/readme/gallery/garden.jpg" alt="Eva in a live garden macro observation with on-screen status and activity."></a>
+      <strong>OBSERVE / EVA &amp; ECHO</strong><br>
+      <sub>Witness the persistent worlds without resetting their histories. <a href="https://lop-nur-twin.vercel.app/live">Visit the observer</a>.</sub>
+    </td>
+  </tr>
+</table>
+
+[Airfield evidence](docs/media/readme/gallery/twin.jpg) · [Bethesda streets](docs/media/readme/gallery/bethesda.jpg) · [Noeterra's map](docs/media/readme/gallery/noeterra.jpg) · [Game screenshot](docs/screenshot-blacksite.png) · [Live fly](docs/media/readme/gallery/live-fly.jpg)
 
 <a id="01-the-question"></a>
 
 ## 01. Lop Nur and the evidence behind it
 
 The twin reconstructs a 6.8 km × 6.8 km patch of desert around the airfield in Xinjiang. Press **L** in the 3D viewer to colour the scene by what was observed, reported, interpreted, or added for illustration. Move the timeline back and the model shows which claims had public support by that date. The terrain surface is procedural. [Open the evidence lens](https://lop-nur-twin.vercel.app/?lens=1) · [Site model](docs/SITE_MODEL.md) · [Source register and provenance](docs/DATA_PROVENANCE.md).
+
+[![The Lop Nur evidence lens and its visual classification of modeled structures.](docs/screenshot-lens.png)](docs/screenshot-lens.png)
 
 Two text views let you investigate the same model without WebGL. In **Analysis**, follow a claim to its source, inspect its uncertainty, or export a spatial query as GeoJSON or CSV. In **Compare**, load two recorded revisions to see whether the geometry, evidence, uncertainty, or just the wording changed. [Open Analysis](https://lop-nur-twin.vercel.app/analysis) · [Compare revisions](https://lop-nur-twin.vercel.app/compare) · [See a recorded revision comparison](docs/media/readme/gallery/model-history.jpg).
 
@@ -42,6 +68,8 @@ In the [Lop Nur viewer](https://lop-nur-twin.vercel.app/), press **backtick** an
 
 Inside Bethesda is Vers3Dynamics’ research system. The **Research Panel** offers a prerecorded meeting. The **Registry / Archive** holds experiments, including failed and inconclusive runs. You can also go straight to the public observatory and follow a published question through its evidence, competing explanations, and review. [Explore the research observatory](https://lop-nur-twin.vercel.app/research-intelligence/) · [Open the evidence journal](https://lop-nur-twin.vercel.app/research-memory/) · [Lab guide](docs/RAIN_LAB_BETHESDA.md).
 
+[![R.A.I.N. Lab's recorded research protocol and its controls in the application.](docs/screenshots/rain-lab-protocol.png)](docs/screenshots/rain-lab-protocol.png)
+
 ### Noeterra
 
 [![Loulan and its neighbours on Noeterra’s opening Tarim Basin map. The realm panel shows Western Han.](docs/media/readme/gallery/noeterra.jpg)](docs/media/readme/gallery/noeterra.jpg)
@@ -50,11 +78,15 @@ Take a seat as Loulan in 77 BC, or watch the Mediterranean powers from 264 BC. T
 
 ### Blacksite
 
-[![Blacksite’s opening menu over the modeled landscape, with the illustrative-simulation label visible.](docs/media/readme/gallery/blacksite.jpg)](docs/media/readme/gallery/blacksite.jpg)
+[![A Blacksite match in progress, photographed in the first-person renderer as an opponent moves through the airfield.](docs/screenshot-blacksite.png)](docs/screenshot-blacksite.png)
 
-Blacksite uses the airfield geometry as the setting for a fictional first-person game. A person, a scripted controller, or a model can occupy the same player seat. The companion evaluation viewer opens archived episodes and shows what each comparison measured, how confident a controller was, and which decisions arrived late or were refused. [Play Blacksite](https://lop-nur-twin.vercel.app/play) · [Open the evaluation viewer](https://lop-nur-twin.vercel.app/evaluation) · [Read the Jev and Glide comparison](docs/benchmarks/2026-10-05/README.md).
+Blacksite uses the airfield geometry as the setting for a **fictional first-person game**. The image above is a framed gameplay capture, not a menu or a claim about the real site. Procedural characters, match logic, and the player's movement make the scale of the modeled structures tangible. A person, a scripted controller, or a model can occupy the same player seat. The companion evaluation viewer opens archived episodes and shows what each comparison measured, how confident a controller was, and which decisions arrived late or were refused. [Play Blacksite](https://lop-nur-twin.vercel.app/play) · [Open the evaluation viewer](https://lop-nur-twin.vercel.app/evaluation) · [Read the Jev and Glide comparison](docs/benchmarks/2026-10-05/README.md).
 
 ### Eva and ECHO
+
+| Eva, observed in her garden                                                                                                | ECHO, observed in Bethesda                                                                                                                                   |
+| :------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Eva in the garden's real-time macro view.](docs/media/readme/gallery/garden.jpg)](docs/media/readme/gallery/garden.jpg) | [![ECHO near a Bethesda building with its current state and recent action.](docs/media/readme/gallery/live-fly.jpg)](docs/media/readme/gallery/live-fly.jpg) |
 
 Eva’s garden and ECHO’s Bethesda are separate, persistent simulations. Open either viewer and you join a fly partway through its day. Eva’s garden keeps her clock and memories. ECHO’s observer shows the decision behind a change in behaviour and links each saved checkpoint to the one before it. [Visit Eva’s garden](https://150-136-49-49.sslip.io/) · [Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Browse ECHO’s ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger).
 
