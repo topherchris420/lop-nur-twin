@@ -15,14 +15,15 @@
  *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | garden | metrology | noeterra | noeterra-tarim | gallery)
  *   node tools/readme-media.mjs --origin http://localhost:5199 --site https://lop-nur-twin.vercel.app
  *   node tools/readme-media.mjs --only garden --garden https://150-136-49-49.sslip.io
+ *   node tools/readme-media.mjs --only gallery   -> current stills, no GIF encoders needed
  *
- * It writes docs/media/readme/*.gif and the gallery thumbnails in
+ * It writes docs/media/readme/*.gif and the gallery stills in
  * docs/media/readme/gallery/. Frames go to shots/readme/, which is gitignored.
- * Encoding needs `ffmpeg` and `gifsicle` on the PATH. A moving camera over
+ * Only the animated captures need `ffmpeg` and `gifsicle` on the PATH. A moving camera over
  * grainy sand is the worst case for GIF compression: the orbit comes out of
  * ffmpeg at 22 MB and out of gifsicle's lossy pass at 4.
  *
- * The three 3D captures need the dev server (`bun run dev`): they place the
+ * The local 3D captures need the dev server (`bun run dev`): they place the
  * camera through the dev-only `window.__twinStore` and `window.__bethesda`
  * handles and the dev server's copy of React Three Fiber. Edit nothing in the
  * repository while they run: Tailwind's plugin reloads the page when any file
@@ -48,8 +49,7 @@
 
 import puppeteer from "puppeteer";
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, rename, rm } from "node:fs/promises";
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(`--${name}`);
@@ -63,16 +63,6 @@ const only = arg("only", null);
 const OUT = "docs/media/readme";
 const FRAMES = "shots/readme";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-for (const [tool, flag] of [
-  ["ffmpeg", "-version"],
-  ["gifsicle", "--version"],
-]) {
-  if (spawnSync(tool, [flag], { stdio: "ignore" }).status !== 0) {
-    console.error(`${tool} is not on the PATH; it is needed to encode the GIFs.`);
-    process.exit(1);
-  }
-}
 
 /* ------------------------------------------------------------------ */
 /* Compound frame -> world metres, mirroring src/lib/layout.ts         */
@@ -530,8 +520,8 @@ async function captureLive(page) {
 /**
  * Eva's garden as a visitor finds it: the clay exhibit in its opening view,
  * with the observation panel that says what is modelled, reported and
- * established. Her service is not in this repository; this only looks. One
- * photograph, for the gallery: she sleeps through Bethesda's night, and a GIF
+ * established. This viewer only reads her service. One
+ * photograph: she sleeps through Bethesda's night, and a GIF
  * of a sleeping fly is two megabytes of stillness.
  */
 async function captureGarden(page) {
@@ -629,40 +619,121 @@ async function captureNoeterra(page, scenario, name) {
 /* ------------------------------------------------------------------ */
 
 /**
- * The six thumbnails under "Start exploring", 640 x 360 JPEG, cut from the
- * committed screenshots and from this script's own frames. A source that is
- * not on disk is skipped and named.
+ * Full-size stills, taken directly from the viewers. A clean checkout needs
+ * neither an earlier GIF run nor a folder of intermediate frames.
  */
-function captureGallery() {
-  console.log("gallery:");
-  const tiles = [
-    ["twin", "docs/screenshot-lens.png", "crop=1040:585:250:290"],
-    ["live-fly", `${FRAMES}/live/0022.png`, null],
-    ["garden", `${FRAMES}/garden/0000.png`, "crop=800:450:0:270"],
-    ["rain-lab", "docs/screenshots/rain-lab-meeting.png", null],
-    ["noeterra", `${FRAMES}/noeterra/0006.png`, "crop=1280:720:0:20"],
-    ["blacksite", "docs/screenshot-blacksite.png", null],
-  ];
-  for (const [name, source, crop] of tiles) {
-    if (!existsSync(source)) {
-      console.log(`  ${name}: ${source} is missing, skipped`);
-      continue;
-    }
-    const filter = [crop, "scale=640:360:flags=lanczos"].filter(Boolean).join(",");
-    run("ffmpeg", [
-      "-v",
-      "error",
-      "-y",
-      "-i",
-      source,
-      "-vf",
-      filter,
-      "-q:v",
-      "4",
-      `${OUT}/gallery/${name}.jpg`,
-    ]);
-    console.log(`  ${OUT}/gallery/${name}.jpg`);
+async function captureGallery(page) {
+  await mkdir(FRAMES, { recursive: true });
+  const staging = await mkdtemp(`${FRAMES}/gallery-`);
+  try {
+    await photographGallery(page, staging);
+    // A viewer can go offline mid-session. Publish only after all views were captured.
+    for (const file of await readdir(staging))
+      await rename(`${staging}/${file}`, `${OUT}/gallery/${file}`);
+  } finally {
+    await rm(staging, { recursive: true, force: true });
   }
+}
+
+async function photographGallery(page, staging) {
+  const shot = async (name) => {
+    // Wait for the next paint after changing a camera or opening a room.
+    await page.evaluate(
+      () =>
+        new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+    );
+    await page.screenshot({ path: `${staging}/${name}.jpg`, type: "jpeg", quality: 87 });
+    console.log(`  ${OUT}/gallery/${name}.jpg · ${new Date().toISOString()}`);
+  };
+  await page.setViewport({ width: 1440, height: 810 });
+  page.setDefaultTimeout(120000);
+
+  // These two public viewers only read the original individuals. Wait for a
+  // live observation so a connection screen cannot become their portrait.
+  await page.goto(`${site}/live`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(
+    '::-p-xpath(//span[@role="status"][normalize-space(.)="Live"])',
+  );
+  await page.waitForSelector('button[aria-label="Show the flat map"]');
+  await page.click('button[aria-label="Zoom in"]');
+  await page.click('button[aria-label="Zoom in"]');
+  await shot("live-fly");
+
+  await page.goto(garden, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector('#status[data-state="live"]');
+  await page.waitForSelector("#curtain[hidden]");
+  await page.click('button[data-camera="macro"]');
+  await shot("garden");
+  await page.setViewport({ width: 420, height: 568, deviceScaleFactor: 2 });
+  if (await page.$eval("#exhibit", (el) => el.dataset.panel === "open"))
+    await page.click("#panel-toggle");
+  await shot("garden-mobile");
+  await page.setViewport({ width: 1440, height: 810 });
+
+  // The hosted build includes the WebAssembly engine. Use an observer seat
+  // and leave the map on its opening season so the view can be revisited.
+  await page.goto(`${site}/noeterra?scenario=tarim-77bc&play=observe&seed=1`, {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForSelector('button[aria-label="Show the whole map"]', {
+    visible: true,
+  });
+  await shot("noeterra");
+
+  await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
+  await openTwin(page);
+  await twin(page, "toggleLens");
+  const [tx, tz] = compound(20, 40);
+  const [ex, ez] = compound(420, 520);
+  await page.evaluate(
+    ({ eye, target }) => globalThis.__twinStore.getState().requestFlyTo(eye, target),
+    { eye: [ex, 250, ez], target: [tx, 0, tz] },
+  );
+  await shot("twin");
+
+  // A fresh city visit uses the public doors and the same four-core profile
+  // as tools/bethesda-look.mjs. Pause only this browser's local city.
+  await page.emulateMediaFeatures([]);
+  await page.setViewport({ width: 1200, height: 800 });
+  await page.evaluateOnNewDocument(() =>
+    Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 4 }),
+  );
+  await page.goto(`${site}/?quality=0`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#timeline-position");
+  await page.keyboard.press("Backquote");
+  await page.waitForSelector("#anomaly-coordinate");
+  await page.focus("#anomaly-coordinate");
+  await page.keyboard.sendCharacter("38.9847,-77.0947");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('[data-bethesda="active"]');
+  const clickVisibleButton = (label) =>
+    page.evaluate((label) => {
+      const button = [...document.querySelectorAll("button")].find(
+        (el) => el.textContent.trim() === label && el.getClientRects().length > 0,
+      );
+      if (!button) throw new Error(`Viewer control missing: ${label}`);
+      button.click();
+    }, label);
+  await clickVisibleButton("Pause");
+  await clickVisibleButton("Walk");
+  await shot("bethesda");
+  await clickVisibleButton("~ telemetry");
+  await page.waitForSelector("#city-event");
+  await page.focus("#city-event");
+  await page.keyboard.sendCharacter("resolve r.a.i.n.");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('[data-rain-lab="active"]');
+  await page.waitForSelector(
+    '::-p-xpath(//button[contains(normalize-space(.),"Research Panel")])',
+  );
+  await shot("rain-lab");
+
+  await page.setViewport({ width: 1200, height: 720 });
+  await page.goto(`${site}/play?quality=0`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("::-p-text(Press any key to continue)");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('a[href="/evaluation"]', { visible: true });
+  await shot("blacksite");
 }
 
 /* ------------------------------------------------------------------ */
@@ -715,6 +786,16 @@ if (only && !(only in CAPTURES)) {
   process.exit(1);
 }
 
+if (!["gallery", "garden", "metrology"].includes(only)) {
+  for (const [tool, flag] of [
+    ["ffmpeg", "-version"],
+    ["gifsicle", "--version"],
+  ]) {
+    if (spawnSync(tool, [flag], { stdio: "ignore" }).status !== 0)
+      throw new Error(`${tool} is needed to encode the README animations`);
+  }
+}
+
 await mkdir(`${OUT}/gallery`, { recursive: true });
 const browser = await puppeteer.launch({
   headless: "shell",
@@ -726,7 +807,7 @@ try {
     if (only && only !== name) continue;
     // a fresh page per capture, so each starts on a native clock
     const page = await browser.newPage();
-    await installClock(page);
+    if (["orbit", "evidence", "bethesda"].includes(name)) await installClock(page);
     page.on("pageerror", (error) => console.log(`  page error: ${error.message}`));
     await capture(page);
     await page.close();
