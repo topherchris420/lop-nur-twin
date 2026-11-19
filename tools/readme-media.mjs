@@ -739,7 +739,9 @@ async function photographGallery(page, staging) {
     html, body { margin: 0; width: 100%; height: 100%; background: #101416 }
     img { display: block; width: 100%; height: 100%; object-fit: cover }
     </style><img alt="" src="data:image/png;base64,${gameplay.toString("base64")}">`);
-  await page.evaluate(() => Promise.all([...document.images].map((image) => image.decode())));
+  await page.evaluate(() =>
+    Promise.all([...document.images].map((image) => image.decode())),
+  );
   await shot("blacksite");
 }
 

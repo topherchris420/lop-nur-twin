@@ -11,7 +11,7 @@ Begin over the desert airfield at Lop Nur. Inspect the evidence behind a modeled
   <img src="docs/media/readme/gallery/worlds.webp" alt="Real application screenshots of the Lop Nur evidence lens, the tree-lined Bethesda simulation, and Noeterra's civilization map." width="1440">
 </picture>
 
-*Actual application captures, not concept art. The airfield has an evidence ledger; Bethesda and Noeterra are simulations; Blacksite is fiction. [View the complete visual field guide](docs/media/readme/GALLERY.md).*
+_Actual application captures, not concept art. The airfield has an evidence ledger; Bethesda and Noeterra are simulations; Blacksite is fiction. [View the complete visual field guide](docs/media/readme/GALLERY.md)._
 
 <table>
   <tr>
@@ -84,8 +84,8 @@ Blacksite uses the airfield geometry as the setting for a **fictional first-pers
 
 ### Eva and ECHO
 
-| Eva, observed in her garden | ECHO, observed in Bethesda |
-| :-- | :-- |
+| Eva, observed in her garden                                                                                                | ECHO, observed in Bethesda                                                                                                                                   |
+| :------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [![Eva in the garden's real-time macro view.](docs/media/readme/gallery/garden.jpg)](docs/media/readme/gallery/garden.jpg) | [![ECHO near a Bethesda building with its current state and recent action.](docs/media/readme/gallery/live-fly.jpg)](docs/media/readme/gallery/live-fly.jpg) |
 
 Eva’s garden and ECHO’s Bethesda are separate, persistent simulations. Open either viewer and you join a fly partway through its day. Eva’s garden keeps her clock and memories. ECHO’s observer shows the decision behind a change in behaviour and links each saved checkpoint to the one before it. [Visit Eva’s garden](https://150-136-49-49.sslip.io/) · [Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Browse ECHO’s ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger).
