@@ -1,3 +1,4 @@
+import { mulberry32 } from "../lib/noise";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { TessellateModifier } from "three/addons/modifiers/TessellateModifier.js";
@@ -31,6 +32,8 @@ import { groundAt } from "./terrain";
 import { buildLandmarks, createLandmarkMaterials } from "./landmarks";
 import { signalRigs } from "./signals";
 import { awnings, rooftopUnit, STREET_TREE, streetTrees } from "./furniture";
+import { applyStreetLight, bakeStreetLight } from "./streetLight";
+
 export function createCityGeometry() {
   const group = new THREE.Group();
   let buildingBase: number | null = null;
@@ -96,7 +99,18 @@ export function createCityGeometry() {
   ) {
     const g = new THREE.BoxGeometry(w, h, d);
     // The glazing ray starts at a normalised position on each individual pane.
-    if (m !== detail.glass && m !== detail.warmGlass) metricBoxUV(g);
+    if (m === detail.glass || m === detail.warmGlass) {
+      // Pack one stable room variant in the tile index. The fractional span
+      // stays exactly 0..1 on each face, including the right and top edges.
+      const rng = mulberry32(
+        (Math.round(p.x * 10) * 73856093) ^
+          (Math.round(p.z * 10) * 19349663) ^
+          Math.round(y * 100),
+      );
+      const variant = Math.floor(rng() * 8) + (y < 3.5 ? 8 : 0);
+      const uv = g.getAttribute("uv");
+      for (let k = 0; k < uv.count; k++) uv.setY(k, uv.getY(k) + variant * 2);
+    } else metricBoxUV(g);
     g.rotateY(angle);
     g.translate(p.x, y, p.z);
     add(g, m);
@@ -352,21 +366,26 @@ export function createCityGeometry() {
     box(v, 0.65, 2, 0.2, 0.5, trunk);
     box({ x: v.x, z: v.z + 0.2 }, 1.05, 2, 0.7, 0.1, trunk);
   }
+  const groundMaterials = [
+    asphalt,
+    cyclePaint,
+    concrete,
+    paint,
+    grass,
+    detail.paving,
+    detail.soil,
+    ground,
+  ];
+  const receivers = new Set<THREE.Material>(groundMaterials);
+  const lightMap = bakeStreetLight();
+  const streetLightAmount = { value: 1 };
+  for (const m of groundMaterials) applyStreetLight(m, lightMap, streetLightAmount);
   for (const { material: m, parts: list } of buckets.values()) {
     const g = mergeGeometries(list, false);
     list.forEach((x) => x.dispose());
     if (!g) continue;
     const mesh = new THREE.Mesh(g, m);
-    mesh.castShadow = ![
-      asphalt,
-      cyclePaint,
-      concrete,
-      paint,
-      grass,
-      detail.paving,
-      detail.soil,
-      ground,
-    ].includes(m as THREE.MeshStandardMaterial);
+    mesh.castShadow = !receivers.has(m);
     // Ground surfaces stay visible in the evidence view; everything else is
     // replaced by massing tinted by its evidence class.
     mesh.userData.ground = !mesh.castShadow;
@@ -375,9 +394,11 @@ export function createCityGeometry() {
   }
   return {
     group,
+    streetLightAmount,
     placed: landmarks.placed,
     samples: landmarks.samples,
     dispose() {
+      lightMap.dispose();
       group.traverse((o) => {
         if (o instanceof THREE.Mesh) {
           o.geometry.dispose();

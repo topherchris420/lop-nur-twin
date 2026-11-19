@@ -35,9 +35,10 @@ import { armMaterial } from "../game/weapons/arms";
 import { applyEdgeWear, getWeaponMaterials } from "../game/weapons/materials";
 import { casterMaterial, clayify, withCascade } from "../garden/scene/clay";
 import { windowGlass } from "../bethesda/glazing";
+import { applyStreetLight } from "../bethesda/streetLight";
 import { EYE_PATCH } from "../garden/scene/fly";
 import { rippleWater } from "../garden/scene/props";
-import { applyHardSurface, HARD_SURFACE_PRESETS } from "./greeble";
+import { applyHardSurface, HARD_SURFACE_PRESETS, makeGreebleGeometry } from "./greeble";
 import { applyGroundDetail, GROUND_DETAIL_PRESETS } from "./groundDetail";
 import { patchShader, ShaderAnchorError } from "./shaderPatch";
 import type * as ShaderPatch from "./shaderPatch";
@@ -137,6 +138,9 @@ const SITES: Record<string, () => THREE.Material[]> = {
     pull(puppet);
     return [puppet];
   },
+  "bethesda/streetLight.ts": () => [
+    applyStreetLight(standard(), texture(), { value: 1 }),
+  ],
   "gfx/greeble.ts": () =>
     Object.values(HARD_SURFACE_PRESETS).map((preset) =>
       applyHardSurface(standard(), preset),
@@ -234,6 +238,27 @@ describe("shader patches against the installed three", () => {
     expect(
       patching.filter(({ text }) => BARE_SPLICE.test(text)).map(({ file }) => file),
     ).toEqual([]);
+  });
+
+  it("keeps the formed steel profiles in distinct shader programs", () => {
+    const profiles = (["flat", "corrugated", "shutter"] as const).map((sheetProfile) =>
+      applyHardSurface(standard(), { sheetProfile }),
+    );
+    expect(new Set(profiles.map((m) => m.customProgramCacheKey())).size).toBe(3);
+    expect(profiles[1]!.defines).toHaveProperty("HS_CORRUGATED");
+    expect(profiles[2]!.defines).toHaveProperty("HS_SHUTTER");
+    profiles.forEach((m) => m.dispose());
+  });
+
+  it("merges roof equipment with a finish on every vertex and one draw group", () => {
+    const equipment = makeGreebleGeometry({ seed: 67, width: 12, depth: 8, count: 16 });
+    const p = equipment.getAttribute("position"),
+      c = equipment.getAttribute("color");
+    expect(p.count).toBeGreaterThan(0);
+    expect(c.count).toBe(p.count);
+    expect(new Set(c.array).size).toBeGreaterThan(3);
+    expect(equipment.groups).toHaveLength(0);
+    equipment.dispose();
   });
 
   for (const [file, materials] of Object.entries(SITES)) {

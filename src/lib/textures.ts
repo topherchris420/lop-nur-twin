@@ -337,15 +337,9 @@ export function makeCorrugatedTexture(
   const rand = mulberry32(seed);
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, S, S);
-  // corrugation ridges
-  for (let x = 0; x < S; x += 8) {
-    const g = ctx.createLinearGradient(x, 0, x + 8, 0);
-    g.addColorStop(0, "rgba(255,255,255,0.16)");
-    g.addColorStop(0.45, "rgba(0,0,0,0.02)");
-    g.addColorStop(1, "rgba(0,0,0,0.22)");
-    ctx.fillStyle = g;
-    ctx.fillRect(x, 0, 8, S);
-  }
+  // Only the coating varies in albedo. The formed ribs have a metre-scale
+  // normal profile in the material so their light follows the sun.
+  speckle(ctx, rand, 1500, ["#acaea7", "#737b7d"], 1.5);
   // rust / dust streaks
   for (let i = 0; i < 26; i++) {
     ctx.strokeStyle = rand() > 0.5 ? "#7c6a4f" : "#5f6468";

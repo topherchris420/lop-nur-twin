@@ -13,7 +13,7 @@
  *   colours of clay, with window rows pressed in at 3.3 m a storey: the
  *   storey height the city model itself assumes. The colours and the windows
  *   are the sculptor's; the model records neither.
- * - **Trees**: a rolled trunk and lumps of green.
+ * - **Trees**: a rolled trunk and clusters of stippled green.
  *
  * Everything is built in city metres and scaled once (`MODEL_SCALE`), so the
  * clay's hand marks come out the size of real fingerprints on a 1 : 400 model.
@@ -60,7 +60,7 @@ const PALETTE = {
   path: srgb(0xe0cf9f),
   crossing: srgb(0xf2ecda),
   trunk: srgb(0x6b4a35),
-  crowns: [0x4a8436, 0x5f983c, 0x3a7038, 0x7ba640, 0x528f3d].map(srgb),
+  crowns: [0x547542, 0x688245, 0x405c39, 0x829447, 0x586f3f].map(srgb),
   /** Walls and roofs for houses, and for everything else. */
   houseWalls: [0xecdcb8, 0xdcc79c, 0xb4c7a8, 0xbfd3dc, 0xe8b680, 0xd49f86, 0xf3ead6].map(
     srgb,
@@ -129,10 +129,11 @@ class Soup {
     this.tri(a, c, d);
   }
 
-  /** Adds an indexed geometry (positions and normals), transformed, in one colour. */
+  /** Adds an indexed geometry, tinting any foliage colours by the chosen pigment. */
   add(g: THREE.BufferGeometry, m: THREE.Matrix4, col: THREE.Color) {
     const pos = g.getAttribute("position"),
       nor = g.getAttribute("normal"),
+      foliage = g.getAttribute("color"),
       index = g.getIndex();
     if (!index) throw new Error("diorama: an indexed geometry was expected");
     const normalMatrix = new THREE.Matrix3().getNormalMatrix(m);
@@ -144,7 +145,14 @@ class Soup {
       w.fromBufferAttribute(nor, k).applyMatrix3(normalMatrix).normalize();
       this.p.push(v.x, v.y, v.z);
       this.n.push(w.x, w.y, w.z);
-      this.c.push(col.r, col.g, col.b);
+      if (foliage) {
+        const ambient = 0.78 + 0.19 * w.y;
+        this.c.push(
+          col.r * foliage.getX(k) * ambient,
+          col.g * foliage.getY(k) * ambient,
+          col.b * foliage.getZ(k) * ambient,
+        );
+      } else this.c.push(col.r, col.g, col.b);
       this.f.push(0, 0, 0, 0);
     }
     for (let k = 0; k < index.count; k++) this.i.push(base + index.getX(k));
@@ -622,6 +630,19 @@ export const FACADE_PATCH: NonNullable<ClaySettings["patch"]> = {
 
 function trees(tiles: Tiles, detail: number) {
   const lump = blob(1, { detail, seed: 0x7ee5, lumps: 0.16, frequency: 1.2 });
+  // Stipple the master crown once. Its rotated copies scatter the pigment
+  // differently on each tree without changing the silhouette or the mesh budget.
+  const dye = createNoise2D(mulberry32(0x627564));
+  const vertices = lump.getAttribute("position");
+  const pigment = new Float32Array(vertices.count * 3);
+  for (let i = 0; i < vertices.count; i++) {
+    const x = vertices.getX(i),
+      y = vertices.getY(i),
+      z = vertices.getZ(i);
+    const n = dye(3.2 * x + 1.6 * y, 3.2 * z - 1.6 * y);
+    pigment.set([1.0 + 0.37 * n, 1.04 + 0.25 * n, 0.96 + 0.15 * n], i * 3);
+  }
+  lump.setAttribute("color", new THREE.BufferAttribute(pigment, 3));
   const trunk = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true);
   trunk.translate(0, 0.5, 0);
   // The trunk's taper is baked in: unit radius at the foot.
@@ -834,7 +855,17 @@ export function buildCity(lib: ClayLibrary, textureSize: number): CityModel {
 
   const green = new Tiles();
   trees(green, textureSize >= 1024 ? 2 : 1);
-  green.each((s) => mesh(s.geometry(false), clay, "trees", true));
+  const foliage = lib.get("city-vegetation", {
+    color: 0xffffff,
+    vertexColors: true,
+    roughness: 0.93,
+    scale: CLAY_TILE * 0.22,
+    relief: 0.045,
+    smudge: 0.32,
+    wrap: 0.23,
+    scatter: 0x667134,
+  });
+  green.each((s) => mesh(s.geometry(false), foliage, "trees", true));
 
   // The workbench the model stands on: not part of the city, so not scaled with it.
   const wood = benchTexture(Math.min(1024, textureSize));
