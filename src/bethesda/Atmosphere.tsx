@@ -5,6 +5,7 @@ import { useRendererToneMapping } from "@/components/scene/Atmosphere";
 import type { CitySimulation } from "./simulation";
 import type { ViewControl } from "./Scene";
 import { groundAt } from "./terrain";
+import { citySky, SKY_HORIZON } from "./skyTexture";
 import { SUN } from "./furniture";
 
 /** A local analytic sky, not a downloaded HDRI or a measured Bethesda light probe. */
@@ -15,7 +16,7 @@ export function CityAtmosphere({
   sim: CitySimulation;
   view: ViewControl;
 }) {
-  const { gl, scene, camera } = useThree();
+  const { scene, camera } = useThree();
   const sun = useRef<THREE.DirectionalLight>(null),
     fill = useRef<THREE.HemisphereLight>(null);
   const target = useMemo(() => new THREE.Object3D(), []);
@@ -24,41 +25,28 @@ export function CityAtmosphere({
     exposure: 1,
     restoreOnUnmount: true,
   });
+  // Three caches the filtered environment for each equirectangular texture.
+  // Lazily build overcast only if the city's weather actually calls for it.
+  const skies = useRef<{ clear: THREE.Texture; storm?: THREE.Texture } | null>(null);
   useEffect(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 256;
-    const c = canvas.getContext("2d")!,
-      gradient = c.createLinearGradient(0, 0, 0, 256);
-    gradient.addColorStop(0, "#638eaf");
-    gradient.addColorStop(0.35, "#adc4d3");
-    gradient.addColorStop(0.49, "#d2d8d8");
-    gradient.addColorStop(0.51, "#a1a494");
-    gradient.addColorStop(1, "#655f51");
-    c.fillStyle = gradient;
-    c.fillRect(0, 0, 512, 256);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    const pmrem = new THREE.PMREMGenerator(gl),
-      environment = pmrem.fromEquirectangular(texture);
     const previous = {
       background: scene.background,
       environment: scene.environment,
       intensity: scene.environmentIntensity,
+      brightness: scene.backgroundIntensity,
     };
-    scene.background = new THREE.Color("#bacbd4");
-    scene.environment = environment.texture;
-    scene.environmentIntensity = 0.55;
+    const cache: NonNullable<typeof skies.current> = { clear: citySky(false) };
+    skies.current = cache;
     return () => {
       scene.background = previous.background;
       scene.environment = previous.environment;
       scene.environmentIntensity = previous.intensity;
-      environment.dispose();
-      texture.dispose();
-      pmrem.dispose();
+      scene.backgroundIntensity = previous.brightness;
+      skies.current = null;
+      cache.clear.dispose();
+      cache.storm?.dispose();
     };
-  }, [gl, scene]);
+  }, [scene]);
   const asphalt = useRef<THREE.MeshStandardMaterial | null>(null);
   useFrame(() => {
     const storm = sim.events.some((e) => e.kind === "storm");
@@ -77,11 +65,15 @@ export function CityAtmosphere({
     }
     // Illustrative lightning: a deterministic flash pattern keyed to the tick.
     const flash = storm && sim.tick % 173 < 2 && Math.floor(sim.tick / 173) % 3 === 0;
-    if (scene.background instanceof THREE.Color)
-      scene.background.set(flash ? "#c9d3e6" : storm ? "#727f85" : "#bacbd4");
+    const cache = skies.current;
+    if (cache) {
+      const sky = storm ? (cache.storm ??= citySky(true)) : cache.clear;
+      scene.background = scene.environment = sky;
+      scene.backgroundIntensity = flash ? 1.6 : 1;
+    }
     scene.environmentIntensity = storm ? 0.32 : 0.55;
     if (scene.fog instanceof THREE.Fog) {
-      scene.fog.color.set(storm ? "#727f85" : "#bacbd4");
+      scene.fog.color.set(storm ? SKY_HORIZON.storm : SKY_HORIZON.clear);
       scene.fog.near = view.tier === 0 ? 180 : 280;
       scene.fog.far = view.tier === 0 ? 550 : 1150;
     }

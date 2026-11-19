@@ -33,7 +33,7 @@ void main() {
   vec3 d = normalize( vDir );
   vec3 sky = mix( uHorizon, uZenith, pow( clamp( d.y, 0.0, 1.0 ), 0.5 ) );
   sky += uSunColor * pow( max( dot( d, uSunDir ), 0.0 ), 6.0 );
-  vec3 below = mix( uHorizon * 0.5, uGround, smoothstep( 0.0, -0.3, d.y ) );
+  vec3 below = mix( uHorizon * 0.5, uGround, smoothstep( 0.0, 0.3, -d.y ) );
   gl_FragColor = vec4( d.y >= 0.0 ? sky : below, 1.0 );
 }`;
 

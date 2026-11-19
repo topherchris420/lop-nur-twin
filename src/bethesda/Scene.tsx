@@ -79,6 +79,7 @@ function StaticCity({ view }: { view: ViewControl }) {
     [built],
   );
   useFrame(() => {
+    built.streetLightAmount.value = view.evidence ? 0 : 1;
     const range = view.tier === 0 ? 600 : 1200;
     for (const tile of tiles)
       tile.mesh.visible =

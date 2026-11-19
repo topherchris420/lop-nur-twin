@@ -337,15 +337,9 @@ export function makeCorrugatedTexture(
   const rand = mulberry32(seed);
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, S, S);
-  // corrugation ridges
-  for (let x = 0; x < S; x += 8) {
-    const g = ctx.createLinearGradient(x, 0, x + 8, 0);
-    g.addColorStop(0, "rgba(255,255,255,0.16)");
-    g.addColorStop(0.45, "rgba(0,0,0,0.02)");
-    g.addColorStop(1, "rgba(0,0,0,0.22)");
-    ctx.fillStyle = g;
-    ctx.fillRect(x, 0, 8, S);
-  }
+  // Only the coating varies in albedo. The formed ribs have a metre-scale
+  // normal profile in the material so their light follows the sun.
+  speckle(ctx, rand, 1500, ["#acaea7", "#737b7d"], 1.5);
   // rust / dust streaks
   for (let i = 0; i < 26; i++) {
     ctx.strokeStyle = rand() > 0.5 ? "#7c6a4f" : "#5f6468";
@@ -933,6 +927,66 @@ function heightToNormalCanvas(
 }
 
 /**
+ * Distance between the closest two jittered cells on a torus. A thin band
+ * around their common boundary makes the raised lip of a dried silt plate.
+ * Seed points wrap; distances use the unwrapped neighbour so no seam is lit.
+ */
+function saltCrust(rand: () => number, cells: number) {
+  const centres = Float32Array.from(
+    { length: 2 * cells * cells },
+    () => 0.15 + 0.7 * rand(),
+  );
+  return (x: number, y: number) => {
+    const cx = Math.floor(x);
+    const cy = Math.floor(y);
+    let nearest = Infinity,
+      second = Infinity;
+    for (let j = cy - 1; j <= cy + 1; j++)
+      for (let i = cx - 1; i <= cx + 1; i++) {
+        const index =
+          2 * ((((j % cells) + cells) % cells) * cells + (((i % cells) + cells) % cells));
+        const dx = i + centres[index]! - x;
+        const dy = j + centres[index + 1]! - y;
+        const d = dx * dx + dy * dy;
+        if (d < nearest) {
+          second = nearest;
+          nearest = d;
+        } else second = Math.min(second, d);
+      }
+    return Math.sqrt(second) - Math.sqrt(nearest);
+  };
+}
+
+/** A mipmapped field of exposed sediment, sand drifts and pale salt at a
+ * scale between the vertex-coloured basin and the individual grains. All
+ * coordinates advance by whole lattice periods across the texture. */
+export function makeLakebedColorTexture(seed: number): THREE.CanvasTexture {
+  const size = 384;
+  const rand = mulberry32(seed);
+  const field = seamlessLattice(rand, 8);
+  const ctx = makeCanvas(size, size);
+  const image = ctx.createImageData(size, size);
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) {
+      const u = (8 * x) / size,
+        v = (8 * y) / size;
+      const warp = field(u + 1.7, v + 2.9);
+      const sediment = field(2 * u + 2 * warp, v - u + warp);
+      const fine = field(9 * u + 3 * v, 4 * v + 2 * warp);
+      const bank = 1 - THREE.MathUtils.smoothstep(Math.abs(sediment - 0.46), 0.018, 0.15);
+      const crust = bank * THREE.MathUtils.smoothstep(warp, 0.28, 0.73);
+      const sand = 203 + 30 * sediment + 15 * fine;
+      const i = 4 * (y * size + x);
+      image.data[i] = sand + 10 + crust * 15;
+      image.data[i + 1] = sand + 6 + crust * 23;
+      image.data[i + 2] = sand - 2 + crust * 31;
+      image.data[i + 3] = 255;
+    }
+  ctx.putImageData(image, 0, 0);
+  return toTexture(ctx, true, GROUND_ANISOTROPY);
+}
+
+/**
  * Tiling normal map for high-frequency ground grain, derived from a small
  * seamless value-noise heightfield.
  */
@@ -1134,6 +1188,7 @@ export function makeGroundDetailMaps(
   const o3 = recipe.octaves[3];
   const step = lattice / S;
   const ripple = recipe.ripple;
+  const plates = kind === "desert" ? saltCrust(mulberry32(seed + 113), 7) : null;
   for (let y = 0; y < S; y++) {
     const v = y * step;
     const row = y * S;
@@ -1149,6 +1204,16 @@ export function makeGroundDetailMaps(
         // it reads as drift rather than corduroy
         h +=
           Math.sin((x / S) * Math.PI * 12 + hNoise(u * 0.5, v * 0.5) * 5) * ripple * 0.5;
+      }
+      if (plates) {
+        const warp = hNoise(u, v) - 0.5;
+        const edge = plates((7 * x) / S + 0.18 * warp, (7 * y) / S - 0.12 * warp);
+        // A dark fissure with a sun-catching shoulder, broken up by loose silt.
+        const intact = THREE.MathUtils.smoothstep(aNoise(u, v), 0.23, 0.72);
+        h +=
+          intact *
+          (0.12 * (1 - THREE.MathUtils.smoothstep(edge, 0.02, 0.15)) -
+            0.32 * (1 - THREE.MathUtils.smoothstep(edge, 0.005, 0.045)));
       }
       height[row + x] = h;
     }
@@ -1258,42 +1323,4 @@ export function getGroundDetailMaps(
   const maps = makeGroundDetailMaps(kind, seed, size);
   detailCache.set(key, maps);
   return maps;
-}
-
-/* ------------------------------------------------------------------ */
-/* Drifting cloud shadows                                              */
-/* ------------------------------------------------------------------ */
-
-/**
- * Seamless, soft cloud-cover mask used to drift shadow patches across the
- * plain. RGB is a dark shadow tint; alpha carries the coverage so the layer
- * only darkens where clouds are. Wraps in both axes for endless scrolling.
- */
-export function makeCloudShadowTexture(seed: number): THREE.CanvasTexture {
-  const S = 512;
-  const ctx = makeCanvas(S, S);
-  const rand = mulberry32(seed);
-  ctx.clearRect(0, 0, S, S);
-  ctx.globalCompositeOperation = "lighter";
-  // scatter soft blobs; draw each in a 3×3 wrap so the tile stays seamless
-  const blobs = 90;
-  for (let i = 0; i < blobs; i++) {
-    const bx = rand() * S;
-    const by = rand() * S;
-    const r = 26 + rand() * 90;
-    const a = 0.05 + rand() * 0.12;
-    for (let ox = -1; ox <= 1; ox++) {
-      for (let oy = -1; oy <= 1; oy++) {
-        const cx = bx + ox * S;
-        const cy = by + oy * S;
-        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-        g.addColorStop(0, `rgba(40,34,24,${a})`);
-        g.addColorStop(1, "rgba(40,34,24,0)");
-        ctx.fillStyle = g;
-        ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
-      }
-    }
-  }
-  ctx.globalCompositeOperation = "source-over";
-  return toTexture(ctx, false);
 }

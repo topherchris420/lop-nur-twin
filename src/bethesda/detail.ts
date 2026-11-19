@@ -1,8 +1,14 @@
 /** Illustrative Row architecture, derived from footprint edges, never a survey. */
 import * as THREE from "three";
+import { windowGlass } from "./glazing";
 import { mulberry32 } from "../lib/noise";
 import { buildingAt, distance, lerp, pathWays, type Building, type Point } from "./model";
-import { architecturalStone, surfaceMaterial } from "./materials";
+import {
+  architecturalStone,
+  canopyTexture,
+  foliageTexture,
+  surfaceMaterial,
+} from "./materials";
 import {
   PLANTER,
   STREET_BENCH,
@@ -25,7 +31,20 @@ export interface CityBuilder {
 // The arrival blocks that get this detail (placed in `furniture.ts`).
 export { detailedBuildings } from "./furniture";
 export function createDetailMaterials() {
+  const spray = foliageTexture();
   return {
+    canopy: new THREE.MeshStandardMaterial({
+      map: canopyTexture(spray),
+      alphaTest: 0.28,
+      vertexColors: true,
+      roughness: 1,
+    }),
+    leaves: new THREE.MeshStandardMaterial({
+      map: spray,
+      alphaTest: 0.34,
+      side: THREE.DoubleSide,
+      roughness: 0.92,
+    }),
     brick: surfaceMaterial("brick"),
     paleBrick: surfaceMaterial("brick", "#e5d2bf"),
     redBrick: surfaceMaterial("brick", "#ca9581"),
@@ -33,17 +52,8 @@ export function createDetailMaterials() {
     stone: architecturalStone("#baac94"),
     trim: new THREE.MeshStandardMaterial({ color: "#c4b69e", roughness: 0.82 }),
     dark: new THREE.MeshStandardMaterial({ color: "#303636", roughness: 0.67 }),
-    glass: new THREE.MeshStandardMaterial({
-      color: "#506975",
-      roughness: 0.19,
-      metalness: 0,
-      envMapIntensity: 1.25,
-    }),
-    warmGlass: new THREE.MeshStandardMaterial({
-      color: "#615b4c",
-      roughness: 0.24,
-      envMapIntensity: 0.9,
-    }),
+    glass: windowGlass(false),
+    warmGlass: windowGlass(true),
     blind: new THREE.MeshStandardMaterial({ color: "#b3a88e", roughness: 0.94 }),
     awning: new THREE.MeshStandardMaterial({ color: "#304b46", roughness: 0.95 }),
     canvas: new THREE.MeshStandardMaterial({ color: "#c4b397", roughness: 0.98 }),

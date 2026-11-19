@@ -13,7 +13,7 @@
  *   colours of clay, with window rows pressed in at 3.3 m a storey: the
  *   storey height the city model itself assumes. The colours and the windows
  *   are the sculptor's; the model records neither.
- * - **Trees**: a rolled trunk and lumps of green.
+ * - **Trees**: a rolled trunk and clusters of stippled green.
  *
  * Everything is built in city metres and scaled once (`MODEL_SCALE`), so the
  * clay's hand marks come out the size of real fingerprints on a 1 : 400 model.
@@ -52,23 +52,23 @@ const CLAY_TILE = 0.05;
 const srgb = (hex: number) => new THREE.Color(hex);
 
 const PALETTE = {
-  ground: srgb(0x8fb05c),
+  ground: srgb(0x929669),
   slab: srgb(0x7f8f5c),
-  park: srgb(0x5d9a3c),
+  park: srgb(0x78874e),
   pavement: srgb(0xcdc3ae),
   asphalt: srgb(0x4d4a48),
   path: srgb(0xe0cf9f),
   crossing: srgb(0xf2ecda),
   trunk: srgb(0x6b4a35),
-  crowns: [0x4a8436, 0x5f983c, 0x3a7038, 0x7ba640, 0x528f3d].map(srgb),
+  crowns: [0x547542, 0x688245, 0x405c39, 0x829447, 0x586f3f].map(srgb),
   /** Walls and roofs for houses, and for everything else. */
   houseWalls: [0xecdcb8, 0xdcc79c, 0xb4c7a8, 0xbfd3dc, 0xe8b680, 0xd49f86, 0xf3ead6].map(
     srgb,
   ),
   houseRoofs: [0xb04f35, 0x91463a, 0x566270, 0x74513f, 0x4a5c58].map(srgb),
   blockWalls: [
-    0xd8cbb0, 0xbdb5a4, 0xb9553a, 0xcb7a50, 0x98b1bf, 0x86a2b0, 0xe0d7c2, 0xc9aa80,
-    0xa3aeb2, 0xd9b45a,
+    0xd8cbb0, 0xbdb5a4, 0xb9553a, 0xcb7a50, 0x98b1bf, 0x98a3a2, 0xe0d7c2, 0xc9aa80,
+    0xa3aeb2, 0xc3b192,
   ].map(srgb),
   blockRoofs: [0x9a968c, 0xb9a98a, 0x7d8a8f, 0xa66a4f, 0x6f8f7a, 0xcfc8b8, 0x7a6a5f].map(
     srgb,
@@ -129,10 +129,11 @@ class Soup {
     this.tri(a, c, d);
   }
 
-  /** Adds an indexed geometry (positions and normals), transformed, in one colour. */
+  /** Adds an indexed geometry, tinting any foliage colours by the chosen pigment. */
   add(g: THREE.BufferGeometry, m: THREE.Matrix4, col: THREE.Color) {
     const pos = g.getAttribute("position"),
       nor = g.getAttribute("normal"),
+      foliage = g.getAttribute("color"),
       index = g.getIndex();
     if (!index) throw new Error("diorama: an indexed geometry was expected");
     const normalMatrix = new THREE.Matrix3().getNormalMatrix(m);
@@ -144,7 +145,14 @@ class Soup {
       w.fromBufferAttribute(nor, k).applyMatrix3(normalMatrix).normalize();
       this.p.push(v.x, v.y, v.z);
       this.n.push(w.x, w.y, w.z);
-      this.c.push(col.r, col.g, col.b);
+      if (foliage) {
+        const ambient = 0.78 + 0.19 * w.y;
+        this.c.push(
+          col.r * foliage.getX(k) * ambient,
+          col.g * foliage.getY(k) * ambient,
+          col.b * foliage.getZ(k) * ambient,
+        );
+      } else this.c.push(col.r, col.g, col.b);
       this.f.push(0, 0, 0, 0);
     }
     for (let k = 0; k < index.count; k++) this.i.push(base + index.getX(k));
@@ -592,8 +600,17 @@ export const FACADE_PATCH: NonNullable<ClaySettings["patch"]> = {
     float share = ( 4.0 * pane.x * pane.y ) / ( cell.x * cell.y ) * storey;
     float glass = mix( inside, share * 0.8, far );
     vec3 paneColour = mix( vec3( 0.045, 0.06, 0.085 ), vec3( 0.62, 0.56, 0.42 ), step( 0.86, seed ) * 0.55 );
+    // Sky at the head of the glazing, ground bounce at the sill, and a
+    // narrow frame. Subpixel trim fades into the averaged distant pane.
+    float glassDetail = inside * (1.0 - far);
+    float frameWidth = 0.058;
+    float mullion = (1.0 - smoothstep(frameWidth, frameWidth + px, abs(f.x)))
+                      * (1.0 - smoothstep(0.05, 0.22, px));
+    float sky = smoothstep(-pane.y, pane.y, f.y + 0.1);
+    paneColour = mix(paneColour * 0.72, paneColour + vec3(0.04, 0.068, 0.082), sky);
+    paneColour = mix(paneColour, vec3(0.24, 0.23, 0.20), mullion * glassDetail);
     diffuseColor.rgb = mix( diffuseColor.rgb, paneColour, glass * 0.92 );
-    roughnessFactor = mix( roughnessFactor, 0.22, inside * ( 1.0 - far ) );
+    roughnessFactor = mix( roughnessFactor, 0.17, glassDetail * (1.0 - mullion) );
     float bevel = max( 0.16, 1.5 * px );
     cityRecess -= CITY_UNIT * 0.22 * ( 1.0 - smoothstep( - bevel, 0.0, d ) ) * storey * ( 1.0 - far );
   }`,
@@ -613,6 +630,19 @@ export const FACADE_PATCH: NonNullable<ClaySettings["patch"]> = {
 
 function trees(tiles: Tiles, detail: number) {
   const lump = blob(1, { detail, seed: 0x7ee5, lumps: 0.16, frequency: 1.2 });
+  // Stipple the master crown once. Its rotated copies scatter the pigment
+  // differently on each tree without changing the silhouette or the mesh budget.
+  const dye = createNoise2D(mulberry32(0x627564));
+  const vertices = lump.getAttribute("position");
+  const pigment = new Float32Array(vertices.count * 3);
+  for (let i = 0; i < vertices.count; i++) {
+    const x = vertices.getX(i),
+      y = vertices.getY(i),
+      z = vertices.getZ(i);
+    const n = dye(3.2 * x + 1.6 * y, 3.2 * z - 1.6 * y);
+    pigment.set([1.0 + 0.37 * n, 1.04 + 0.25 * n, 0.96 + 0.15 * n], i * 3);
+  }
+  lump.setAttribute("color", new THREE.BufferAttribute(pigment, 3));
   const trunk = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true);
   trunk.translate(0, 0.5, 0);
   // The trunk's taper is baked in: unit radius at the foot.
@@ -770,8 +800,8 @@ export function buildCity(lib: ClayLibrary, textureSize: number): CityModel {
     vertexColors: true,
     roughness: 0.66,
     scale: CLAY_TILE,
-    relief: 0.016,
-    smudge: 0.16,
+    relief: 0.008,
+    smudge: 0.1,
     wrap: 0.34,
   });
   const facade = lib.get("city-facade", {
@@ -779,7 +809,7 @@ export function buildCity(lib: ClayLibrary, textureSize: number): CityModel {
     vertexColors: true,
     roughness: 0.6,
     scale: CLAY_TILE,
-    relief: 0.016,
+    relief: 0.008,
     smudge: 0.14,
     wrap: 0.32,
     patch: FACADE_PATCH,
@@ -825,7 +855,17 @@ export function buildCity(lib: ClayLibrary, textureSize: number): CityModel {
 
   const green = new Tiles();
   trees(green, textureSize >= 1024 ? 2 : 1);
-  green.each((s) => mesh(s.geometry(false), clay, "trees", true));
+  const foliage = lib.get("city-vegetation", {
+    color: 0xffffff,
+    vertexColors: true,
+    roughness: 0.93,
+    scale: CLAY_TILE * 0.22,
+    relief: 0.045,
+    smudge: 0.32,
+    wrap: 0.23,
+    scatter: 0x667134,
+  });
+  green.each((s) => mesh(s.geometry(false), foliage, "trees", true));
 
   // The workbench the model stands on: not part of the city, so not scaled with it.
   const wood = benchTexture(Math.min(1024, textureSize));

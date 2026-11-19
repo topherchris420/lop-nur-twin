@@ -97,7 +97,9 @@ function buildRelief(): THREE.BufferGeometry {
       const i1 = i0 + 1;
       const i2 = i0 + (ANGULAR + 1);
       const i3 = i2 + 1;
-      indices.push(i0, i2, i1, i1, i2, i3);
+      // Increasing azimuth runs toward +z at the eastern edge.
+      // Wind top faces toward the sky so Three lights and draws the ridges.
+      indices.push(i0, i1, i2, i1, i3, i2);
     }
   }
 

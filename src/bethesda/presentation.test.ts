@@ -11,6 +11,9 @@ import {
   VERTICAL_OFFSET,
 } from "./terrain";
 import { cityFoot, type FootTarget } from "./locomotion";
+import { crownGeometry } from "./materials";
+import { projectSunShadow } from "./streetLight";
+import { SUN } from "./furniture";
 import { CitySimulation } from "./simulation";
 import { TRANSIT_VERSION } from "./streetscape";
 
@@ -54,6 +57,27 @@ describe("real Bethesda bare-earth elevation", () => {
   });
 });
 describe("civilian presentation", () => {
+  it("projects street shadows away from the sun onto the receiving slope", () => {
+    const p = { x: 8, z: -4 };
+    const level = projectSunShadow(p, 32, () => 12);
+    expect(level.x).toBeCloseTo(p.x - (20 * SUN.offset.x) / SUN.offset.y);
+    expect(level.z).toBeCloseTo(p.z - (20 * SUN.offset.z) / SUN.offset.y);
+    const hill = (q: typeof p) => 12 + 0.08 * (q.x - p.x);
+    const hit = projectSunShadow(p, 32, hill);
+    expect(hit.x).toBeLessThan(level.x);
+    expect(32 - ((hit.x - p.x) * SUN.offset.y) / -SUN.offset.x).toBeCloseTo(hill(hit), 2);
+    expect(projectSunShadow(p, hill(p), hill)).toEqual(p);
+  });
+
+  it("keeps the visible canopy on the fly's landing ellipsoid", () => {
+    const crown = crownGeometry(-15, 7, 18, 1.8, 1.15);
+    const p = crown.getAttribute("position");
+    for (let i = 0; i < p.count; i++) {
+      const radius = Math.hypot(p.getX(i) + 15, (p.getY(i) - 7) / 1.15, p.getZ(i) - 18);
+      expect(radius).toBeCloseTo(1.8, 5);
+    }
+    crown.dispose();
+  });
   it("keeps a planted foot fixed in world space during forward travel", () => {
     const a: FootTarget = { y: 0, z: 0, planted: false },
       b = { ...a };

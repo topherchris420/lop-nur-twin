@@ -27,6 +27,8 @@ import { patchShader } from "./shaderPatch";
 /* ------------------------------------------------------------------ */
 
 export interface HardSurfaceOptions {
+  /** Formed steel cross-section, resolved in local metres. */
+  sheetProfile?: "flat" | "corrugated" | "shutter";
   /** Long edge of a plate, in metres. 1.4-4 for buildings, 6-12 for concrete. */
   plateScale?: number;
   /** Plate aspect ratio (short edge / long edge). */
@@ -98,6 +100,7 @@ interface ResolvedHardSurface extends Required<
 }
 
 const HARD_SURFACE_DEFAULTS: ResolvedHardSurface = {
+  sheetProfile: "flat",
   plateScale: 2.6,
   plateAspect: 0.62,
   stagger: 0.5,
@@ -340,6 +343,26 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
   metalnessFactor *= 1.0 - hsDustAmount * 0.6;
   diffuseColor.rgb *= 1.0 - clamp(-hsWorldN.y, 0.0, 1.0) * 0.18;
 
+  // Folded sheet catches the actual sun and sky. As the pitch falls below two
+  // pixels its slopes become unresolved roughness instead of flickering lines.
+  #if defined(HS_SHUTTER) || defined(HS_CORRUGATED)
+    #ifdef HS_SHUTTER
+      float hsFold = hsUv.y / 0.105;
+      vec3 hsAcross = hsT2;
+    #else
+      float hsFold = hsUv.x / 0.16;
+      vec3 hsAcross = hsT1;
+    #endif
+    float hsResolved = 1.0 - smoothstep(0.16, 0.48, fwidth(hsFold));
+    float hsPhase = hsFold * 6.2831853;
+    float hsFoldSlope = 0.41 * cos(hsPhase) + 0.15 * cos(2.0 * hsPhase);
+    hsSheetNormal = -hsAcross * hsFoldSlope * hsResolved;
+    #ifdef HS_SHUTTER
+      float foldLap = pow(0.5 + 0.5 * sin(hsPhase), 5.0);
+      diffuseColor.rgb *= 1.0 - 0.23 * foldLap * hsResolved;
+    #endif
+    roughnessFactor = min(1.0, roughnessFactor + (1.0 - hsResolved) * 0.085);
+  #endif
   hsSeamSlope = sign(fract(hsQ - 0.5) - 0.5) * hsLine;
   hsSeamT1 = hsT1;
   hsSeamT2 = hsT2;
@@ -357,6 +380,9 @@ const HARD_SURFACE_NORMAL = /* glsl */ `
 // silhouette, and letting a micro-groove drive it paints a bright fringe
 // along every seam
 hsRimNormal = normal;
+#if defined(HS_SHUTTER) || defined(HS_CORRUGATED)
+  normal = normalize(normal + normalMatrix * hsSheetNormal);
+#endif
 if (hsSeamRelief > 0.0) {
   // hsSeamT1/T2 are object-space tangents and normal here is view space;
   // normalMatrix is object -> view, and three binds it for any program that
@@ -477,7 +503,8 @@ vHsWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
   vec2 hsSeamSlope = vec2(0.0);
   vec3 hsSeamT1 = vec3(1.0, 0.0, 0.0);
   vec3 hsSeamT2 = vec3(0.0, 1.0, 0.0);
-  vec3 hsRimNormal = vec3(0.0);`,
+  vec3 hsRimNormal = vec3(0.0);
+  vec3 hsSheetNormal = vec3(0.0);`,
         ],
         [
           "#include <metalnessmap_fragment>",
@@ -498,8 +525,13 @@ vHsWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
   };
 
   // the injection is switched by a #define, so it has to be part of the key
-  const cacheKey = `hs:${o.rivets ? 1 : 0}`;
+  const cacheKey = `hs:${o.rivets ? 1 : 0}:${o.sheetProfile}`;
   material.customProgramCacheKey = () => cacheKey;
+  if (o.sheetProfile !== "flat")
+    material.defines = {
+      ...material.defines,
+      [o.sheetProfile === "shutter" ? "HS_SHUTTER" : "HS_CORRUGATED"]: "",
+    };
   if (o.rivets) material.defines = { ...material.defines, HS_RIVETS: "" };
 
   material.needsUpdate = true;
@@ -678,6 +710,8 @@ void main() {
 /* ------------------------------------------------------------------ */
 
 export interface GreebleOptions {
+  /** Keep only cabinet silhouettes when the camera cannot resolve the fittings. */
+  detail?: "near" | "far";
   /** Seed; the same seed must always produce the same deck. */
   seed: number;
   /** Deck extent along local x, in metres. */
@@ -694,6 +728,69 @@ export interface GreebleOptions {
   rows?: number;
   /** Adds a few vertical stacks and a low pipe run. */
   pipes?: boolean;
+}
+
+function coat(g: THREE.BufferGeometry, finish: number) {
+  const color = new THREE.Color(finish),
+    count = g.getAttribute("position").count;
+  const data = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) color.toArray(data, i * 3);
+  g.setAttribute("color", new THREE.BufferAttribute(data, 3));
+}
+
+/** One draw-ready fitting, rooted at its foot. Colour is linear vertex colour,
+ * so the sheet, deep openings and lightly oxidised edges share one material. */
+export function makeRoofEquipment(
+  kind: "duct" | "condenser" | "cabinet",
+  w: number,
+  h: number,
+  d: number,
+  detail: "near" | "far" = "near",
+) {
+  const casing = kind === "duct" ? 0x999f9c : kind === "condenser" ? 0xa9aa9f : 0x868c83;
+  if (detail === "far") {
+    const box = new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0);
+    coat(box, casing);
+    return box;
+  }
+  const parts: THREE.BufferGeometry[] = [];
+  const part = (g: THREE.BufferGeometry, y: number, finish: number, z = 0) => {
+    coat(g, finish);
+    parts.push(g.translate(0, y, z));
+  };
+
+  part(new THREE.BoxGeometry(w, h - 0.08, d), h / 2, casing);
+  part(new THREE.BoxGeometry(w * 0.95, 0.08, d * 0.94), 0.04, 0x515b56);
+  part(new THREE.BoxGeometry(w * 1.025, 0.045, d * 1.025), h - 0.0225, 0xb9bcb3);
+  if (kind === "duct") {
+    for (const f of [-0.3, 0.3])
+      part(new THREE.BoxGeometry(w * 1.02, h, 0.035), h / 2, 0x6f7875, f * d);
+  } else {
+    const faceZ = d / 2 + 0.012;
+    part(new THREE.BoxGeometry(w * 0.78, h * 0.58, 0.025), h * 0.5, 0x384440, faceZ);
+    for (const f of [0.29, 0.42, 0.55, 0.68]) {
+      const blade = new THREE.BoxGeometry(w * 0.73, 0.036, 0.052);
+      blade.rotateX(-0.32);
+      part(blade, h * f, 0x9da69e, faceZ + 0.025);
+    }
+    if (kind === "condenser") {
+      const radius = Math.min(w, d) * 0.36;
+      part(new THREE.CylinderGeometry(radius, radius, 0.025, 16), h + 0.01, 0x323c39);
+      const rim = new THREE.RingGeometry(radius * 0.89, radius, 16);
+      rim.rotateX(-Math.PI / 2);
+      part(rim, h + 0.04, 0xb6b9ae);
+      for (const f of [-0.6, -0.3, 0, 0.3, 0.6])
+        part(
+          new THREE.BoxGeometry(radius * 1.82 * Math.sqrt(1 - f * f), 0.019, 0.022),
+          h + 0.028,
+          0x8c9790,
+          f * radius,
+        );
+    }
+  }
+  const merged = mergeGeometries(parts);
+  parts.forEach((g) => g.dispose());
+  return merged;
 }
 
 /**
@@ -715,6 +812,7 @@ export function makeGreebleGeometry({
   maxHeight = 1.6,
   rows = 3,
   pipes = true,
+  detail = "near",
 }: GreebleOptions): THREE.BufferGeometry {
   const random = mulberry32(seed);
   const parts: THREE.BufferGeometry[] = [];
@@ -730,9 +828,11 @@ export function makeGreebleGeometry({
     y: number,
     z: number,
     rotationY: number,
+    finish = 0x8f9999,
   ) => {
     geometry.rotateY(rotationY);
     geometry.translate(x, y, z);
+    if (!geometry.hasAttribute("color")) coat(geometry, finish);
     parts.push(geometry);
   };
 
@@ -782,13 +882,19 @@ export function makeGreebleGeometry({
         usableWidth / 2 - sx / 2,
       );
 
-      push(
-        new THREE.BoxGeometry(sx, sy, sz),
-        x,
-        sy / 2,
-        THREE.MathUtils.clamp(railZ + z * 0.35, -usableDepth / 2, usableDepth / 2),
-        railRotation,
+      const cz = THREE.MathUtils.clamp(
+        railZ + z * 0.35,
+        -usableDepth / 2,
+        usableDepth / 2,
       );
+      const equipment = makeRoofEquipment(
+        kind < 0.42 ? "duct" : kind < 0.74 ? "condenser" : "cabinet",
+        sx,
+        sy,
+        sz,
+        detail,
+      );
+      push(equipment, x, 0, cz, railRotation);
 
       // a low plinth under the taller cabinets, the way real kit is mounted
       if (sy > 1 && random() < 0.6) {
@@ -812,11 +918,9 @@ export function makeGreebleGeometry({
       const x = (random() - 0.5) * usableWidth * 0.8;
       const z = (random() - 0.5) * usableDepth * 0.8;
       const stack = new THREE.CylinderGeometry(radius, radius * 1.15, height, 8, 1);
-      stack.translate(x, height / 2, z);
-      parts.push(stack);
+      push(stack, x, height / 2, z, 0, 0x85908e);
       const cap = new THREE.CylinderGeometry(radius * 1.45, radius * 1.45, 0.1, 8, 1);
-      cap.translate(x, height, z);
-      parts.push(cap);
+      push(cap, x, height, z, 0, 0xc1c5bc);
     }
 
     // one low pipe run crossing the deck, on stubby supports
@@ -825,12 +929,10 @@ export function makeGreebleGeometry({
     const runLength = usableWidth * (0.55 + random() * 0.35);
     const run = new THREE.CylinderGeometry(runRadius, runRadius, runLength, 8, 1);
     run.rotateZ(Math.PI / 2);
-    run.translate(0, 0.32, runZ);
-    parts.push(run);
+    push(run, 0, 0.32, runZ, 0, 0xb0b4a7);
     for (let i = 0; i < 3; i++) {
       const support = new THREE.BoxGeometry(0.14, 0.32, 0.14);
-      support.translate((-1 + i) * runLength * 0.34, 0.16, runZ);
-      parts.push(support);
+      push(support, (-1 + i) * runLength * 0.34, 0.16, runZ, 0, 0x69726a);
     }
   }
 

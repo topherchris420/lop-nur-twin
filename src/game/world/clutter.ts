@@ -447,18 +447,35 @@ function scrub(rand: Rand): THREE.BufferGeometry {
 /** A weathered desert stone. */
 function rock(rand: Rand): THREE.BufferGeometry {
   const geometry = new THREE.IcosahedronGeometry(0.3, 0);
-  const position = geometry.attributes["position"]!;
-  for (let i = 0; i < position.count; i += 1) {
-    position.setXYZ(
-      i,
-      position.getX(i) * (0.7 + rand() * 0.7),
-      Math.max(0, position.getY(i)) * (0.4 + rand() * 0.4),
-      position.getZ(i) * (0.7 + rand() * 0.7),
-    );
+  const position = geometry.getAttribute("position");
+  const weathering = seededNoise2D(Math.floor(rand() * 0x100000000));
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i),
+      y = position.getY(i),
+      z = position.getZ(i);
+    // Non-indexed triangles duplicate each corner. Shape a point from its
+    // coordinates so adjacent facets meet instead of pulling apart.
+    const wear = 0.93 + 0.18 * weathering(7 * x + 2 * y, 9 * z - y);
+    position.setXYZ(i, x * wear * 1.2, (y + 0.1) * wear * 0.56, z * wear * 0.84);
   }
   geometry.computeVertexNormals();
-  geometry.translate(0, 0.02, 0);
-  return paint(geometry, 0x6f6857);
+  // Keep the instanced stone at twenty triangles. Blend facet and ellipsoid
+  // normals to round its weathered edges without multiplying the desert's vertices.
+  const normal = geometry.getAttribute("normal");
+  const rounded = new THREE.Vector3(),
+    facet = new THREE.Vector3();
+  for (let i = 0; i < position.count; i++) {
+    rounded
+      .set(
+        position.getX(i) / (1.2 * 1.2),
+        (position.getY(i) - 0.056) / (0.56 * 0.56),
+        position.getZ(i) / (0.84 * 0.84),
+      )
+      .normalize();
+    facet.fromBufferAttribute(normal, i).lerp(rounded, 0.62).normalize();
+    normal.setXYZ(i, facet.x, facet.y, facet.z);
+  }
+  return paint(geometry, 0x807966);
 }
 
 /** A stack of scrap tyres. */

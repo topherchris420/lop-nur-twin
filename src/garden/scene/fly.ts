@@ -70,14 +70,13 @@ const MESH_URL: Record<0 | 1, URL> = {
 const EYE_CENTRE: V3 = [0.022, 0.017, 0.0035];
 const EYE_RADIUS_CM = 0.023;
 const FACET = 0.061;
-const FACET_M = FACET * EYE_RADIUS_CM * 0.01;
 
 const EYE_DECL = /* glsl */ `
-varying vec3 vEyeAxis;
+varying vec3 vEyeAxis;\nvarying float vEyeScale;
 // Offset from the nearest hexagon centre, in cells (Shane's hex tiling).
 vec2 eyeHex( vec2 p ) {
   const vec2 s = vec2( 1.0, 1.7320508 );
-  vec4 c = floor( vec4( p, p - vec2( 0.5, 1.0 ) ) / s.xyxy ) + 0.5;
+  vec4 c = floor( vec4( p, p - 0.5 * s ) / s.xyxy ) + 0.5;
   vec2 a = p - c.xy * s;
   vec2 b = p - ( c.zw + 0.5 ) * s;
   return dot( a, a ) < dot( b, b ) ? a : b;
@@ -102,7 +101,7 @@ const EYE_COLOR = /* glsl */ `
 const EYE_NORMAL = /* glsl */ `
   {
     float dome = sqrt( max( 0.0, 1.0 - 4.0 * dot( eyeO, eyeO ) ) );
-    normal = clayRelief( - vViewPosition, normal, ${(FACET_M * 0.22).toExponential(4)} * dome * eyeKeep, faceDirection );
+    normal = clayRelief( - vViewPosition, normal, ${(FACET * EYE_RADIUS_CM * 0.22).toExponential(4)} * vEyeScale * dome * eyeKeep, faceDirection );
   }
 `;
 
@@ -112,10 +111,13 @@ export const EYE_PATCH = {
   apply(shader: THREE.WebGLProgramParametersWithUniforms) {
     const c = EYE_CENTRE;
     shader.vertexShader = patchShader("compound eye (vertex)", shader.vertexShader, [
-      ["#include <common>", "#include <common>\nvarying vec3 vEyeAxis;"],
+      [
+        "#include <common>",
+        "#include <common>\nvarying vec3 vEyeAxis;\nvarying float vEyeScale;",
+      ],
       [
         "#include <project_vertex>",
-        `#include <project_vertex>\nvEyeAxis = mat3( modelViewMatrix ) * ( transformed - vec3( sign( transformed.x ) * ${c[0]}, ${c[1]}, ${c[2]} ) );`,
+        `#include <project_vertex>\nvEyeScale = length(modelViewMatrix[0].xyz);\nvEyeAxis = mat3( modelViewMatrix ) * ( transformed - vec3( sign( transformed.x ) * ${c[0]}, ${c[1]}, ${c[2]} ) );`,
       ],
     ]);
     shader.fragmentShader = patchShader(
@@ -159,6 +161,29 @@ const FLY_CLAY = {
   relief: 0.006,
   smudge: 0.08,
 } as const;
+
+/** Relative film thickness across a wing. A small linear data map modulates
+ * Three's thin-film response; the actual veins come from the FlyBody mesh. */
+function wingFilm() {
+  const width = 64,
+    height = 32;
+  const data = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const span = x / (width - 1),
+        chord = y / (height - 1);
+      const lobe = Math.sin(Math.PI * (1.8 * span + 0.32 * Math.sin(chord * 5)));
+      const i = 4 * (y * width + x);
+      data[i + 1] = Math.round(
+        255 * (0.16 + 0.47 * (1 - span) + 0.23 * lobe * lobe + 0.11 * chord),
+      );
+      data[i + 3] = 255;
+    }
+  const map = new THREE.DataTexture(data, width, height);
+  map.minFilter = map.magFilter = THREE.LinearFilter;
+  map.needsUpdate = true;
+  return map;
+}
 
 function flyMaterials(lib: ClayLibrary) {
   const body = lib.get("fly-cuticle", {
@@ -206,6 +231,7 @@ function flyMaterials(lib: ClayLibrary) {
     relief: 0.002,
     side: THREE.DoubleSide,
   });
+  const thickness = wingFilm();
   const membrane = lib.keep(
     withCascade(
       new THREE.MeshPhysicalMaterial({
@@ -217,7 +243,8 @@ function flyMaterials(lib: ClayLibrary) {
         // Written to depth, so depth of field keeps the wing as sharp as the body it lies on.
         depthWrite: true,
         side: THREE.DoubleSide,
-        iridescence: 1,
+        iridescence: 0.85,
+        iridescenceThicknessMap: thickness,
         iridescenceIOR: 1.38,
         // three r187 split `iridescenceThicknessRange` in two; the old name warns and is on its way out.
         iridescenceThicknessMinimum: 220,
@@ -253,7 +280,7 @@ function flyMaterials(lib: ClayLibrary) {
                 ? vein
                 : bristle;
   const clay: ClayMaterial[] = [body, lower, bristle, eye, ocelli, vein];
-  return { pick, clay, membrane, ghost };
+  return { pick, clay, membrane, ghost, thickness };
 }
 
 /** Each abdominal tergite's posterior band, darker, fading round the sides (segment frame: +y toward the tip, +z dorsal). */
@@ -421,6 +448,18 @@ export class ClayFly {
       geo.setAttribute("position", new THREE.BufferAttribute(d.positions, 3));
       geo.setIndex(new THREE.BufferAttribute(d.indices, 1));
       geo.computeVertexNormals();
+      if (part.material === "membrane") {
+        // Mirrored wing frames have opposite signs. Keep the same material
+        // coordinates at both mesh resolutions and on either side of the fly.
+        const uv = new Float32Array(part.vertices * 2);
+        const side = part.body === "wing_left" ? 1 : -1;
+        for (let i = 0; i < part.vertices; i++) {
+          uv[i * 2] = Math.abs(d.positions[3 * i + 1]!) / 0.265;
+          uv[i * 2 + 1] =
+            0.15 + (side * (d.positions[3 * i]! - d.positions[3 * i + 2]!)) / 0.14;
+        }
+        geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+      }
       if (part.material === "body") bandColors(geo, part.body);
       this.geometries.push(geo);
       const body = this.groups.get(part.body);
@@ -592,6 +631,7 @@ export class ClayFly {
     this.contact.removeFromParent();
     for (const g of this.geometries) g.dispose();
     this.contactTexture.dispose();
+    this.mats.thickness.dispose();
   }
 }
 
