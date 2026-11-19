@@ -12,10 +12,11 @@
  * one command.
  *
  *   node tools/readme-media.mjs                  -> all of them, in order
- *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | garden | metrology | noeterra | noeterra-tarim | gallery)
+ *   node tools/readme-media.mjs --only orbit     (orbit | evidence | bethesda | live | garden | metrology | noeterra | noeterra-tarim | gallery | tour)
  *   node tools/readme-media.mjs --origin http://localhost:5199 --site https://lop-nur-twin.vercel.app
  *   node tools/readme-media.mjs --only garden --garden https://150-136-49-49.sslip.io
- *   node tools/readme-media.mjs --only gallery   -> current stills, no GIF encoders needed
+ *   node tools/readme-media.mjs --only gallery   -> current world stills, no GIF encoders needed
+ *   node tools/readme-media.mjs --only tour      -> opening plates and public research records
  *
  * It writes docs/media/readme/*.gif and the gallery stills in
  * docs/media/readme/gallery/. Frames go to shots/readme/, which is gitignored.
@@ -49,7 +50,7 @@
 
 import puppeteer from "puppeteer";
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, readdir, rename, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rename, rm } from "node:fs/promises";
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(`--${name}`);
@@ -622,11 +623,11 @@ async function captureNoeterra(page, scenario, name) {
  * Full-size stills, taken directly from the viewers. A clean checkout needs
  * neither an earlier GIF run nor a folder of intermediate frames.
  */
-async function captureGallery(page) {
+async function stageGallery(page, photograph) {
   await mkdir(FRAMES, { recursive: true });
   const staging = await mkdtemp(`${FRAMES}/gallery-`);
   try {
-    await photographGallery(page, staging);
+    await photograph(page, staging);
     // A viewer can go offline mid-session. Publish only after all views were captured.
     for (const file of await readdir(staging))
       await rename(`${staging}/${file}`, `${OUT}/gallery/${file}`);
@@ -736,6 +737,54 @@ async function photographGallery(page, staging) {
   await shot("blacksite");
 }
 
+/** Compose the opening from the original viewer captures, then photograph the public records. */
+async function photographTour(page, staging) {
+  const views = [
+    ["twin", "Lop Nur"],
+    ["bethesda", "Bethesda"],
+    ["noeterra", "Noeterra"],
+  ];
+  const panels = [];
+  for (const [file, label] of views) {
+    const bytes = await readFile(`${OUT}/gallery/${file}.jpg`);
+    panels.push(
+      `<figure><img alt="" src="data:image/jpeg;base64,${bytes.toString("base64")}"><figcaption>${label}</figcaption></figure>`,
+    );
+  }
+  await page.setContent(`<!doctype html><meta charset="utf-8"><style>
+    * { box-sizing: border-box } body { margin: 0; color: #f9f5ec; background: #171b1c; font: 500 24px system-ui,sans-serif }
+    main { height: 100vh; display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 3px }
+    figure { margin: 0; min-height: 0; min-width: 0; display: grid; grid-template-rows: minmax(0,1fr) auto }
+    img { width: 100%; height: 100%; object-fit: cover } figcaption { padding: 8px 16px 11px }
+    @media(max-width:600px) {
+      body { font-size: 16px } main { grid-template-columns: repeat(2,1fr); grid-template-rows: 1.15fr 1fr; gap: 2px }
+      figure:first-child { grid-column: 1 / -1 } figcaption { padding: 4px 9px 5px }
+    }
+    </style><main>${panels.join("")}</main>`);
+  await page.evaluate(() =>
+    Promise.all([...document.images].map((image) => image.decode())),
+  );
+  for (const [file, width, height, scale] of [
+    ["worlds", 1440, 450, 1],
+    ["worlds-mobile", 420, 378, 2],
+  ]) {
+    await page.setViewport({ width, height, deviceScaleFactor: scale });
+    await page.screenshot({ path: `${staging}/${file}.webp`, type: "webp", quality: 88 });
+  }
+
+  await page.setViewport({ width: 1160, height: 820, deviceScaleFactor: 1 });
+  await page.goto(`${site}/research-memory/`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#ledger:not([hidden]) #details h2");
+  await page.screenshot({ path: `${staging}/research-journal.jpg`, quality: 88 });
+
+  await page.goto(`${site}/compare`, { waitUntil: "domcontentloaded" });
+  await page.locator('section[aria-labelledby="revisions-heading"] > button').click();
+  await page.waitForSelector("#comparison button");
+  const heading = await page.waitForSelector("#before-heading");
+  await heading.evaluate((el) => el.scrollIntoView({ block: "start" }));
+  await page.screenshot({ path: `${staging}/model-history.jpg`, quality: 88 });
+}
+
 /* ------------------------------------------------------------------ */
 /* Encoding                                                            */
 /* ------------------------------------------------------------------ */
@@ -779,14 +828,15 @@ const CAPTURES = {
   metrology: captureMetrology,
   noeterra: (page) => captureNoeterra(page, "mediterranean-264bc", "noeterra"),
   "noeterra-tarim": (page) => captureNoeterra(page, "tarim-77bc", "noeterra-tarim"),
-  gallery: captureGallery,
+  gallery: (page) => stageGallery(page, photographGallery),
+  tour: (page) => stageGallery(page, photographTour),
 };
 if (only && !(only in CAPTURES)) {
   console.error(`--only takes one of: ${Object.keys(CAPTURES).join(", ")}`);
   process.exit(1);
 }
 
-if (!["gallery", "garden", "metrology"].includes(only)) {
+if (!["gallery", "tour", "garden", "metrology"].includes(only)) {
   for (const [tool, flag] of [
     ["ffmpeg", "-version"],
     ["gifsicle", "--version"],

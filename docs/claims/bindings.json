@@ -168,42 +168,42 @@
     },
     {
       "path": "README.md",
-      "quantities": 33,
+      "quantities": 35,
       "recomputed": 22,
       "sections": [
         {
           "section": "01",
-          "title": "The question",
-          "quantities": 0,
+          "title": "Lop Nur and the evidence behind it",
+          "quantities": 2,
           "recomputed": 0
         },
         {
           "section": "02",
-          "title": "The operating systems",
+          "title": "Explore the worlds",
           "quantities": 0,
           "recomputed": 0
         },
         {
           "section": "03",
-          "title": "A machine must be able to verify the history",
+          "title": "What can be replayed",
           "quantities": 9,
           "recomputed": 5
         },
         {
           "section": "04",
-          "title": "The test results, including the ones that did not work",
+          "title": "Research results and their records",
           "quantities": 17,
           "recomputed": 15
         },
         {
           "section": "05",
-          "title": "The brain boundary",
+          "title": "What the evidence covers",
           "quantities": 2,
           "recomputed": 2
         },
         {
           "section": "06",
-          "title": "The engineering arrangement",
+          "title": "Inside the repository",
           "quantities": 0,
           "recomputed": 0
         },
@@ -215,13 +215,13 @@
         },
         {
           "section": "08",
-          "title": "The laboratory procedure",
+          "title": "Follow a research decision",
           "quantities": 0,
           "recomputed": 0
         },
         {
           "section": "09",
-          "title": "The rest of the laboratory",
+          "title": "Recordings and film",
           "quantities": 1,
           "recomputed": 0
         },
@@ -2195,7 +2195,7 @@
         "352"
       ],
       "model": "scripts/claims/check.ts",
-      "evidence_sha256": "ad5ca06795bc1782da2093fea73f656998618986b692f760b1c7cb3a2f300cfa",
+      "evidence_sha256": "b936e658af84c6748711c375c309d23f46dfbea3fd91b54ca1d002ec10e949ce",
       "records": [
         "README.md",
         "docs/ECHO_COLLISION.md",
@@ -2285,7 +2285,7 @@
     }
   ],
   "records": {
-    "README.md": "04c0dfb033ae68e192e0c9ac0d196c289eebd6e3d3c1f9adc07cad3d8fe0a6b6",
+    "README.md": "88ffa9f0af028067cea1f6d88370f9716d5e5ef0ee0e185a3851974942bcf2f8",
     "docs/ECHO_COLLISION.md": "8b7f74f11e56442915e750e175e2ca0938572a1f4e9445b4318ea5dd0ac6a264",
     "docs/RESEARCH_CLAIMS.md": "2c6907e050d136ac576d03d5e9b8a21a757dc614b7b4b4729cc9a787c263753f",
     "docs/benchmarks/echo-acquired/2026-11-02/report-city-day2.json": "c54f261d0b382e7ad388f790fab6d40b5976fca48696011338a2db4ec6f6fc40",
