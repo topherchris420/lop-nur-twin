@@ -105,6 +105,8 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     // Sky includes a procedural cloud deck by default. Keep only sparse
     // high wisps over the basin; the dominant veil here is airborne dust.
     if (u.cloudCoverage) u.cloudCoverage.value = 0.22;
+    if (u.cloudScale) u.cloudScale.value = 0.00058;
+    if (u.cloudDensity) u.cloudDensity.value = 0.09;
     if (u.turbidity) u.turbidity.value = groundLevel ? 6.2 : 5.7;
     if (u.rayleigh) u.rayleigh.value = groundLevel ? 2.05 : 2.8;
     if (u.mieCoefficient) u.mieCoefficient.value = groundLevel ? 0.0085 : 0.008;

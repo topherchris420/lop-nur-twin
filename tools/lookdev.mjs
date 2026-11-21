@@ -1163,8 +1163,12 @@ async function waitReady(route) {
   while (Date.now() - start < 180000) {
     const ready = await page
       .evaluate((r) => {
-        if (r === "twin")
-          return !!globalThis.__twinStore && !!document.querySelector("canvas");
+        if (r === "twin") {
+          // The HUD creates its minimap canvas before the WebGL programs link.
+          // Only the scene's ready signal follows a rendered airfield frame.
+          const state = globalThis.__twinStore?.getState();
+          return !!state?.ready && !state.sceneUnavailable;
+        }
         const h = globalThis.__combat;
         return !!(
           h &&

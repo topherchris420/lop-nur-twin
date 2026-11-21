@@ -7,6 +7,7 @@ import {
   surfaceMaterial,
   crownGeometry,
   leafSpray,
+  treeLimb,
   facadeMaterial,
 } from "./materials";
 import {
@@ -325,18 +326,7 @@ export function createCityGeometry() {
           detail.leaves,
         );
       });
-      if (close) {
-        const direction = new THREE.Vector3(x - p.x, 1.5, z - p.z);
-        const limb = new THREE.CylinderGeometry(0.04, 0.1, direction.length(), 5);
-        limb.applyQuaternion(
-          new THREE.Quaternion().setFromUnitVectors(
-            new THREE.Vector3(0, 1, 0),
-            direction.normalize(),
-          ),
-        );
-        limb.translate((p.x + x) / 2, h - 0.05, (p.z + z) / 2);
-        add(limb, trunk);
-      }
+      if (close) add(treeLimb(p.x, p.z, h * 0.74, x, z, y), trunk);
     });
     if (close) {
       box(p, 0.18, 1.8, 0.08, 1.8, detail.dark);
