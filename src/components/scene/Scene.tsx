@@ -20,6 +20,7 @@ import { LivingScene } from "./LivingScene";
 import { UncertaintyLayer } from "./UncertaintyLayer";
 import { LiveTraffic } from "./LiveTraffic";
 import { Atmosphere } from "./Atmosphere";
+import { LakebedPlate } from "./LakebedPlate";
 import { CameraRigs } from "./CameraRigs";
 import { AdaptiveQualityManager } from "./AdaptiveQuality";
 import { pauseRendering, warmProgramsThenRender } from "./programWarmup";
@@ -192,36 +193,31 @@ function WebGLFallback({ stale = false }: { stale?: boolean }) {
   }, [setReady, setSceneUnavailable]);
 
   return (
-    <div
-      role="alert"
-      className="absolute inset-0 z-30 grid place-items-center bg-[#1c1b18] p-6 text-center text-sm text-[#e8e4d8]"
-    >
-      <div className="max-w-md space-y-3 leading-relaxed">
-        {stale ? (
-          <p>
-            The 3D view stopped. {STALE_BUILD_NOTICE}{" "}
-            <button type="button" className="underline" onClick={reloadPage}>
-              Reload
-            </button>
-          </p>
-        ) : (
-          <p>
-            This browser could not start WebGL, so the 3D view is unavailable. Hardware
-            acceleration or a WebGL-capable browser is required for it.
-          </p>
-        )}
-        <p>
-          The model itself does not need it: every structure, claim, source, date and
-          uncertainty is in the{" "}
-          <Link to="/analysis" className="underline">
-            analysis table
-          </Link>
-          , and releases can be compared in the{" "}
-          <Link to="/compare" className="underline">
-            manifest comparison
-          </Link>
-          .
-        </p>
+    <div className="airfield-print">
+      <LakebedPlate />
+      <div className="airfield-print-shade" />
+      <div className="airfield-print-caption">
+        Runway and graded strips · Illustrative terrain
+      </div>
+      <div className="airfield-print-copy">
+        <p className="airfield-print-location">Xinjiang · Desert airfield</p>
+        <h2>Lop Nur</h2>
+        <div role="alert">
+          {stale ? (
+            <p>
+              The 3D view stopped. {STALE_BUILD_NOTICE}{" "}
+              <button type="button" className="underline" onClick={reloadPage}>
+                Reload
+              </button>
+            </p>
+          ) : (
+            <p>This browser could not start WebGL. The airfield is shown in plan view.</p>
+          )}
+        </div>
+        <nav aria-label="Explore the model without WebGL">
+          <Link to="/analysis">Explore the evidence</Link>
+          <Link to="/compare">Compare revisions</Link>
+        </nav>
       </div>
     </div>
   );

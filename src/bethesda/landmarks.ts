@@ -727,7 +727,7 @@ export function buildLandmarks(
       tree.trunkBottomRadius,
       tree.trunkTopRadius,
       tree.trunkHeight,
-      m.wood,
+      m.bark,
       6,
     );
     for (const c of tree.crowns) {

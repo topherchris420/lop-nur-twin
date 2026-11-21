@@ -11,10 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        world: [airfield, bethesda, blacksite]
+        world: [airfield, airfield-original, bethesda, blacksite]
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ matrix.world == 'airfield-original' && 'ceaadfc3337311a9ba00bf5db00dec319fbd55f7' || github.sha }}
           persist-credentials: false
       - uses: oven-sh/setup-bun@v2
         with:
@@ -29,8 +30,10 @@ jobs:
           bun run dev --host 127.0.0.1 --port 5173 > /tmp/lookdev.log 2>&1 &
           timeout 180 bash -c 'until curl -sf http://127.0.0.1:5173/ >/dev/null; do sleep 2; done'
       - name: Capture the opening airfield
-        if: matrix.world == 'airfield'
-        run: node tools/probe.mjs --origin http://127.0.0.1:5173 --url '/?quality=2' --no-hud --wait 5500 --width 1280 --height 720 --out shots/review/airfield.png
+        if: startsWith(matrix.world, 'airfield')
+        run: >
+          node tools/lookdev.mjs --origin http://127.0.0.1:5173 --quality 2 --width 1280 --height 720 --out shots/review
+          --shots '[{"id":"opening","route":"twin","frames":5},{"id":"aerial","route":"twin","setup":"await ld.twinOblique()","frames":5}]'
       - name: Walk and survey Bethesda
         if: matrix.world == 'bethesda'
         run: node tools/bethesda-look.mjs http://127.0.0.1:5173 shots/review

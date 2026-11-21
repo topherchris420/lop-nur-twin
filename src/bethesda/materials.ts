@@ -207,6 +207,42 @@ export function metricBoxUV(g: THREE.BufferGeometry) {
   }
 }
 
+/** Colour and shallow relief share the same seams, so bark catches raking
+ * light on the raised side of a plate. Cylinder UVs wrap once around a stem. */
+export function barkMaterial() {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const c = canvas.getContext("2d")!;
+  const pixels = c.createImageData(size, size);
+  for (let y = 0; y < size; y++) {
+    const v = (2 * Math.PI * y) / size;
+    for (let x = 0; x < size; x++) {
+      const u = (2 * Math.PI * x) / size;
+      const warp = 0.65 * Math.sin(v + 3 * u) + 0.38 * Math.sin(2 * v - 2 * u);
+      const cut = Math.pow(0.5 + 0.5 * Math.cos(15 * u + warp), 7);
+      const grain = Math.cos(37 * u + 3 * warp) * 3 + Math.sin(4 * u - v) * 9;
+      const light = grain - cut * 32;
+      const i = (y * size + x) * 4;
+      pixels.data[i] = 109 + light;
+      pixels.data[i + 1] = 98 + light;
+      pixels.data[i + 2] = 82 + light;
+      pixels.data[i + 3] = 255;
+    }
+  }
+  c.putImageData(pixels, 0, 0);
+  const map = new THREE.CanvasTexture(canvas);
+  map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.anisotropy = 4;
+  return new THREE.MeshStandardMaterial({
+    map,
+    bumpMap: map,
+    bumpScale: 0.025,
+    roughness: 0.94,
+  });
+}
+
 /** Alpha-tested foliage clusters keep a broken silhouette without fetched sprites. */
 export function foliageTexture() {
   const canvas = document.createElement("canvas");
@@ -229,18 +265,33 @@ export function foliageTexture() {
     c.moveTo(bx, by);
     c.lineTo(bx + dx, by + dy);
     c.stroke();
-    const light = 28 + random() * 15 + (1 - (by + dy) / 256) * 9;
+    const light = 23 + random() * 20 + (1 - (by + dy) / 256) * 12;
+    const hue = 79 + 19 * random();
     for (let pair = 1; pair <= 8; pair++) {
       const t = pair / 9;
       for (const side of [-1, 1]) {
         const a = angle + side * (0.55 + random() * 0.6);
-        const length = 4 + random() * 4;
-        const lx = bx + dx * t + Math.cos(a) * length;
-        const ly = by + dy * t + Math.sin(a) * length;
-        c.fillStyle = `hsl(${77 + random() * 14} 27% ${light + random() * 8}%)`;
+        const length = 7 + random() * 7;
+        const lx = bx + dx * t,
+          ly = by + dy * t;
+        c.save();
+        c.translate(lx, ly);
+        c.rotate(a);
+        // Two sides of one pointed blade. The central fold remains legible in
+        // a close view; mipmapping averages it into a leaf cluster at distance.
+        c.fillStyle = `hsl(${hue} 31% ${light}%)`;
         c.beginPath();
-        c.ellipse(lx, ly, length, length * 0.4, a, 0, Math.PI * 2);
+        c.moveTo(0, 0);
+        c.quadraticCurveTo(length * 0.57, -length * 0.45, length, -0.5);
+        c.quadraticCurveTo(length * 0.53, length * 0.38, 0, 0);
         c.fill();
+        c.fillStyle = `hsl(${hue - 8} 36% ${light + 10}%)`;
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.quadraticCurveTo(length * 0.57, -length * 0.45, length, -0.5);
+        c.closePath();
+        c.fill();
+        c.restore();
       }
     }
   }
@@ -261,7 +312,14 @@ export function canopyTexture(spray: THREE.CanvasTexture) {
   const tile = document.createElement("canvas");
   tile.width = tile.height = size;
   const layer = tile.getContext("2d")!;
-  for (const shade of [0.55, 0.76, 1]) {
+  // Reuse the branch centres across depth layers. Independent layers filled
+  // every gap with leaves, turning the shell into an opaque green ellipsoid.
+  const boughs = Array.from({ length: 16 }, () => ({
+    x: random() * size,
+    y: random() * size,
+    span: 83 + 52 * random(),
+  }));
+  for (const shade of [0.5, 0.73, 1]) {
     // Tint once per layer. Atlas offsets and orientations wrap without a seam.
     layer.clearRect(0, 0, size, size);
     layer.drawImage(spray.image, 0, 0);
@@ -269,10 +327,10 @@ export function canopyTexture(spray: THREE.CanvasTexture) {
     layer.fillStyle = `rgba(13,28,17,${1 - shade})`;
     layer.fillRect(0, 0, size, size);
     layer.globalCompositeOperation = "source-over";
-    for (let i = 0; i < 28; i++) {
-      const x = random() * size,
-        y = random() * size;
-      const width = 64 + 78 * random(),
+    for (const bough of boughs) {
+      const x = bough.x + (random() - 0.5) * 32,
+        y = bough.y + (random() - 0.5) * 32;
+      const width = bough.span * (0.92 + 0.15 * random()),
         angle = random() * Math.PI * 2;
       for (const dx of [-size, 0, size])
         for (const dy of [-size, 0, size]) {
@@ -291,7 +349,7 @@ export function canopyTexture(spray: THREE.CanvasTexture) {
   const map = new THREE.CanvasTexture(canvas);
   map.colorSpace = THREE.SRGBColorSpace;
   map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  map.repeat.set(2, 1);
+  map.repeat.set(2, 1.5);
   map.anisotropy = 4;
   return map;
 }
@@ -319,8 +377,8 @@ export function crownGeometry(
     const breakup = canopyNoise(x + nx * 2.1 + ny, z + nz * 2.1 - ny);
     // The same ellipsoid is a landing surface in BethesdaFlyWorld.
     p.setXYZ(i, x + nx * radius, y + ny * radius * stretch, z + nz * radius);
-    const light = 0.78 + 0.21 * ny + 0.16 * breakup;
-    colors.set([light, light, light * 0.94], i * 3);
+    const sky = THREE.MathUtils.smoothstep(ny + breakup * 0.38, -0.85, 0.85);
+    colors.set([0.48 + sky * 0.61, 0.64 + sky * 0.44, 0.61 + sky * 0.25], i * 3);
     uv.setXY(i, uv.getX(i) + offset, uv.getY(i) + offset);
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
@@ -336,7 +394,14 @@ export function leafSpray(
   angle: number,
   tilt: number,
 ) {
-  const spray = new THREE.PlaneGeometry(radius * 2.55, radius * 2.55 * stretch);
+  // Fold each outer spray around its bough. From the side it continues to
+  // catch light and break the silhouette as the walker passes under it.
+  const spray = new THREE.PlaneGeometry(radius * 2.45, radius * 2.35 * stretch, 2, 1);
+  const p = spray.getAttribute("position");
+  for (let i = 0; i < p.count; i++) {
+    p.setZ(i, radius * (0.76 - 0.55 * Math.abs(p.getX(i) / radius)) + 0.1 * p.getY(i));
+  }
+  spray.computeVertexNormals();
   spray.rotateX(tilt);
   spray.rotateY(angle);
   spray.translate(x, y, z);
