@@ -16,15 +16,15 @@ export function LakebedPlate() {
 
   useEffect(() => {
     const canvas = ref.current;
-    const ctx = canvas?.getContext("2d", { alpha: false });
+    const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     let frame = 0;
-    function render() {
+    function render(maxSide: number) {
       if (!canvas || !ctx) return;
       cancelAnimationFrame(frame);
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
-      const scale = Math.min(1.5, 1100 / Math.max(rect.width, rect.height));
+      const scale = Math.min(1.5, maxSide / Math.max(rect.width, rect.height));
       const w = Math.max(1, Math.round(rect.width * scale));
       const h = Math.max(1, Math.round(rect.height * scale));
       const portrait = rect.width < 700;
@@ -57,7 +57,8 @@ export function LakebedPlate() {
             pixels.data[i + 1] = 255 * color.g;
             pixels.data[i + 2] = 255 * color.b;
             pixels.data[i + 3] = 255;
-            west = previousRow[x] = height;
+            previousRow[x] = height;
+            west = height;
           }
           row++;
         } while (row < h && performance.now() < deadline);
@@ -84,10 +85,13 @@ export function LakebedPlate() {
           ctx.lineTo(cx + segment.to[0] * px, cy + segment.to[1] * px);
           ctx.stroke();
         }
+        // Give even a slow phone a complete, legible plate before refining it.
+        if (maxSide === 256 && Math.max(rect.width, rect.height) > 256)
+          frame = requestAnimationFrame(() => render(1100));
       }
       frame = requestAnimationFrame(paint);
     }
-    const observer = new ResizeObserver(render);
+    const observer = new ResizeObserver(() => render(256));
     observer.observe(canvas);
     return () => {
       observer.disconnect();
