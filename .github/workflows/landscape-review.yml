@@ -1,0 +1,45 @@
+name: Landscape review captures
+on:
+  push:
+    branches: [qa/landscape-light-captures-20261120]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    strategy:
+      fail-fast: false
+      matrix:
+        world: [airfield, bethesda, blacksite]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: bun install --frozen-lockfile
+      - name: Start the application
+        run: |
+          mkdir -p shots/review
+          bun run dev --host 127.0.0.1 --port 5173 > /tmp/lookdev.log 2>&1 &
+          timeout 180 bash -c 'until curl -sf http://127.0.0.1:5173/ >/dev/null; do sleep 2; done'
+      - name: Capture the opening airfield
+        if: matrix.world == 'airfield'
+        run: node tools/probe.mjs --origin http://127.0.0.1:5173 --url '/?quality=2' --no-hud --wait 5500 --width 1280 --height 720 --out shots/review/airfield.png
+      - name: Walk and survey Bethesda
+        if: matrix.world == 'bethesda'
+        run: node tools/bethesda-look.mjs http://127.0.0.1:5173 shots/review
+      - name: Run the nine look-development cameras
+        if: matrix.world == 'blacksite'
+        run: node tools/lookdev.mjs --set ab --origin http://127.0.0.1:5173 --width 896 --height 504 --quality 3 --out shots/review
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: landscape-${{ matrix.world }}
+          path: shots/review
+          retention-days: 5
