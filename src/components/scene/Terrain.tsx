@@ -1,32 +1,15 @@
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { SITE_SIZE, TERRAIN_ENTITY_ID } from "@/lib/layout";
-import { flattenFactor, gravelField, mottle, rawHeight, wadiMask } from "@/lib/terrain";
+import { flattenFactor, rawHeight } from "@/lib/terrain";
 import { makeGroundNormalTexture, makeLakebedColorTexture } from "@/lib/textures";
 import { applyGroundDetailPreset, groundDetailFor } from "@/gfx/groundDetail";
-import { seededNoise2D, SITE_SEED } from "@/lib/noise";
+import { SITE_SEED } from "@/lib/noise";
+import { lakebedColor, PLAIN_COLOR } from "@/gfx/lakebed";
 import { useTwinStore, type QualityTier } from "@/lib/store";
 import { getQualityProfile } from "@/lib/quality";
 
-/** Lop Nur / Gobi palette: tan lakebed, darker desert-pavement gravel,
- *  pale dry playa, and slightly damp-looking dry-wash channels.
- *  Value is spread a little wider than a single tan so sunlit playa and
- *  shaded gravel separate. Hues stay in that desaturated band — no new
- *  vegetation green or red sand. */
-const C_DARK = new THREE.Color("#706a54");
-const C_BASE = new THREE.Color("#aea384");
-const C_DUST = new THREE.Color("#d2c4a2");
-const C_GRAVEL = new THREE.Color("#5c5644");
-const C_PLAYA = new THREE.Color("#d5cdb6");
-const C_WADI = new THREE.Color("#7a6c4a");
-const C_COMPACT = new THREE.Color("#c8bca0");
-
-// Illustrative mineral deposits. The pigment follows long low spots and the
-// banks of the existing washes, with broken edges where gravel shows through.
-const mineral = seededNoise2D(SITE_SEED + 49);
-const C_SALT = new THREE.Color("#e0d8bc");
-const C_SILT = new THREE.Color("#9b7d60");
-
+const FLOOR_SIZE = 40_000;
 const geometryCache = new Map<number, THREE.PlaneGeometry>();
 
 /** Vertices between yields, about 12 ms of work on a Snapdragon X laptop. */
@@ -59,24 +42,10 @@ function* terrainGeometrySteps(segments: number): Generator<void, THREE.PlaneGeo
     pos.setY(i, height * flat);
     compact[i] = 1 - flat;
 
-    const m = mottle(x, z);
-    const t = THREE.MathUtils.clamp(m * 0.5 + 0.5, 0, 1);
-    scratch.lerpColors(C_DARK, C_BASE, THREE.MathUtils.smoothstep(t, 0.1, 0.9));
-    scratch.lerp(C_DUST, Math.pow(Math.max(0, m), 2.2) * 0.58);
-    const gravel = gravelField(x, z);
-    scratch.lerp(C_GRAVEL, gravel * 0.7);
-    scratch.lerp(C_PLAYA, THREE.MathUtils.smoothstep(t, 0.82, 1) * 0.58);
-    const wash = wadiMask(x, z);
-    const bed = mineral(x / 720, z / 440);
-    const layer = height * 0.43 + bed * 1.6 + m * 0.13;
-    // Broad depositional terraces resolve even on the lowest mesh tier.
-    const terrace = 1 - THREE.MathUtils.smoothstep(Math.abs(layer + 0.32), 0.09, 0.46);
-    const low = 1 - THREE.MathUtils.smoothstep(layer, -1.25, 0.45);
-    const salt = (low * 0.32 + terrace * 0.38 + wash * (1 - wash) * 0.9) * (1 - gravel);
-    scratch.lerp(C_SILT, flat * (1 - low) * (0.18 + 0.1 * bed));
-    scratch.lerp(C_SALT, flat * salt);
-    scratch.lerp(C_WADI, wash * 0.58);
-    scratch.lerp(C_COMPACT, (1 - flat) * 0.55);
+    lakebedColor(scratch, x, z, height, flat);
+    // Dissolve the last few hundred metres into the lower-resolution plain.
+    const edge = Math.max(Math.abs(x), Math.abs(z)) / (SITE_SIZE / 2);
+    scratch.lerp(PLAIN_COLOR, THREE.MathUtils.smoothstep(edge, 0.82, 1));
 
     colors[i * 3] = scratch.r;
     colors[i * 3 + 1] = scratch.g;
@@ -194,6 +163,16 @@ export function Terrain() {
   }, []);
   useEffect(() => () => lakebedMap.dispose(), [lakebedMap]);
 
+  // The same sediment tile continues across the edge at the same scale and
+  // phase. Cloning a Texture shares its image; no second canvas is painted.
+  const floorMap = useMemo(() => {
+    const map = lakebedMap.clone();
+    map.repeat.setScalar(FLOOR_SIZE / 760);
+    map.offset.setScalar((SITE_SIZE - FLOOR_SIZE) / (2 * 760));
+    return map;
+  }, [lakebedMap]);
+  useEffect(() => () => floorMap.dispose(), [floorMap]);
+
   const normalMap = useMemo(() => {
     const tex = makeGroundNormalTexture(SITE_SEED + 7);
     tex.repeat.set(320, 320);
@@ -228,8 +207,13 @@ export function Terrain() {
           edge shows at the horizon (it only appears beyond the detail ring
           and fades into the haze). */}
       <mesh position={[0, -6, 0]} rotation={[-Math.PI / 2, 0, 0]} name="desert-floor">
-        <planeGeometry args={[40000, 40000]} />
-        <meshStandardMaterial color="#9a8f77" roughness={1} metalness={0} />
+        <planeGeometry args={[FLOOR_SIZE, FLOOR_SIZE]} />
+        <meshStandardMaterial
+          color={PLAIN_COLOR}
+          map={floorMap}
+          roughness={1}
+          metalness={0}
+        />
       </mesh>
       <mesh geometry={geometry} material={material} receiveShadow name="terrain-detail" />
     </group>

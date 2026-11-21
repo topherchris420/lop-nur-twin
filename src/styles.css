@@ -651,3 +651,122 @@ body {
     animation: none;
   }
 }
+
+/* Offline, north-up field plate for the twin's WebGL fallback. */
+.airfield-print {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  isolation: isolate;
+  overflow: auto;
+  display: grid;
+  align-items: end;
+  padding: clamp(1.4rem, 6vw, 6rem);
+  color: #f4efdf;
+  background: #504e40;
+}
+.lakebed-plate,
+.airfield-print-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+}
+.airfield-print-shade {
+  z-index: -1;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(20, 24, 21, 0.95),
+      rgba(22, 25, 21, 0.8) 25%,
+      transparent 65%
+    ),
+    linear-gradient(0deg, rgba(19, 23, 21, 0.48), transparent 40%);
+}
+.airfield-print-copy {
+  max-width: 25rem;
+  align-self: center;
+}
+.airfield-print-location,
+.airfield-print-caption {
+  font: 500 0.78rem/1.45 var(--font-mono, monospace);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.airfield-print-caption {
+  position: absolute;
+  bottom: 1.5rem;
+  right: clamp(1.4rem, 4vw, 4rem);
+  padding: 0.4rem 0.6rem;
+  background: #292c25d9;
+  font-size: 0.7rem;
+}
+.airfield-print-copy h2 {
+  margin: 0.45rem 0 1rem;
+  font:
+    normal clamp(4rem, 8vw, 8.5rem)/0.96 var(--font-display, Georgia),
+    serif;
+  letter-spacing: -0.045em;
+}
+.airfield-print-copy [role="alert"] {
+  font-size: 1rem;
+  line-height: 1.55;
+  max-width: 22rem;
+}
+.airfield-print-copy nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.35rem;
+  align-items: center;
+  margin-top: 1.7rem;
+}
+.airfield-print-copy nav a {
+  padding: 0.65rem 0;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+.airfield-print-copy nav a:first-child {
+  background: #f1eddf;
+  color: #242820;
+  padding: 0.65rem 1.05rem;
+  text-decoration: none;
+  border-radius: 0.18rem;
+}
+.airfield-print-copy nav a:focus-visible,
+.airfield-print-copy button:focus-visible {
+  outline: 3px solid #ffce80;
+  outline-offset: 4px;
+}
+
+@media (max-width: 699px) {
+  .airfield-print {
+    padding-bottom: max(1.4rem, env(safe-area-inset-bottom));
+  }
+  .airfield-print-copy {
+    align-self: end;
+  }
+  .airfield-print-caption {
+    top: 1rem;
+    bottom: auto;
+    right: 1rem;
+  }
+  .airfield-print-shade {
+    background: linear-gradient(
+      0deg,
+      #171c18 1%,
+      rgba(23, 28, 24, 0.96) 22%,
+      rgba(23, 28, 24, 0.72) 41%,
+      transparent 66%
+    );
+  }
+}
+@media (max-height: 420px) {
+  .airfield-print {
+    padding: 1.25rem;
+  }
+  .airfield-print-copy h2 {
+    font-size: 3.25rem;
+  }
+}

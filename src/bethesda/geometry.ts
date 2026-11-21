@@ -53,7 +53,7 @@ export function createCityGeometry() {
     grass = material("#647c55"),
     roof = surfaceMaterial("limestone", "#888982"),
     metal = material("#38413e", 0.7),
-    trunk = material("#685043");
+    trunk = detail.bark;
   const brick = facadeMaterial("brick"),
     stone = facadeMaterial("stone"),
     glass = facadeMaterial("glass");

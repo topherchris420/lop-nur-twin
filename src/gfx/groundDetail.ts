@@ -242,50 +242,30 @@ const SURFACE = /* glsl */ `
       vec2 gdWp = vGdWorld.xz;
       // Continuous mottling only. A soft cell hash still left square seams
       // once the values jumped between cells.
-      float gdMottle =
-        sin(dot(gdWp, vec2(0.349, 0.151))) * 0.42 +
-        sin(dot(gdWp, vec2(-0.274, 0.583))) * 0.28 +
-        sin(dot(gdWp, vec2(0.91, -0.47))) * 0.18 +
-        sin(dot(gdWp, vec2(-0.63, 0.22))) * 0.12;
-      diffuseColor.rgb *= 1.0 + gdMottle * 0.34 * gdAmt;
-      float gdStain = sin(dot(gdWp, vec2(0.31, 0.17))) * sin(dot(gdWp, vec2(-0.09, 0.27)));
-      float gdWide = sin(dot(gdWp, vec2(0.078, 0.041))) * sin(dot(gdWp, vec2(-0.027, 0.091)));
-      float gdDirt = sin(dot(gdWp, vec2(0.55, 0.19))) * sin(dot(gdWp, vec2(-0.21, 0.41)));
-      diffuseColor.rgb *= 1.0
-        + gdStain * 0.38 * gdAmt
-        + gdWide * 0.32 * gdAmt
-        + gdDirt * 0.22 * gdAmt;
-      // Speckle without a hard cell edge: two soft hashes, no floor() step.
-      float gdSpeck =
-        sin(dot(gdWp, vec2(2.7, 1.9))) * 0.45 +
-        sin(dot(gdWp, vec2(-3.4, 2.1))) * 0.35 +
-        sin(dot(gdWp, vec2(5.1, -4.2))) * 0.2;
-      // Stones a boot would notice: a few per stride, tens of centimetres
-      // across, not a pepper of one-pixel cells.
-      vec2 gdStoneUv = gdWp * 0.72 + vec2(8.0, 3.0);
-      vec2 gdStoneCell = floor(gdStoneUv);
-      vec2 gdJit = vec2(gdHash21(gdStoneCell + 2.1), gdHash21(gdStoneCell + 5.7)) - 0.5;
-      vec2 gdStoneF = fract(gdStoneUv) - 0.5 - gdJit * 0.55;
-      float gdPick = gdHash21(gdStoneCell);
-      float gdOn = step(0.88, gdPick);
-      float gdRad = mix(0.06, 0.14, fract(gdPick * 17.0));
-      float gdBody = 1.0 - smoothstep(gdRad * 0.2, gdRad, length(gdStoneF));
-      float gdHi = 1.0 - smoothstep(0.0, gdRad * 0.4, length(gdStoneF - vec2(0.028, -0.018)));
-      float gdLit = dot(normalize(gdStoneF + vec2(1e-4)), vec2(0.93, 0.37));
-      float gdNear = max(gdFine, gdAmt * 0.85);
-      vec2 gdSh = gdStoneF - vec2(0.05, 0.025);
-      float gdShadow = gdOn * (1.0 - smoothstep(0.0, gdRad + 0.06, length(gdSh))) * (1.0 - gdBody);
-      // Fine grain rides gdAmt up close so the looking-down frame is not one wash.
-      float gdCloseGrain =
-        sin(dot(gdWp, vec2(11.0, 7.3))) * 0.4 +
-        sin(dot(gdWp, vec2(-8.2, 13.1))) * 0.35 +
-        sin(dot(gdWp, vec2(17.4, -9.6))) * 0.25;
-      diffuseColor.rgb *= 1.0
-        + gdSpeck * 0.09 * gdFine
-        + gdCloseGrain * 0.12 * gdAmt
-        + gdOn * (gdHi * 0.9 + max(gdLit, 0.0) * 0.85 - gdBody * 0.08) * gdNear;
-      diffuseColor.rgb *= 1.0 - gdShadow * 0.4 * gdNear;
-      gdBump.xz += normalize(gdStoneF + vec2(1e-4)) * gdOn * gdBody * 3.8 * gdNear;
+      // Broad wear borrows the surface maps' irregular edges. Crossing two
+      // sine waves alone made regular dark diamonds on both sand and concrete.
+      float gdMottle = sin(dot(gdWp, vec2(0.18, 0.07)) + gdSm.g * 5.0);
+      diffuseColor.rgb *= 1.0 + (gdMottle * 0.10 + (gdSm.r - 0.5) * 0.19) * gdAmt;
+
+      #ifdef GD_COMPACT
+        // Loose stones belong to the lakebed. The highlight, rounded normal
+        // and occlusion all end at the stone, including in grazing views.
+        vec2 stoneUv = gdWp * 0.82;
+        vec2 cell = floor(stoneUv);
+        float pick = gdHash21(cell);
+        vec2 jitter = vec2(gdHash21(cell + 2.1), gdHash21(cell + 5.7)) - 0.5;
+        vec2 p = (fract(stoneUv) - 0.5 - jitter * 0.50) * vec2(0.85, 1.15);
+        float radius = mix(0.055, 0.14, fract(pick * 17.0));
+        float footprint = max(fwidth(stoneUv.x), fwidth(stoneUv.y));
+        float aa = min(radius, max(0.008, footprint));
+        float amount = step(0.80, pick) * gdFine * (1.0 - vGdCompact)
+                     * (1.0 - smoothstep(radius * 0.55, radius * 2.0, footprint));
+        float body = 1.0 - smoothstep(radius - aa, radius + aa, length(p));
+        float contact = 1.0 - smoothstep(radius * 0.55, radius + 1.5 * aa,
+                                         length(p - vec2(0.026, 0.018)));
+        diffuseColor.rgb *= 1.0 - amount * (0.18 * body + 0.24 * contact * (1.0 - body));
+        gdBump.xz += (p / radius) * body * amount * 0.95;
+      #endif
 
       // Contact at structure feet. A ring just outside each footprint, not a
       // disc under the building (the mesh already covers that). gdAmt keeps
@@ -563,7 +543,7 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd20:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const cacheKey = `gd21:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,

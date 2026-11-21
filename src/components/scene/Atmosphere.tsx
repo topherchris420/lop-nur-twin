@@ -20,10 +20,10 @@ const FOG_DENSITY_DAY = 0.0003;
 const MOON_POSITION = sunState.moonDirection.clone().multiplyScalar(1400).toArray();
 
 const DAY = {
-  fogColor: new THREE.Color("#d9d8d0"),
-  hemiSky: new THREE.Color("#cfe2f8"),
+  fogColor: new THREE.Color("#d6cbb9"),
+  hemiSky: new THREE.Color("#c3d8ed"),
   hemiGround: new THREE.Color("#b39d78"),
-  sunWarm: new THREE.Color("#fff1da"),
+  sunWarm: new THREE.Color("#ffe8c9"),
   sunLow: new THREE.Color("#ff9448"),
 };
 const NIGHT = {
@@ -239,7 +239,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
       // Keep distant relief just legible in dry months. At the previous
       // fixed density the horizon was fully opaque even on a clear day.
       groundLevel
-        ? 0.00023 + dustFactor * 0.00029
+        ? 0.000145 + dustFactor * 0.00023
         : FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
       next,
     );
