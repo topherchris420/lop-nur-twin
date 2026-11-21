@@ -4,36 +4,9 @@ import { useThree } from "@react-three/fiber";
 import { seededNoise2D } from "@/lib/noise";
 import { SITE_SIZE } from "@/lib/layout";
 
-/**
- * Low ridges at the margin of the basin.
- *
- * Every outward-facing frame ended at a perfectly flat razor line where the
- * 40 km desert floor met the sky. A shooter frame wants a foreground
- * occluder, a mid-ground read and a background silhouette; this supplies the
- * third, which the map had none of at any heading.
- *
- * Two judgements worth recording, because the obvious version of this change
- * is wrong twice over:
- *
- *  - **Not in the twin.** The reconstruction at `/` is evidence-backed, and
- *    procedural mountains are invented terrain. Clutter was kept out of it for
- *    the same reason. This mounts on the combat route only.
- *  - **Close and low, not distant and dramatic.** `FogExp2` at density 0.0003
- *    is 99.99% saturated by 10 km, so a range out there would be a solid block
- *    of fog colour — invisible, and costly. And the real Lop Nur basin *is* a
- *    vast flat lakebed; a wall of peaks would be a lie about the place. So
- *    these are 40-180 m of relief starting just beyond the detail mesh, which
- *    is enough to break the horizon and read as the basin's edge without
- *    pretending the site sits in a valley.
- *
- * There is deliberately no cloud deck. Sixteen billboards used to hang over
- * the basin: tinted tan and then fogged with the *ground* dust haze, they read
- * as brown smudges on a blue sky. Whitened and shaded they read as clip-art,
- * one shape in an evenly spaced row. A blind side-by-side of the three ranked
- * the empty sky first, which is also the honest one for a hyper-arid basin
- * that sees a few millimetres of rain a year: its sky is clear and hazy.
- */
-
+/** Illustrative basin scenery for Blacksite. A low alluvial fan and a second,
+ * broken escarpment give the flat play area a distant silhouette. Their
+ * materials and geometry are exclusive to the fictional scene. */
 const INNER = SITE_SIZE * 0.52;
 const OUTER = SITE_SIZE * 1.5;
 const ANGULAR = 240;
@@ -43,18 +16,19 @@ const ridge = seededNoise2D(0x1f7a);
 const detail = seededNoise2D(0x4b21);
 
 /** Ridge height at a polar position, in metres above the desert floor. */
-function reliefAt(angle: number, radius: number): number {
-  // Ramp in from nothing at the inner edge so the plain does not end in a step.
-  const t = THREE.MathUtils.clamp((radius - INNER) / (SITE_SIZE * 0.45), 0, 1);
-  const ramp = t * t * (3 - 2 * t);
-  const x = Math.cos(angle) * radius;
-  const z = Math.sin(angle) * radius;
-  // Broad massifs, then a ridgeline octave sharpened by folding the noise.
-  const broad = ridge(x / 5200, z / 5200) * 0.6 + 0.4;
-  const folded = 1 - Math.abs(ridge(x / 1900 + 11, z / 1900 - 7));
-  const grain = detail(x / 620, z / 620) * 0.5 + 0.5;
-  const height = broad * (0.35 + folded * 0.75) * (0.8 + grain * 0.4);
-  return Math.max(0, height) * 190 * ramp;
+function reliefAt(x: number, z: number, radius: number): number {
+  const t = (radius - INNER) / (OUTER - INNER);
+  const fold = ridge(x / 2600, z / 2600);
+  const spurs = 1 - Math.abs(ridge(x / 690 + fold, z / 510));
+  const outcrop = 0.55 + 0.45 * detail(x / 1350, z / 1750);
+  // Unequal widths give each range a long footslope and a steeper back.
+  const front = Math.max(0, 1 - Math.abs(t - 0.31 - fold * 0.09) / 0.27);
+  const back = Math.max(0, 1 - Math.abs(t - 0.72 + fold * 0.12) / 0.32);
+  return (
+    THREE.MathUtils.smoothstep(t, 0, 0.2) *
+    (front * front * (60 + 125 * spurs) + back * (155 + 195 * spurs)) *
+    outcrop
+  );
 }
 
 function buildRelief(): THREE.BufferGeometry {
@@ -63,8 +37,9 @@ function buildRelief(): THREE.BufferGeometry {
   const colors = new Float32Array(vertices * 3);
   const indices: number[] = [];
 
-  const near = new THREE.Color("#8e836b");
-  const far = new THREE.Color("#a89b81");
+  const near = new THREE.Color("#907562");
+  const far = new THREE.Color("#838392");
+  const exposedRock = new THREE.Color("#b39a80");
   const scratch = new THREE.Color();
 
   for (let r = 0; r <= RADIAL; r += 1) {
@@ -73,18 +48,17 @@ function buildRelief(): THREE.BufferGeometry {
     const rt = r / RADIAL;
     const radius = INNER + (OUTER - INNER) * rt * rt;
     for (let a = 0; a <= ANGULAR; a += 1) {
-      const angle = (a / ANGULAR) * Math.PI * 2;
+      const angle = ((a % ANGULAR) / ANGULAR) * Math.PI * 2;
       const i = r * (ANGULAR + 1) + a;
-      const height = reliefAt(angle, radius);
-      positions[i * 3] = Math.cos(angle) * radius;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const height = reliefAt(x, z, radius);
+      positions[i * 3] = x;
       positions[i * 3 + 1] = height - 6;
-      positions[i * 3 + 2] = Math.sin(angle) * radius;
-      // Sunlit crests pale off toward the haze; the feet stay in shadow.
-      scratch.lerpColors(
-        near,
-        far,
-        THREE.MathUtils.clamp(height / 150, 0, 1) * 0.7 + rt * 0.3,
-      );
+      positions[i * 3 + 2] = z;
+      scratch.lerpColors(near, far, THREE.MathUtils.smoothstep(rt, 0.34, 0.7));
+      const bedding = height * 0.033 + detail(x / 850, z / 850) * 1.5;
+      scratch.lerp(exposedRock, (0.5 + 0.5 * Math.cos(bedding)) * 0.24);
       colors[i * 3] = scratch.r;
       colors[i * 3 + 1] = scratch.g;
       colors[i * 3 + 2] = scratch.b;

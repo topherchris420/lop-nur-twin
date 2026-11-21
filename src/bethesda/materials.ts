@@ -207,40 +207,100 @@ export function metricBoxUV(g: THREE.BufferGeometry) {
   }
 }
 
+/** Colour and shallow relief share the same seams, so bark catches raking
+ * light on the raised side of a plate. Cylinder UVs wrap once around a stem. */
+export function barkMaterial() {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const c = canvas.getContext("2d")!;
+  const pixels = c.createImageData(size, size);
+  for (let y = 0; y < size; y++) {
+    const v = (2 * Math.PI * y) / size;
+    for (let x = 0; x < size; x++) {
+      const u = (2 * Math.PI * x) / size;
+      const warp = 0.65 * Math.sin(v + 3 * u) + 0.38 * Math.sin(2 * v - 2 * u);
+      const cut = Math.pow(0.5 + 0.5 * Math.cos(15 * u + warp), 7);
+      const grain = Math.cos(37 * u + 3 * warp) * 3 + Math.sin(4 * u - v) * 9;
+      const light = grain - cut * 32;
+      const i = (y * size + x) * 4;
+      pixels.data[i] = 109 + light;
+      pixels.data[i + 1] = 98 + light;
+      pixels.data[i + 2] = 82 + light;
+      pixels.data[i + 3] = 255;
+    }
+  }
+  c.putImageData(pixels, 0, 0);
+  const map = new THREE.CanvasTexture(canvas);
+  map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.anisotropy = 4;
+  return new THREE.MeshStandardMaterial({
+    map,
+    bumpMap: map,
+    bumpScale: 0.025,
+    roughness: 0.94,
+  });
+}
+
 /** Alpha-tested foliage clusters keep a broken silhouette without fetched sprites. */
 export function foliageTexture() {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 256;
   const c = canvas.getContext("2d")!,
     random = mulberry32(77191);
-  // Small sprays share a stem and leaf angle. Gaps between them survive
-  // mipmapping, while a lighter upper surface catches the sky.
+  // One branch tip, from the bottom of the card to its crown. Side shoots
+  // share that stem; the sky shows through between the sprays.
   c.lineCap = "round";
-  for (let twig = 0; twig < 32; twig++) {
-    const angle = random() * Math.PI * 2;
-    const reach = 50 + 65 * Math.sqrt(random());
-    const bx = 128 + Math.cos(angle) * reach * 0.36;
-    const by = 137 + Math.sin(angle) * reach * 0.3;
-    const dx = Math.cos(angle) * reach * 0.73;
-    const dy = Math.sin(angle) * reach * 0.66 - 7;
-    c.strokeStyle = "#555339";
-    c.lineWidth = 1.6;
-    c.beginPath();
-    c.moveTo(bx, by);
-    c.lineTo(bx + dx, by + dy);
-    c.stroke();
-    const light = 28 + random() * 15 + (1 - (by + dy) / 256) * 9;
-    for (let pair = 1; pair <= 8; pair++) {
-      const t = pair / 9;
-      for (const side of [-1, 1]) {
-        const a = angle + side * (0.55 + random() * 0.6);
-        const length = 4 + random() * 4;
-        const lx = bx + dx * t + Math.cos(a) * length;
-        const ly = by + dy * t + Math.sin(a) * length;
-        c.fillStyle = `hsl(${77 + random() * 14} 27% ${light + random() * 8}%)`;
-        c.beginPath();
-        c.ellipse(lx, ly, length, length * 0.4, a, 0, Math.PI * 2);
-        c.fill();
+  c.strokeStyle = "#5c5841";
+  c.lineWidth = 3.2;
+  c.beginPath();
+  c.moveTo(119, 252);
+  c.quadraticCurveTo(149, 163, 127, 24);
+  c.stroke();
+  for (let tier = 0; tier < 9; tier++) {
+    const t = (tier + 0.45) / 9;
+    const rootX = 119 + 42 * t - 34 * t * t,
+      rootY = 240 - 211 * t;
+    for (const side of [-1, 1]) {
+      const span = (48 + 58 * Math.sin(Math.PI * t)) * (0.76 + random() * 0.24);
+      const rise = 18 + 26 * random();
+      c.lineWidth = 1.8 - 0.6 * t;
+      c.strokeStyle = "#625e42";
+      c.beginPath();
+      c.moveTo(rootX, rootY);
+      c.quadraticCurveTo(
+        rootX + side * span * 0.56,
+        rootY - 4,
+        rootX + side * span,
+        rootY - rise,
+      );
+      c.stroke();
+      const hue = 79 + 21 * random(),
+        light = 24 + 13 * random() + 9 * t;
+      for (let pair = 1; pair <= 6; pair++) {
+        const u = pair / 7;
+        const lx = rootX + side * span * u;
+        const ly = rootY - 8 * (1 - u) * u - rise * u * u;
+        for (const face of [-1, 1]) {
+          const length = (11 + 7 * random()) * (1 - 0.32 * u);
+          c.save();
+          c.translate(lx, ly);
+          c.rotate(Math.atan2(-0.35 - u * 0.4, side) + face * (0.65 + 0.37 * random()));
+          c.fillStyle = `hsl(${hue} 35% ${light}%)`;
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.quadraticCurveTo(length * 0.53, -length * 0.49, length, -0.7);
+          c.quadraticCurveTo(length * 0.51, length * 0.4, 0, 0);
+          c.fill();
+          c.fillStyle = `hsl(${hue - 8} 38% ${light + 10}%)`;
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.quadraticCurveTo(length * 0.53, -length * 0.49, length, -0.7);
+          c.closePath();
+          c.fill();
+          c.restore();
+        }
       }
     }
   }
@@ -261,7 +321,14 @@ export function canopyTexture(spray: THREE.CanvasTexture) {
   const tile = document.createElement("canvas");
   tile.width = tile.height = size;
   const layer = tile.getContext("2d")!;
-  for (const shade of [0.55, 0.76, 1]) {
+  // Reuse the branch centres across depth layers. Independent layers filled
+  // every gap with leaves, turning the shell into an opaque green ellipsoid.
+  const boughs = Array.from({ length: 12 }, () => ({
+    x: random() * size,
+    y: random() * size,
+    span: 90 + 52 * random(),
+  }));
+  for (const shade of [0.5, 0.73, 1]) {
     // Tint once per layer. Atlas offsets and orientations wrap without a seam.
     layer.clearRect(0, 0, size, size);
     layer.drawImage(spray.image, 0, 0);
@@ -269,10 +336,10 @@ export function canopyTexture(spray: THREE.CanvasTexture) {
     layer.fillStyle = `rgba(13,28,17,${1 - shade})`;
     layer.fillRect(0, 0, size, size);
     layer.globalCompositeOperation = "source-over";
-    for (let i = 0; i < 28; i++) {
-      const x = random() * size,
-        y = random() * size;
-      const width = 64 + 78 * random(),
+    for (const bough of boughs) {
+      const x = bough.x + (random() - 0.5) * 32,
+        y = bough.y + (random() - 0.5) * 32;
+      const width = bough.span * (0.92 + 0.15 * random()),
         angle = random() * Math.PI * 2;
       for (const dx of [-size, 0, size])
         for (const dy of [-size, 0, size]) {
@@ -291,7 +358,7 @@ export function canopyTexture(spray: THREE.CanvasTexture) {
   const map = new THREE.CanvasTexture(canvas);
   map.colorSpace = THREE.SRGBColorSpace;
   map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  map.repeat.set(2, 1);
+  map.repeat.set(2, 1.5);
   map.anisotropy = 4;
   return map;
 }
@@ -319,8 +386,8 @@ export function crownGeometry(
     const breakup = canopyNoise(x + nx * 2.1 + ny, z + nz * 2.1 - ny);
     // The same ellipsoid is a landing surface in BethesdaFlyWorld.
     p.setXYZ(i, x + nx * radius, y + ny * radius * stretch, z + nz * radius);
-    const light = 0.78 + 0.21 * ny + 0.16 * breakup;
-    colors.set([light, light, light * 0.94], i * 3);
+    const sky = THREE.MathUtils.smoothstep(ny + breakup * 0.38, -0.85, 0.85);
+    colors.set([0.48 + sky * 0.61, 0.64 + sky * 0.44, 0.61 + sky * 0.25], i * 3);
     uv.setXY(i, uv.getX(i) + offset, uv.getY(i) + offset);
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
@@ -336,9 +403,58 @@ export function leafSpray(
   angle: number,
   tilt: number,
 ) {
-  const spray = new THREE.PlaneGeometry(radius * 2.55, radius * 2.55 * stretch);
-  spray.rotateX(tilt);
-  spray.rotateY(angle);
-  spray.translate(x, y, z);
+  // Three small outward-growing sprays describe the edge instead of two
+  // intersecting sheets through the centre. All are merged into the same
+  // street tile by the existing builder.
+  const vertices: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  const phase = canopyNoise(x * 0.37, z * 0.37);
+  for (let k = 0; k < 3; k++) {
+    const heading = angle + phase + k * ((Math.PI * 2) / 3);
+    const dx = Math.sin(heading),
+      dz = Math.cos(heading);
+    const level = 0.4 * Math.sin(heading * 2 + phase) + tilt * 0.26;
+    const first = vertices.length / 3;
+    for (let end = 0; end <= 1; end++) {
+      for (let side = -1; side <= 1; side++) {
+        const reach = (0.25 + 0.91 * end - 0.19 * Math.abs(side)) * radius;
+        const spread = side * radius * 0.54;
+        vertices.push(
+          x + dx * reach + dz * spread,
+          y + (level - 0.36 + end * (0.64 + 0.34 * tilt)) * radius * stretch,
+          z + dz * reach - dx * spread,
+        );
+        uv.push((side + 1) * 0.5, end);
+      }
+    }
+    for (const j of [0, 1, 3, 1, 4, 3, 1, 2, 4, 2, 5, 4]) indices.push(first + j);
+  }
+  const spray = new THREE.BufferGeometry();
+  spray.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+  spray.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  spray.setIndex(indices);
+  spray.computeVertexNormals();
   return spray;
+}
+
+/** Taper a limb between the existing trunk and crown centres. */
+export function treeLimb(
+  x: number,
+  z: number,
+  y: number,
+  crownX: number,
+  crownZ: number,
+  crownY: number,
+) {
+  const direction = new THREE.Vector3(crownX - x, crownY - y, crownZ - z);
+  const limb = new THREE.CylinderGeometry(0.037, 0.11, direction.length(), 5, 1, true);
+  limb.applyQuaternion(
+    new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      direction.normalize(),
+    ),
+  );
+  limb.translate((x + crownX) / 2, (y + crownY) / 2, (z + crownZ) / 2);
+  return limb;
 }

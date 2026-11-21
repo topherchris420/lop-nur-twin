@@ -5,6 +5,7 @@ import { mulberry32 } from "../lib/noise";
 import { buildingAt, distance, lerp, pathWays, type Building, type Point } from "./model";
 import {
   architecturalStone,
+  barkMaterial,
   canopyTexture,
   foliageTexture,
   surfaceMaterial,
@@ -33,6 +34,7 @@ export { detailedBuildings } from "./furniture";
 export function createDetailMaterials() {
   const spray = foliageTexture();
   return {
+    bark: barkMaterial(),
     canopy: new THREE.MeshStandardMaterial({
       map: canopyTexture(spray),
       alphaTest: 0.28,

@@ -20,10 +20,10 @@ const FOG_DENSITY_DAY = 0.0003;
 const MOON_POSITION = sunState.moonDirection.clone().multiplyScalar(1400).toArray();
 
 const DAY = {
-  fogColor: new THREE.Color("#d9d8d0"),
-  hemiSky: new THREE.Color("#cfe2f8"),
+  fogColor: new THREE.Color("#d6cbb9"),
+  hemiSky: new THREE.Color("#c3d8ed"),
   hemiGround: new THREE.Color("#b39d78"),
-  sunWarm: new THREE.Color("#fff1da"),
+  sunWarm: new THREE.Color("#ffe8c9"),
   sunLow: new THREE.Color("#ff9448"),
 };
 const NIGHT = {
@@ -105,6 +105,8 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     // Sky includes a procedural cloud deck by default. Keep only sparse
     // high wisps over the basin; the dominant veil here is airborne dust.
     if (u.cloudCoverage) u.cloudCoverage.value = 0.22;
+    if (u.cloudScale) u.cloudScale.value = 0.00058;
+    if (u.cloudDensity) u.cloudDensity.value = 0.09;
     if (u.turbidity) u.turbidity.value = groundLevel ? 6.2 : 5.7;
     if (u.rayleigh) u.rayleigh.value = groundLevel ? 2.05 : 2.8;
     if (u.mieCoefficient) u.mieCoefficient.value = groundLevel ? 0.0085 : 0.008;
@@ -239,7 +241,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
       // Keep distant relief just legible in dry months. At the previous
       // fixed density the horizon was fully opaque even on a clear day.
       groundLevel
-        ? 0.00023 + dustFactor * 0.00029
+        ? 0.000145 + dustFactor * 0.00023
         : FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
       next,
     );

@@ -10,7 +10,7 @@
  * OSM `name` tags drawn as plain text; no logo or trade dress is reproduced.
  */
 import * as THREE from "three";
-import { crownGeometry, leafSpray } from "./materials";
+import { crownGeometry, leafSpray, treeLimb } from "./materials";
 import { mulberry32 } from "../lib/noise";
 import type { CityBuilder, DetailMaterials } from "./detail";
 import {
@@ -727,13 +727,14 @@ export function buildLandmarks(
       tree.trunkBottomRadius,
       tree.trunkTopRadius,
       tree.trunkHeight,
-      m.wood,
+      m.bark,
       6,
     );
     for (const c of tree.crowns) {
       const x = t.point.x + c.dx,
         z = t.point.z + c.dz;
       const angle = Math.atan2(c.dz, c.dx);
+      add(treeLimb(t.point.x, t.point.z, tree.trunkHeight * 0.65, x, z, c.y), m.bark);
       add(crownGeometry(x, c.y, z, c.r, 1), m.canopy);
       add(leafSpray(x, c.y, z, c.r, 1, angle, -0.34), m.leaves);
       add(leafSpray(x, c.y, z, c.r, 1, angle + Math.PI / 2, 0.42), m.leaves);
