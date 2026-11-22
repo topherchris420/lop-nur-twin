@@ -156,7 +156,7 @@ vec3 computeOpticalGhosts(vec2 uv, vec2 lightPos, float intensity) {
   vec3 ghosts = vec3(0.0);
   for (int i = 1; i <= 5; i++) {
     float fi = float(i);
-    vec2 offset = fract(lightPos + ghostVec * fi);
+    vec2 offset = lightPos + ghostVec * fi;
     float dist = length(offset - uv);
     float falloff = exp(-dist * (6.5 + fi * 3.5)) * (1.0 / (fi * 0.85 + 0.5));
 
@@ -185,11 +185,16 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
   vec3 flare = vec3(0.0);
 
-  // Sun flare (only if in front of camera and within view window)
+  // Only light that reaches the lens makes a solar ghost. Sample the HDR
+  // source so a hangar roof or thick cloud can occlude the disc.
   if (sunScreenPos.z > 0.5 && sunFlareIntensity > 0.001) {
     vec2 sunUv = sunScreenPos.xy;
-    if (sunUv.x >= -0.2 && sunUv.x <= 1.2 && sunUv.y >= -0.2 && sunUv.y <= 1.2) {
-      flare += computeOpticalGhosts(uv, sunUv, sunFlareIntensity);
+    vec2 border = min(sunUv, 1.0 - sunUv);
+    if (min(border.x, border.y) > 0.0) {
+      float source = dot(texture2D(inputBuffer, sunUv).rgb, vec3(0.2126, 0.7152, 0.0722));
+      float transmission = smoothstep(4.0, 12.0, source)
+        * smoothstep(0.0, 0.035, min(border.x, border.y));
+      flare += computeOpticalGhosts(uv, sunUv, sunFlareIntensity * transmission);
     }
   }
 
@@ -232,6 +237,7 @@ export class OpticalLensDirtAndFlareEffect extends Effect {
   }: OpticalLensDirtAndFlareOptions = {}) {
     const dirtTex = getLensDirtTexture();
     super("OpticalLensDirtAndFlareEffect", LENS_DIRT_FLARE_FRAGMENT, {
+      attributes: EffectAttribute.CONVOLUTION,
       blendFunction: BlendFunction.SRC,
       uniforms: new Map<string, THREE.Uniform>([
         ["tDirt", new THREE.Uniform(dirtTex)],

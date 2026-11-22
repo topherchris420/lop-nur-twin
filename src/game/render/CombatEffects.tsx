@@ -48,7 +48,7 @@ const LOOK = {
     bloomThreshold: 3.4,
     streakIntensity: 0.12,
     streakThreshold: 4.5,
-    sunFlareIntensity: 0.25,
+    sunFlareIntensity: 0.16,
     dirtIntensity: 0.22,
     grain: 0.008,
     aberration: 0.0008,
@@ -69,7 +69,7 @@ const LOOK = {
     bloomThreshold: 0.32,
     streakIntensity: 0.95,
     streakThreshold: 0.38,
-    sunFlareIntensity: 0.08,
+    sunFlareIntensity: 0,
     dirtIntensity: 0.45,
     grain: 0.016,
     aberration: 0.0016,
@@ -195,7 +195,7 @@ export function CombatEffects() {
     _scratchVec3.copy(camera.position).addScaledVector(sunState.direction, 1000);
     _scratchVec3.project(camera);
 
-    const inFront = _scratchVec3.z < 1.0;
+    const inFront = _scratchVec3.z < 1.0 && sunState.direction.y > 0;
     const sunUvX = _scratchVec3.x * 0.5 + 0.5;
     const sunUvY = _scratchVec3.y * 0.5 + 0.5;
     opticalFlare.setSunScreenPos(sunUvX, sunUvY, inFront);
