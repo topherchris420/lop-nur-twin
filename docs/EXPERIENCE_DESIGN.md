@@ -6,13 +6,11 @@ This is not one game with one universal fantasy. Its worlds have different claim
 
 ## StoryStack
 
-| Layer | Experience promise |
-| --- | --- |
-| Fantasy | Become a careful explorer of environments, simulations, and evidence that ordinarily remain inaccessible. |
-| Action | Explore a subject, alter a **view or permitted simulation variable**, inspect a consequence, and investigate its basis. |
-| Economy | Time, information, provenance, confidence, and uncertainty. Evidence is earned by records, not points or spectacle. |
-| World | The evidence-marked Lop Nur reconstruction, Bethesda, R.A.I.N., Noeterra, Blacksite, Eva, and ECHO. |
-| Story | Each visit becomes a question, an observation, a comparison, and often a better question. |
+- **Fantasy:** Become a careful explorer of environments, simulations, and evidence ordinarily inaccessible.
+- **Action:** Explore a subject, alter a view or permitted simulation variable, inspect a consequence, and investigate its basis.
+- **Economy:** Time, information, provenance, confidence, and uncertainty. Evidence is earned by records, not points or spectacle.
+- **World:** The evidence-marked Lop Nur reconstruction, Bethesda, R.A.I.N., Noeterra, Blacksite, Eva, and ECHO.
+- **Story:** A visit becomes a question, observation, comparison, and often a better question.
 
 ## Distinct experiential contracts
 
