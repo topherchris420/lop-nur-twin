@@ -132,6 +132,15 @@ export function HelpOverlay() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <section aria-labelledby="help-investigation" className="mb-4 border-b border-border pb-4 text-xs">
+            <h3 id="help-investigation" className="text-sm font-semibold">A first investigation</h3>
+            <ol className="text-muted-foreground mt-2 list-inside list-decimal space-y-1 leading-relaxed">
+              <li><strong className="text-foreground">Explore:</strong> select a structure and read its claim.</li>
+              <li><strong className="text-foreground">Influence your view:</strong> press <kbd className="kbd">L</kbd> and change the evidence timeline.</li>
+              <li><strong className="text-foreground">Discover:</strong> compare what is observed, inferred, or still unknown in the <Link to="/analysis" className="text-foreground underline">analysis table</Link>.</li>
+            </ol>
+            <p className="text-muted-foreground mt-2">The evidence changes with the date you inspect; the underlying record does not change because you clicked.</p>
+          </section>
           <section aria-labelledby="help-evidence" className="mb-4 text-xs">
             <h3 id="help-evidence" className="text-sm font-semibold">
               Reading the evidence
