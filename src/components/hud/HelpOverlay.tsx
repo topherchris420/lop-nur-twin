@@ -126,9 +126,10 @@ export function HelpOverlay() {
             </Button>
           </div>
           <CardDescription>
-            Click any structure to inspect its claim. Click the minimap to fly there, or
-            press <kbd className="kbd">M</kbd> to measure distances and grid bearings
-            across the site — clicks snap to the runway, strips and compound.
+            Explore: select a structure and inspect its claim. Influence your view with
+            the <kbd className="kbd">L</kbd> evidence lens or timeline. Discover what
+            remains unknown in the analysis table. These controls never change the
+            underlying evidence.
           </CardDescription>
         </CardHeader>
         <CardContent>

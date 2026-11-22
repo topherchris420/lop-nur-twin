@@ -255,18 +255,26 @@ async function offline() {
       JSON.stringify(records[0] ?? null),
     );
 
-    // An answer that names the other provider is refused, and never shown as Jev.
-    behaviour.current = (obs) => ({ body: fakeDecision(obs, { source: "typesafe" }) });
+    // The prior Fastino request can already be in flight when we replace the
+    // fake endpoint's reply. Allow that legitimate response to settle before
+    // counting refusals, so the test checks only wrong-provider responses.
+    let wrongProviderRequests = 0;
+    behaviour.current = (obs) => {
+      wrongProviderRequests += 1;
+      return { body: fakeDecision(obs, { source: "typesafe" }) };
+    };
+    await runFor(page, 2.5);
     const acceptedBefore = (await episode(page)).decisions.accepted;
     await runFor(page, 2.5);
     const wrong = await telemetry(page);
     const acceptedAfter = (await episode(page)).decisions.accepted;
     check(
       "a TypeSafe-sourced answer on Glide's endpoint is refused",
-      acceptedAfter === acceptedBefore &&
+      wrongProviderRequests > 0 &&
+        acceptedAfter === acceptedBefore &&
         /expected fastino/.test(wrong.lastError ?? "") &&
         wrong.status === "ERROR",
-      `${acceptedAfter - acceptedBefore} accepted · ${wrong.status} · ${wrong.lastError}`,
+      `${wrongProviderRequests} wrong-provider requests · ${acceptedAfter - acceptedBefore} accepted · ${wrong.status} · ${wrong.lastError}`,
     );
     check("and never labelled LIVE JEV", wrong.label !== "LIVE JEV", wrong.label);
     check("nothing stays held after refusals", idle(await pilotInput(page)), "released");
