@@ -21,6 +21,7 @@ jobs:
           timeout 100 bash -c 'until curl -sf http://127.0.0.1:5173/play > /dev/null; do sleep 2; done'
           node tools/lookdev.mjs --set ab --width 960 --height 540 --origin http://127.0.0.1:5173 --out frames
           node tools/lookdev.mjs --shots '[{"id":"hangar-front","setup":"await ld.place(909,1346,224,0.08)"},{"id":"hangar-night","setup":"window.__twinStore.setState({reducedMotion:true}); ld.night(true); await ld.place(909,1346,224,0.08)","frames":8}]' --width 960 --height 540 --origin http://127.0.0.1:5173 --out front
+          node tools/lookdev.mjs --set ab --only spawn --quality 0 --width 390 --height 844 --origin http://127.0.0.1:5173 --out phone
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -28,5 +29,6 @@ jobs:
           path: |
             frames/
             front/
+            phone/
             blacksite-vite.log
           retention-days: 7
