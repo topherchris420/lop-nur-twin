@@ -97,7 +97,7 @@ export function makeDoorCoating(number: string, pixels: number) {
   const c = canvas.getContext("2d")!;
   c.scale(pixels / 1024, pixels / 1024);
   const random = mulberry32(SITE_SEED + 1824 + Number(number));
-  const paints = ["#596660", "#64716a", "#56635f", "#626b62", "#606c67", "#596763"];
+  const paints = ["#69766e", "#758078", "#65746e", "#747c71", "#707d75", "#697871"];
   paints.forEach((paint, i) => {
     c.fillStyle = paint;
     c.fillRect((1024 * i) / 6, 0, 172, 256);
