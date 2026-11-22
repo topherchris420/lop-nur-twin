@@ -13,6 +13,7 @@ import { readFloatParam, readHeadingParam, readSitePointParam } from "@/lib/para
 import { CollisionWorld } from "./physics/collisionWorld";
 import { GroundClutter } from "./world/GroundClutter";
 import { mirageState } from "./world/mirage";
+import { Flightline } from "./world/Flightline";
 import { DistantRelief } from "./world/DistantRelief";
 import { PlayerRig, placePlayer } from "./player/PlayerRig";
 import { FxManager } from "./fx/combatFx";
@@ -591,6 +592,7 @@ function CombatWorld() {
       <Pavements />
       <Structures />
       <GroundClutter />
+      <Flightline />
       <DistantRelief />
       <EnvironmentLighting onReady={handleEnvironment} />
       <CollisionBaker onBaked={handleBaked} />

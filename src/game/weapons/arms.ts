@@ -760,7 +760,13 @@ function bakeSleeve(hand: SolvedHand, seed: number): BakedMesh {
       const crease2 = 1 - Math.abs(Math.sin(s * 61 - a * 2.0 + phase[1]! * 6));
       const long = Math.sin(a * 3 + s * 9 + phase[2]! * 6) * 0.5 + 0.5;
       const elastic = cuff > 0 ? Math.sin(a * 22) * 0.0007 * cuff : 0;
+      // A felled lengthwise seam pulls one side of the sleeve taut. The
+      // asymmetric fold under it deepens towards the elbow.
+      const seamAngle = a - 0.72 + 0.35 * s;
+      const drape =
+        Math.sin(seamAngle * 2 + s * 15) * (0.001 + 0.0029 * Math.min(1, s / 0.14));
       const fold =
+        drape +
         (crease1 * 0.0032 + crease2 * 0.0022) * (0.35 + bunch) +
         long * 0.0016 * (1 - cuff);
       const r = base + fold + elastic;
@@ -919,6 +925,25 @@ export function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
           camo = mix(camo, khaki, smoothstep(0.52, 0.56, n1));
           camo = mix(camo, olive, smoothstep(0.58, 0.61, n2));
           camo = mix(camo, brown, smoothstep(0.63, 0.66, n3) * (1.0 - smoothstep(0.5, 0.6, n1)));
+          // A folded, twin-needle seam follows the sleeve UVs along the arm.
+          // Filter the reinforcing yarn and stitches to their pixel footprint.
+          float u = fract(vUv.x - 0.11 + vUv.y * 0.0056);
+          float margin = min(u, 1.0 - u);
+          float aa = clamp(fwidth(vUv.x), 0.0002, 0.025);
+          float welt = 1.0 - smoothstep(0.010, 0.010 + aa, margin);
+          float rows = 1.0 - smoothstep(0.001, 0.001 + aa, abs(margin - 0.016));
+          float freq = vUv.y * 23.0;
+          float stitch = 0.5 + 0.5 * cos(freq * 6.283185);
+          stitch = mix(stitch, 0.5, smoothstep(0.22, 0.64, fwidth(freq)));
+          vec2 grid = vUv * vec2(40.0, 17.0);
+          vec2 yarn = abs(fract(grid) - 0.5);
+          vec2 fw = fwidth(grid);
+          vec2 strand = (1.0 - smoothstep(vec2(0.038), vec2(0.038) + max(fw, vec2(0.001)), yarn))
+            * (1.0 - smoothstep(vec2(0.2), vec2(0.55), fw));
+          float reinforced = max(strand.x, strand.y);
+          camo = mix(camo, vec3(0.57, 0.51, 0.40), 0.15);
+          camo *= 1.0 - 0.16 * welt - 0.085 * reinforced;
+          camo = mix(camo, vec3(0.70, 0.64, 0.50), rows * stitch * 0.58);
           diffuseColor.rgb *= pow(camo, vec3(2.2));
         }`
         : "";
@@ -970,7 +995,7 @@ export function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
   if (finish === "sleeve") {
     material.defines = { ...(material.defines ?? {}), USE_UV: "" };
   }
-  material.customProgramCacheKey = () => `vm-arm-${finish}-v1`;
+  material.customProgramCacheKey = () => `vm-arm-${finish}-v2`;
   return material;
 }
 
