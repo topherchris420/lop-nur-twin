@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { applyPreset } from "@/gfx/greeble";
 import { APRONS, STRUCTURES, type StructureDef } from "@/lib/layout";
 import { useSceneDressingVisible, useSubjectFilter } from "@/lib/sceneVisibility";
 import { useTwinStore } from "@/lib/store";
@@ -14,26 +15,31 @@ const DRESSING = { noCollide: true };
 
 /** Light projected down the painted door from the three fittings. In local
  * door UVs the spill stays attached to its lamp and costs no dynamic lights. */
-function makeDoorLightMap() {
+function makeDoorLightMap(coating: THREE.CanvasTexture) {
   const canvas = document.createElement("canvas");
   canvas.width = 384;
   canvas.height = 128;
   const c = canvas.getContext("2d")!;
-  c.fillStyle = "#000";
-  c.fillRect(0, 0, 384, 128);
-  for (const x of [64, 192, 320]) {
-    c.save();
-    c.translate(x, 2);
-    c.scale(0.72, 1);
-    const falloff = c.createRadialGradient(0, 0, 0, 0, 0, 85);
-    falloff.addColorStop(0, "#e7b981");
-    falloff.addColorStop(0.32, "#8f6744");
-    falloff.addColorStop(1, "#000");
-    c.fillStyle = falloff;
-    c.globalCompositeOperation = "lighter";
-    c.fillRect(-85, -2, 170, 92);
-    c.restore();
+  const pixels = c.createImageData(canvas.width, canvas.height);
+  for (let y = 0; y < canvas.height; y++) {
+    // A projecting head throws a narrow pool at the eave. Its beam spreads
+    // and loses illuminance as the distance down the wall increases.
+    const spread = 4.2 + y * 0.39;
+    const strength = 1 / (1 + y * 0.032);
+    for (let x = 0; x < canvas.width; x++) {
+      const dx = (x % 128) - 64;
+      const light = Math.exp(-0.5 * (dx / spread) ** 2) * strength;
+      const i = (y * canvas.width + x) * 4;
+      pixels.data[i] = 245 * light;
+      pixels.data[i + 1] = 208 * light;
+      pixels.data[i + 2] = 164 * light;
+      pixels.data[i + 3] = 255;
+    }
   }
+  c.putImageData(pixels, 0, 0);
+  c.globalCompositeOperation = "multiply";
+  c.globalAlpha = 0.4;
+  c.drawImage(coating.image, 0, 0, canvas.width, canvas.height);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
@@ -156,6 +162,25 @@ function buildHangarSkin(hall: StructureDef, number: string, detailed: boolean) 
     box(frame, "#4d504b", 0, sill + 0.09, 0.16, width + 0.45, 0.16, 0.48);
   }
 
+  // A personnel door and a louvred plant intake on each existing apron annex
+  // put a human measure beside the vehicle doors.
+  for (const [cx, annexWidth, projection] of [
+    [-w * 0.25, 18, 8],
+    [w * 0.28, 10, 6],
+  ] as const) {
+    const front = -d / 2 - projection;
+    const doorX = cx - annexWidth * 0.25;
+    steel(frame, "#404942", doorX, 1.17, front - 0.055, 1.22, 2.32, 0.11);
+    steel(frame, "#858b7b", doorX, 1.15, front - 0.12, 1.06, 2.16, 0.045);
+    steel(glazing, "#455958", doorX, 1.78, front - 0.15, 0.52, 0.32, 0.025);
+    steel(frame, "#4d5550", doorX + 0.35, 1.06, front - 0.185, 0.18, 0.045, 0.085);
+    const intakeX = cx + annexWidth * 0.19;
+    steel(frame, "#373b37", intakeX, 2.1, front - 0.07, 2.9, 1.68, 0.16);
+    for (let i = 0; i < 9; i++) {
+      steel(frame, "#808278", intakeX, 1.4 + i * 0.17, front - 0.19, 2.73, 0.059, 0.19);
+    }
+  }
+
   // Window bands in the original long walls are continuous. Break the dark
   // strips into panes and bays and give the downpipes collars with human scale.
   const wallH = h - 1.4;
@@ -187,7 +212,7 @@ function buildHangarSkin(hall: StructureDef, number: string, detailed: boolean) 
     }
   }
   const coating = makeDoorCoating(number, detailed ? 1024 : 512);
-  const spill = makeDoorLightMap();
+  const spill = makeDoorLightMap(coating);
   const painted = new THREE.MeshStandardMaterial({
     map: coating,
     roughness: 0.73,
@@ -196,6 +221,20 @@ function buildHangarSkin(hall: StructureDef, number: string, detailed: boolean) 
     emissiveMap: spill,
     emissiveIntensity: 0,
   });
+  if (detailed) {
+    applyPreset(painted, "cladding", {
+      sheetProfile: "corrugated",
+      plateScale: 4.4,
+      plateAspect: 1.3,
+      stagger: 0,
+      rivets: false,
+      seamDarken: 0.84,
+      plateAlbedo: 0.055,
+      rust: 0.09,
+      streaks: 0.16,
+      rimIntensity: 0.035,
+    });
+  }
   const hardware = new THREE.MeshStandardMaterial({
     vertexColors: true,
     roughness: 0.64,
