@@ -35,6 +35,10 @@ _Actual application captures, not concept art. The airfield has an evidence ledg
 
 [Airfield evidence](docs/media/readme/gallery/twin.jpg) · [Bethesda streets](docs/media/readme/gallery/bethesda.jpg) · [Noeterra's map](docs/media/readme/gallery/noeterra.jpg) · [Game screenshot](docs/screenshot-blacksite.png) · [Live fly](docs/media/readme/gallery/live-fly.jpg)
 
+## Explore. Influence. Discover.
+
+Begin with a question rather than a tour: inspect a modeled structure, change the evidence lens or timeline, then follow its sources in [Analysis](https://lop-nur-twin.vercel.app/analysis). Noeterra invites consequential decisions; Blacksite is fictional play; Bethesda is a simulated city; Eva and ECHO remain independent, persistent organisms to observe rather than command; R.A.I.N. Lab exposes research questions and uncertainty. [Experience design](docs/EXPERIENCE_DESIGN.md).
+
 <a id="01-the-question"></a>
 
 ## 01. Lop Nur and the evidence behind it
