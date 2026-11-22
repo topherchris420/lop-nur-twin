@@ -126,37 +126,13 @@ export function HelpOverlay() {
             </Button>
           </div>
           <CardDescription>
-            Click any structure to inspect its claim. Click the minimap to fly there, or
-            press <kbd className="kbd">M</kbd> to measure distances and grid bearings
-            across the site — clicks snap to the runway, strips and compound.
+            Explore: select a structure and inspect its claim. Influence your view with
+            the <kbd className="kbd">L</kbd> evidence lens or timeline. Discover what
+            remains unknown in the analysis table. These controls never change the
+            underlying evidence.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <section
-            aria-labelledby="help-investigation"
-            className="mb-4 border-b border-border pb-4 text-xs"
-          >
-            <h3 id="help-investigation" className="text-sm font-semibold">
-              A first investigation
-            </h3>
-            <ol className="text-muted-foreground mt-2 list-inside list-decimal space-y-1 leading-relaxed">
-              <li>Explore: select a structure and inspect its claim.</li>
-              <li>
-                Influence your view: press <kbd className="kbd">L</kbd> or change
-                the evidence timeline.
-              </li>
-              <li>
-                Discover what is observed, inferred, or unknown in the{" "}
-                <Link to="/analysis" className="text-foreground underline">
-                  analysis table
-                </Link>
-                .
-              </li>
-            </ol>
-            <p className="text-muted-foreground mt-2">
-              Changing the view never changes the underlying evidence record.
-            </p>
-          </section>
           <section aria-labelledby="help-evidence" className="mb-4 text-xs">
             <h3 id="help-evidence" className="text-sm font-semibold">
               Reading the evidence
