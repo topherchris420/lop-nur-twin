@@ -538,9 +538,10 @@ const PAVEMENT_PROC = /* glsl */ `
     #endif
     float gdNotPaint = (1.0 - gdPaintM) * gdWide;
     float gdL = dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2));
-    diffuseColor.rgb = mix(diffuseColor.rgb, gdL * vec3(0.985, 1.0, 1.025), 0.65 * gdNotPaint);
+    // and a step darker than the salt crust, as poured concrete is
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdL * vec3(0.82, 0.835, 0.86), 0.85 * gdNotPaint);
     float gdBleach = step(0.85, gdH12(gdCell * 3.7 + 1.1)) * (1.0 - gdRepl);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(gdL * 1.17), gdBleach * 0.75 * gdNotPaint);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(gdL * 0.97), gdBleach * 0.75 * gdNotPaint);
     diffuseColor.rgb *= 1.0 + (gdSB - 0.5) * 0.08 * gdWide;
   }
 
@@ -549,8 +550,8 @@ const PAVEMENT_PROC = /* glsl */ `
     float gdBr = gdLocal.x / 0.016 + gdVN(gdLocal * vec2(0.6, 4.0)) * 3.0;
     float gdBrK = (1.0 - smoothstep(0.25, 0.6, fwidth(gdBr))) * gdFine * (1.0 - gdRepl)
                 * (0.35 + 0.65 * gdVN(gdLocal * vec2(0.45, 1.3) + gdSlab * 20.0));
-    gdBump.xz += gdAx * cos(6.2832 * gdBr) * 0.16 * gdBrK;
-    diffuseColor.rgb *= 1.0 + sin(6.2832 * gdBr) * 0.03 * gdBrK;
+    gdBump.xz += gdAx * cos(6.2832 * gdBr) * 0.07 * gdBrK;
+    diffuseColor.rgb *= 1.0 + sin(6.2832 * gdBr) * 0.012 * gdBrK;
   }
 
   // --- joint sealant ---------------------------------------------------------
