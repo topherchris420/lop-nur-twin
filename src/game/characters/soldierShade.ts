@@ -294,11 +294,11 @@ soldierHeight = 0.0;
   float nLen = length(vSoldierWorldN);
   vec3 worldN = nLen > 1e-4 ? vSoldierWorldN / nLen : vec3(0.0, 1.0, 0.0);
   float upN = max(worldN.y, 0.0);
-  float dirt = (1.0 - smoothstep(0.08, 0.52, p.y)) * 0.32 + upN * upN * 0.16;
+  float dirt = (1.0 - smoothstep(0.06, 0.36, p.y)) * 0.16 + upN * upN * 0.12;
   dirt *= (mat == ${SOLDIER_MAT.glass} || mat == ${SOLDIER_MAT.skin}) ? 0.0 : 1.0;
   dirt *= 0.7 + 0.6 * smoothstep(-0.4, 0.5, soldierNoise(p * 11.0));
-  base = mix(base, uSoldierLakebed * 0.62, clamp(dirt, 0.0, 0.5));
-  rough = clamp(rough + dirt * 0.25, 0.04, 1.0);
+  base = mix(base, uSoldierLakebed * 0.62, clamp(dirt, 0.0, 0.3));
+  rough = clamp(rough + dirt * 0.2, 0.04, 1.0);
 
   // Fabric backscatter: cloth brightens a little at grazing angles, the
   // velvet term that makes a sleeve read soft rather than painted.
