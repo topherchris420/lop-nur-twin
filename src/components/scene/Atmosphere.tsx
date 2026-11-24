@@ -9,6 +9,8 @@ import { mulberry32, SITE_SEED } from "@/lib/noise";
 import { sunState } from "@/lib/sunState";
 import { basinReflections } from "@/gfx/basinReflections";
 import { SUN, sunElevationRad } from "@/game/render/environment";
+import { createSkyDome } from "@/game/render/skyDome";
+import { groundLight, updateSkyUniforms } from "@/game/render/skyModel";
 import { ENVIRONMENT_ENTITY_ID, SITE_SIZE } from "@/lib/layout";
 import { climateDustFactor, getClimateMonth } from "@/lib/siteData";
 import { getQualityProfile } from "@/lib/quality";
@@ -30,6 +32,30 @@ const NIGHT = {
   fogColor: new THREE.Color("#0d1420"),
   hemiSky: new THREE.Color("#1b2839"),
   hemiGround: new THREE.Color("#14110d"),
+};
+
+/**
+ * The ground camera's light. A clear desert noon is a hard warm key over a
+ * weak, blue sky fill: shade on the lakebed sits near a fifth of the sunlit
+ * sand, and the fill is the sky's colour, so shadows go blue and lit faces go
+ * warm. Most of the fill comes from the sky radiance map (`environment.ts`);
+ * the hemisphere light is only a small cool/warm bias on top of it, because a
+ * uniform wash was what flattened every surface to mid-grey.
+ *
+ * At night the shadow-casting key moves to the moon, so moonlight has a
+ * direction, a source in the sky and shadows of its own.
+ */
+const GROUND = {
+  sunKey: 8.4,
+  hemiScale: 0.1,
+  hemiSky: new THREE.Color(0.55, 0.7, 1.0),
+  hemiGround: new THREE.Color(0.62, 0.48, 0.32),
+  // The horizon haze `skyModel.ts` draws, for tiers where scene fog is the
+  // only aerial perspective.
+  fogDay: new THREE.Color("#c8d0d8"),
+  fogNight: new THREE.Color("#161c27"),
+  moonKey: 0.42,
+  moonColor: new THREE.Color(0.62, 0.72, 1.0),
 };
 
 /** The shared renderer-transform owner, including scenes with their own lighting. */
@@ -95,10 +121,14 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
   // Clear-sky desert is a hard key and a comparatively weak sky. Shadowed sand
   // measured 0.54 of lit sand, where it should sit nearer 0.2 — the key was
   // being swamped, so nothing had a lit side and a shade side.
-  const SUN_KEY = groundLevel ? 5.6 : 3.9;
-  const HEMI_SCALE = groundLevel ? 0.36 : 0.78;
+  const SUN_KEY = groundLevel ? GROUND.sunKey : 3.9;
+  const HEMI_SCALE = groundLevel ? GROUND.hemiScale : 0.78;
+  // Cloud self-shadow samples on the ground sky: the dome is the most
+  // expensive pixel on screen, so the lower tiers take fewer.
+  const cloudTaps = qualityTier >= 3 ? 3 : qualityTier >= 2 ? 2 : 0;
 
-  const sky = useMemo(() => {
+  const sky = useMemo((): THREE.Mesh => {
+    if (groundLevel) return createSkyDome(cloudTaps);
     const s = new Sky();
     s.scale.setScalar(30000);
     const u = s.material.uniforms;
@@ -112,7 +142,14 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     if (u.mieCoefficient) u.mieCoefficient.value = groundLevel ? 0.0085 : 0.008;
     if (u.mieDirectionalG) u.mieDirectionalG.value = groundLevel ? 0.8 : 0.85;
     return s;
-  }, [groundLevel]);
+  }, [groundLevel, cloudTaps]);
+  useEffect(
+    () => () => {
+      sky.geometry.dispose();
+      (sky.material as THREE.Material).dispose();
+    },
+    [sky],
+  );
 
   const sunRef = useRef<THREE.DirectionalLight>(null);
   const moonRef = useRef<THREE.DirectionalLight>(null);
@@ -178,8 +215,9 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
 
   const scratchColor = useMemo(() => new THREE.Color(), []);
   const sunDir = useMemo(() => new THREE.Vector3(), []);
+  const keyDir = useMemo(() => new THREE.Vector3(), []);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     const target = night ? 0 : 1;
     const d = dayFactor.current;
     const next =
@@ -197,12 +235,26 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
       -Math.cos(az) * Math.cos(elev),
     );
 
-    const skyUniforms = sky.material.uniforms;
-    skyUniforms.sunPosition?.value.copy(sunDir);
+    const skyMaterial = sky.material as THREE.ShaderMaterial;
+    skyMaterial.uniforms.sunPosition?.value.copy(sunDir);
+    if (groundLevel) {
+      updateSkyUniforms(
+        sunDir,
+        sunState.moonDirection,
+        next,
+        clock.elapsedTime,
+        dustFactor,
+      );
+    }
+
+    // On the ground the one shadow-casting key follows the moon once the sun
+    // is down, so moonlight has a direction and shadows of its own.
+    const moonKey = groundLevel && sunDir.y < 0;
+    keyDir.copy(moonKey ? sunState.moonDirection : sunDir);
 
     const sun = sunRef.current;
     if (sun) {
-      sun.position.copy(SHADOW_FOCUS).addScaledVector(sunDir, SUN_DISTANCE);
+      sun.position.copy(SHADOW_FOCUS).addScaledVector(keyDir, SUN_DISTANCE);
       const strength = THREE.MathUtils.clamp(Math.sin(elev), 0, 1);
       const seasonalSolar = THREE.MathUtils.clamp(
         (climate.solarKwhM2Day - 2) / 5.5,
@@ -218,33 +270,65 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
         DAY.sunWarm,
         THREE.MathUtils.clamp(strength * 2.2, 0, 1),
       );
+      if (moonKey) {
+        // Fades in as the sun's last light goes, so the hand-over is dark.
+        const moonUp = THREE.MathUtils.smoothstep(-sunDir.y, 0.0, 0.12);
+        sun.intensity = GROUND.moonKey * (1 - next) * moonUp;
+        sun.color.copy(GROUND.moonColor);
+      }
       sunState.intensity = sun.intensity;
+      if (groundLevel) {
+        groundLight.keyColor.copy(sun.color);
+        groundLight.keyIntensity = sun.intensity;
+      }
     }
-    // Published for anything that has to aim at the same sun mid-transition —
+    // Published for anything that has to aim at the same key mid-transition —
     // the near-field shadow cascade in `src/game/render/shadowCascade.ts`
     // cannot re-derive this from the `night` toggle without lagging the ease.
-    sunState.direction.copy(sunDir);
+    // On the ground at night that key is the moon.
+    sunState.direction.copy(keyDir);
     sunState.dayFactor = next;
     const moon = moonRef.current;
-    if (moon) moon.intensity = (1 - next) * 0.5;
+    if (moon) moon.intensity = groundLevel ? 0 : (1 - next) * 0.5;
 
     const hemi = hemiRef.current;
     if (hemi) {
       hemi.intensity = (0.16 + 0.46 * next) * HEMI_SCALE;
-      hemi.color.lerpColors(NIGHT.hemiSky, DAY.hemiSky, next);
-      hemi.groundColor.lerpColors(NIGHT.hemiGround, DAY.hemiGround, next);
+      if (groundLevel) {
+        hemi.color.lerpColors(NIGHT.hemiSky, GROUND.hemiSky, next);
+        hemi.groundColor.lerpColors(NIGHT.hemiGround, GROUND.hemiGround, next);
+        groundLight.skyFill.copy(hemi.color).multiplyScalar(hemi.intensity);
+        groundLight.groundFill.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
+      } else {
+        hemi.color.lerpColors(NIGHT.hemiSky, DAY.hemiSky, next);
+        hemi.groundColor.lerpColors(NIGHT.hemiGround, DAY.hemiGround, next);
+      }
+    }
+    if (groundLevel) {
+      groundLight.keyDirection.copy(keyDir);
+      groundLight.moonKey = moonKey;
+      groundLight.dayFactor = next;
     }
 
-    fog.color.copy(scratchColor.lerpColors(NIGHT.fogColor, DAY.fogColor, next));
-    fog.density = THREE.MathUtils.lerp(
-      groundLevel ? 0.00045 : 0.00022,
-      // Keep distant relief just legible in dry months. At the previous
-      // fixed density the horizon was fully opaque even on a clear day.
-      groundLevel
-        ? 0.000145 + dustFactor * 0.00023
-        : FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
-      next,
-    );
+    if (groundLevel) {
+      fog.color.copy(scratchColor.lerpColors(GROUND.fogNight, GROUND.fogDay, next));
+    } else {
+      fog.color.copy(scratchColor.lerpColors(NIGHT.fogColor, DAY.fogColor, next));
+    }
+    fog.density =
+      THREE.MathUtils.lerp(
+        groundLevel ? 0.00045 : 0.00022,
+        // Keep distant relief just legible in dry months. At the previous
+        // fixed density the horizon was fully opaque even on a clear day.
+        groundLevel
+          ? 0.000145 + dustFactor * 0.00023
+          : FOG_DENSITY_DAY * (0.72 + dustFactor * 0.5),
+        next,
+      ) *
+      // On the top tier the composer's aerial perspective pass does this
+      // job properly; scene fog stays only as a trace (and stays in every
+      // program's key, so nothing recompiles).
+      (groundLevel && quality.postprocessing ? 0.08 : 1);
 
     if (starsRef.current) starsRef.current.visible = next < 0.4;
   });
