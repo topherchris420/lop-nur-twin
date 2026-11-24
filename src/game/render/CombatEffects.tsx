@@ -9,6 +9,7 @@ import {
 } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
+import { EffectPass } from "postprocessing";
 import { Bloom, EffectComposer, N8AO, SMAA, Vignette } from "@react-three/postprocessing";
 import {
   AgXToneMappingEffect,
@@ -168,6 +169,16 @@ export function CombatEffects() {
   const camera = useThree((s) => s.camera);
 
   const guard = useMemo(() => new HdrGuardEffect({ ceiling: 40 }), []);
+  // A second guard after the weapon is drawn, in a pass of its own: the
+  // viewmodel renders straight into the buffer after the first guard, and
+  // bloom's mip chain reads its pass's input, so a guard merged into the
+  // bloom pass would not protect it. One NaN pixel on the weapon otherwise
+  // blacks out the whole frame through the bloom chain.
+  const lateGuard = useMemo(
+    () => new EffectPass(camera, new HdrGuardEffect({ ceiling: 40 })),
+    [camera],
+  );
+  useEffect(() => () => lateGuard.dispose(), [lateGuard]);
   const aerial = useMemo(() => new AerialPerspectiveEffect(), []);
   const haze = useMemo(() => new HeatHazeEffect(), []);
   const combat = useMemo(() => new CombatScreenEffect(), []);
@@ -188,6 +199,14 @@ export function CombatEffects() {
 
   useEffect(() => () => guard.dispose(), [guard]);
   useEffect(() => () => aerial.dispose(), [aerial]);
+  // The composer wraps effects in EffectPasses without ever setting an
+  // effect's mainCamera (only EffectGroup does), so the aerial perspective
+  // never saw the camera: its matrices stayed identity, distances came out
+  // ten thousand times too long and the fog followed screen height instead
+  // of range. Hand it the camera directly.
+  useLayoutEffect(() => {
+    aerial.mainCamera = camera;
+  }, [aerial, camera]);
 
   // Linking this stack on its first frame held the page; warm it inside the
   // commit, after the composer has added its passes, the same way the twin's
@@ -366,6 +385,7 @@ export function CombatEffects() {
   // After occlusion, before bloom, so the rifle shares the world's glare
   // and AgX without being darkened by the ambient-occlusion pass.
   passes.push(<primitive key="viewmodel" object={viewmodelPass} />);
+  passes.push(<primitive key="lateGuard" object={lateGuard} />);
   if (upTo >= 2) {
     passes.push(
       <Bloom

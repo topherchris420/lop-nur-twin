@@ -55,12 +55,9 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   vec3 color = inputColor.rgb;
   float transmittance = 1.0;
   if (!sky) {
-    // The effect pass has already turned the logarithmic depth buffer into
-    // perspective depth (its readDepth), so the view-space depth comes from
-    // getViewZ, exactly as in heatHaze.ts. Decoding the raw log value again
-    // here read every pixel as kilometres away and buried the ground in fog
-    // from the camera outward. Along the ray the distance is w / cos(angle).
-    float w = -getViewZ(depth);
+    // The logarithmic depth buffer stores log2(1 + w) / log2(1 + far), where
+    // w is the view-space depth; along the ray that is w / cos(angle).
+    float w = exp2(raw * apLogFar) - 1.0;
     float dist = w * length(rayView) / max(-rayView.z, 1e-4);
     float d = max(dist - apStart, 0.0);
     float h = apCameraPosition.y - apGroundY + dir.y * apStart;

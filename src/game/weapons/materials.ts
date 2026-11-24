@@ -463,7 +463,11 @@ vec3 finishPerturb(vec3 surfPos, vec3 surfNorm, float h, float faceDir) {
   vec3 r2 = cross(surfNorm, sx);
   float det = dot(sx, r1) * faceDir;
   vec3 grad = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
-  return normalize(abs(det) * surfNorm - grad);
+  // Degenerate derivatives (silhouette pixels, sub-pixel triangles) can make
+  // this exactly zero, and normalize(0) is NaN; fall back to the surface.
+  vec3 perturbed = abs(det) * surfNorm - grad;
+  float len2 = dot(perturbed, perturbed);
+  return len2 > 1e-20 ? perturbed * inversesqrt(len2) : surfNorm;
 }
 `;
 

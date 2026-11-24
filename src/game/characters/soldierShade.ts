@@ -324,7 +324,11 @@ const NORMAL_BUMP = /* glsl */ `
   float det = dot(sigmaX, r1) * faceDirection;
   vec2 dh = vec2(dFdx(soldierHeight), dFdy(soldierHeight));
   vec3 grad = sign(det) * (dh.x * r1 + dh.y * r2);
-  vec3 bumped = normalize(abs(det) * normal - grad);
+  // Zero on degenerate derivatives (distant, sub-pixel triangles); never
+  // normalize(0), which is NaN.
+  vec3 bumpRaw = abs(det) * normal - grad;
+  float bumpLen2 = dot(bumpRaw, bumpRaw);
+  vec3 bumped = bumpLen2 > 1e-20 ? bumpRaw * inversesqrt(bumpLen2) : normal;
   normal = (abs(det) > 1e-12) ? bumped : normal;
 }
 `;
