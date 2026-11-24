@@ -34,7 +34,7 @@ import { patchShader } from "./shaderPatch";
  *    traffic-polished and compacted, above it is loose and dusty, and the two
  *    move albedo in opposite directions as well as roughness;
  *  - **aggregate grain** in the albedo, correlated with the relief;
- *  - **slab joints** on a real 6.25 m pour grid, in the strip's own frame so
+ *  - **slab joints** on a real 5 m pour grid, in the strip's own frame so
  *    they never run diagonally, with a groove that tilts the shading normal;
  *  - **traffic polish** and a **dust overlay**, and contact darkening at the
  *    feet of the largest structures.
@@ -303,6 +303,29 @@ float gdVN(vec2 p) {
   float d = gdH12(i + vec2(1.0, 1.0));
   return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
+// Value noise with its analytic gradient (xy), for relief that has to bend
+// the normal without a second tap.
+vec3 gdVNd(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  vec2 du = 6.0 * f * (1.0 - f);
+  float a = gdH12(i);
+  float b = gdH12(i + vec2(1.0, 0.0));
+  float c = gdH12(i + vec2(0.0, 1.0));
+  float d = gdH12(i + vec2(1.0, 1.0));
+  float k = a - b - c + d;
+  return vec3(a + (b - a) * u.x + (c - a) * u.y + k * u.x * u.y,
+              du * (vec2(b - a, c - a) + k * u.yx));
+}
+// Ridged salt relief: sharp crests, soft hollows. Returns height in [0,1]
+// and its gradient per unit of p.
+vec3 gdRidge(vec2 p) {
+  vec3 n = gdVNd(p);
+  float s = 2.0 * n.x - 1.0;
+  float r = 1.0 - abs(s);
+  return vec3(r * r, 2.0 * r * (-sign(s) * 2.0) * n.yz);
+}
 
 // Box-filtered coverage of the band |d| < w by a pixel of footprint fp, all
 // in metres (d >= 0). Once the band is thinner than the pixel it keeps its
@@ -311,6 +334,25 @@ float gdVN(vec2 p) {
 float gdBand(float d, float w, float fp) {
   float aa = max(fp * 1.5, 1e-4);
   return clamp((min(d + 0.5 * aa, w) - max(d - 0.5 * aa, -w)) / aa, 0.0, 1.0);
+}
+
+// A crack network's coverage at any distance. gdBand alone keeps a line's
+// integral only while the pixel is smaller than a cell; past that it would
+// thin the network to nothing. Once the footprint reaches the cell size the
+// coverage hands over to the network's expected value (two borders' worth of
+// width per cell, about 4w / cell), so the field keeps its tone to the horizon.
+float gdNet(float d, float w, float fp, float cell) {
+  float mean = clamp(4.0 * w / cell, 0.0, 1.0);
+  return mix(gdBand(d, w, fp), mean, smoothstep(0.2 * cell, 0.8 * cell, fp * 1.5));
+}
+// The same, for a feature whose apparent width outgrows its physical one at
+// grazing angles: an open fissure shows its shaded far wall and the shadow
+// of its near lip, so it stays a pixel-wide line well after the gap itself is
+// sub-pixel. The line is drawn at wLine; the far-field mean keeps the
+// physical width, so the handover never darkens the horizon.
+float gdNetSeen(float d, float w, float wLine, float fp, float cell) {
+  float mean = clamp(4.0 * w / cell, 0.0, 1.0);
+  return mix(gdBand(d, max(w, wLine), fp), mean, smoothstep(0.2 * cell, 0.8 * cell, fp * 1.5));
 }
 
 // Distance to the nearest Voronoi border (cell units), the unit vector from
@@ -402,7 +444,7 @@ float gdScatter(vec2 p, float cell, float density, vec2 rr, float seed, float fp
   vec2 so = -gdSun.xz / max(gdSun.y, 0.3) * r * 0.5;
   float sh = 1.0 - smoothstep(-0.25, 0.45, length((lp - so) / (r * 1.02)) - 1.0);
   float ring = 1.0 - smoothstep(0.0, 0.55, sd);
-  col *= 1.0 - vis * (1.0 - body) * (0.5 * sh * day + 0.22 * ring);
+  col *= 1.0 - vis * (1.0 - body) * (0.34 * sh * day + 0.12 * ring);
   float t = fract(pick * 31.7 + h.x * 5.3);
   vec3 ic = mix(tintA, tintB, t * t) * (0.78 + 0.44 * gdH12(id + 91.0));
   vec2 ew = e.x * cs + e.y * vec2(-cs.y, cs.x);
@@ -485,13 +527,31 @@ const PAVEMENT_PROC = /* glsl */ `
   diffuseColor.rgb *= mix(vec3(1.0), vec3(0.86, 0.87, 0.89), gdRepl * gdWide);
   roughnessFactor = clamp(roughnessFactor - gdRepl * 0.06 * gdWide, 0.45, 1.0);
 
+  // --- concrete, not sand: neutral grey, per-slab tone, sun-bleached slabs ---
+  // The canvas map and the dust overlay both lean warm; pull the slab back
+  // to a neutral portland grey (paint keeps its own colour) so the pavement
+  // never converges with the lakebed under a warm grade.
+  {
+    float gdPaintM = 0.0;
+    #ifdef USE_MAP
+      gdPaintM = smoothstep(0.6, 0.78, dot(sampledDiffuseColor.rgb, vec3(0.3333)));
+    #endif
+    float gdNotPaint = (1.0 - gdPaintM) * gdWide;
+    float gdL = dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2));
+    // and a step darker than the salt crust, as poured concrete is
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdL * vec3(0.82, 0.835, 0.86), 0.85 * gdNotPaint);
+    float gdBleach = step(0.85, gdH12(gdCell * 3.7 + 1.1)) * (1.0 - gdRepl);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(gdL * 0.97), gdBleach * 0.75 * gdNotPaint);
+    diffuseColor.rgb *= 1.0 + (gdSB - 0.5) * 0.08 * gdWide;
+  }
+
   // --- broom finish: fine transverse striations, crisp underfoot -----------
   {
     float gdBr = gdLocal.x / 0.016 + gdVN(gdLocal * vec2(0.6, 4.0)) * 3.0;
     float gdBrK = (1.0 - smoothstep(0.25, 0.6, fwidth(gdBr))) * gdFine * (1.0 - gdRepl)
                 * (0.35 + 0.65 * gdVN(gdLocal * vec2(0.45, 1.3) + gdSlab * 20.0));
-    gdBump.xz += gdAx * cos(6.2832 * gdBr) * 0.16 * gdBrK;
-    diffuseColor.rgb *= 1.0 + sin(6.2832 * gdBr) * 0.03 * gdBrK;
+    gdBump.xz += gdAx * cos(6.2832 * gdBr) * 0.07 * gdBrK;
+    diffuseColor.rgb *= 1.0 + sin(6.2832 * gdBr) * 0.012 * gdBrK;
   }
 
   // --- joint sealant ---------------------------------------------------------
@@ -649,18 +709,43 @@ const GROUND_PROC = /* glsl */ `
     gdC = 1.0;
   #endif
 
-  // --- colour regions, 4 to 100 m --------------------------------------------
+  // Salt, clay and grit are set relative to the local sediment, so they hold
+  // their contrast whatever exposure and palette the surface sits under.
+  float gdBaseL = max(dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2)), 0.02);
+  float gdTintK = gdBaseL * 2.4;
+  // At eye level the playa's large-scale structure has to reach the horizon;
+  // from the aerial camera it must not appear at all.
+  float gdWx = max(gdW, gdGroundCam);
+
+  // --- colour regions, 4 to 600 m --------------------------------------------
   float gdM1 = gdVN(gdP / 43.0);
   float gdM2 = gdVN(gdP / 13.7 + 7.3);
   float gdM3 = gdVN(gdP / 97.0 - 3.1);
   float gdM4 = gdVN(gdP / 4.7 + 1.9);
+  float gdM5 = gdVN(gdP / 151.0 + 11.3);
+  float gdM6 = gdVN(gdP / 587.0 - 23.9);
   float gdSalt = smoothstep(0.6, 0.82, gdM1 * 0.65 + gdM4 * 0.35) * (1.0 - 0.6 * gdC);
   float gdDamp = smoothstep(0.6, 0.84, gdM3 * 0.7 + gdM2 * 0.3);
   float gdDriftR = smoothstep(0.56, 0.74, gdM4 * 0.5 + gdM2 * 0.5);
-  diffuseColor.rgb *= 1.0 + ((gdM2 - 0.5) * 0.2 + (gdM3 - 0.5) * 0.16) * gdW;
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.6, 0.58, 0.53), gdSalt * 0.26 * gdW);
-  diffuseColor.rgb *= mix(vec3(1.0), vec3(0.8, 0.75, 0.7), gdDamp * 0.75 * gdW);
+  // three macro octaves (40, 150, 600 m), each about +-10% luminance
+  diffuseColor.rgb *= 1.0 + ((gdM1 - 0.5) * 0.26 + (gdM5 - 0.5) * 0.28 + (gdM6 - 0.5) * 0.3) * gdWx;
+  diffuseColor.rgb *= 1.0 + ((gdM2 - 0.5) * 0.12 + (gdM3 - 0.5) * 0.1) * gdW;
+  // pale salt pans with ragged edges, and the smaller blooms inside them
+  float gdPan = smoothstep(0.6, 0.76, gdM5 * 0.5 + gdM1 * 0.3 + gdM4 * 0.12 + gdM2 * 0.08)
+              * (1.0 - 0.7 * gdC);
+  diffuseColor.rgb = mix(diffuseColor.rgb, gdBaseL * vec3(1.62, 1.58, 1.5), gdPan * 0.6 * gdWx);
+  diffuseColor.rgb = mix(diffuseColor.rgb, gdBaseL * vec3(1.45, 1.42, 1.36), gdSalt * 0.3 * gdW);
+  diffuseColor.rgb *= mix(vec3(1.0), vec3(0.84, 0.82, 0.8), gdDamp * 0.7 * gdW);
   roughnessFactor = mix(roughnessFactor, 0.84, gdDamp * 0.6 * gdW);
+  // broad 2-8 cm undulation at 9 and 21 m so a low sun lays tonal waves
+  // across the flat; faded before the waves alias into the horizon
+  {
+    vec3 gdU1 = gdVNd(gdP / 9.0 + 2.1);
+    vec3 gdU2 = gdVNd(gdP / 21.0 - 6.3);
+    vec2 gdG = gdU1.yz * (0.04 / 9.0) * (1.0 - smoothstep(1.2, 4.0, gdFp))
+             + gdU2.yz * (0.07 / 21.0) * (1.0 - smoothstep(3.0, 9.0, gdFp));
+    gdBump.xz -= gdG * 7.0 * gdWx;
+  }
 
   // --- vehicle ruts ---------------------------------------------------------------
   float gdRut = 0.0;
@@ -708,57 +793,104 @@ const GROUND_PROC = /* glsl */ `
   }
 
   // --- desiccation cracks --------------------------------------------------------------
-  // Open playa carries a continuous crust; bladed ground only cracks where a
-  // puddle dried out. Ruts crush it and drifts bury it.
-  float gdPuddle = smoothstep(0.68, 0.8, gdVN(gdP / 6.3 + 2.2) * 0.65 + gdVN(gdP / 1.9) * 0.35);
-  float gdCrustR = smoothstep(0.22, 0.5, gdM2 * 0.55 + gdM1 * 0.45);
-  // a dried puddle is a thin skin over bladed fill, not a playa: half strength
-  float gdCrust = mix(gdCrustR, gdPuddle * 0.55, gdC) * (1.0 - 0.88 * gdRut) * (1.0 - 0.8 * gdDrift) * gdAmt;
-  float gdCellP = mix(0.95, 0.42, gdC);
-  if (gdCrust > 0.002) {
-    vec2 gdWarp = (vec2(gdVN(gdP * 2.3), gdVN(gdP * 2.3 + 5.2)) - 0.5) * 0.14;
-    vec2 gdDir;
-    vec3 gdV = gdVoronoi((gdP + gdWarp) / gdCellP, 0.86, gdDir);
-    float gdD = gdV.x * gdCellP;                               // metres to the fissure
-    float gdVkeep = 1.0 - smoothstep(gdCellP * 0.12, gdCellP * 0.4, gdFp);
-    float gdWc = (0.005 + 0.014 * gdV.z) * mix(1.0, 0.55, gdC);   // half width
-    float gdLipW = 0.05 + 0.03 * gdV.y;
-    float gdFis = gdBand(gdD, gdWc, gdFp) * gdCrust * gdVkeep;
-    float gdLip = (1.0 - smoothstep(gdWc, gdWc + gdLipW, gdD)) * (1.0 - gdFis) * gdCrust * gdVkeep;
-    // plates curl up at their rims; the lip faces in toward its own plate.
-    // The wall tilt flips sign across the fissure, so once the fissure is
-    // narrower than a couple of pixels it would only alias into dashes.
-    float gdNk = 1.0 - smoothstep(0.03, 0.12, gdFp);
-    float gdWall = gdBand(gdD, gdWc * 1.4, gdFp) * (1.0 - smoothstep(gdWc * 1.5, gdWc * 5.0, gdFp));
-    gdBump.xz += gdDir * (gdLip * 0.7 - gdWall * 1.1) * gdCrust * gdVkeep * gdNk;
-    // per-plate tone and a faint dish toward the middle of each plate
-    float gdPlate = (gdV.y - 0.5) * 0.09 * gdCrust * gdVkeep;
-    float gdDish = smoothstep(0.05, gdCellP * 0.4, gdD);
-    diffuseColor.rgb *= 1.0 + gdPlate - gdDish * 0.035 * gdCrust * gdVkeep;
-    // salt wicks to the rims; the fissure itself is shadow
-    diffuseColor.rgb *= 1.0 + gdLip * (0.07 + 0.14 * gdSalt);
-    diffuseColor.rgb *= 1.0 - gdFis * (0.72 - 0.12 * gdC);
-    roughnessFactor = mix(roughnessFactor, 1.0, gdFis);
-    // a crust in the far field is a slightly darker, rougher surface, not a
-    // blank one: hand the faded lines over to their mean
-    diffuseColor.rgb *= 1.0 - 0.05 * gdCrust * (1.0 - gdVkeep);
+  // Three tiers: 4-8 m primary plates with open fissures, 0.6-1.5 m secondary
+  // plates inside them, and hairlines. The network is never masked off: the
+  // regional field only opens or pinches it, so it is continuous everywhere on
+  // open playa. Every tier is carried in albedo (clay floor, cavity shoulder,
+  // salt rim) so it reads the same in sun and shade, and every tier hands
+  // over to its mean coverage once a pixel spans a cell (gdNet), so the field
+  // keeps its tone all the way to the horizon instead of ending on a line.
+  // Ruts crush the crust and drifts bury it. Bladed compound ground has none.
+  float gdNetK = (1.0 - gdC) * (1.0 - 0.85 * gdRut) * (1.0 - 0.75 * gdDrift) * gdWx;
+  if (gdNetK > 0.002) {
+    float gdOpenW = 0.55 + 0.9 * smoothstep(0.2, 0.8, gdM2 * 0.55 + gdM1 * 0.45);
+    vec2 gdWarp = (vec2(gdVN(gdP * 0.9), gdVN(gdP * 0.9 + 5.2)) - 0.5) * 0.55
+                + (vec2(gdVN(gdP * 3.1 + 2.0), gdVN(gdP * 3.1 + 7.7)) - 0.5) * 0.12;
+    // primaries
+    float gdC1 = 5.4;
+    vec2 gdDir1;
+    vec3 gdV1 = gdVoronoi((gdP + gdWarp) / gdC1, 0.92, gdDir1);
+    float gdD1 = gdV1.x * gdC1;
+    float gdW1 = (0.008 + 0.012 * gdV1.z) * (0.3 + 1.4 * gdVN(gdP * 1.3 + gdV1.z * 17.0)) * gdOpenW;
+    float gdL1 = 0.05 + 0.04 * gdV1.y;
+    // secondaries
+    float gdC2 = 1.05;
+    vec2 gdDir2;
+    vec3 gdV2 = gdVoronoi((gdP - gdWarp * 0.4) / gdC2 + 13.7, 0.88, gdDir2);
+    float gdD2 = gdV2.x * gdC2;
+    float gdW2 = (0.0025 + 0.004 * gdV2.z) * (0.25 + 1.5 * gdVN(gdP * 4.1 + gdV2.z * 23.0)) * gdOpenW;
+    float gdL2 = 0.018 + 0.014 * gdV2.y;
 
-    // secondary cracks subdivide some plates
-    if (gdFp < 0.04) {
-      vec2 gdDir2;
-      float gdCell2 = gdCellP * 0.4;
-      vec3 gdV2 = gdVoronoi((gdP - gdWarp * 0.5) / gdCell2 + 13.7, 0.8, gdDir2);
-      float gdD2 = gdV2.x * gdCell2;
-      float gdSub = step(0.42, gdV.y) * smoothstep(0.35, 0.6, gdVN(gdP * 0.9 + 8.0));
-      float gdK2 = (1.0 - smoothstep(0.01, 0.04, gdFp)) * gdSub * gdCrust;
-      float gdW2 = 0.002 + 0.004 * gdV2.z;
-      float gdF2 = gdBand(gdD2, gdW2, gdFp) * gdK2 * (1.0 - gdFis);
-      float gdL2 = (1.0 - smoothstep(gdW2, gdW2 + 0.025, gdD2)) * gdK2 * (1.0 - gdF2);
-      gdBump.xz += gdDir2 * (gdL2 * 0.4 - gdF2 * 0.6);
-      diffuseColor.rgb *= (1.0 - gdF2 * 0.55) * (1.0 + gdL2 * 0.05);
+    float gdF1 = gdNet(gdD1, gdW1, gdFp, gdC1);
+    float gdF2 = gdNet(gdD2, gdW2, gdFp, gdC2) * (1.0 - gdF1);
+    // cavity: the shoulder either side of the floor that the sky cannot reach
+    float gdAo1 = gdNetSeen(gdD1, gdW1 * 3.5 + 0.035, min(gdFp * 0.5, 0.12) * gdOpenW, gdFp, gdC1);
+    float gdAo2 = gdNetSeen(gdD2, gdW2 * 3.0 + 0.008, min(gdFp * 0.3, 0.03) * gdOpenW, gdFp, gdC2);
+    // the curled lip either side of the fissure, where the salt wicks up
+    float gdR1 = max(gdNet(gdD1, gdW1 + gdL1, gdFp, gdC1) - gdNet(gdD1, gdW1 * 2.0, gdFp, gdC1), 0.0);
+    float gdR2 = max(gdNet(gdD2, gdW2 + gdL2, gdFp, gdC2) - gdNet(gdD2, gdW2 * 2.0, gdFp, gdC2), 0.0);
+    // hairlines, near field only
+    float gdF3 = 0.0;
+    if (gdFp < 0.03) {
+      vec2 gdDir3;
+      vec3 gdV3 = gdVoronoi(gdP / 0.31 + 41.3 + gdWarp, 0.8, gdDir3);
+      gdF3 = gdNet(gdV3.x * 0.31, 0.0008 + 0.001 * gdV3.z, gdFp, 0.31)
+           * step(0.3, gdV3.z) * (1.0 - smoothstep(0.012, 0.03, gdFp));
     }
+
+    // per-plate tone and tilt, only while a plate is bigger than a pixel (a
+    // hash per pixel would sparkle)
+    float gdPk1 = 1.0 - smoothstep(0.15 * gdC1, 0.5 * gdC1, gdFp);
+    float gdPk2 = 1.0 - smoothstep(0.15 * gdC2, 0.5 * gdC2, gdFp);
+    diffuseColor.rgb *= 1.0 + ((gdV1.y - 0.5) * 0.2 * gdPk1 + (gdV2.y - 0.5) * 0.11 * gdPk2) * gdNetK;
+    vec2 gdTilt = (gdH22(vec2(gdV1.y, gdV1.z) * 97.0) - 0.5) * 0.09 * gdPk1
+                + (gdH22(vec2(gdV2.y, gdV2.z) * 53.0) - 0.5) * 0.07 * gdPk2;
+    gdBump.xz += gdTilt * gdNetK;
+
+    // salt on the rims, then the cavity, then the clay floor
+    // once the lip is narrower than a pixel the pale rim would only cancel
+    // the dark fissure beside it; from there the shadowed line carries it
+    float gdRim = clamp(gdR1 * (0.7 + 0.3 * gdSalt) * (1.0 - smoothstep(gdL1, gdL1 * 3.0, gdFp * 1.5))
+                      + gdR2 * 0.35 * (1.0 - smoothstep(gdL2, gdL2 * 3.0, gdFp * 1.5)), 0.0, 1.0);
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdBaseL * vec3(1.8, 1.76, 1.68), gdRim * 0.6 * gdNetK);
+    diffuseColor.rgb *= 1.0 - (gdAo1 * 0.4 + gdAo2 * 0.16) * gdNetK;
+    float gdFloor = clamp(gdF1 + gdF2 * 0.6 + gdF3 * 0.35, 0.0, 1.0);
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdBaseL * vec3(0.34, 0.27, 0.21), gdFloor * gdNetK);
+    roughnessFactor = mix(roughnessFactor, 1.0, (gdF1 + gdF2 + gdRim * 0.5) * gdNetK);
+
+    // relief: rims curl up and tilt in toward their own plate, then the face
+    // drops into the fissure. Only while the lip spans a couple of pixels; the
+    // albedo terms above carry the network past that.
+    float gdNk1 = 1.0 - smoothstep(gdL1 * 0.5, gdL1 * 2.0, gdFp);
+    float gdNk2 = 1.0 - smoothstep(gdL2 * 0.5, gdL2 * 2.0, gdFp);
+    float gdCurl1 = exp(-max(gdD1 - gdW1, 0.0) / gdL1) * (1.0 - gdBand(gdD1, gdW1, gdFp));
+    float gdCurl2 = exp(-max(gdD2 - gdW2, 0.0) / gdL2) * (1.0 - gdBand(gdD2, gdW2, gdFp));
+    float gdWall1 = gdBand(gdD1, gdW1 * 1.3, gdFp);
+    float gdWall2 = gdBand(gdD2, gdW2 * 1.3, gdFp);
+    gdBump.xz += gdDir1 * (gdCurl1 * 0.6 - gdWall1 * 0.9) * gdNk1 * gdNetK;
+    gdBump.xz += gdDir2 * (gdCurl2 * 0.4 - gdWall2 * 0.6) * gdNk2 * gdNetK * (1.0 - gdF1);
   }
 
+  // --- salt-crust relief: ridged crests at 10, 4 and 1.5 cm ----------------------------
+  // Replaces the stamped dimples. A 1-3 m mask leaves some plates polished
+  // and others lumpy; crests are a touch paler, where the salt stands proud.
+  {
+    float gdLumpy = smoothstep(0.25, 0.75, gdVN(gdP / 2.2 + 3.3));
+    float gdAmpR = (0.3 + 0.7 * gdLumpy) * gdAmt * (1.0 - 0.55 * gdC);
+    float gdKa = 1.0 - smoothstep(0.02, 0.06, gdFp);
+    if (gdKa * gdAmpR > 0.0) {
+      float gdKb = 1.0 - smoothstep(0.008, 0.025, gdFp);
+      float gdKc = 1.0 - smoothstep(0.003, 0.009, gdFp);
+      vec3 gdRa = gdRidge(gdP / 0.1 + 1.7);
+      vec3 gdRb = gdRidge(gdP / 0.04 + 9.1);
+      vec3 gdRc = gdRidge(gdP / 0.015 - 4.3);
+      vec2 gdG = gdRa.yz * (0.005 / 0.1) * gdKa
+               + gdRb.yz * (0.003 / 0.04) * gdKb
+               + gdRc.yz * (0.0015 / 0.015) * gdKc;
+      gdBump.xz -= gdG * gdAmpR * 1.6;
+      diffuseColor.rgb *= 1.0 + ((gdRa.x - 0.4) * 0.09 * gdKa + (gdRb.x - 0.4) * 0.05 * gdKb) * gdAmpR;
+    }
+  }
   // --- the join: debris off the edge of the concrete ---------------------------------
   #ifdef GD_COMPACT
   if (gdC > 0.02 && gdAmt > 0.0) {
@@ -770,8 +902,16 @@ const GROUND_PROC = /* glsl */ `
       diffuseColor.rgb *= 1.0 - (gdLipAo * 0.42 + (1.0 - gdUnder) * step(gdSdT, 0.0) * 0.18) * gdAmt;
       // sand banked against the edge
       float gdBank = (1.0 - smoothstep(0.0, 0.6 + 1.4 * gdVN(gdP * 0.5), gdSdT)) * step(0.0, gdSdT);
-      diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor * 1.02, gdBank * 0.45 * gdAmt);
+      diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor * 1.02, gdBank * 0.6 * gdAmt);
       roughnessFactor = mix(roughnessFactor, 1.0, gdBank * gdAmt);
+      // the drift is wind-laid: fine ripples across it, crests a shade paler
+      {
+        vec2 gdWd = vec2(0.8, 0.6);
+        float gdS = dot(gdP, gdWd) / 0.07 + gdVN(gdP * 1.3) * 3.0 + gdVN(gdP * 0.3) * 6.0;
+        float gdKeepR = (1.0 - smoothstep(0.22, 0.5, fwidth(gdS))) * gdBank * gdAmt;
+        gdBump.xz -= gdWd * cos(6.2832 * gdS) * 0.2 * gdKeepR;
+        diffuseColor.rgb *= 1.0 + sin(6.2832 * gdS) * 0.04 * gdKeepR;
+      }
       // broken concrete strewn off the edge
       float gdDens = (1.0 - smoothstep(-0.3, 3.2, gdSdT)) * 0.8 * gdAmt;
       gdScatter(gdP, 0.32, gdDens, vec2(0.025, 0.1), 77.0, gdFp, 1.0,
@@ -784,21 +924,34 @@ const GROUND_PROC = /* glsl */ `
   }
   #endif
 
-  // --- stones ----------------------------------------------------------------------
-  // Desert pavement: a lag of dark, wind-varnished pebbles with a few pale
-  // quartz ones, each with a contact shadow cast away from the sun. Bladed
-  // ground keeps fine grit and loses most of the large stones.
+  // --- grit ------------------------------------------------------------------------
+  // Clustered, not spread: a 30 m and a 7 m field put most of the grit in a
+  // fraction of the ground. Sizes run on a power law (many 2-5 mm grains, a
+  // few centimetre stones) and colours from pale salt-washed to dark varnish,
+  // so no two read as the same decal. Bladed ground keeps fine grit only.
   {
-    float gdLag = 0.3 + 0.5 * smoothstep(0.35, 0.75, gdM3 * 0.6 + gdM4 * 0.4);
-    gdLag *= (1.0 - 0.7 * gdDrift) * (1.0 - 0.6 * gdRut) * gdAmt;
-    gdScatter(gdP, 1.45, gdLag * mix(0.55, 0.12, gdC), vec2(0.035, 0.11), 3.0, gdFp, 0.25,
-              vec3(0.07, 0.052, 0.04), vec3(0.36, 0.33, 0.28),
+    float gdClump = smoothstep(0.42, 0.78, gdVN(gdP / 31.0 + 4.4) * 0.6 + gdVN(gdP / 7.0 - 2.2) * 0.4);
+    float gdLag = (0.08 + 0.92 * gdClump) * (1.0 - 0.7 * gdDrift) * (1.0 - 0.6 * gdRut) * gdAmt;
+    gdScatter(gdP, 1.7, gdLag * mix(0.3, 0.08, gdC), vec2(0.03, 0.09), 3.0, gdFp, 0.3,
+              vec3(0.52, 0.49, 0.44) * gdTintK, vec3(0.11, 0.09, 0.075) * gdTintK,
               diffuseColor.rgb, gdBump, roughnessFactor);
-    gdScatter(gdP, 0.43, gdLag * mix(0.5, 0.35, gdC), vec2(0.012, 0.042), 11.0, gdFp, 0.35,
-              vec3(0.08, 0.06, 0.045), vec3(0.3, 0.27, 0.22),
+    gdScatter(gdP, 0.33, gdLag * mix(0.4, 0.3, gdC), vec2(0.008, 0.03), 11.0, gdFp, 0.45,
+              vec3(0.58, 0.55, 0.5) * gdTintK, vec3(0.16, 0.13, 0.1) * gdTintK,
               diffuseColor.rgb, gdBump, roughnessFactor);
-    gdScatter(gdP, 0.14, gdLag * mix(0.35, 0.6, gdC), vec2(0.004, 0.014), 17.0, gdFp, 0.5,
-              vec3(0.1, 0.085, 0.07), vec3(0.34, 0.31, 0.27),
+    gdScatter(gdP, 0.075, gdLag * mix(0.35, 0.6, gdC), vec2(0.002, 0.006), 17.0, gdFp, 0.6,
+              vec3(0.62, 0.6, 0.56) * gdTintK, vec3(0.2, 0.17, 0.14) * gdTintK,
+              diffuseColor.rgb, gdBump, roughnessFactor);
+  }
+  // --- bladed hardpan ------------------------------------------------------------------
+  // Graded compound ground is compacted fill, not playa: patches of crushed
+  // gravel, a metre-scale compaction mottle and darker, damper low spots.
+  if (gdC > 0.02) {
+    float gdGv = smoothstep(0.45, 0.7, gdVN(gdP / 3.1 + 5.5) * 0.7 + gdVN(gdP / 0.8) * 0.3);
+    float gdLow = smoothstep(0.62, 0.8, gdVN(gdP / 9.0 - 1.4) * 0.75 + gdVN(gdP / 2.3) * 0.25);
+    diffuseColor.rgb *= 1.0 + ((gdVN(gdP / 1.7 + 2.2) - 0.5) * 0.14 - gdGv * 0.07 - gdLow * 0.08) * gdC * gdW;
+    roughnessFactor = mix(roughnessFactor, 0.86, gdLow * 0.5 * gdC * gdW);
+    gdScatter(gdP, 0.11, gdGv * 0.8 * gdC * gdAmt, vec2(0.006, 0.022), 23.0, gdFp, 0.75,
+              vec3(0.56, 0.54, 0.5) * gdTintK, vec3(0.15, 0.135, 0.12) * gdTintK,
               diffuseColor.rgb, gdBump, roughnessFactor);
   }
 
@@ -835,8 +988,12 @@ const SURFACE = /* glsl */ `
   // scale features stay legible long after millimetre ones stop resolving,
   // but still ends far below any altitude the aerial route flies at.
   float gdMacroAmt = 1.0 - smoothstep(gdFade.y, gdFade.y * 2.1, gdDist);
+  // 1 for a camera standing on the ground, 0 for the aerial route: the
+  // playa's large-scale albedo and crack tone then run to the horizon on
+  // foot and never appear from the air.
+  float gdGroundCam = 1.0 - smoothstep(40.0, 120.0, cameraPosition.y);
 
-  if (gdMacroAmt > 0.002) {
+  if (gdMacroAmt > 0.002 || gdGroundCam > 0.002) {
     vec2 gdUv = vGdWorld.xz / gdScale;
     // Both maps are *centred* on neutral — 0.5 grey, (0.5, 0.5, 1) normal — so
     // their mip chain converges to a no-op and minification cannot alias on
@@ -881,7 +1038,12 @@ const SURFACE = /* glsl */ `
     // --- shading normal ------------------------------------------------
     if (gdFine > 0.0) {
       vec2 gdNf = texture2D(gdNormalMap, gdUv).xy * 2.0 - 1.0;
-      gdBump.xz += gdNf * gdNormalStrength.x * gdFine * gdNormKeep * gdCalm;
+      float gdFineN = gdNormalStrength.x * gdFine * gdNormKeep * gdCalm;
+      #if defined(GD_PROC) && !defined(GD_JOINTS)
+        // the analytic salt relief replaces the map's pitted grain
+        gdFineN *= 0.3;
+      #endif
+      gdBump.xz += gdNf * gdFineN;
     }
     if (gdMacroAmt > 0.0) {
       vec2 gdNm = texture2D(gdNormalMap, gdUvM).xy * 2.0 - 1.0;
@@ -1256,7 +1418,7 @@ vGdUv = uv;
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
   const famKey = o.family === "pavement" ? "p" : o.family === "dirt" ? "d" : "s";
-  const cacheKey = `gd30:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}${
+  const cacheKey = `gd31:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}${
     proc ? famKey : "-"
   }${edgeUv ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
@@ -1277,7 +1439,7 @@ vGdUv = uv;
 /** Ready-made parameter sets for the ground families the site actually has. */
 export const GROUND_DETAIL_PRESETS = {
   /**
-   * Airfield PCC. Contraction joints go in on a 6.25 m grid (the canvas maps
+   * Airfield PCC. Contraction joints go in on a 5 m grid (the canvas maps
    * already carry the 25 m construction joints, which is the real hierarchy),
    * traffic polishes lanes into it and wind-blown sand fills the grooves.
    */
@@ -1290,13 +1452,14 @@ export const GROUND_DETAIL_PRESETS = {
     normalStrength: [0.84, 0.42] as [number, number],
     roughness: 0.48,
     grain: 0.21,
-    jointSpacing: 6.25,
-    jointWidth: 0.056,
+    jointSpacing: 5,
+    // a sawn joint plus its chamfer; the sealant bead sits inside it
+    jointWidth: 0.034,
     jointDarken: 0.55,
     cracks: 0.8,
     tracks: 0.6,
-    dust: 0.24,
-    dustColor: "#c9bb96",
+    dust: 0.16,
+    dustColor: "#aaa597",
   },
   /**
    * Open lakebed: pebbles, crust, no joints and no directional wear. The macro
@@ -1314,7 +1477,7 @@ export const GROUND_DETAIL_PRESETS = {
     roughness: 0.34,
     grain: 0.3,
     dust: 0.18,
-    dustColor: "#cec19d",
+    dustColor: "#aba393",
   },
   /** Graded dirt strips and haul roads: coarser, looser, no joints. */
   dirt: {
@@ -1326,7 +1489,7 @@ export const GROUND_DETAIL_PRESETS = {
     grain: 0.28,
     tracks: 0.45,
     dust: 0.22,
-    dustColor: "#cbbc94",
+    dustColor: "#a99f8b",
   },
 } satisfies Record<
   GroundDetailFamily,

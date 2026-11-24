@@ -3,13 +3,16 @@ import { SITE_SEED, seededNoise2D } from "@/lib/noise";
 import { gravelField, mottle, wadiMask } from "@/lib/terrain";
 
 const pigment = seededNoise2D(SITE_SEED + 49);
-const sand = new Color("#b29b79");
-const gravel = new Color("#665e55");
-const silt = new Color("#956d53");
-const salt = new Color("#e3decb");
-const wash = new Color("#857061");
-const graded = new Color("#c9bda5");
-export const PLAIN_COLOR = new Color("#a99b83");
+// Lop Nur is a grey-khaki salt crust, not dune sand: the palette sits close
+// to neutral so the warm sun and grade land it on pale khaki, and bladed
+// ground stays a step darker than concrete so the two never converge.
+const sand = new Color("#a69f90");
+const gravel = new Color("#66615a");
+const silt = new Color("#8f8070");
+const salt = new Color("#dedbd2");
+const wash = new Color("#847869");
+const graded = new Color("#a8a194");
+export const PLAIN_COLOR = new Color("#a49c8c");
 
 /** Illustrative sediment colour in world metres. Ancient shore marks occupy
  * a narrow range of heights; a fold in the basin bends all three together.
