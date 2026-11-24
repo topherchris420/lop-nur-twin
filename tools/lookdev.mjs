@@ -1365,6 +1365,12 @@ for (let si = 0; si < shots.length; si += 1) {
     ) {
       retried.add(si);
       console.log(`${shot.id.padEnd(20)} page reloaded mid-shot; retrying`);
+      // puppeteer keeps its own record of held buttons across a reload, so a
+      // shot that died holding the trigger or ADS would fail its retry with
+      // "'left' is already pressed". Let go of everything first.
+      for (const button of ["left", "right", "middle"]) {
+        await page.mouse.up({ button }).catch(() => {});
+      }
       si -= 1;
       continue;
     }
