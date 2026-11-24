@@ -119,7 +119,7 @@ export interface EnvironmentOptions {
  * (about 0.45), but a shaded wall sees mostly the shaded ground at its own
  * foot, and full-strength bounce lifted every shade face to mid-grey.
  */
-const DAY_GROUND = new THREE.Color(0.2, 0.155, 0.105);
+const DAY_GROUND = new THREE.Color(0.26, 0.2, 0.135);
 /** The weapon's horizon reflection keeps the bright, sunlit ground. */
 const DAY_GROUND_STRUCTURED = new THREE.Color(0.36, 0.28, 0.185);
 /** Moonlit lakebed. */
@@ -128,12 +128,13 @@ const SUN_WARM = new THREE.Color(1.0, 0.94, 0.84);
 const SUN_LOW = new THREE.Color(1.0, 0.58, 0.3);
 /**
  * Sky scale in the radiance map. Clear desert sky fills shade at roughly a
- * fifth of direct sun on the ground; at 0.82 the fill was nearly half, and
- * every surface read as ambient-lit. The weapon's map stays brighter: it is
+ * fifth of direct sun on the ground. With the sun lobes and the bright cirrus
+ * in it, 0.82 filled to nearly half and every surface read as ambient-lit;
+ * without them, 0.4 left shade at a tenth, crushed blue-black. The weapon's map stays brighter: it is
  * reflected, not used as fill, and a dark finish needs sky to show its edges.
  */
 const NIGHT_SKY_SCALE = 1.5;
-const DAY_SKY_SCALE = 0.4;
+const DAY_SKY_SCALE = 0.7;
 const DAY_SKY_SCALE_STRUCTURED = 0.82;
 
 export class EnvironmentLighting {

@@ -66,17 +66,17 @@ const LOOK = {
     // Sunlit sand (~0.42 scene-linear) lands near 0.5 display; shade (~0.08)
     // near 40 of 255; the darkest crevices and dark paint reach single
     // digits; the slope above 1 lets the sun and its corona clip to white.
-    exposure: 0.48,
-    slope: 1.06,
+    exposure: 0.4,
+    slope: 1.18,
     offset: 0,
     power: 1.1,
-    saturation: 1.06,
-    logContrast: 1.12,
+    saturation: 1.08,
+    logContrast: 1.1,
     // Warmth in the highlights only; shade goes slate blue.
-    shadowTint: new THREE.Color(0.9, 0.97, 1.1),
+    shadowTint: new THREE.Color(0.95, 0.98, 1.05),
     highlightTint: new THREE.Color(1.04, 1.0, 0.95),
     bloomIntensity: 0.55,
-    bloomThreshold: 4.0,
+    bloomThreshold: 2.5,
     streakIntensity: 0.12,
     streakThreshold: 8.0,
     sunFlareIntensity: 0.12,
@@ -85,7 +85,7 @@ const LOOK = {
     aberration: 0.0006,
     radialBlur: 0.0008,
     aoRadius: 1.1,
-    aoIntensity: 2.6,
+    aoIntensity: 3.0,
     aoFalloff: 2.0,
     vignette: 0.5,
     motionBlurIntensity: 0.75,
@@ -98,8 +98,8 @@ const LOOK = {
     // Moonlit sand is ~0.027 scene-linear; this lifts it to a dim, readable
     // ~30 of 255 with the sky darker still and the moon clipping to white.
     // Low saturation stands in for the eye's night vision.
-    exposure: 1.0,
-    slope: 1.06,
+    exposure: 0.85,
+    slope: 1.18,
     offset: 0,
     power: 1.08,
     saturation: 0.7,
@@ -405,7 +405,7 @@ export function CombatEffects() {
         mipmapBlur
         intensity={look.bloomIntensity}
         luminanceThreshold={look.bloomThreshold}
-        luminanceSmoothing={0.5}
+        luminanceSmoothing={0.6}
         radius={0.84}
       />,
     );

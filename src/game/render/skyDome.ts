@@ -67,7 +67,7 @@ vec3 starField(vec3 dir) {
   vec3 p = dir * 140.0;
   vec3 cell = floor(p);
   vec3 h = domeHash3(cell);
-  if (h.x > 0.2) return vec3(0.0);
+  if (h.x > 0.12) return vec3(0.0);
   vec3 star = cell + 0.2 + 0.6 * domeHash3(cell + 17.0);
   // Distance from the view ray to the star, in lattice units.
   float along = dot(star, dir);

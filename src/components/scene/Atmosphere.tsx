@@ -50,7 +50,7 @@ const NIGHT = {
  * direction, a source in the sky and shadows of its own.
  */
 const GROUND = {
-  // Direct sun on sunlit sand is ~0.42 scene-linear against ~0.08 of sky fill
+  // Direct sun on sunlit sand is ~0.42 scene-linear against ~0.09 of sky fill
   // in shade (with the radiance map's day scale in `environment.ts`): about
   // the 5:1 of a clear desert noon. At 8.4 the key was barely past the fill.
   sunKey: 13,
