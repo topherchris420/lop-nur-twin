@@ -285,8 +285,9 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     // Published for anything that has to aim at the same key mid-transition —
     // the near-field shadow cascade in `src/game/render/shadowCascade.ts`
     // cannot re-derive this from the `night` toggle without lagging the ease.
-    // On the ground at night that key is the moon.
-    sunState.direction.copy(keyDir);
+    // This stays the sun even when the ground's key is the moon: the weapon's
+    // night key reads its height from here. The moon key is `groundLight`.
+    sunState.direction.copy(sunDir);
     sunState.dayFactor = next;
     const moon = moonRef.current;
     if (moon) moon.intensity = groundLevel ? 0 : (1 - next) * 0.5;
