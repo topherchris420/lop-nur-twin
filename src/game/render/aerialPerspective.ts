@@ -66,7 +66,10 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
     float column = abs(dy) > 1e-4 ? (1.0 - exp(-dy)) / dy : 1.0 - 0.5 * dy;
     float tau = apDensity * exp(-k * max(h, -50.0)) * d * column;
     transmittance = exp(-tau);
-    vec3 haze = skyHorizonHaze(dir);
+    // At night the air between here and a ridge holds little moonlight: far
+    // less than the airglow along the whole horizon line behind it, so the
+    // ranges stand darker than the sky instead of melting into it.
+    vec3 haze = skyHorizonHaze(dir) * mix(0.45, 1.0, skyDay);
     color = color * transmittance + haze * (1.0 - transmittance);
   }
 

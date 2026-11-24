@@ -51,14 +51,42 @@ vec3 milkyWay(vec3 dir) {
   float lane = 1.0 - 0.7 * exp(-laneOffset * laneOffset);
   float coreOffset = lon - 0.8;
   float core = 0.6 + 0.4 * exp(-coreOffset * coreOffset / 0.5);
-  return vec3(0.010, 0.0105, 0.012) * band * mottle * lane * core * smoothstep(0.0, 0.25, dir.y);
+  return vec3(0.007, 0.0075, 0.009) * band * mottle * lane * core * smoothstep(0.0, 0.25, dir.y);
+}
+
+vec3 domeHash3(vec3 p) {
+  p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+  p += dot(p, p.yxz + 33.33);
+  return fract((p.xxy + p.yxx) * p.zyx);
+}
+
+// Stars: one candidate per cell of a lattice around the camera, kept where
+// the hash says so. Brightness follows a steep power law, so most stars sit
+// at the edge of visibility and a handful are bright enough to bloom.
+vec3 starField(vec3 dir) {
+  vec3 p = dir * 140.0;
+  vec3 cell = floor(p);
+  vec3 h = domeHash3(cell);
+  if (h.x > 0.12) return vec3(0.0);
+  vec3 star = cell + 0.2 + 0.6 * domeHash3(cell + 17.0);
+  // Distance from the view ray to the star, in lattice units.
+  float along = dot(star, dir);
+  float off = length(star - dir * along);
+  float mag = h.y * h.y * h.y * h.y;
+  mag *= mag;
+  float radius = 0.1 + 0.09 * mag;
+  float glow = exp(-off * off / (radius * radius));
+  float bright = 0.03 + 2.8 * mag * mag + 0.25 * mag;
+  // Colour temperature: most white, some warm, a few blue.
+  vec3 tint = mix(vec3(1.0, 0.86, 0.7), vec3(0.78, 0.86, 1.0), h.z);
+  return tint * glow * bright * smoothstep(0.02, 0.2, dir.y);
 }
 
 void main() {
   #include <logdepthbuf_fragment>
   vec3 dir = normalize(vWorldPosition - cameraPosition);
   vec3 col = skyClear(dir);
-  col += milkyWay(dir) * (1.0 - skyDay);
+  col += (milkyWay(dir) + starField(dir)) * (1.0 - skyDay);
   col += skySunDisc(dir);
   vec4 cloud = skyClouds(dir, col);
   col = col * (1.0 - cloud.a) + cloud.rgb;

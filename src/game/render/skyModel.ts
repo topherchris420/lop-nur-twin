@@ -81,6 +81,15 @@ export const groundLight = {
   dayFactor: 1,
 };
 
+/**
+ * The moon the ground view is lit by. Low (19 degrees) and to the west-north-
+ * west, so from the lakebed it hangs over the far ranges: moonlight rakes the
+ * ground, and the mountains stand as dark silhouettes against the bright sky
+ * around it, which is how a moonlit night reads. The twin's own moon
+ * (`sunState.moonDirection`) is unchanged.
+ */
+export const GROUND_MOON_DIRECTION = new THREE.Vector3(0.669, 0.326, -0.669).normalize();
+
 const SUN_HIGH = new THREE.Color(1.0, 0.94, 0.84);
 const SUN_LOW = new THREE.Color(1.0, 0.58, 0.3);
 
@@ -249,15 +258,22 @@ vec4 skyClouds(vec3 dir, vec3 behind) {
   // infinity at the horizon, where it should compress into a thin band.
   float rayLen = 1.0 / (dir.y + 0.06);
   vec2 wind = vec2(0.6, 0.22) * skyTime * 0.0035;
-  vec2 p = dir.xz * rayLen * 1.8 + wind;
+  // Fewer, larger cells: a few heavy cumulus with clear blue between them,
+  // not a field of small white flecks.
+  vec2 p = dir.xz * rayLen * 1.15 + wind;
 
   float d = skyCumulusDensity(p, skyCloudCover);
   float cirrusLayer = 0.0;
-  // Cirrus: high, thin, combed along the wind.
+  // Cirrus: high, thin, a little combed along the wind, and only in patches.
+  // Streaks stretched hard along one world axis all converge on that axis's
+  // vanishing point, which over a whole sky reads as a radial fan; a mild
+  // stretch, a domain warp and a coverage mask keep it to drifting wisps.
   vec2 cp = dir.xz * (1.0 / (dir.y + 0.11)) * 0.9 + wind * 0.6;
   vec2 cr = vec2(cp.x * 0.92 + cp.y * 0.38, -cp.x * 0.38 + cp.y * 0.92);
-  float streak = skyFbm3(vec2(cr.x * 0.35, cr.y * 3.4) + skyNoise(cr * 0.5) * 0.8);
-  cirrusLayer = smoothstep(0.18, 0.75, streak * 0.5 + 0.5) * 0.33 * smoothstep(0.02, 0.2, dir.y);
+  vec2 cw = vec2(skyFbm3(cr * 0.7 + 5.2), skyFbm3(cr * 0.7 - 2.9)) * 0.9;
+  float streak = skyFbm3(vec2(cr.x * 0.8, cr.y * 2.0) + cw);
+  float patches = smoothstep(0.15, 0.55, skyNoise(cr * 0.18 + 4.4) * 0.5 + 0.5);
+  cirrusLayer = smoothstep(0.3, 0.8, streak * 0.5 + 0.5) * 0.16 * patches * smoothstep(0.02, 0.2, dir.y);
 
   float horizonFade = smoothstep(0.004, 0.07, dir.y);
   if (d <= 0.001 && cirrusLayer <= 0.001) return vec4(0.0);
@@ -275,28 +291,35 @@ vec4 skyClouds(vec3 dir, vec3 behind) {
   #else
   shade = d * 0.7;
   #endif
-  float thickness = d * 0.75 + shade * 0.85;
-  float beer = exp(-thickness * 1.8);
+  float thickness = d * 0.9 + shade * 1.1;
+  float beer = exp(-thickness * 2.6);
   float powder = 1.0 - exp(-d * 6.0);
   float silver = skyHg(cosSun, 0.62) * 2.4 + skyHg(cosSun, -0.2) * 0.6;
   float edge = clamp(1.0 - d * 1.6, 0.0, 1.0);
+  // Seen from below, a cumulus shows its base: the sun is on its top, so the
+  // higher the cloud sits in the view, the more of what you see is the
+  // shadowed underside. Near the horizon you see its sunlit flank.
+  float base = smoothstep(0.08, 0.55, dir.y) * smoothstep(0.15, 0.7, d);
 
   vec3 sunCol = skySunColor * 4.0 * sunUp;
   vec3 zenith = skyClear(vec3(0.0, 1.0, 0.0));
-  vec3 ground = vec3(0.42, 0.33, 0.22) * sunUp + vec3(0.004, 0.005, 0.007);
-  // Undersides: lit by the ground's bounce and the sky around them, never black.
-  vec3 ambient = mix(ground, zenith * 1.1, 0.55 + 0.45 * (1.0 - d)) * 1.05;
+  vec3 ground = vec3(0.42, 0.33, 0.22) * sunUp + vec3(0.002, 0.0025, 0.0035);
+  // Undersides: lit by the ground's bounce and the sky around them. Dark
+  // enough that a thick cloud has a grey belly and a white crown.
+  vec3 ambient = mix(ground, zenith * 1.1, 0.55 + 0.45 * (1.0 - d)) * 0.62;
   vec3 lit = sunCol * (beer * (0.55 + 0.45 * powder) + silver * edge * beer * 0.55);
-  vec3 cloud = ambient * (0.62 + 0.38 * (1.0 - shade)) + lit;
+  lit *= 1.0 - 0.6 * base;
+  vec3 cloud = ambient * (0.5 + 0.5 * (1.0 - shade)) * (1.0 - 0.35 * base) + lit;
 
   // Night: moonlit, dim, with a faint silver edge toward the moon.
   float cosMoon = dot(dir, skyMoonDir);
-  vec3 moonCol = vec3(0.030, 0.036, 0.050) * (1.0 - sunUp);
+  vec3 moonCol = vec3(0.016, 0.018, 0.023) * (1.0 - sunUp);
   cloud += moonCol * (beer * 0.8 + skyHg(cosMoon, 0.6) * edge * 1.5);
 
   float alpha = (1.0 - exp(-d * 4.2)) * horizonFade;
-  // Cirrus is thin ice: bright, mostly transparent, no self-shadow.
-  vec3 cirrusCol = sunCol * (0.55 + silver * 0.35) + zenith * 0.9 + moonCol * 0.6;
+  // Cirrus is thin ice: mostly transparent, faintly brighter than the sky
+  // behind it, with a forward-scattering glow toward the sun.
+  vec3 cirrusCol = sunCol * (0.12 + silver * 0.2) + zenith * 0.9 + moonCol * 0.6;
   float cirrusA = cirrusLayer * (1.0 - alpha) * horizonFade;
 
   // Distant cloud dissolves into the horizon haze it sits in.
@@ -314,6 +337,11 @@ vec3 skySunDisc(vec3 dir) {
   float limb = sqrt(max(1.0 - r * r, 0.0));
   float sunUp = smoothstep(-0.02, 0.04, skySunDir.y) * skyDay;
   vec3 sun = skySunColor * disc * (0.45 + 0.55 * limb) * 90.0 * sunUp;
+  // The solar corona: forward scattering by dust in the last few degrees
+  // around the disc, several times brighter than the sky, so the sun glares
+  // and blooms around whatever covers it. Only on the dome: in the radiance
+  // map it would be the sun's light again, unshadowed, in every shade.
+  sun += skySunColor * (skyHg(cosSun, 0.93) * 0.2 + skyHg(cosSun, 0.985) * 0.03) * sunUp;
 
   float cosMoon = dot(dir, skyMoonDir);
   float rm = acos(clamp(cosMoon, -1.0, 1.0)) / 0.0085;
@@ -321,7 +349,9 @@ vec3 skySunDisc(vec3 dir) {
   // A few soft maria, so the moon is a body and not a bulb.
   vec2 mp = vec2(dot(dir, normalize(cross(skyMoonDir, vec3(0.0, 1.0, 0.0)))), dir.y - skyMoonDir.y) / 0.0085;
   float maria = smoothstep(0.1, 0.6, skyNoise(mp * 1.7 + 3.0) * 0.5 + 0.5);
-  vec3 moon = vec3(0.86, 0.9, 1.0) * moonDisc * (1.6 - 0.55 * maria) * (1.0 - skyDay);
+  vec3 moon = vec3(0.9, 0.92, 1.0) * moonDisc * (4.5 - 1.6 * maria) * (1.0 - skyDay);
+  // Its halo, the moonlit air around it.
+  moon += vec3(0.5, 0.56, 0.7) * skyHg(cosMoon, 0.94) * 0.012 * (1.0 - skyDay);
   return sun + moon;
 }
 `;

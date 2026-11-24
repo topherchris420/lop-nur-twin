@@ -111,6 +111,38 @@ const CASCADE_SHADOW_LOOKUP = `		#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP
 		#endif
 `;
 
+/**
+ * three's PCF rotates a five-tap Vogel disc per pixel by interleaved gradient
+ * noise, which is meant to be resolved by temporal antialiasing. There is
+ * none here, so every penumbra was salt-and-pepper stipple. This replaces it
+ * with a fixed 3x3 grid of hardware-filtered taps (each already a bilinear
+ * 2x2 comparison) weighted as a tent: a smooth 4x4-texel penumbra with no
+ * noise, for four more lookups. The anchor is the chunk as three's build
+ * ships it (comments and blank lines stripped), not its source file.
+ */
+const STOCK_PCF = `				float phi = interleavedGradientNoise( gl_FragCoord.xy ) * PI2;
+				shadow = (
+					texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( 0, 5, phi ) * radius, shadowCoord.z ) ) +
+					texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( 1, 5, phi ) * radius, shadowCoord.z ) ) +
+					texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( 2, 5, phi ) * radius, shadowCoord.z ) ) +
+					texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( 3, 5, phi ) * radius, shadowCoord.z ) ) +
+					texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( 4, 5, phi ) * radius, shadowCoord.z ) )
+				) * 0.2;
+`;
+
+const SMOOTH_PCF = `				// Fixed tent-weighted 3x3 grid (src/game/render/shadowCascade.ts):
+				// no per-pixel rotation, so no stipple without a temporal resolve.
+				vec2 pcfStep = radius * 0.5;
+				shadow = 0.0;
+				for ( int py = -1; py <= 1; py ++ ) {
+					for ( int px = -1; px <= 1; px ++ ) {
+						float pcfWeight = ( 2.0 - abs( float( px ) ) ) * ( 2.0 - abs( float( py ) ) );
+						shadow += pcfWeight * texture( shadowMap, vec3( shadowCoord.xy + vec2( float( px ), float( py ) ) * pcfStep, shadowCoord.z ) );
+					}
+				}
+				shadow /= 16.0;
+`;
+
 let installed: boolean | null = null;
 
 /**
@@ -146,6 +178,17 @@ export function installCascadeShadows(): boolean {
   THREE.ShaderChunk.lights_fragment_begin = chunk
     .replace(STOCK_DECLARATIONS, STOCK_DECLARATIONS + CASCADE_PREPASS)
     .replace(STOCK_SHADOW_LOOKUP, CASCADE_SHADOW_LOOKUP);
+
+  // The penumbra filter is a separate, optional improvement: a three version
+  // that rewords its PCF keeps its own filter and the cascade still works.
+  const pars = THREE.ShaderChunk.shadowmap_pars_fragment;
+  if (pars.split(STOCK_PCF).length === 2) {
+    THREE.ShaderChunk.shadowmap_pars_fragment = pars.replace(STOCK_PCF, SMOOTH_PCF);
+  } else if (import.meta.env.DEV && !pars.includes("Fixed tent-weighted 3x3 grid")) {
+    console.warn(
+      "[shadowCascade] three's PCF chunk has changed; keeping its own filter.",
+    );
+  }
 
   installed = true;
   return installed;

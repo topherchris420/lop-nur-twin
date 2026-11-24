@@ -12,10 +12,10 @@ import { patchShader } from "@/gfx/shaderPatch";
  *
  * The composer only has the summed radiance, not the ambient term alone, so
  * this uses the pixel's own brightness as the proxy for how much of it is
- * direct light. In this scene the split is wide — sunlit sand sits near 0.25
- * in scene-linear units and the same sand in shade near 0.05 — so shade gets
- * the full occlusion and sunlit faces keep a fraction of it, enough for a
- * contact line where an object meets the ground.
+ * direct light. In this scene the split is wide — sunlit sand sits near 0.42
+ * in scene-linear units and the same sand in shade near 0.08 — so shade gets
+ * the full occlusion and sunlit faces keep half of it, enough for a contact
+ * line where an object meets the ground.
  */
 
 /** Stock compositor output for N8AO's combined render mode. */
@@ -25,8 +25,12 @@ const COMPOSITE_LINE =
 const GROUNDED_LINE = /* glsl */ `
             float groundedLuma = dot(sceneTexel.rgb, vec3(0.2126, 0.7152, 0.0722));
             // 0 in shade (ambient light only), 1 in full sun.
-            float groundedDirect = smoothstep(0.07, 0.26, groundedLuma);
-            float groundedAo = mix(finalAo, 1.0 - (1.0 - finalAo) * 0.3, groundedDirect);
+            float groundedDirect = smoothstep(0.14, 0.42, groundedLuma);
+            // In shade the fill is all the light there is, so occlusion takes
+            // its full share and corners go properly dark. In sun it keeps
+            // half: the contact line where a prop meets the ground, which the
+            // metre-scale sun shadow map cannot draw.
+            float groundedAo = mix(finalAo, 1.0 - (1.0 - finalAo) * 0.5, groundedDirect);
             gl_FragColor = vec4( mix(sceneTexel.rgb, aoApplied, 1.0 - groundedAo), sceneTexel.a);`;
 
 /** Splices the ambient-only weighting into N8AO's compositor fragment shader. */

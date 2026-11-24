@@ -332,5 +332,9 @@ describe("shader patches against the installed three", () => {
     // the text it was written against: a look regression nobody is told about.
     expect(installCascadeShadows()).toBe(true);
     expect(unresolvedIncludes(THREE.ShaderChunk.lights_fragment_begin)).toEqual([]);
+    // The noise-free penumbra filter replaced three's IGN-rotated PCF.
+    expect(THREE.ShaderChunk.shadowmap_pars_fragment).toContain(
+      "Fixed tent-weighted 3x3 grid",
+    );
   });
 });
