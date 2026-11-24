@@ -433,13 +433,17 @@ const SETS = {
     {
       id: "apron-concrete",
       note: "apron pavement close: slab joints, stains, wear",
-      setup: `await ld.place(${APRON}, 45, -0.42)`,
+      // On the operations hardstand. APRON stands on bladed compound ground
+      // a street's width from any pavement, so this frame never showed slabs.
+      setup: "await ld.place(1113.7, 1415.6, -75, -0.38)",
       frames: 4,
     },
     {
       id: "pavement-edge",
       note: "where pavement meets lakebed",
-      setup: `await ld.place(${APRON}, 225, -0.22)`,
+      // 8 m inside the main apron's runway-side edge (compound u=-30,
+      // v=-150), facing out across it to the lakebed.
+      setup: "await ld.place(892.2, 1322.9, 44, -0.2)",
       frames: 4,
     },
     {
