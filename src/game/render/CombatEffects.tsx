@@ -39,9 +39,9 @@ import {
  *
  *   Scene (HDR linear)
  *     -> HdrGuard               finite radiance clamp (NaN/Inf protection)
- *     -> N8AO                   metre-scale occlusion, weighted to ambient light
- *     -> HeatHaze               distant air wavers (the visible face of world/mirage.ts)
+ *     -> N8AO                   metre-scale occlusion: full in shade, a contact line in sun
  *     -> AerialPerspective      height fog toward the sky's own horizon, sun shafts
+ *     -> HeatHaze               distant air wavers (the visible face of world/mirage.ts)
  *     -> Viewmodel              the weapon, composited unfogged and unoccluded
  *     -> Bloom                  dual-filter mipmap highlight bloom
  *     -> AnamorphicStreaks      anamorphic horizontal lens flares
@@ -53,38 +53,41 @@ import {
  *     -> SMAA                   subpixel morphological antialiasing
  *     -> LensArtifacts          light chromatic aberration + film grain
  *
- * The grade is a confident one on purpose. Scene-linear sunlit sand is ~0.25
- * and its shade ~0.05: exposure puts the sand at ~0.6 display, and contrast in
- * log space around mid-grey gives the shade a real black point without
- * crushing it, where the old neutral curve left every frame between 20 and
- * 225 of 255 — milky, with no black and no highlight. Bloom and streak
- * thresholds sit well above anything diffuse (clouds peak near 1.5), so only
- * the sun, its aureole and real emitters glow.
+ * The grade is a confident one on purpose. Scene-linear sunlit sand is ~0.42
+ * and its shade ~0.08: exposure puts the sand near 0.5 display and the shade
+ * near 40 of 255, so the darkest occluded corners and dark paint reach a real
+ * black, and the slope lets the sun clip to white instead of stopping at 238.
+ * Bloom and streak thresholds sit well above anything diffuse (lit cloud
+ * crowns peak near 3), so only the sun, its corona and real emitters glow.
  */
 
 const LOOK = {
   day: {
-    exposure: 1.4,
-    slope: 1.0,
-    offset: -0.012,
-    power: 1.12,
-    saturation: 1.14,
-    logContrast: 1.25,
-    shadowTint: new THREE.Color(0.93, 0.98, 1.07),
-    highlightTint: new THREE.Color(1.05, 1.0, 0.93),
-    bloomIntensity: 0.22,
-    bloomThreshold: 2.6,
-    streakIntensity: 0.1,
-    streakThreshold: 6.0,
+    // Sunlit sand (~0.42 scene-linear) lands near 0.5 display; shade (~0.08)
+    // near 40 of 255; the darkest crevices and dark paint reach single
+    // digits; the slope above 1 lets the sun and its corona clip to white.
+    exposure: 0.48,
+    slope: 1.06,
+    offset: 0,
+    power: 1.1,
+    saturation: 1.06,
+    logContrast: 1.12,
+    // Warmth in the highlights only; shade goes slate blue.
+    shadowTint: new THREE.Color(0.9, 0.97, 1.1),
+    highlightTint: new THREE.Color(1.04, 1.0, 0.95),
+    bloomIntensity: 0.55,
+    bloomThreshold: 4.0,
+    streakIntensity: 0.12,
+    streakThreshold: 8.0,
     sunFlareIntensity: 0.12,
     dirtIntensity: 0.12,
-    grain: 0.014,
+    grain: 0.035,
     aberration: 0.0006,
     radialBlur: 0.0008,
     aoRadius: 1.1,
     aoIntensity: 2.6,
     aoFalloff: 2.0,
-    vignette: 0.32,
+    vignette: 0.5,
     motionBlurIntensity: 0.75,
     fogDensity: 0.00022,
     fogFalloff: 1 / 900,
@@ -92,29 +95,30 @@ const LOOK = {
     shafts: 0.5,
   },
   night: {
-    // Moonlight is a twentieth of the sun here; exposure brings the moonlit
-    // lakebed up to a readable, still clearly nocturnal level.
-    exposure: 4.2,
-    slope: 1.0,
-    offset: -0.01,
-    power: 1.1,
-    saturation: 0.86,
-    logContrast: 1.15,
-    shadowTint: new THREE.Color(0.9, 0.97, 1.12),
+    // Moonlit sand is ~0.027 scene-linear; this lifts it to a dim, readable
+    // ~30 of 255 with the sky darker still and the moon clipping to white.
+    // Low saturation stands in for the eye's night vision.
+    exposure: 1.0,
+    slope: 1.06,
+    offset: 0,
+    power: 1.08,
+    saturation: 0.7,
+    logContrast: 1.1,
+    shadowTint: new THREE.Color(0.9, 0.98, 1.12),
     highlightTint: new THREE.Color(1.0, 1.0, 1.02),
-    bloomIntensity: 0.9,
-    bloomThreshold: 0.45,
-    streakIntensity: 0.6,
-    streakThreshold: 0.6,
+    bloomIntensity: 0.8,
+    bloomThreshold: 0.9,
+    streakIntensity: 0.5,
+    streakThreshold: 1.6,
     sunFlareIntensity: 0,
     dirtIntensity: 0.25,
-    grain: 0.02,
+    grain: 0.03,
     aberration: 0.0009,
     radialBlur: 0.0012,
     aoRadius: 1.1,
     aoIntensity: 2.2,
     aoFalloff: 2.0,
-    vignette: 0.42,
+    vignette: 0.55,
     motionBlurIntensity: 0.9,
     fogDensity: 0.00016,
     fogFalloff: 1 / 900,
@@ -180,6 +184,13 @@ export function CombatEffects() {
   );
   useEffect(() => () => lateGuard.dispose(), [lateGuard]);
   const aerial = useMemo(() => new AerialPerspectiveEffect(), []);
+  // The fog runs in a pass of its own, before the heat haze. Merged into one
+  // pass the haze (a convolution) samples the pass's input, so either it
+  // undoes the fog (fog first) or the fog is decided by an undisplaced depth
+  // for a displaced colour (haze first): a mountain crest shifted a pixel
+  // into the sky stayed unfogged, a dark hairline along every ridge.
+  const aerialPass = useMemo(() => new EffectPass(camera, aerial), [camera, aerial]);
+  useEffect(() => () => aerialPass.dispose(), [aerialPass]);
   const haze = useMemo(() => new HeatHazeEffect(), []);
   const combat = useMemo(() => new CombatScreenEffect(), []);
   const agx = useMemo(() => new AgXToneMappingEffect(), []);
@@ -376,12 +387,13 @@ export function CombatEffects() {
       />,
     );
   }
+  // The fog first, in its own pass (see `aerialPass`); before the weapon,
+  // which must never be fogged.
+  if (upTo >= 2) passes.push(<primitive key="aerial" object={aerialPass} />);
   // Heat haze on the world only: before the first-person weapon is composited,
-  // because the depth it reads is the world's, not the rifle's.
+  // because the depth it reads is the world's, not the rifle's. It displaces
+  // the already fogged image, so fog and colour always agree.
   if (upTo >= 2) passes.push(<primitive key="haze" object={haze} />);
-  // After the haze, which samples its input at an offset and would otherwise
-  // undo the fog; before the weapon, which must never be fogged.
-  if (upTo >= 2) passes.push(<primitive key="aerial" object={aerial} />);
   // After occlusion, before bloom, so the rifle shares the world's glare
   // and AgX without being darkened by the ambient-occlusion pass.
   passes.push(<primitive key="viewmodel" object={viewmodelPass} />);
@@ -393,7 +405,7 @@ export function CombatEffects() {
         mipmapBlur
         intensity={look.bloomIntensity}
         luminanceThreshold={look.bloomThreshold}
-        luminanceSmoothing={0.2}
+        luminanceSmoothing={0.5}
         radius={0.84}
       />,
     );

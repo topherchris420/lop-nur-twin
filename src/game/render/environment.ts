@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { SKY_MODEL_GLSL, type SkyUniforms } from "./skyModel";
+import { GROUND_MOON_DIRECTION, SKY_MODEL_GLSL, type SkyUniforms } from "./skyModel";
 
 /**
  * Image-based lighting, generated at runtime.
@@ -62,11 +62,15 @@ void main() {
   vec3 sky = skyClear(dir);
   vec4 cloud = skyClouds(dir, sky);
   sky = sky * (1.0 - cloud.a) + cloud.rgb;
-  // No hard disc in a pre-filtered map; a tight lobe gives smooth metal its
-  // highlight and a broad one its glow, both bounded.
-  float cosSun = max(dot(dir, skySunDir), 0.0);
-  float sunUp = smoothstep(-0.02, 0.06, skySunDir.y) * skyDay;
-  sky += skySunColor * (pow(cosSun, 1200.0) * 30.0 + pow(cosSun, 48.0) * 0.6) * sunUp;
+  // No hard disc in a pre-filtered map. The weapon's map keeps a tight lobe
+  // for smooth metal's highlight and a broad one for its glow, both bounded.
+  // The world's does not: the directional light already carries the sun, and
+  // a lobe here is sunlight again, unshadowed, filling every shade warm.
+  if (uStructure > 0.0) {
+    float cosSun = max(dot(dir, skySunDir), 0.0);
+    float sunUp = smoothstep(-0.02, 0.06, skySunDir.y) * skyDay;
+    sky += skySunColor * (pow(cosSun, 1200.0) * 30.0 + pow(cosSun, 48.0) * 0.6) * sunUp;
+  }
   sky *= uSkyScale;
 
   // The lakebed: sunlit and uniform underfoot, hazing out toward the horizon.
@@ -110,15 +114,27 @@ export interface EnvironmentOptions {
   dayFactor: number;
 }
 
-/** Sunlit lakebed, as the camera sees it: albedo times sun and sky over pi. */
-const DAY_GROUND = new THREE.Color(0.36, 0.28, 0.185);
+/**
+ * The lakebed as the world's fill sees it. Sunlit sand is brighter than this
+ * (about 0.45), but a shaded wall sees mostly the shaded ground at its own
+ * foot, and full-strength bounce lifted every shade face to mid-grey.
+ */
+const DAY_GROUND = new THREE.Color(0.2, 0.155, 0.105);
+/** The weapon's horizon reflection keeps the bright, sunlit ground. */
+const DAY_GROUND_STRUCTURED = new THREE.Color(0.36, 0.28, 0.185);
 /** Moonlit lakebed. */
-const NIGHT_GROUND = new THREE.Color(0.0055, 0.0065, 0.0085);
+const NIGHT_GROUND = new THREE.Color(0.0045, 0.005, 0.0065);
 const SUN_WARM = new THREE.Color(1.0, 0.94, 0.84);
 const SUN_LOW = new THREE.Color(1.0, 0.58, 0.3);
-/** Night sky in the radiance map: the moonlit dome lifted so shade is not black. */
-const NIGHT_SKY_SCALE = 2.4;
-const DAY_SKY_SCALE = 0.82;
+/**
+ * Sky scale in the radiance map. Clear desert sky fills shade at roughly a
+ * fifth of direct sun on the ground; at 0.82 the fill was nearly half, and
+ * every surface read as ambient-lit. The weapon's map stays brighter: it is
+ * reflected, not used as fill, and a dark finish needs sky to show its edges.
+ */
+const NIGHT_SKY_SCALE = 1.5;
+const DAY_SKY_SCALE = 0.4;
+const DAY_SKY_SCALE_STRUCTURED = 0.82;
 
 export class EnvironmentLighting {
   private readonly pmrem: THREE.PMREMGenerator;
@@ -136,6 +152,7 @@ export class EnvironmentLighting {
    * behind on every regenerate.
    */
   private cachedTarget: THREE.WebGLRenderTarget | null = null;
+  private readonly structured: boolean;
 
   /**
    * `structured` draws the weapon's variant: the same sky and sun, with a
@@ -144,12 +161,13 @@ export class EnvironmentLighting {
    */
   constructor(renderer: THREE.WebGLRenderer, { structured = false } = {}) {
     this.pmrem = new THREE.PMREMGenerator(renderer);
+    this.structured = structured;
 
     // Its own uniform values, set from the options: the radiance map is built
     // for a sun state, not for whatever the live sky shows this frame.
     this.uniforms = {
       skySunDir: { value: new THREE.Vector3(0, 1, 0) },
-      skyMoonDir: { value: new THREE.Vector3(-900, 950, 500).normalize() },
+      skyMoonDir: { value: GROUND_MOON_DIRECTION.clone() },
       skyDay: { value: 1 },
       skySunColor: { value: SUN_WARM.clone() },
       skyTime: { value: 0 },
@@ -193,8 +211,10 @@ export class EnvironmentLighting {
     const above = THREE.MathUtils.clamp(Math.sin(elev) * 3, 0, 1);
     u.skyDay.value = day;
     u.skySunColor.value.lerpColors(SUN_LOW, SUN_WARM, above);
-    u.uGround.value.lerpColors(NIGHT_GROUND, DAY_GROUND, day * above);
-    u.uSkyScale.value = THREE.MathUtils.lerp(NIGHT_SKY_SCALE, DAY_SKY_SCALE, day);
+    const dayGround = this.structured ? DAY_GROUND_STRUCTURED : DAY_GROUND;
+    const daySky = this.structured ? DAY_SKY_SCALE_STRUCTURED : DAY_SKY_SCALE;
+    u.uGround.value.lerpColors(NIGHT_GROUND, dayGround, day * above);
+    u.uSkyScale.value = THREE.MathUtils.lerp(NIGHT_SKY_SCALE, daySky, day);
 
     const target = this.pmrem.fromScene(this.scene, 0, 1, 200);
     this.cachedTarget?.dispose();

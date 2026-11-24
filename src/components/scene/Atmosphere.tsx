@@ -10,7 +10,11 @@ import { sunState } from "@/lib/sunState";
 import { basinReflections } from "@/gfx/basinReflections";
 import { SUN, sunElevationRad } from "@/game/render/environment";
 import { createSkyDome } from "@/game/render/skyDome";
-import { groundLight, updateSkyUniforms } from "@/game/render/skyModel";
+import {
+  GROUND_MOON_DIRECTION,
+  groundLight,
+  updateSkyUniforms,
+} from "@/game/render/skyModel";
 import { ENVIRONMENT_ENTITY_ID, SITE_SIZE } from "@/lib/layout";
 import { climateDustFactor, getClimateMonth } from "@/lib/siteData";
 import { getQualityProfile } from "@/lib/quality";
@@ -46,16 +50,22 @@ const NIGHT = {
  * direction, a source in the sky and shadows of its own.
  */
 const GROUND = {
-  sunKey: 8.4,
-  hemiScale: 0.1,
+  // Direct sun on sunlit sand is ~0.42 scene-linear against ~0.08 of sky fill
+  // in shade (with the radiance map's day scale in `environment.ts`): about
+  // the 5:1 of a clear desert noon. At 8.4 the key was barely past the fill.
+  sunKey: 13,
+  hemiScale: 0.04,
   hemiSky: new THREE.Color(0.55, 0.7, 1.0),
   hemiGround: new THREE.Color(0.62, 0.48, 0.32),
   // The horizon haze `skyModel.ts` draws, for tiers where scene fog is the
   // only aerial perspective.
   fogDay: new THREE.Color("#c8d0d8"),
   fogNight: new THREE.Color("#161c27"),
-  moonKey: 0.42,
-  moonColor: new THREE.Color(0.62, 0.72, 1.0),
+  // A low moon, so its light on the ground is ~0.33 of this. Moonlit sand
+  // then sits near 0.027 scene-linear, which the night grade lifts to a dim,
+  // readable luma ~30 with the moon itself white and blooming.
+  moonKey: 0.85,
+  moonColor: new THREE.Color(0.66, 0.75, 1.0),
 };
 
 /** The shared renderer-transform owner, including scenes with their own lighting. */
@@ -190,6 +200,18 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     };
   }, [scene, groundLevel]);
 
+  // On the ground the moon is `GROUND_MOON_DIRECTION`. Publish it through
+  // the shared sun state, so everything lit in a pass of its own (the weapon,
+  // muzzle-flash light) is lit by the moon the world shows.
+  useLayoutEffect(() => {
+    if (!groundLevel) return;
+    const previous = sunState.moonDirection.clone();
+    sunState.moonDirection.copy(GROUND_MOON_DIRECTION);
+    return () => {
+      sunState.moonDirection.copy(previous);
+    };
+  }, [groundLevel]);
+
   // aim the sun's shadow frustum at the built-up area
   useEffect(() => {
     const sun = sunRef.current;
@@ -240,7 +262,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     if (groundLevel) {
       updateSkyUniforms(
         sunDir,
-        sunState.moonDirection,
+        GROUND_MOON_DIRECTION,
         next,
         clock.elapsedTime,
         dustFactor,
@@ -250,7 +272,7 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
     // On the ground the one shadow-casting key follows the moon once the sun
     // is down, so moonlight has a direction and shadows of its own.
     const moonKey = groundLevel && sunDir.y < 0;
-    keyDir.copy(moonKey ? sunState.moonDirection : sunDir);
+    keyDir.copy(moonKey ? GROUND_MOON_DIRECTION : sunDir);
 
     const sun = sunRef.current;
     if (sun) {
@@ -331,7 +353,8 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
       // program's key, so nothing recompiles).
       (groundLevel && quality.postprocessing ? 0.08 : 1);
 
-    if (starsRef.current) starsRef.current.visible = next < 0.4;
+    // The ground dome draws its own star field and Milky Way.
+    if (starsRef.current) starsRef.current.visible = !groundLevel && next < 0.4;
   });
 
   return (
@@ -352,7 +375,11 @@ export function Atmosphere({ groundLevel = false }: AtmosphereProps = {}) {
         // Normal bias exists to hide self-shadowing across one texel, so it
         // has to shrink with the texel or it detaches a shadow from its
         // caster. At the site-wide extent a texel is nearly a metre.
-        shadow-normalBias={(shadowExtent / quality.shadowMapSize) * 1.2}
+        // On the ground the sun is low over long, flat roofs, and one texel
+        // of normal offset left wobbling acne bands on the far ones.
+        shadow-normalBias={
+          (shadowExtent / quality.shadowMapSize) * (groundLevel ? 1.8 : 1.2)
+        }
       />
       <directionalLight
         ref={moonRef}
