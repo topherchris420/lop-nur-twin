@@ -1,5 +1,10 @@
 import * as THREE from "three";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import {
+  mergeGeometries,
+  mergeVertices,
+} from "three/addons/utils/BufferGeometryUtils.js";
+import { applyPreset, type HardSurfacePreset } from "@/gfx/greeble";
 import { normalizeForMerge } from "../weapons/geometry";
 import { mulberry32, seededNoise2D } from "@/lib/noise";
 import { flattenFactor, terrainHeight } from "@/lib/terrain";
@@ -138,6 +143,65 @@ function blob(
   return paint(geometry, color);
 }
 
+/**
+ * A box with its edges chamfered. A real edge is never knife-sharp, and the
+ * narrow bevel is what catches a highlight line and separates a face from
+ * its neighbour; a 90 degree box edge renders as two flat colours meeting.
+ */
+function rbox(
+  w: number,
+  h: number,
+  d: number,
+  r: number,
+  x: number,
+  y: number,
+  z: number,
+  color: number,
+  ry = 0,
+  rz = 0,
+): THREE.BufferGeometry {
+  const radius = Math.max(1e-4, Math.min(r, w / 2 - 1e-4, h / 2 - 1e-4, d / 2 - 1e-4));
+  const geometry = new RoundedBoxGeometry(w, h, d, 1, radius);
+  if (rz) geometry.rotateZ(rz);
+  if (ry) geometry.rotateY(ry);
+  geometry.translate(x, y, z);
+  return paint(geometry, color);
+}
+
+/** A lathed solid from a (radius, height) profile, bottom to top. */
+function lathe(
+  profile: readonly (readonly [number, number])[],
+  segments: number,
+  color: number,
+  shape?: (p: THREE.BufferAttribute) => void,
+): THREE.BufferGeometry {
+  const geometry = new THREE.LatheGeometry(
+    profile.map(([r, y]) => new THREE.Vector2(r, y)),
+    segments,
+  );
+  if (shape) {
+    shape(geometry.getAttribute("position") as THREE.BufferAttribute);
+    geometry.computeVertexNormals();
+  }
+  return paint(geometry, color);
+}
+
+/** Recolour a painted part vertex by vertex, in its own coordinates. */
+function shade(
+  geometry: THREE.BufferGeometry,
+  fn: (x: number, y: number, z: number, color: THREE.Color) => void,
+): THREE.BufferGeometry {
+  const position = geometry.attributes["position"]!;
+  const color = geometry.attributes["color"]!;
+  const c = new THREE.Color();
+  for (let i = 0; i < position.count; i += 1) {
+    c.setRGB(color.getX(i), color.getY(i), color.getZ(i));
+    fn(position.getX(i), position.getY(i), position.getZ(i), c);
+    color.setXYZ(i, c.r, c.g, c.b);
+  }
+  return geometry;
+}
+
 const grain = seededNoise2D(0x51ee);
 const patch = seededNoise2D(0x9a03);
 
@@ -164,14 +228,16 @@ function weather(
     const tone = fine * broad;
     // Dust climbs the lower quarter of the prop.
     const grime = Math.max(0, 1 - y / Math.max(0.2, height * 0.42)) ** 1.6 * 0.55;
+    // The last few centimetres sit in the ground's own occlusion.
+    const contact = 1 - Math.max(0, 1 - y / 0.06) * 0.35;
     const r = color.getX(i) * tone;
     const g = color.getY(i) * tone;
     const b = color.getZ(i) * tone;
     color.setXYZ(
       i,
-      r + (dust.r - r) * grime,
-      g + (dust.g - g) * grime,
-      b + (dust.b - b) * grime,
+      (r + (dust.r - r) * grime) * contact,
+      (g + (dust.g - g) * grime) * contact,
+      (b + (dust.b - b) * grime) * contact,
     );
   }
   color.needsUpdate = true;
@@ -184,158 +250,492 @@ function weather(
 const CONCRETE = 0x9c9488;
 
 const RUST = 0x7a4a2c;
-const OLIVE = 0x5f6347;
-const SAND_BAG = 0x7d7355;
+const SAND_BAG = 0x8a7f62;
 const STEEL = 0x8b8f92;
 const STEEL_DARK = 0x5c6064;
 const WOOD = 0x9a7c52;
 const RUBBER = 0x2e2e30;
+/** Parts tinted per instance from a palette are painted near-white. */
+const PAINT = 0xe0ded8;
 
-/** A New Jersey barrier, extruded from its real profile. */
-function jerseyBarrier(): THREE.BufferGeometry {
+/**
+ * A New Jersey barrier, extruded from its real profile: 75 mm toe, 55 degree
+ * lower face, 84 degree upper face, with the arrises cast chamfered, two
+ * rebar lifting loops, drainage slots through the toe and pin lugs at the ends.
+ */
+function jerseyBarrier(_rand: Rand, hi: boolean): THREE.BufferGeometry {
+  const profile: [number, number][] = [
+    [-0.285, 0],
+    [0.285, 0],
+    [0.285, 0.055],
+    [0.268, 0.077],
+    [0.112, 0.322],
+    [0.072, 0.768],
+    [0.05, 0.79],
+    [-0.05, 0.79],
+    [-0.072, 0.768],
+    [-0.112, 0.322],
+    [-0.268, 0.077],
+    [-0.285, 0.055],
+  ];
   const shape = new THREE.Shape();
-  shape.moveTo(-0.3, 0);
-  shape.lineTo(0.3, 0);
-  shape.lineTo(0.24, 0.14);
-  shape.lineTo(0.115, 0.56);
-  shape.lineTo(0.095, 0.82);
-  shape.lineTo(-0.095, 0.82);
-  shape.lineTo(-0.115, 0.56);
-  shape.lineTo(-0.24, 0.14);
+  shape.moveTo(profile[0]![0], profile[0]![1]);
+  for (const [x, y] of profile.slice(1)) shape.lineTo(x, y);
   shape.closePath();
-  const geometry = new THREE.ExtrudeGeometry(shape, { depth: 2.0, bevelEnabled: false });
-  geometry.translate(0, 0, -1.0);
-  geometry.computeVertexNormals();
-  return paint(geometry, CONCRETE);
+  const body = new THREE.ExtrudeGeometry(shape, {
+    depth: 1.95,
+    bevelEnabled: hi,
+    bevelThickness: 0.025,
+    bevelSize: 0.02,
+    bevelSegments: 1,
+  });
+  body.translate(0, 0, -0.975);
+  const parts = [paint(body, CONCRETE)];
+  for (const z of [-0.55, 0.55]) {
+    const loop = new THREE.TorusGeometry(0.06, 0.01, hi ? 5 : 3, hi ? 10 : 5, Math.PI);
+    loop.rotateY(Math.PI / 2);
+    loop.translate(0, 0.79, z);
+    parts.push(paint(loop, RUST));
+  }
+  // drainage slots: dark through the toe on both faces
+  for (const z of [-0.5, 0.5]) parts.push(box(0.618, 0.07, 0.3, 0, 0.035, z, 0x2b2824));
+  if (hi) {
+    // steel pin lugs cast into each end, and a rust stain run from each
+    for (const z of [-1.0, 1.0]) {
+      parts.push(rbox(0.05, 0.16, 0.06, 0.012, 0, 0.58, z, STEEL_DARK));
+      parts.push(rbox(0.05, 0.16, 0.06, 0.012, 0, 0.2, z, STEEL_DARK));
+    }
+  }
+  return mergeParts(parts);
 }
 
-/** A gabion bastion: wire cage, earth fill, rubble crown. */
-function hescoBastion(rand: Rand): THREE.BufferGeometry {
+/** A gabion bastion: welded mesh cage, geotextile liner, earth fill. */
+function hescoBastion(rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const s = 1.12;
   const h = 1.06;
-  parts.push(box(s * 0.96, h * 0.98, s * 0.96, 0, h / 2, 0, 0x8d7f5d));
-  // Wire cage: four uprights per corner plus three horizontal bands.
+  // The liner bellies out between the wires under the weight of the fill.
+  const liner = new THREE.BoxGeometry(s * 0.96, h * 0.97, s * 0.96, 3, 3, 3);
+  liner.deleteAttribute("normal");
+  liner.deleteAttribute("uv");
+  const welded = mergeVertices(liner);
+  liner.dispose();
+  const lp = welded.getAttribute("position");
+  for (let i = 0; i < lp.count; i += 1) {
+    const x = lp.getX(i) / (s * 0.48);
+    const y = lp.getY(i) / (h * 0.485);
+    const z = lp.getZ(i) / (s * 0.48);
+    const belly = (1 - y * y) * 0.035;
+    lp.setXYZ(
+      i,
+      lp.getX(i) * (1 + belly * (1 - z * z)),
+      lp.getY(i) + h * 0.485,
+      lp.getZ(i) * (1 + belly * (1 - x * x)),
+    );
+  }
+  welded.computeVertexNormals();
+  parts.push(paint(welded, 0xa89a78));
+  // corner coil joints
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
-      parts.push(box(0.035, h, 0.035, (sx * s) / 2, h / 2, (sz * s) / 2, STEEL_DARK));
+      parts.push(cyl(0.016, 0.016, h, 5, (sx * s) / 2, h / 2, (sz * s) / 2, STEEL_DARK));
     }
   }
-  for (let i = 0; i < 3; i += 1) {
-    const y = 0.16 + i * 0.37;
-    parts.push(box(s, 0.03, 0.03, 0, y, s / 2, STEEL_DARK));
-    parts.push(box(s, 0.03, 0.03, 0, y, -s / 2, STEEL_DARK));
-    parts.push(box(0.03, 0.03, s, s / 2, y, 0, STEEL_DARK));
-    parts.push(box(0.03, 0.03, s, -s / 2, y, 0, STEEL_DARK));
+  // welded mesh: verticals and horizontals on every face
+  const n = hi ? 5 : 2;
+  const wire = 0x7d8285;
+  for (let i = 0; i <= n; i += 1) {
+    const t = (i / n - 0.5) * s;
+    const y = 0.05 + (i / n) * (h - 0.1);
+    for (const side of [-1, 1]) {
+      const o = (side * s) / 2 + side * 0.012;
+      parts.push(box(0.009, h, 0.009, t, h / 2, o, wire));
+      parts.push(box(0.009, h, 0.009, o, h / 2, t, wire));
+      parts.push(box(s, 0.009, 0.009, 0, y, o, wire));
+      parts.push(box(0.009, 0.009, s, o, y, 0, wire));
+    }
   }
-  // Loose fill breaking the top edge.
-  for (let i = 0; i < 7; i += 1) {
-    const r = 0.06 + rand() * 0.09;
+  // earth fill heaped above the rim, with stones in it
+  parts.push(blob(s * 0.47, 0, h - 0.02, 0, 0x8a7a58, 1, 0.22, 1));
+  for (let i = 0; i < (hi ? 7 : 3); i += 1) {
+    const r = 0.05 + rand() * 0.08;
     parts.push(
-      box(
+      rbox(
         r * 2,
-        r * 1.3,
-        r * 1.7,
-        (rand() - 0.5) * s * 0.8,
-        h + r * 0.4,
-        (rand() - 0.5) * s * 0.8,
-        0x796b4e,
-        rand(),
+        r * 1.2,
+        r * 1.6,
+        r * 0.3,
+        (rand() - 0.5) * s * 0.75,
+        h + r * 0.35,
+        (rand() - 0.5) * s * 0.75,
+        0x786a4c,
         rand() * 3,
-        rand() * 0.4,
       ),
     );
   }
   return mergeParts(parts);
 }
 
-/** Three staggered courses of sandbags. */
-function sandbagStack(rand: Rand): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  // Filled bags slump: wide, flat and overlapping, never stacked spheres.
-  const rows = 4;
-  for (let row = 0; row < rows; row += 1) {
-    const y = 0.075 + row * 0.148;
-    const n = 5 - (row > 2 ? 1 : 0);
-    const offset = row % 2 === 0 ? 0 : 0.15;
-    for (let i = 0; i < n; i += 1) {
-      const x = (i - (n - 1) / 2) * 0.3 + offset;
-      parts.push(
-        blob(
-          0.2,
-          x,
-          y,
-          (rand() - 0.5) * 0.07,
-          SAND_BAG,
-          1.42 + rand() * 0.16,
-          0.4,
-          0.92,
-          (rand() - 0.5) * 0.26,
-        ),
-      );
+/**
+ * One filled sack: a rounded box that has slumped under its own weight, flat
+ * where it beds, crowned on top, its tied end gathered into an ear, a seam
+ * down each side and a few lumps where the fill is uneven.
+ */
+function sandbag(
+  rand: Rand,
+  hi: boolean,
+  len: number,
+  wid: number,
+  hgt: number,
+): THREE.BufferGeometry {
+  const box = new THREE.BoxGeometry(1, 1, 1, hi ? 6 : 3, hi ? 2 : 1, hi ? 3 : 2);
+  box.deleteAttribute("normal");
+  box.deleteAttribute("uv");
+  const g = mergeVertices(box);
+  box.dispose();
+  const p = g.getAttribute("position");
+  const tie = rand() > 0.5 ? 1 : -1;
+  const lump = seededNoise2D(Math.floor(rand() * 0x7fffffff));
+  const sag = 0.78 + rand() * 0.3;
+  for (let i = 0; i < p.count; i += 1) {
+    const nx = p.getX(i) * 2;
+    const ny = p.getY(i) * 2;
+    const nz = p.getZ(i) * 2;
+    let x = nx * len * 0.5 * (1 - 0.08 * ny * ny);
+    let y = ny * hgt * 0.5 * (1 - 0.55 * nx ** 4) * (1 - 0.45 * nz ** 4);
+    let z = nz * wid * 0.5 * (1 - 0.2 * ny * ny) * (1 - 0.22 * nx ** 4);
+    y *= ny < 0 ? 0.62 : sag;
+    const e = tie * nx;
+    if (e > 0.62) {
+      const t = (e - 0.62) / 0.38;
+      y *= 1 - 0.5 * t;
+      z *= 1 - 0.62 * t;
+      x += tie * 0.035 * t;
     }
+    const n = lump(nx * 1.7 + nz * 0.6, ny * 1.3 + nz * 1.1);
+    y += n * 0.014 * (ny > 0 ? 1 : 0.3);
+    z += n * 0.009 * nz;
+    p.setXYZ(i, x, y, z);
+  }
+  g.computeVertexNormals();
+  const bag = paint(g, SAND_BAG);
+  const batch = 0.86 + rand() * 0.24;
+  return shade(bag, (x, y, z, c) => {
+    c.multiplyScalar(batch);
+    // the side seam and the tie cord
+    if (Math.abs(y) < hgt * 0.12 && Math.abs(z) > wid * 0.38) c.multiplyScalar(0.8);
+    if (tie * x > len * 0.44) c.setHex(0x6b5f45);
+  });
+}
+
+/**
+ * A sandbag wall: four courses in running bond, two bags deep, stretcher and
+ * header courses alternating, every bag its own size and slump, the bottom
+ * course bedded into the ground.
+ */
+function sandbagStack(rand: Rand, hi: boolean): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const length = 1.6;
+  const L = 0.56;
+  const W = 0.3;
+  let y = -0.03;
+  for (let course = 0; course < 4; course += 1) {
+    const h = 0.15 * (0.92 + rand() * 0.14);
+    const lay = (x: number, z: number, yaw: number): void => {
+      const bag = sandbag(
+        rand,
+        hi,
+        L * (0.94 + rand() * 0.1),
+        W * (0.94 + rand() * 0.1),
+        h * (0.9 + rand() * 0.2),
+      );
+      bag.rotateY(yaw + (rand() - 0.5) * 0.14);
+      bag.translate(x + (rand() - 0.5) * 0.035, y + h * 0.31, z + (rand() - 0.5) * 0.03);
+      parts.push(bag);
+    };
+    if (course % 2 === 0) {
+      // stretchers: two rows along the wall, offset half a bag every other one
+      const offset = course % 4 === 0 ? 0 : L / 2;
+      for (const z of [-W / 2 - 0.005, W / 2 + 0.005]) {
+        for (let x = -length / 2 + L / 2 - offset; x < length / 2; x += L) {
+          if (Math.abs(x) > length / 2 - 0.12) continue;
+          lay(x, z, 0);
+        }
+      }
+    } else {
+      // headers: one bag across the full depth
+      for (let x = -length / 2 + W / 2; x < length / 2 - 0.05; x += W + 0.01) {
+        lay(x, 0, Math.PI / 2);
+      }
+    }
+    y += h * 0.8;
   }
   return mergeParts(parts);
 }
 
-/** A cleated shipping crate. */
-function crate(rand: Rand): THREE.BufferGeometry {
+/**
+ * A military packing crate: planked faces with gaps, a nailed frame and a
+ * diagonal brace on each long side, steel corner caps, rope handles and a
+ * stencilled label panel.
+ */
+function crate(_rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const w = 1.18;
   const h = 0.92;
   const d = 0.84;
-  const tone = rand() > 0.45 ? WOOD : OLIVE;
-  parts.push(box(w, h, d, 0, h / 2, 0, tone));
-  // Corner cleats and a mid rail on each long face.
-  for (const sx of [-1, 1]) {
-    parts.push(box(0.075, h + 0.02, d + 0.03, (sx * w) / 2, h / 2, 0, tone, 0, 0, 0));
+  const t = 0.02;
+  const frame = 0xc8c2b4;
+  if (!hi) {
+    parts.push(box(w, h, d, 0, h / 2, 0, PAINT));
+    for (const sz of [-1, 1]) {
+      parts.push(box(w + 0.03, 0.08, 0.04, 0, h - 0.06, (sz * d) / 2, frame));
+      parts.push(box(w + 0.03, 0.08, 0.04, 0, 0.06, (sz * d) / 2, frame));
+    }
+    return mergeParts(parts);
   }
+  // a dark carcass behind the planks, so the gaps read as gaps
+  parts.push(box(w - 0.02, h - 0.02, d - 0.02, 0, h / 2, 0, 0x2c2620));
+  const planks = 4;
+  const gap = 0.008;
+  const ph = (h - gap * (planks - 1)) / planks;
+  for (let i = 0; i < planks; i += 1) {
+    const y = ph / 2 + i * (ph + gap);
+    const tone = PAINT - (i % 2) * 0x080808;
+    for (const sz of [-1, 1]) parts.push(box(w, ph, t, 0, y, (sz * (d - t)) / 2, tone));
+    for (const sx of [-1, 1])
+      parts.push(box(t, ph, d - 2 * t, (sx * (w - t)) / 2, y, 0, tone));
+  }
+  const lid = 5;
+  const lw = (d - gap * (lid - 1)) / lid;
+  for (let i = 0; i < lid; i += 1) {
+    const z = -d / 2 + lw / 2 + i * (lw + gap);
+    parts.push(box(w, t, lw, 0, h - t / 2, z, PAINT - (i % 2) * 0x060606));
+  }
+  // frame battens proud of the planks, and the brace across each long side
+  const fb = 0.075;
   for (const sz of [-1, 1]) {
-    parts.push(box(w + 0.03, 0.07, 0.05, 0, h * 0.72, (sz * d) / 2, 0x6d5a3c));
-    parts.push(box(w + 0.03, 0.07, 0.05, 0, h * 0.26, (sz * d) / 2, 0x6d5a3c));
+    const z = (sz * d) / 2 + (sz * t) / 2;
+    parts.push(rbox(w, fb, t, 0.005, 0, h - fb / 2, z, frame));
+    parts.push(rbox(w, fb, t, 0.005, 0, fb / 2, z, frame));
+    parts.push(rbox(fb, h - 2 * fb, t, 0.005, w / 2 - fb / 2, h / 2, z, frame));
+    parts.push(rbox(fb, h - 2 * fb, t, 0.005, -w / 2 + fb / 2, h / 2, z, frame));
+    const run = Math.hypot(w - 2 * fb, h - 2 * fb);
+    parts.push(
+      rbox(
+        run * 0.97,
+        fb * 0.9,
+        t,
+        0.005,
+        0,
+        h / 2,
+        z,
+        frame,
+        0,
+        sz * Math.atan2(h - 2 * fb, w - 2 * fb),
+      ),
+    );
   }
-  parts.push(box(w * 0.99, 0.05, d * 0.99, 0, h + 0.02, 0, 0x6d5a3c));
+  for (const sx of [-1, 1]) {
+    const x = (sx * w) / 2 + (sx * t) / 2;
+    parts.push(box(t, fb, d, x, h - fb / 2, 0, frame));
+    parts.push(box(t, fb, d, x, fb / 2, 0, frame));
+    // rope handle through two cleats
+    parts.push(box(t * 1.6, 0.06, 0.08, x + sx * 0.012, h * 0.62, -0.2, frame));
+    parts.push(box(t * 1.6, 0.06, 0.08, x + sx * 0.012, h * 0.62, 0.2, frame));
+    const rope = new THREE.TorusGeometry(0.2, 0.012, 4, 8, Math.PI);
+    rope.rotateZ(Math.PI);
+    rope.rotateY(Math.PI / 2);
+    rope.translate(x + sx * 0.03, h * 0.62, 0);
+    parts.push(paint(rope, 0x8f7e5c));
+  }
+  // steel corner caps
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      for (const y of [0.045, h - 0.045]) {
+        parts.push(
+          rbox(
+            0.1,
+            0.1,
+            0.1,
+            0.008,
+            sx * (w / 2 - 0.035),
+            y,
+            sz * (d / 2 - 0.035),
+            0x4a4d4f,
+          ),
+        );
+      }
+    }
+  }
+  // stencilled label panel and lettering on one long side
+  const z = d / 2 + t + 0.003;
+  parts.push(box(0.42, 0.2, 0.004, 0, h * 0.55, z, 0xd8d0b8));
+  for (let i = 0; i < 3; i += 1) {
+    parts.push(
+      box(
+        0.34 - i * 0.07,
+        0.025,
+        0.003,
+        -i * 0.035,
+        h * 0.55 + 0.06 - i * 0.05,
+        z + 0.003,
+        0x262421,
+      ),
+    );
+  }
   return mergeParts(parts);
 }
 
-/** A 200-litre drum, hooped. */
-function drum(rand: Rand): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const h = 0.88;
-  const r = 0.29;
-  const tone = rand() > 0.5 ? RUST : rand() > 0.5 ? OLIVE : 0x39546b;
-  parts.push(cyl(r, r, h, 14, 0, h / 2, 0, tone));
-  parts.push(cyl(r * 1.05, r * 1.05, 0.055, 14, 0, h * 0.3, 0, STEEL_DARK));
-  parts.push(cyl(r * 1.05, r * 1.05, 0.055, 14, 0, h * 0.7, 0, STEEL_DARK));
-  parts.push(cyl(r * 0.99, r * 0.99, 0.03, 14, 0, h - 0.01, 0, STEEL_DARK));
+/**
+ * A 200-litre steel drum, lathed from its real section: rolled chimes top
+ * and bottom, two rolling hoops, the lid set down inside the chime, two
+ * bungs, and a dent or two.
+ */
+function drum(rand: Rand, hi: boolean): THREE.BufferGeometry {
+  const profile: readonly (readonly [number, number])[] = hi
+    ? [
+        [0, 0.014],
+        [0.262, 0.014],
+        [0.27, 0.004],
+        [0.288, 0],
+        [0.293, 0.012],
+        [0.288, 0.026],
+        [0.283, 0.034],
+        [0.283, 0.272],
+        [0.291, 0.286],
+        [0.291, 0.3],
+        [0.283, 0.314],
+        [0.283, 0.566],
+        [0.291, 0.58],
+        [0.291, 0.594],
+        [0.283, 0.608],
+        [0.283, 0.846],
+        [0.288, 0.854],
+        [0.293, 0.868],
+        [0.288, 0.88],
+        [0.27, 0.876],
+        [0.262, 0.864],
+        [0, 0.864],
+      ]
+    : [
+        [0, 0.01],
+        [0.288, 0],
+        [0.29, 0.02],
+        [0.284, 0.03],
+        [0.284, 0.29],
+        [0.292, 0.3],
+        [0.284, 0.31],
+        [0.284, 0.58],
+        [0.292, 0.59],
+        [0.284, 0.6],
+        [0.284, 0.85],
+        [0.29, 0.875],
+        [0, 0.865],
+      ];
+  const dents = Array.from({ length: hi ? 2 : 0 }, () => ({
+    a: rand() * Math.PI * 2,
+    y: 0.1 + rand() * 0.65,
+    r: 0.07 + rand() * 0.08,
+    depth: 0.008 + rand() * 0.016,
+  }));
+  const body = lathe(profile, hi ? 22 : 12, PAINT, (p) => {
+    for (let i = 0; i < p.count; i += 1) {
+      const x = p.getX(i);
+      const y = p.getY(i);
+      const z = p.getZ(i);
+      const r = Math.hypot(x, z);
+      if (r < 0.2) continue;
+      let push = 0;
+      for (const dent of dents) {
+        let da = Math.atan2(z, x) - dent.a;
+        da = Math.atan2(Math.sin(da), Math.cos(da));
+        const dist = Math.hypot(da * 0.285, y - dent.y) / dent.r;
+        if (dist < 1) push += dent.depth * (1 - dist * dist) ** 2;
+      }
+      if (push > 0) p.setXYZ(i, (x * (r - push)) / r, y, (z * (r - push)) / r);
+    }
+  });
+  const parts = [body];
+  if (hi) {
+    parts.push(cyl(0.034, 0.034, 0.016, 10, 0.18, 0.868, 0.06, STEEL_DARK));
+    parts.push(cyl(0.02, 0.02, 0.014, 8, -0.18, 0.868, -0.04, STEEL_DARK));
+  }
   return mergeParts(parts);
 }
 
-/** Pipe stacked on timber skids. */
-function pipeStack(): THREE.BufferGeometry {
+/** Pipe stacked on timber skids, the bores open and dark. */
+function pipeStack(_rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const len = 2.6;
   const r = 0.155;
   for (const z of [-0.9, 0.9]) {
-    parts.push(box(0.9, 0.12, 0.14, 0, 0.06, z, WOOD));
+    parts.push(rbox(0.9, 0.12, 0.14, 0.012, 0, 0.06, z, WOOD));
+    if (hi) {
+      // chocks nailed to the skid stop the bottom row rolling
+      for (const sx of [-1, 1])
+        parts.push(box(0.08, 0.08, 0.12, sx * 0.42, 0.16, z, WOOD));
+    }
   }
   const rowY = [0.12 + r, 0.12 + r * 2.7];
   for (let row = 0; row < 2; row += 1) {
     const n = row === 0 ? 3 : 2;
     for (let i = 0; i < n; i += 1) {
       const x = (i - (n - 1) / 2) * (r * 2.05);
-      parts.push(cyl(r, r, len, 12, x, rowY[row]!, 0, STEEL, Math.PI / 2, 0, 0));
+      parts.push(
+        cyl(r, r, len, hi ? 16 : 10, x, rowY[row]!, 0, STEEL, Math.PI / 2, 0, 0),
+      );
+      for (const end of [-1, 1]) {
+        parts.push(
+          cyl(
+            r * 0.86,
+            r * 0.86,
+            0.01,
+            hi ? 16 : 10,
+            x,
+            rowY[row]!,
+            end * (len / 2 + 0.003),
+            0x1c1a18,
+            Math.PI / 2,
+            0,
+            0,
+          ),
+        );
+      }
     }
   }
   return mergeParts(parts);
 }
 
 /** A wooden cable reel stood on its rims. */
-function cableReel(): THREE.BufferGeometry {
+function cableReel(_rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const R = 0.68;
   for (const x of [-0.31, 0.31]) {
-    parts.push(cyl(R, R, 0.07, 16, x, R, 0, WOOD, 0, 0, Math.PI / 2));
+    parts.push(cyl(R, R, 0.07, hi ? 24 : 14, x, R, 0, WOOD, 0, 0, Math.PI / 2));
+    if (hi) {
+      // the bolted battens that hold each flange's boards together
+      for (const a of [0, Math.PI / 2]) {
+        const batten = rbox(0.03, R * 1.7, 0.08, 0.008, 0, 0, 0, 0x7a6040);
+        batten.rotateX(a);
+        batten.translate(x + Math.sign(x) * 0.045, R, 0);
+        parts.push(batten);
+      }
+      parts.push(
+        cyl(
+          0.09,
+          0.09,
+          0.02,
+          10,
+          x + Math.sign(x) * 0.045,
+          R,
+          0,
+          STEEL_DARK,
+          0,
+          0,
+          Math.PI / 2,
+        ),
+      );
+    }
   }
   parts.push(cyl(0.3, 0.3, 0.56, 12, 0, R, 0, 0x4a4238, 0, 0, Math.PI / 2));
   // A few turns of cable still on the drum.
@@ -345,7 +745,7 @@ function cableReel(): THREE.BufferGeometry {
         0.36 + i * 0.012,
         0.36 + i * 0.012,
         0.5 - i * 0.08,
-        12,
+        hi ? 18 : 12,
         0,
         R,
         0,
@@ -359,14 +759,14 @@ function cableReel(): THREE.BufferGeometry {
   return mergeParts(parts);
 }
 
-/** A skid-mounted generator set. */
-function genset(): THREE.BufferGeometry {
+/** A skid-mounted generator set: canopy, doors, louvres, panel and stack. */
+function genset(_rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const w = 1.86;
   const h = 1.0;
   const d = 0.96;
-  parts.push(box(w, 0.14, d, 0, 0.07, 0, STEEL_DARK));
-  parts.push(box(w * 0.96, h - 0.2, d * 0.94, 0, 0.14 + (h - 0.2) / 2, 0, 0x6f7a63));
+  parts.push(rbox(w, 0.14, d, 0.015, 0, 0.07, 0, STEEL_DARK));
+  parts.push(rbox(w * 0.96, h - 0.2, d * 0.94, 0.03, 0, 0.14 + (h - 0.2) / 2, 0, PAINT));
   // Louvred end and an exhaust stack.
   parts.push(box(0.05, h * 0.5, d * 0.7, w / 2 - 0.01, h * 0.5, 0, 0x3d443a));
   for (let i = 0; i < 5; i += 1) {
@@ -376,36 +776,119 @@ function genset(): THREE.BufferGeometry {
   }
   parts.push(cyl(0.075, 0.075, 0.42, 8, -w * 0.3, h + 0.12, d * 0.28, STEEL_DARK));
   parts.push(box(w * 0.4, 0.06, 0.06, w * 0.18, h - 0.04, 0, STEEL_DARK));
+  if (hi) {
+    // forklift pockets through the skid
+    for (const sx of [-0.45, 0.45]) {
+      for (const sz of [-1, 1])
+        parts.push(box(0.22, 0.08, 0.01, sx, 0.07, sz * (d / 2 + 0.002), 0x1e201e));
+    }
+    // canopy doors: shut lines, hinges, latches on both long sides
+    for (const sz of [-1, 1]) {
+      const z = sz * (d * 0.47 + 0.003);
+      for (const x of [-0.62, 0, 0.62]) {
+        parts.push(
+          box(0.012, h - 0.34, 0.004, x - 0.3, 0.14 + (h - 0.2) / 2, z, 0x262a24),
+        );
+        parts.push(box(0.04, 0.025, 0.012, x + 0.2, 0.62, z + sz * 0.006, 0x2f3330));
+      }
+    }
+    // control panel window, warning label, lifting eyes, rain cap, fuel filler
+    parts.push(box(0.28, 0.2, 0.01, -0.62, 0.66, d * 0.47 + 0.008, 0x1d2426));
+    parts.push(box(0.12, 0.08, 0.004, 0.22, 0.75, d * 0.47 + 0.006, 0xc9a43a));
+    for (const x of [-0.6, 0.6]) {
+      const eye = new THREE.TorusGeometry(0.04, 0.01, 4, 8, Math.PI);
+      eye.translate(x, h - 0.06, 0);
+      parts.push(paint(eye, STEEL_DARK));
+    }
+    parts.push(cyl(0.1, 0.075, 0.03, 8, -w * 0.3, h + 0.345, d * 0.28, STEEL_DARK));
+    parts.push(
+      cyl(
+        0.035,
+        0.035,
+        0.05,
+        8,
+        w * 0.32,
+        h - 0.17,
+        -d * 0.47,
+        0x2f3330,
+        Math.PI / 2,
+        0,
+        0,
+      ),
+    );
+  }
   return mergeParts(parts);
 }
 
 /** A stack of three pallets. */
-function palletStack(): THREE.BufferGeometry {
+function palletStack(_rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
+  // Stringers run the long way; deck boards cross them top and bottom, so
+  // the stack reads as stacked pallets with daylight between, not as slabs.
+  const bottom = hi ? 0.018 : 0;
+  const pitch = 0.108 + bottom;
   for (let s = 0; s < 3; s += 1) {
-    const y = s * 0.145;
-    for (const z of [-0.36, 0, 0.36]) {
-      parts.push(box(1.16, 0.075, 0.1, 0, y + 0.037, z, WOOD));
+    const y = s * pitch;
+    if (hi) {
+      for (const x of [-0.5, 0, 0.5])
+        parts.push(box(0.13, bottom, 0.8, x, y + bottom / 2, 0, 0x9b8058));
     }
-    for (let i = 0; i < 5; i += 1) {
-      const z = (i / 4 - 0.5) * 0.78;
-      parts.push(box(1.16, 0.022, 0.11, 0, y + 0.086, z, 0xa88a5c));
+    for (const z of [-0.34, 0, 0.34]) {
+      parts.push(box(1.16, 0.075, 0.1, 0, y + bottom + 0.0375, z, WOOD));
+    }
+    const boards = hi ? 7 : 5;
+    for (let i = 0; i < boards; i += 1) {
+      const x = (i / (boards - 1) - 0.5) * 1.03;
+      parts.push(
+        box(
+          1.03 / boards - 0.012,
+          0.022,
+          0.8,
+          x,
+          y + bottom + 0.086,
+          0,
+          i % 3 === 1 ? 0x8d7552 : 0xa88a5c,
+        ),
+      );
     }
   }
   return mergeParts(parts);
 }
 
-/** A traffic cone with a reflective band. */
-function cone(): THREE.BufferGeometry {
+/** A traffic cone: rubber base, ribbed shell, two retroreflective collars. */
+function cone(_rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  parts.push(box(0.32, 0.04, 0.32, 0, 0.02, 0, 0xb8481f));
-  parts.push(cyl(0.035, 0.145, 0.56, 8, 0, 0.32, 0, 0xc2521f));
-  parts.push(cyl(0.082, 0.098, 0.1, 8, 0, 0.42, 0, 0xd8d2c4));
+  const seg = hi ? 20 : 8;
+  parts.push(rbox(0.36, 0.035, 0.36, 0.03, 0, 0.0175, 0, 0x1f1f20));
+  const top = 0.66;
+  const r0 = 0.15;
+  const r1 = 0.026;
+  const radius = (y: number) => r0 + ((r1 - r0) * (y - 0.035)) / (top - 0.035);
+  parts.push(cyl(r1, r0, top - 0.035, seg, 0, (top + 0.035) / 2, 0, 0xd2501c));
+  // the collars sit a hair proud of the shell
+  for (const [y0, y1] of [
+    [0.4, 0.49],
+    [0.25, 0.3],
+  ] as const) {
+    parts.push(
+      cyl(
+        radius(y1) + 0.003,
+        radius(y0) + 0.003,
+        y1 - y0,
+        seg,
+        0,
+        (y0 + y1) / 2,
+        0,
+        0xe6e4dc,
+      ),
+    );
+  }
+  parts.push(cyl(r1 + 0.004, r1 + 0.006, 0.02, seg, 0, top - 0.01, 0, 0xc04818));
   return mergeParts(parts);
 }
 
-/** Broken concrete and spoil. */
-function rubble(rand: Rand): THREE.BufferGeometry {
+/** Broken concrete and spoil, with rebar sticking out of it. */
+function rubble(rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 6; i += 1) {
     const r = 0.07 + rand() * 0.17;
@@ -423,6 +906,25 @@ function rubble(rand: Rand): THREE.BufferGeometry {
         (rand() - 0.5) * 0.4,
       ),
     );
+  }
+  if (hi) {
+    for (let i = 0; i < 2; i += 1) {
+      parts.push(
+        cyl(
+          0.007,
+          0.007,
+          0.45,
+          4,
+          (rand() - 0.5) * 0.4,
+          0.15,
+          (rand() - 0.5) * 0.4,
+          RUST,
+          rand() - 0.5,
+          rand() * 3,
+          0.9 + rand() * 0.5,
+        ),
+      );
+    }
   }
   return mergeParts(parts);
 }
@@ -478,12 +980,48 @@ function rock(rand: Rand): THREE.BufferGeometry {
   return paint(geometry, 0x807966);
 }
 
-/** A stack of scrap tyres. */
-function tyreStack(): THREE.BufferGeometry {
+/** A stack of scrap tyres, lathed from a real section. */
+function tyreStack(rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
+  const section: readonly (readonly [number, number])[] = hi
+    ? [
+        [0.2, 0.02],
+        [0.215, 0.002],
+        [0.3, 0],
+        [0.33, 0.012],
+        [0.348, 0.04],
+        [0.352, 0.085],
+        [0.348, 0.13],
+        [0.33, 0.158],
+        [0.3, 0.17],
+        [0.215, 0.168],
+        [0.2, 0.15],
+        [0.2, 0.02],
+      ]
+    : [
+        [0.2, 0],
+        [0.34, 0],
+        [0.35, 0.085],
+        [0.34, 0.17],
+        [0.2, 0.17],
+        [0.2, 0],
+      ];
   for (let i = 0; i < 3; i += 1) {
-    parts.push(cyl(0.34, 0.34, 0.17, 12, 0, 0.09 + i * 0.16, 0, RUBBER));
-    parts.push(cyl(0.19, 0.19, 0.19, 10, 0, 0.09 + i * 0.16, 0, 0x1c1c1e));
+    const tyre = lathe(section, hi ? 20 : 12, RUBBER, (p) => {
+      // tread blocks: the shoulder steps in and out around the crown
+      if (!hi) return;
+      for (let k = 0; k < p.count; k += 1) {
+        const x = p.getX(k);
+        const z = p.getZ(k);
+        const r = Math.hypot(x, z);
+        if (r < 0.345) continue;
+        const a = Math.atan2(z, x);
+        const s = Math.sign(Math.sin(a * 10)) * 0.006;
+        p.setXYZ(k, (x * (r + s)) / r, p.getY(k), (z * (r + s)) / r);
+      }
+    });
+    tyre.translate((rand() - 0.5) * 0.06, i * 0.165, (rand() - 0.5) * 0.06);
+    parts.push(tyre);
   }
   return mergeParts(parts);
 }
@@ -496,7 +1034,12 @@ type MaterialKind = "hard" | "soft" | "organic";
 
 interface PropDef {
   readonly id: string;
-  readonly build: (rand: Rand) => THREE.BufferGeometry;
+  /** `hi` is the top quality tier: full detail; below it, the old weight. */
+  readonly build: (rand: Rand, hi: boolean) => THREE.BufferGeometry;
+  /** Procedural surface (`@/gfx/greeble`), or none. */
+  readonly finish: HardSurfacePreset | null;
+  /** Paint batches an instance is tinted from; neutral tint when absent. */
+  readonly palette?: readonly number[];
   readonly material: MaterialKind;
   readonly surface: SurfaceType;
   /** Height used for the dust gradient, and the cue that this is real cover. */
@@ -513,6 +1056,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "jersey",
     build: jerseyBarrier,
+    finish: "cast",
     material: "hard",
     surface: "concrete",
     height: 0.82,
@@ -523,6 +1067,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "hesco",
     build: hescoBastion,
+    finish: "propFabric",
     material: "soft",
     surface: "sand",
     height: 1.06,
@@ -533,6 +1078,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "sandbags",
     build: sandbagStack,
+    finish: "propFabric",
     material: "soft",
     surface: "sand",
     height: 0.66,
@@ -543,6 +1089,8 @@ const PROPS: readonly PropDef[] = [
   {
     id: "crate",
     build: crate,
+    finish: "propWood",
+    palette: [0x9a7c52, 0x8a7350, 0x5f6347, 0x565b43, 0x8b8578],
     material: "hard",
     surface: "wood",
     height: 0.94,
@@ -553,6 +1101,8 @@ const PROPS: readonly PropDef[] = [
   {
     id: "drum",
     build: drum,
+    finish: "propPaint",
+    palette: [0x39546b, 0x5f6347, 0x7a3f2c, 0x2f3133, 0x6b6f4e, 0x8a8778],
     material: "hard",
     surface: "thin-metal",
     height: 0.88,
@@ -563,6 +1113,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "pipes",
     build: pipeStack,
+    finish: "propPaint",
     material: "hard",
     surface: "metal",
     height: 0.75,
@@ -573,6 +1124,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "reel",
     build: cableReel,
+    finish: "propWood",
     material: "hard",
     surface: "wood",
     height: 1.36,
@@ -583,6 +1135,8 @@ const PROPS: readonly PropDef[] = [
   {
     id: "genset",
     build: genset,
+    finish: "propPaint",
+    palette: [0x6f7a63, 0x9c937a, 0x5c6450],
     material: "hard",
     surface: "metal",
     height: 1.12,
@@ -593,6 +1147,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "pallets",
     build: palletStack,
+    finish: "propWood",
     material: "hard",
     surface: "wood",
     height: 0.44,
@@ -603,6 +1158,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "tyres",
     build: tyreStack,
+    finish: "propRubber",
     material: "hard",
     surface: "rubber",
     height: 0.53,
@@ -613,6 +1169,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "cone",
     build: cone,
+    finish: "propRubber",
     material: "hard",
     surface: "rubber",
     height: 0.6,
@@ -623,6 +1180,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "rubble",
     build: rubble,
+    finish: "cast",
     material: "hard",
     surface: "concrete",
     height: 0.3,
@@ -633,6 +1191,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "scrub",
     build: scrub,
+    finish: null,
     material: "organic",
     surface: "foliage",
     height: 0.5,
@@ -643,6 +1202,7 @@ const PROPS: readonly PropDef[] = [
   {
     id: "rock",
     build: rock,
+    finish: "cast",
     material: "hard",
     surface: "gravel",
     height: 0.3,
@@ -734,7 +1294,25 @@ export interface ClutterOptions {
   seed?: number;
   /** Scales every count; 0 places nothing. */
   density?: number;
+  /** Full prop detail (top tier). Lower tiers keep the lighter builds. */
+  detailed?: boolean;
 }
+
+/** Base roughness and metalness for each finish; paint is a dielectric. */
+const FINISH_PBR: Record<HardSurfacePreset, readonly [number, number]> = {
+  concrete: [0.92, 0],
+  cladding: [0.6, 0.2],
+  machined: [0.45, 0.6],
+  airframe: [0.5, 0.3],
+  plated: [0.55, 0.1],
+  profiled: [0.6, 0.15],
+  roofSeam: [0.6, 0.15],
+  cast: [0.9, 0],
+  propPaint: [0.55, 0.08],
+  propWood: [0.84, 0],
+  propFabric: [0.95, 0],
+  propRubber: [0.82, 0],
+};
 
 export interface ClutterResult {
   group: THREE.Group;
@@ -752,6 +1330,7 @@ export interface ClutterResult {
  */
 export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult {
   const density = options.density ?? 1;
+  const detailed = options.detailed ?? true;
   const rand = mulberry32(options.seed ?? 0x5c1a77);
   const footprints = buildFootprints();
   const slots: Slot[][] = PROPS.map(() => []);
@@ -1057,18 +1636,24 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
     const list = slots[p]!;
     if (list.length === 0) continue;
 
-    const geometry = def.build(rand);
+    const geometry = def.build(rand, detailed);
     weather(geometry, dust, def.height);
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
     geometries.push(geometry);
 
+    const [roughness, metalness] = def.finish
+      ? FINISH_PBR[def.finish]
+      : [def.material === "soft" ? 0.95 : 0.88, 0];
     const material = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: def.material === "hard" ? 0.78 : def.material === "soft" ? 0.95 : 0.88,
-      metalness: def.material === "hard" ? 0.18 : 0,
+      roughness,
+      metalness,
       side: def.material === "organic" ? THREE.DoubleSide : THREE.FrontSide,
     });
+    // The micro-surface is what makes a prop at arm's length read as cast,
+    // sawn, woven or painted rather than as a flat-coloured primitive.
+    if (def.finish && detailed) applyPreset(material, def.finish, { seed: p * 13 + 5 });
     material.name = `clutter-${def.id}`;
     materials.push(material);
 
@@ -1093,7 +1678,12 @@ export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult 
       scaleVec.set(slot.scale, slot.scale * (0.93 + (i % 7) * 0.022), slot.scale);
       matrix.compose(positionVec, quaternion, scaleVec);
       mesh.setMatrixAt(i, matrix);
-      tintColor.setScalar(slot.tint);
+      if (def.palette) {
+        // a stable pick per instance, so the palette does not consume the seed
+        tintColor
+          .setHex(def.palette[(i * 7919 + p * 31) % def.palette.length]!)
+          .multiplyScalar(slot.tint / 0.76);
+      } else tintColor.setScalar(slot.tint);
       mesh.setColorAt(i, tintColor);
     }
     mesh.instanceMatrix.needsUpdate = true;

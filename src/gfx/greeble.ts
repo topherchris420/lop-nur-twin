@@ -26,9 +26,43 @@ import { patchShader } from "./shaderPatch";
 /* Hard-surface material patching                                      */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Procedural micro-surface: the millimetre-to-centimetre relief a photo
+ * scan would carry. Each kind writes albedo, roughness and an analytic height
+ * gradient that tilts the shading normal, so the low sun rakes across it.
+ */
+export type HardSurfaceMicro =
+  "none" | "concrete" | "paint" | "wood" | "fabric" | "rubber";
+
 export interface HardSurfaceOptions {
-  /** Formed steel cross-section, resolved in local metres. */
-  sheetProfile?: "flat" | "corrugated" | "shutter";
+  /**
+   * Formed steel cross-section, resolved in local metres. `trapezoid` is
+   * box-rib wall cladding (200 mm pitch, 32 mm ribs); `seam` is a standing
+   * seam roof (500 mm pans between raised seams).
+   */
+  sheetProfile?: "flat" | "corrugated" | "shutter" | "trapezoid" | "seam";
+  /**
+   * The plate grid. Off for cast, moulded and woven things — barriers, drums,
+   * sandbags — which have no panel joints; it also decorrelates instances of
+   * an instanced mesh so a row of props does not repeat one pattern.
+   */
+  plates?: boolean;
+  /** Procedural micro-surface; see `HardSurfaceMicro`. */
+  micro?: HardSurfaceMicro;
+  /** Size of the micro-surface's base cell, in metres. */
+  microScale?: number;
+  /** Strength of the micro-surface's normal tilt. */
+  microRelief?: number;
+  /** Paint chipped through to `chipColor` (micro "paint" only), 0-1. */
+  chips?: number;
+  /** What a chip exposes: primer, bare steel or rust. */
+  chipColor?: THREE.ColorRepresentation;
+  /** Broad sun-bleached patches: lighter, chalkier, rougher. */
+  bleach?: number;
+  /** Panels that are not quite flat (oil canning), as a slope amplitude. */
+  oilCan?: number;
+  /** Rust bleeding down the wall from each rivet (needs `rivets`). */
+  rivetRust?: number;
   /** Long edge of a plate, in metres. 1.4-4 for buildings, 6-12 for concrete. */
   plateScale?: number;
   /** Plate aspect ratio (short edge / long edge). */
@@ -91,16 +125,29 @@ export interface HardSurfaceOptions {
 }
 
 interface ResolvedHardSurface extends Required<
-  Omit<HardSurfaceOptions, "dustColor" | "rustColor" | "rimColor" | "groundGrimeColor">
+  Omit<
+    HardSurfaceOptions,
+    "dustColor" | "rustColor" | "rimColor" | "groundGrimeColor" | "chipColor"
+  >
 > {
   dustColor: THREE.Color;
   rustColor: THREE.Color;
   rimColor: THREE.Color;
   groundGrimeColor: THREE.Color;
+  chipColor: THREE.Color;
 }
 
 const HARD_SURFACE_DEFAULTS: ResolvedHardSurface = {
   sheetProfile: "flat",
+  plates: true,
+  micro: "none",
+  microScale: 0.45,
+  microRelief: 1,
+  chips: 0,
+  chipColor: new THREE.Color("#4a3a2c"),
+  bleach: 0,
+  oilCan: 0,
+  rivetRust: 0,
   plateScale: 2.6,
   plateAspect: 0.62,
   stagger: 0.5,
@@ -136,10 +183,28 @@ varying vec3 vHsPos;
 varying vec3 vHsNormal;
 varying vec3 vHsWorldNormal;
 varying float vHsWorldY;
+#ifdef USE_INSTANCING
+// the instance's own axes: object-space detail is built before the instance
+// transform, so a tilt computed there has to be carried through it
+varying vec3 vHsIx;
+varying vec3 vHsIy;
+varying vec3 vHsIz;
+#define HS_OBJ(v) (vHsIx * (v).x + vHsIy * (v).y + vHsIz * (v).z)
+#else
+#define HS_OBJ(v) (v)
+#endif
 
 // three declares these in the vertex prefix only, but binds them for any
 // program whose uniform map contains them, so declaring it here is enough
 uniform mat3 normalMatrix;
+
+uniform float hsMicroScale;
+uniform float hsMicroRelief;
+uniform float hsChips;
+uniform vec3 hsChipColor;
+uniform float hsBleach;
+uniform float hsOilCan;
+uniform float hsRivetRust;
 
 uniform float hsPlateScale;
 uniform float hsPlateAspect;
@@ -181,6 +246,40 @@ float hsValueNoise(vec2 p) {
   float c = hsHash21(i + vec2(0.0, 1.0));
   float d = hsHash21(i + vec2(1.0, 1.0));
   return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+// Lattice hash without sin(): object coordinates on a 120 m hall divided by
+// a 2 cm cell run into the thousands, where sin(x * 127) has no fractional
+// bits left and the pattern collapses into stripes.
+float hsHashI(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031 + hsSeed * 0.0173);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+// Value noise with its analytic gradient: (value, d/dx, d/dy) in cell units.
+// The gradient is what tilts the normal, so relief needs no derivatives and
+// no texture, and it does not break up into 2x2 pixel blocks.
+vec3 hsNoiseD(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  vec2 du = 6.0 * f * (1.0 - f);
+  float a = hsHashI(i);
+  float b = hsHashI(i + vec2(1.0, 0.0));
+  float c = hsHashI(i + vec2(0.0, 1.0));
+  float d = hsHashI(i + vec2(1.0, 1.0));
+  float k1 = b - a;
+  float k2 = c - a;
+  float k4 = a - b - c + d;
+  return vec3(a + k1 * u.x + k2 * u.y + k4 * u.x * u.y,
+              du * vec2(k1 + k4 * u.y, k2 + k4 * u.x));
+}
+
+// An octave whose cell shrinks under about two pixels fades to its mean
+// rather than sparkling.
+float hsOctave(float fw, float freq) {
+  return 1.0 - smoothstep(0.28, 0.75, fw * freq);
 }
 
 /**
@@ -247,11 +346,18 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
   // across the glass read as tape on the window
   float hsGlazing = 1.0 - smoothstep(0.07, 0.16, roughnessFactor);
   hsLine *= hsFade * (1.0 - hsGlazing);
-  float hsSeam = max(hsLine.x, hsLine.y);
 
   // --- per-plate PBR variation -------------------------------------
+  #ifdef HS_NO_PLATES
+  // cast, moulded and woven surfaces have no joints and no plate batches
+  hsLine = vec2(0.0);
+  float hsPlate = 0.5;
+  float hsPlate2 = 0.5;
+  #else
   float hsPlate = hsHash21(hsCell + 17.0);
   float hsPlate2 = hsHash21(hsCell * 1.37 - 5.0);
+  #endif
+  float hsSeam = max(hsLine.x, hsLine.y);
   roughnessFactor = clamp(roughnessFactor + (hsPlate - 0.5) * hsPlateRoughness, 0.035, 1.0);
   diffuseColor.rgb *= 1.0 + (hsPlate2 - 0.5) * hsPlateAlbedo;
   metalnessFactor = clamp(metalnessFactor * (1.0 + (hsPlate - 0.5) * 0.12), 0.0, 1.0);
@@ -266,8 +372,134 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
     float hsRivet = hsDot * hsBand * hsFade * step(0.45, hsHash21(floor(hsRq) + 91.0));
     roughnessFactor = clamp(roughnessFactor - hsRivet * 0.22, 0.035, 1.0);
     diffuseColor.rgb *= 1.0 - hsRivet * 0.1;
+
+    // Each fastener is a hole through the paint. Water finds it, and a
+    // tapering orange run hangs under it for a hand-span or two.
+    if (hsRivetRust > 0.0) {
+      vec2 hsRc = floor(hsRq);
+      float hsBleed = 0.0;
+      for (int k = 0; k < 3; k++) {
+        vec2 hsC = hsRc + vec2(0.0, float(k));
+        vec2 hsCe = abs(fract((hsC + 0.5) / vec2(7.0, 5.0) - 0.5) - 0.5);
+        float hsOn = step(min(hsCe.x, hsCe.y), 0.1) * step(0.45, hsHashI(hsC + 91.0)) *
+            step(0.42, hsHashI(hsC + 13.0));
+        float hsDy = (hsC.y + 0.5) - hsRq.y;
+        float hsT = hsDy / mix(0.8, 3.2, hsHashI(hsC + 7.0));
+        float hsW = 0.05 + 0.1 * clamp(hsT, 0.0, 1.0);
+        float hsS = (1.0 - smoothstep(hsW * 0.5, hsW, abs(hsRf.x))) * step(0.0, hsDy) *
+            (1.0 - smoothstep(0.0, 1.0, hsT));
+        hsBleed = max(hsBleed, hsS * hsOn);
+      }
+      hsBleed *= hsRivetRust * hsOctave(max(hsFw.x, hsFw.y), 7.0) *
+          (1.0 - clamp(abs(hsWorldN.y), 0.0, 1.0)) * (1.0 - hsGlazing);
+      diffuseColor.rgb = mix(diffuseColor.rgb, hsRustColor, hsBleed * 0.6);
+      roughnessFactor = clamp(roughnessFactor + hsBleed * 0.15, 0.035, 1.0);
+      metalnessFactor *= 1.0 - hsBleed * 0.5;
+    }
   }
   #endif
+
+  #ifdef HS_MICRO
+  {
+    vec2 hsM = hsUv / hsMicroScale;
+    float hsMfw = max(max(fwidth(hsM.x), fwidth(hsM.y)), 1e-5);
+    float hsInv = 1.0 / hsMicroScale;
+    vec2 hsG = vec2(0.0);
+    #if defined(HS_MICRO_CONCRETE)
+      // mottled cement, aggregate grain and the blowholes of a cast face
+      vec3 hsO1 = hsNoiseD(hsM);
+      vec3 hsO2 = hsNoiseD(hsM * 3.7 + 11.0);
+      vec3 hsO3 = hsNoiseD(hsM * 11.0 + 3.0);
+      vec3 hsO4 = hsNoiseD(hsM * 31.0 + 7.0);
+      float hsW2 = hsOctave(hsMfw, 3.7);
+      float hsW3 = hsOctave(hsMfw, 11.0);
+      float hsW4 = hsOctave(hsMfw, 31.0);
+      float hsTone = (hsO1.x - 0.5) * 0.2 + (hsO2.x - 0.5) * 0.14 * hsW2 +
+          (hsO3.x - 0.5) * 0.12 * hsW3;
+      float hsPt = clamp((hsO4.x - 0.8) / 0.1, 0.0, 1.0);
+      float hsPore = hsPt * hsPt * (3.0 - 2.0 * hsPt) * hsW4;
+      diffuseColor.rgb *= 1.0 + hsTone - hsPore * 0.32;
+      roughnessFactor = clamp(roughnessFactor + (hsO2.x - 0.5) * 0.12 * hsW2 - hsPore * 0.06, 0.035, 1.0);
+      hsG += hsO2.yz * (3.7 * hsInv * 0.004) * hsW2;
+      hsG += hsO3.yz * (11.0 * hsInv * 0.0016) * hsW3;
+      // a pore is a pit: its rim slopes inward
+      hsG -= hsO4.yz * (6.0 * hsPt * (1.0 - hsPt) / 0.1) * (31.0 * hsInv * 0.00035) * hsW4;
+    #elif defined(HS_MICRO_PAINT)
+      // chipped paint over primer, orange peel, uneven sheen
+      vec3 hsO1 = hsNoiseD(hsM);
+      vec3 hsO2 = hsNoiseD(hsM * 4.3 + 5.0);
+      vec3 hsO3 = hsNoiseD(hsM * 17.0 + 9.0);
+      float hsW2 = hsOctave(hsMfw, 4.3);
+      float hsW3 = hsOctave(hsMfw, 17.0);
+      float hsField = hsO1.x * 0.6 + mix(0.5, hsO2.x, hsW2) * 0.4;
+      vec2 hsFieldG = hsO1.yz * (hsInv * 0.6) + hsO2.yz * (4.3 * hsInv * 0.4) * hsW2;
+      float hsThr = 1.0 - hsChips * 0.42;
+      float hsCw = 0.022 + hsMfw * 0.35;
+      float hsCt = clamp((hsField - hsThr) / hsCw, 0.0, 1.0);
+      float hsHasChips = step(0.001, hsChips);
+      float hsChip = hsCt * hsCt * (3.0 - 2.0 * hsCt) * hsHasChips;
+      diffuseColor.rgb = mix(diffuseColor.rgb, hsChipColor, hsChip);
+      roughnessFactor = mix(roughnessFactor, 0.66, hsChip);
+      metalnessFactor = mix(metalnessFactor, 0.25, hsChip);
+      // the paint film around a chip stands proud of what it exposes
+      hsG -= hsFieldG * (6.0 * hsCt * (1.0 - hsCt) / hsCw) * 0.0005 * hsHasChips;
+      diffuseColor.rgb *= 1.0 + (hsO1.x - 0.5) * 0.09 + (hsO3.x - 0.5) * 0.05 * hsW3;
+      roughnessFactor = clamp(roughnessFactor + (hsO2.x - 0.5) * 0.12 * hsW2, 0.035, 1.0);
+      hsG += hsO3.yz * (17.0 * hsInv * 0.0009) * hsW3;
+    #elif defined(HS_MICRO_WOOD)
+      // grain runs along u: boards here are laid along their length
+      vec3 hsN1 = hsNoiseD(hsM * vec2(0.6, 2.5));
+      vec3 hsN2 = hsNoiseD(hsM * vec2(2.0, 14.0) + 3.0);
+      float hsW2 = hsOctave(hsMfw, 14.0);
+      float hsRings = 22.0;
+      float hsWr = hsOctave(hsMfw, hsRings);
+      float hsPh = hsM.y * hsRings + hsN1.x * 4.0 + hsN2.x * 0.6 * hsW2;
+      float hsS = sin(hsPh * 6.2831853);
+      float hsLate = smoothstep(0.3, 1.0, hsS) * hsWr;
+      diffuseColor.rgb *= 1.0 - hsLate * 0.24 + (hsN1.x - 0.5) * 0.2;
+      roughnessFactor = clamp(roughnessFactor + hsLate * 0.06, 0.035, 1.0);
+      vec2 hsDph = vec2(0.0, hsRings) + hsN1.yz * vec2(0.6, 2.5) * 4.0 +
+          hsN2.yz * vec2(2.0, 14.0) * 0.6 * hsW2;
+      hsG += cos(hsPh * 6.2831853) * 6.2831853 * hsDph * (hsInv * 0.00028) * hsWr;
+      // weather checks: thin dark splits along the grain
+      float hsCheck = smoothstep(0.9, 0.97, hsN2.x) * hsW2;
+      diffuseColor.rgb *= 1.0 - hsCheck * 0.5;
+      hsG -= hsN2.yz * vec2(2.0, 14.0) * hsCheck * (hsInv * 0.002);
+    #elif defined(HS_MICRO_FABRIC)
+      // slumped folds and a 5 mm woven polypropylene basket weave
+      vec3 hsF1 = hsNoiseD(hsM * vec2(1.0, 2.6));
+      vec3 hsF2 = hsNoiseD(hsM * vec2(3.0, 7.0) + 4.0);
+      float hsW2 = hsOctave(hsMfw, 7.0);
+      float hsFold = hsF1.x * 0.65 + hsF2.x * 0.35 * hsW2;
+      hsG += (hsF1.yz * vec2(1.0, 2.6) * 0.65 + hsF2.yz * vec2(3.0, 7.0) * 0.35 * hsW2) *
+          (hsInv * 0.045);
+      // creases hold dirt and sit in their own shade
+      diffuseColor.rgb *= 0.8 + 0.34 * hsFold;
+      vec2 hsWv = hsUv / 0.005;
+      float hsWw = hsOctave(max(fwidth(hsWv.x), fwidth(hsWv.y)), 1.0);
+      vec2 hsSw = sin(hsWv * 6.2831853);
+      vec2 hsCwv = cos(hsWv * 6.2831853);
+      hsG += vec2(hsCwv.x * hsSw.y, hsSw.x * hsCwv.y) * (6.2831853 / 0.005 * 0.00008) * hsWw;
+      diffuseColor.rgb *= 1.0 - 0.07 * hsWw * (0.5 + 0.5 * hsSw.x * hsSw.y);
+      roughnessFactor = clamp(roughnessFactor + 0.04 - hsFold * 0.06, 0.035, 1.0);
+    #elif defined(HS_MICRO_RUBBER)
+      vec3 hsR1 = hsNoiseD(hsM * 6.0);
+      vec3 hsR2 = hsNoiseD(hsM * 23.0 + 2.0);
+      float hsW1 = hsOctave(hsMfw, 6.0);
+      float hsW2 = hsOctave(hsMfw, 23.0);
+      hsG += hsR1.yz * (6.0 * hsInv * 0.003) * hsW1 + hsR2.yz * (23.0 * hsInv * 0.0006) * hsW2;
+      diffuseColor.rgb *= 0.9 + 0.2 * hsR1.x;
+      roughnessFactor = clamp(roughnessFactor + (hsR2.x - 0.5) * 0.1 * hsW2, 0.035, 1.0);
+    #endif
+    hsMicroGrad = hsG * hsMicroRelief;
+  }
+  #endif
+
+  // --- panels are never quite flat ----------------------------------
+  if (hsOilCan > 0.0) {
+    vec3 hsOc = hsNoiseD(hsUv * 1.4 + hsCell * 7.31);
+    hsMicroGrad += hsOc.yz * (1.4 * hsOilCan) * hsFade * (1.0 - hsGlazing);
+  }
 
   // --- seams: a recess is never clean ------------------------------
   diffuseColor.rgb *= mix(1.0, hsSeamDarken, hsSeam);
@@ -295,6 +527,15 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
     diffuseColor.rgb = mix(diffuseColor.rgb, hsRustColor, hsOx * 0.7);
     roughnessFactor = clamp(roughnessFactor + hsOx * 0.25, 0.035, 1.0);
     metalnessFactor *= 1.0 - hsOx * 0.65;
+  }
+
+  // --- sun bleach: broad chalky patches where the paint has given up ----
+  if (hsBleach > 0.0) {
+    float hsB = hsValueNoise(hsUv * 0.23 + 1.7) * 0.65 + hsValueNoise(hsUv * 0.9 + 4.2) * 0.35;
+    hsB = smoothstep(0.36, 0.84, hsB) * hsBleach * (0.75 + 0.25 * hsUp) * (1.0 - hsGlazing);
+    float hsL = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(hsL) * 1.2 + 0.01, hsB * 0.55);
+    roughnessFactor = clamp(roughnessFactor + hsB * 0.12, 0.035, 1.0);
   }
 
   // --- drips: each plate carries grime down from the joint above it ---
@@ -345,22 +586,60 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
 
   // Folded sheet catches the actual sun and sky. As the pitch falls below two
   // pixels its slopes become unresolved roughness instead of flickering lines.
-  #if defined(HS_SHUTTER) || defined(HS_CORRUGATED)
-    #ifdef HS_SHUTTER
+  #if defined(HS_SHUTTER) || defined(HS_CORRUGATED) || defined(HS_TRAPEZOID) || defined(HS_SEAM)
+    #if defined(HS_SHUTTER)
       float hsFold = hsUv.y / 0.105;
       vec3 hsAcross = hsT2;
-    #else
+    #elif defined(HS_CORRUGATED)
       float hsFold = hsUv.x / 0.16;
       vec3 hsAcross = hsT1;
+    #elif defined(HS_TRAPEZOID)
+      float hsFold = hsUv.x / 0.2;
+      vec3 hsAcross = hsT1;
+    #else
+      float hsFold = hsUv.x / 0.5;
+      vec3 hsAcross = hsT1;
     #endif
-    float hsResolved = 1.0 - smoothstep(0.16, 0.48, fwidth(hsFold));
-    float hsPhase = hsFold * 6.2831853;
-    float hsFoldSlope = 0.41 * cos(hsPhase) + 0.15 * cos(2.0 * hsPhase);
+    float hsFoldFw = fwidth(hsFold);
+    float hsResolved = 1.0 - smoothstep(0.16, 0.48, hsFoldFw);
+    #if defined(HS_TRAPEZOID) || defined(HS_SEAM)
+      // Piecewise-flat profiles: every face of the fold is a plane, so each
+      // catches the sun or does not, and the ribs read as hard lines. No edge
+      // sits on the period wrap, so fract() never tears a web in two.
+      float hsX = fract(hsFold);
+      float hsE = max(hsFoldFw, 0.012);
+      #ifdef HS_TRAPEZOID
+        // pan 0-0.30, web up 0.30-0.42, crest 0.42-0.58, web down 0.58-0.70
+        float hsWebUp = smoothstep(0.30 - hsE, 0.30 + hsE, hsX) - smoothstep(0.42 - hsE, 0.42 + hsE, hsX);
+        float hsWebDown = smoothstep(0.58 - hsE, 0.58 + hsE, hsX) - smoothstep(0.70 - hsE, 0.70 + hsE, hsX);
+        // a 32 mm rib over a 24 mm web is about 53 degrees
+        float hsFoldSlope = 1.3 * (hsWebUp - hsWebDown);
+        float hsCrest = smoothstep(0.42 - hsE, 0.42 + hsE, hsX) - smoothstep(0.58 - hsE, 0.58 + hsE, hsX);
+        // a stiffener rolled into the middle of each pan
+        float hsSt = hsX < 0.15 ? hsX + 1.0 : hsX;
+        hsFoldSlope += 0.35 * (smoothstep(0.955 - hsE, 0.955 + hsE, hsSt) - smoothstep(0.98 - hsE, 0.98 + hsE, hsSt) -
+            smoothstep(1.02 - hsE, 1.02 + hsE, hsSt) + smoothstep(1.045 - hsE, 1.045 + hsE, hsSt));
+        // crests are scrubbed by wind-blown sand; pans keep the grime
+        diffuseColor.rgb *= mix(1.0, 0.94 + 0.11 * hsCrest, hsResolved);
+      #else
+        // a 25 mm standing seam every 500 mm between flat pans
+        float hsWebUp = smoothstep(0.465 - hsE, 0.465 + hsE, hsX) - smoothstep(0.485 - hsE, 0.485 + hsE, hsX);
+        float hsWebDown = smoothstep(0.515 - hsE, 0.515 + hsE, hsX) - smoothstep(0.535 - hsE, 0.535 + hsE, hsX);
+        float hsFoldSlope = 2.0 * (hsWebUp - hsWebDown);
+        float hsCrest = smoothstep(0.48 - hsE, 0.48 + hsE, hsX) - smoothstep(0.52 - hsE, 0.52 + hsE, hsX);
+        // the pans between seams bow very slightly
+        hsFoldSlope += 0.03 * cos(hsX * 6.2831853);
+        diffuseColor.rgb *= mix(1.0, 0.97 + 0.08 * hsCrest, hsResolved);
+      #endif
+    #else
+      float hsPhase = hsFold * 6.2831853;
+      float hsFoldSlope = 0.5 * cos(hsPhase) + 0.17 * cos(2.0 * hsPhase);
+      #ifdef HS_SHUTTER
+        float foldLap = pow(0.5 + 0.5 * sin(hsPhase), 5.0);
+        diffuseColor.rgb *= 1.0 - 0.23 * foldLap * hsResolved;
+      #endif
+    #endif
     hsSheetNormal = -hsAcross * hsFoldSlope * hsResolved;
-    #ifdef HS_SHUTTER
-      float foldLap = pow(0.5 + 0.5 * sin(hsPhase), 5.0);
-      diffuseColor.rgb *= 1.0 - 0.23 * foldLap * hsResolved;
-    #endif
     roughnessFactor = min(1.0, roughnessFactor + (1.0 - hsResolved) * 0.085);
   #endif
   hsSeamSlope = sign(fract(hsQ - 0.5) - 0.5) * hsLine;
@@ -380,15 +659,21 @@ const HARD_SURFACE_NORMAL = /* glsl */ `
 // silhouette, and letting a micro-groove drive it paints a bright fringe
 // along every seam
 hsRimNormal = normal;
-#if defined(HS_SHUTTER) || defined(HS_CORRUGATED)
-  normal = normalize(normal + normalMatrix * hsSheetNormal);
+#if defined(HS_SHUTTER) || defined(HS_CORRUGATED) || defined(HS_TRAPEZOID) || defined(HS_SEAM)
+  normal = normalize(normal + normalMatrix * HS_OBJ(hsSheetNormal));
 #endif
 if (hsSeamRelief > 0.0) {
   // hsSeamT1/T2 are object-space tangents and normal here is view space;
   // normalMatrix is object -> view, and three binds it for any program that
   // declares it (see the fragment head above)
   vec3 hsBump = -(hsSeamT1 * hsSeamSlope.x + hsSeamT2 * hsSeamSlope.y) * hsSeamRelief;
-  normal = normalize(normal + normalMatrix * hsBump);
+  normal = normalize(normal + normalMatrix * HS_OBJ(hsBump));
+}
+// micro relief and oil canning: a height field's gradient in the face's own
+// tangent frame, so n' = n - dh/du t1 - dh/dv t2
+if (dot(hsMicroGrad, hsMicroGrad) > 0.0) {
+  vec3 hsMb = -(hsSeamT1 * hsMicroGrad.x + hsSeamT2 * hsMicroGrad.y);
+  normal = normalize(normal + normalMatrix * HS_OBJ(hsMb));
 }
 `;
 
@@ -433,9 +718,17 @@ export function applyHardSurface<M extends THREE.MeshStandardMaterial>(
     groundGrimeColor: new THREE.Color(
       options.groundGrimeColor ?? HARD_SURFACE_DEFAULTS.groundGrimeColor,
     ),
+    chipColor: new THREE.Color(options.chipColor ?? HARD_SURFACE_DEFAULTS.chipColor),
   };
 
   const uniforms: Record<string, THREE.IUniform> = {
+    hsMicroScale: { value: o.microScale },
+    hsMicroRelief: { value: o.microRelief },
+    hsChips: { value: o.chips },
+    hsChipColor: { value: o.chipColor },
+    hsBleach: { value: o.bleach },
+    hsOilCan: { value: o.oilCan },
+    hsRivetRust: { value: o.rivetRust },
     hsPlateScale: { value: o.plateScale },
     hsPlateAspect: { value: o.plateAspect },
     hsStagger: { value: o.stagger },
@@ -474,7 +767,12 @@ export function applyHardSurface<M extends THREE.MeshStandardMaterial>(
 varying vec3 vHsPos;
 varying vec3 vHsNormal;
 varying vec3 vHsWorldNormal;
-varying float vHsWorldY;`,
+varying float vHsWorldY;
+#ifdef USE_INSTANCING
+varying vec3 vHsIx;
+varying vec3 vHsIy;
+varying vec3 vHsIz;
+#endif`,
       ],
       // `transformed` and `objectNormal` are final by the time project_vertex
       // runs, and this keeps the logdepth/clipping chunks after us untouched
@@ -482,10 +780,19 @@ varying float vHsWorldY;`,
         "#include <project_vertex>",
         `vHsPos = transformed;
 vHsNormal = objectNormal;
-vHsWorldNormal = normalize(mat3(modelMatrix) * objectNormal);
 #ifdef USE_INSTANCING
+vHsIx = instanceMatrix[0].xyz;
+vHsIy = instanceMatrix[1].xyz;
+vHsIz = instanceMatrix[2].xyz;
+vHsWorldNormal = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
 vHsWorldY = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).y;
+#ifdef HS_NO_PLATES
+// every instance of a prop shares one object space; shift each one's
+// pattern by where it stands so a row of drums does not repeat one drum
+vHsPos.xz += instanceMatrix[3].xz * 0.37;
+#endif
 #else
+vHsWorldNormal = normalize(mat3(modelMatrix) * objectNormal);
 vHsWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
 #endif
 #include <project_vertex>`,
@@ -504,7 +811,8 @@ vHsWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
   vec3 hsSeamT1 = vec3(1.0, 0.0, 0.0);
   vec3 hsSeamT2 = vec3(0.0, 1.0, 0.0);
   vec3 hsRimNormal = vec3(0.0);
-  vec3 hsSheetNormal = vec3(0.0);`,
+  vec3 hsSheetNormal = vec3(0.0);
+  vec2 hsMicroGrad = vec2(0.0);`,
         ],
         [
           "#include <metalnessmap_fragment>",
@@ -525,14 +833,24 @@ vHsWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
   };
 
   // the injection is switched by a #define, so it has to be part of the key
-  const cacheKey = `hs:${o.rivets ? 1 : 0}:${o.sheetProfile}`;
+  const cacheKey = `hs:${o.rivets ? 1 : 0}:${o.sheetProfile}:${o.plates ? 1 : 0}:${o.micro}`;
   material.customProgramCacheKey = () => cacheKey;
-  if (o.sheetProfile !== "flat")
+  const profileDefine = {
+    flat: null,
+    corrugated: "HS_CORRUGATED",
+    shutter: "HS_SHUTTER",
+    trapezoid: "HS_TRAPEZOID",
+    seam: "HS_SEAM",
+  }[o.sheetProfile];
+  if (profileDefine) material.defines = { ...material.defines, [profileDefine]: "" };
+  if (o.rivets) material.defines = { ...material.defines, HS_RIVETS: "" };
+  if (!o.plates) material.defines = { ...material.defines, HS_NO_PLATES: "" };
+  if (o.micro !== "none")
     material.defines = {
       ...material.defines,
-      [o.sheetProfile === "shutter" ? "HS_SHUTTER" : "HS_CORRUGATED"]: "",
+      HS_MICRO: "",
+      [`HS_MICRO_${o.micro.toUpperCase()}`]: "",
     };
-  if (o.rivets) material.defines = { ...material.defines, HS_RIVETS: "" };
 
   material.needsUpdate = true;
   return material;
@@ -624,6 +942,105 @@ export const HARD_SURFACE_PRESETS = {
     dust: 0.3,
     rimIntensity: 0.12,
     rimPower: 3,
+  },
+  /**
+   * Box-rib steel wall cladding: tall sheets on a straight grid, deep ribs
+   * that rake in the low sun, chipped paint and rust bleeding from the
+   * fastener lines at each sheet lap.
+   */
+  profiled: {
+    sheetProfile: "trapezoid",
+    plateScale: 6,
+    plateAspect: 0.5,
+    stagger: 0,
+    seamWidth: 0.02,
+    seamDarken: 0.72,
+    seamRelief: 0.4,
+    plateRoughness: 0.12,
+    plateAlbedo: 0.08,
+    rivets: true,
+    rivetRust: 0.8,
+    streaks: 0.45,
+    rust: 0.16,
+    dust: 0.3,
+    micro: "paint",
+    microScale: 0.5,
+    chips: 0.22,
+    bleach: 0.5,
+    rimIntensity: 0.1,
+    rimPower: 3,
+  },
+  /** Standing-seam roof sheet: long pans, bleached, dusty. */
+  roofSeam: {
+    sheetProfile: "seam",
+    plateScale: 12,
+    plateAspect: 0.5,
+    stagger: 0,
+    seamWidth: 0.02,
+    seamDarken: 0.85,
+    seamRelief: 0.3,
+    plateAlbedo: 0.05,
+    dust: 0.5,
+    micro: "paint",
+    microScale: 0.6,
+    bleach: 0.6,
+    oilCan: 0.02,
+    rimIntensity: 0.06,
+  },
+  /** Cast concrete with a real face: blowholes, aggregate, mottled cement. */
+  cast: {
+    plates: false,
+    micro: "concrete",
+    microScale: 0.5,
+    seamRelief: 0,
+    streaks: 0.3,
+    dust: 0.4,
+    rimIntensity: 0.04,
+    rimPower: 3.4,
+  },
+  /** Painted steel props: drums, gensets, reels. */
+  propPaint: {
+    plates: false,
+    micro: "paint",
+    microScale: 0.35,
+    chips: 0.42,
+    seamRelief: 0,
+    bleach: 0.35,
+    streaks: 0.3,
+    rust: 0.3,
+    dust: 0.35,
+    rimIntensity: 0.08,
+  },
+  /** Rough-sawn timber: crates, pallets, reels. */
+  propWood: {
+    plates: false,
+    micro: "wood",
+    microScale: 0.6,
+    seamRelief: 0,
+    bleach: 0.5,
+    streaks: 0.2,
+    dust: 0.4,
+    rimIntensity: 0.05,
+  },
+  /** Woven sacking: sandbags and bastion liners. */
+  propFabric: {
+    plates: false,
+    micro: "fabric",
+    microScale: 0.3,
+    seamRelief: 0,
+    streaks: 0,
+    dust: 0.55,
+    rimIntensity: 0.03,
+  },
+  /** Moulded rubber and plastic: tyres, cones. */
+  propRubber: {
+    plates: false,
+    micro: "rubber",
+    microScale: 0.3,
+    seamRelief: 0,
+    streaks: 0.1,
+    dust: 0.3,
+    rimIntensity: 0.05,
   },
 } satisfies Record<string, HardSurfaceOptions>;
 
