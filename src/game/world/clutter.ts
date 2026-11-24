@@ -160,13 +160,26 @@ function rbox(
   ry = 0,
   rz = 0,
 ): THREE.BufferGeometry {
-  const radius = Math.max(1e-4, Math.min(r, w / 2 - 1e-4, h / 2 - 1e-4, d / 2 - 1e-4));
-  const geometry = new RoundedBoxGeometry(w, h, d, 1, radius);
+  // A chamfer costs some seventy triangles; it only pays where there is a
+  // face for its highlight to separate, and only on the top tier.
+  const geometry =
+    chamfers && Math.min(w, h, d) >= 0.1
+      ? new RoundedBoxGeometry(
+          w,
+          h,
+          d,
+          1,
+          Math.max(1e-4, Math.min(r, w / 2 - 1e-4, h / 2 - 1e-4, d / 2 - 1e-4)),
+        )
+      : new THREE.BoxGeometry(w, h, d);
   if (rz) geometry.rotateZ(rz);
   if (ry) geometry.rotateY(ry);
   geometry.translate(x, y, z);
   return paint(geometry, color);
 }
+
+/** Set per build: chamfered edges on the top tier only. */
+let chamfers = true;
 
 /** A lathed solid from a (radius, height) profile, bottom to top. */
 function lathe(
@@ -315,7 +328,8 @@ function hescoBastion(rand: Rand, hi: boolean): THREE.BufferGeometry {
   const s = 1.12;
   const h = 1.06;
   // The liner bellies out between the wires under the weight of the fill.
-  const liner = new THREE.BoxGeometry(s * 0.96, h * 0.97, s * 0.96, 3, 3, 3);
+  const ls = hi ? 3 : 1;
+  const liner = new THREE.BoxGeometry(s * 0.96, h * 0.97, s * 0.96, ls, ls, ls);
   liner.deleteAttribute("normal");
   liner.deleteAttribute("uv");
   const welded = mergeVertices(liner);
@@ -342,7 +356,7 @@ function hescoBastion(rand: Rand, hi: boolean): THREE.BufferGeometry {
     }
   }
   // welded mesh: verticals and horizontals on every face
-  const n = hi ? 5 : 2;
+  const n = hi ? 5 : 1;
   const wire = 0x7d8285;
   for (let i = 0; i <= n; i += 1) {
     const t = (i / n - 0.5) * s;
@@ -388,7 +402,7 @@ function sandbag(
   wid: number,
   hgt: number,
 ): THREE.BufferGeometry {
-  const box = new THREE.BoxGeometry(1, 1, 1, hi ? 6 : 3, hi ? 2 : 1, hi ? 3 : 2);
+  const box = new THREE.BoxGeometry(1, 1, 1, hi ? 4 : 3, hi ? 2 : 1, hi ? 2 : 1);
   box.deleteAttribute("normal");
   box.deleteAttribute("uv");
   const g = mergeVertices(box);
@@ -638,7 +652,7 @@ function drum(rand: Rand, hi: boolean): THREE.BufferGeometry {
     r: 0.07 + rand() * 0.08,
     depth: 0.008 + rand() * 0.016,
   }));
-  const body = lathe(profile, hi ? 22 : 12, PAINT, (p) => {
+  const body = lathe(profile, hi ? 18 : 12, PAINT, (p) => {
     for (let i = 0; i < p.count; i += 1) {
       const x = p.getX(i);
       const y = p.getY(i);
@@ -682,15 +696,15 @@ function pipeStack(_rand: Rand, hi: boolean): THREE.BufferGeometry {
     for (let i = 0; i < n; i += 1) {
       const x = (i - (n - 1) / 2) * (r * 2.05);
       parts.push(
-        cyl(r, r, len, hi ? 16 : 10, x, rowY[row]!, 0, STEEL, Math.PI / 2, 0, 0),
+        cyl(r, r, len, hi ? 12 : 10, x, rowY[row]!, 0, STEEL, Math.PI / 2, 0, 0),
       );
-      for (const end of [-1, 1]) {
+      for (const end of hi ? [-1, 1] : []) {
         parts.push(
           cyl(
             r * 0.86,
             r * 0.86,
             0.01,
-            hi ? 16 : 10,
+            12,
             x,
             rowY[row]!,
             end * (len / 2 + 0.003),
@@ -858,7 +872,7 @@ function palletStack(_rand: Rand, hi: boolean): THREE.BufferGeometry {
 /** A traffic cone: rubber base, ribbed shell, two retroreflective collars. */
 function cone(_rand: Rand, hi: boolean): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  const seg = hi ? 20 : 8;
+  const seg = hi ? 16 : 8;
   parts.push(rbox(0.36, 0.035, 0.36, 0.03, 0, 0.0175, 0, 0x1f1f20));
   const top = 0.66;
   const r0 = 0.15;
@@ -1007,7 +1021,7 @@ function tyreStack(rand: Rand, hi: boolean): THREE.BufferGeometry {
         [0.2, 0],
       ];
   for (let i = 0; i < 3; i += 1) {
-    const tyre = lathe(section, hi ? 20 : 12, RUBBER, (p) => {
+    const tyre = lathe(section, hi ? 14 : 10, RUBBER, (p) => {
       // tread blocks: the shoulder steps in and out around the crown
       if (!hi) return;
       for (let k = 0; k < p.count; k += 1) {
@@ -1016,7 +1030,7 @@ function tyreStack(rand: Rand, hi: boolean): THREE.BufferGeometry {
         const r = Math.hypot(x, z);
         if (r < 0.345) continue;
         const a = Math.atan2(z, x);
-        const s = Math.sign(Math.sin(a * 10)) * 0.006;
+        const s = Math.sign(Math.sin(a * 7 + 0.2)) * 0.006;
         p.setXYZ(k, (x * (r + s)) / r, p.getY(k), (z * (r + s)) / r);
       }
     });
@@ -1331,6 +1345,7 @@ export interface ClutterResult {
 export function buildGroundClutter(options: ClutterOptions = {}): ClutterResult {
   const density = options.density ?? 1;
   const detailed = options.detailed ?? true;
+  chamfers = detailed;
   const rand = mulberry32(options.seed ?? 0x5c1a77);
   const footprints = buildFootprints();
   const slots: Slot[][] = PROPS.map(() => []);
