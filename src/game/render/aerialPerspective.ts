@@ -53,6 +53,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   bool sky = raw >= 0.999999;
 
   vec3 color = inputColor.rgb;
+  float transmittance = 1.0;
   if (!sky) {
     // The logarithmic depth buffer stores log2(1 + w) / log2(1 + far), where
     // w is the view-space depth; along the ray that is w / cos(angle).
@@ -64,7 +65,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
     float dy = dir.y * d * k;
     float column = abs(dy) > 1e-4 ? (1.0 - exp(-dy)) / dy : 1.0 - 0.5 * dy;
     float tau = apDensity * exp(-k * max(h, -50.0)) * d * column;
-    float transmittance = exp(-tau);
+    transmittance = exp(-tau);
     vec3 haze = skyHorizonHaze(dir);
     color = color * transmittance + haze * (1.0 - transmittance);
   }
@@ -95,10 +96,12 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
     float aspect = resolution.x / resolution.y;
     float screenDist = length(toSun * vec2(aspect, 1.0));
     float reach = exp(-screenDist * 2.2);
-    // Only the occluded remainder darkens; open air keeps the sky's glow,
-    // so shafts are contrast between lit and shadowed air, not a lift.
+    // Light scattered toward the eye by the air the sun reaches. Over near
+    // geometry there is almost no air, so almost nothing is added: the shafts
+    // live in the distance and the sky, never as a veil over the foreground.
     vec3 sunAir = skySunColor * lobe * apShafts * apSunScreen.z * skyDay;
-    color += sunAir * (lit - 0.55) * reach * (sky ? 0.35 : 1.0);
+    float air = sky ? 0.3 : 0.06 + 0.94 * (1.0 - transmittance);
+    color += sunAir * lit * reach * air;
   }
   outputColor = vec4(max(color, 0.0), inputColor.a);
 }

@@ -47,8 +47,10 @@ vec3 milkyWay(vec3 dir) {
   vec2 p = vec2(lon * 3.0, lat * 9.0);
   float band = exp(-lat * lat / 0.018);
   float mottle = skyFbm3(p * 1.6) * 0.5 + 0.5;
-  float lane = 1.0 - 0.7 * exp(-pow((lat - 0.02 + skyNoise(p * 0.7) * 0.03) / 0.035, 2.0));
-  float core = 0.6 + 0.4 * exp(-pow(lon - 0.8, 2.0) / 0.5);
+  float laneOffset = (lat - 0.02 + skyNoise(p * 0.7) * 0.03) / 0.035;
+  float lane = 1.0 - 0.7 * exp(-laneOffset * laneOffset);
+  float coreOffset = lon - 0.8;
+  float core = 0.6 + 0.4 * exp(-coreOffset * coreOffset / 0.5);
   return vec3(0.010, 0.0105, 0.012) * band * mottle * lane * core * smoothstep(0.0, 0.25, dir.y);
 }
 

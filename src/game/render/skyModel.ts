@@ -221,8 +221,8 @@ vec3 skyClear(vec3 dir) {
 
 /** What distant terrain fades into: the clear sky a few degrees up. */
 vec3 skyHorizonHaze(vec3 dir) {
-  vec3 flat = normalize(vec3(dir.x, max(dir.y, 0.0) * 0.4 + 0.035, dir.z));
-  return skyClear(flat);
+  vec3 level = normalize(vec3(dir.x, max(dir.y, 0.0) * 0.4 + 0.035, dir.z));
+  return skyClear(level);
 }
 
 float skyCumulusDensity(vec2 p, float cover) {
