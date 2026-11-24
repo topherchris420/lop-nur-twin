@@ -18,7 +18,9 @@ export function GroundClutter() {
   useEffect(() => {
     const density =
       qualityTier >= 3 ? 1 : qualityTier >= 2 ? 0.82 : qualityTier >= 1 ? 0.58 : 0.34;
-    const clutter = buildGroundClutter({ density });
+    // Full prop detail and surface shading on the top tier only; the lower
+    // tiers keep the lighter builds so they do not get heavier.
+    const clutter = buildGroundClutter({ density, detailed: qualityTier >= 3 });
     scene.add(clutter.group);
     game.stats.clutter = clutter.instances;
     return () => {
