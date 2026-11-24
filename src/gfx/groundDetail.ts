@@ -345,6 +345,15 @@ float gdNet(float d, float w, float fp, float cell) {
   float mean = clamp(4.0 * w / cell, 0.0, 1.0);
   return mix(gdBand(d, w, fp), mean, smoothstep(0.2 * cell, 0.8 * cell, fp * 1.5));
 }
+// The same, for a feature whose apparent width outgrows its physical one at
+// grazing angles: an open fissure shows its shaded far wall and the shadow
+// of its near lip, so it stays a pixel-wide line well after the gap itself is
+// sub-pixel. The line is drawn at wLine; the far-field mean keeps the
+// physical width, so the handover never darkens the horizon.
+float gdNetSeen(float d, float w, float wLine, float fp, float cell) {
+  float mean = clamp(4.0 * w / cell, 0.0, 1.0);
+  return mix(gdBand(d, max(w, wLine), fp), mean, smoothstep(0.2 * cell, 0.8 * cell, fp * 1.5));
+}
 
 // Distance to the nearest Voronoi border (cell units), the unit vector from
 // that border into the cell, and hashes of the cell and of the border.
@@ -814,8 +823,8 @@ const GROUND_PROC = /* glsl */ `
     float gdF1 = gdNet(gdD1, gdW1, gdFp, gdC1);
     float gdF2 = gdNet(gdD2, gdW2, gdFp, gdC2) * (1.0 - gdF1);
     // cavity: the shoulder either side of the floor that the sky cannot reach
-    float gdAo1 = gdNet(gdD1, gdW1 * 3.5 + 0.035, gdFp, gdC1);
-    float gdAo2 = gdNet(gdD2, gdW2 * 3.0 + 0.008, gdFp, gdC2);
+    float gdAo1 = gdNetSeen(gdD1, gdW1 * 3.5 + 0.035, min(gdFp * 0.5, 0.12) * gdOpenW, gdFp, gdC1);
+    float gdAo2 = gdNetSeen(gdD2, gdW2 * 3.0 + 0.008, min(gdFp * 0.3, 0.03) * gdOpenW, gdFp, gdC2);
     // the curled lip either side of the fissure, where the salt wicks up
     float gdR1 = max(gdNet(gdD1, gdW1 + gdL1, gdFp, gdC1) - gdNet(gdD1, gdW1 * 2.0, gdFp, gdC1), 0.0);
     float gdR2 = max(gdNet(gdD2, gdW2 + gdL2, gdFp, gdC2) - gdNet(gdD2, gdW2 * 2.0, gdFp, gdC2), 0.0);
@@ -932,6 +941,19 @@ const GROUND_PROC = /* glsl */ `
               vec3(0.62, 0.6, 0.56) * gdTintK, vec3(0.2, 0.17, 0.14) * gdTintK,
               diffuseColor.rgb, gdBump, roughnessFactor);
   }
+  // --- bladed hardpan ------------------------------------------------------------------
+  // Graded compound ground is compacted fill, not playa: patches of crushed
+  // gravel, a metre-scale compaction mottle and darker, damper low spots.
+  if (gdC > 0.02) {
+    float gdGv = smoothstep(0.45, 0.7, gdVN(gdP / 3.1 + 5.5) * 0.7 + gdVN(gdP / 0.8) * 0.3);
+    float gdLow = smoothstep(0.62, 0.8, gdVN(gdP / 9.0 - 1.4) * 0.75 + gdVN(gdP / 2.3) * 0.25);
+    diffuseColor.rgb *= 1.0 + ((gdVN(gdP / 1.7 + 2.2) - 0.5) * 0.14 - gdGv * 0.07 - gdLow * 0.08) * gdC * gdW;
+    roughnessFactor = mix(roughnessFactor, 0.86, gdLow * 0.5 * gdC * gdW);
+    gdScatter(gdP, 0.11, gdGv * 0.8 * gdC * gdAmt, vec2(0.006, 0.022), 23.0, gdFp, 0.75,
+              vec3(0.56, 0.54, 0.5) * gdTintK, vec3(0.15, 0.135, 0.12) * gdTintK,
+              diffuseColor.rgb, gdBump, roughnessFactor);
+  }
+
   // --- graded dirt strips: a ragged edge that dissolves into the lakebed --------------
   #ifdef GD_EDGE_UV
   if (gdEdgeW > 0.0) {
