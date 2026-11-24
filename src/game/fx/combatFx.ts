@@ -4,7 +4,7 @@ import { sunState } from "@/lib/sunState";
 import { SURFACE_PROFILES, type ImpactRequest, type SurfaceType } from "../core/types";
 import { eyePosition, game } from "../core/gameState";
 import type { CollisionWorld } from "../physics/collisionWorld";
-import { CasingRenderer } from "./casings";
+import { CasingRenderer, StageCasings, type StageCasing } from "./casings";
 import { DECAL, DecalRenderer, decalIndexFor } from "./decals";
 import { MuzzleFlashRenderer, type FlashSpec } from "./muzzleFlash";
 import {
@@ -87,6 +87,8 @@ export class FxManager {
   private readonly decals: DecalRenderer;
   private readonly tracers: TracerRenderer;
   private readonly casings: CasingRenderer;
+  /** First-person brass, flown in the weapon stage until it clears the frame. */
+  private readonly fpCasings: StageCasings;
   /** First-person flash, drawn in the weapon stage, carried by the muzzle. */
   private readonly fpFlash: MuzzleFlashRenderer;
   /** Everyone else's flashes, in world space. */
@@ -133,6 +135,7 @@ export class FxManager {
     this.decals = new DecalRenderer(320);
     this.tracers = new TracerRenderer(256);
     this.casings = new CasingRenderer(64);
+    this.fpCasings = new StageCasings(this.casings);
     this.fpFlash = new MuzzleFlashRenderer(1, "fx-muzzle-flash-fp");
     this.tpFlash = new MuzzleFlashRenderer(12, "fx-muzzle-flash");
     this.group.name = "combat-fx";
@@ -179,10 +182,12 @@ export class FxManager {
     worldCamera: THREE.Camera | null,
   ): void {
     if (this.binding) {
-      this.binding.scene.remove(this.fpFlash.mesh, this.stageLight);
+      this.binding.scene.remove(this.fpFlash.mesh, this.stageLight, this.fpCasings.mesh);
     }
     this.binding = scene && camera && worldCamera ? { scene, camera, worldCamera } : null;
-    if (this.binding) this.binding.scene.add(this.fpFlash.mesh, this.stageLight);
+    if (this.binding) {
+      this.binding.scene.add(this.fpFlash.mesh, this.stageLight, this.fpCasings.mesh);
+    }
     this.pendingShot = null;
     this.pendingEjects.length = 0;
   }
@@ -307,10 +312,10 @@ export class FxManager {
         );
       p.lifetime = 0.55 + rand() * 0.35;
       p.size0 = 0.035 * k;
-      p.size1 = (0.2 + rand() * 0.1) * k;
+      p.size1 = (0.13 + rand() * 0.07) * k;
       p.color0.setRGB(0.66, 0.62, 0.56);
       p.color1.setRGB(0.6, 0.58, 0.55);
-      p.alpha0 = (suppressed ? 0.42 : 0.34) * density * ads;
+      p.alpha0 = (suppressed ? 0.3 : 0.2) * density * ads;
       p.alpha1 = 0;
       p.drag = 5.2;
       p.gravity = -0.25;
@@ -331,10 +336,10 @@ export class FxManager {
         .add(_tmpA.set((rand() - 0.5) * 0.2, 0.22 + rand() * 0.2, (rand() - 0.5) * 0.2));
       p.lifetime = 1.3 + rand() * 0.9;
       p.size0 = 0.06 * k;
-      p.size1 = (0.45 + rand() * 0.25) * k;
+      p.size1 = (0.28 + rand() * 0.15) * k;
       p.color0.setRGB(0.6, 0.59, 0.57);
       p.color1.setRGB(0.56, 0.56, 0.56);
-      p.alpha0 = (suppressed ? 0.24 : 0.17) * density * ads;
+      p.alpha0 = (suppressed ? 0.14 : 0.08) * density * ads;
       p.alpha1 = 0;
       p.drag = 1.4;
       p.gravity = -0.3;
@@ -386,7 +391,7 @@ export class FxManager {
         forward: _tmpB.set(0, 0, -1),
         right: _tmpC.set(1, 0, 0),
         up: _tmpD.set(0, 1, 0),
-        scale: 1,
+        scale: 1.5,
         calibre: shot.calibre,
         brake: shot.calibre >= 0.3,
       };
@@ -428,15 +433,32 @@ export class FxManager {
     const binding = this.binding!;
     eject.anchor.updateWorldMatrix(true, false);
     eject.anchor.getWorldPosition(_tmpA);
-    viewmodelToWorld(_tmpA, binding.camera, binding.worldCamera, _tmpB);
     // Out of the port: right, up and a touch rearward, in the weapon's frame.
-    _tmpC.set(1, 0.62, 0.22).normalize().transformDirection(eject.anchor.matrixWorld);
-    viewmodelDirToWorld(_tmpC, binding.camera, binding.worldCamera, _tmpD);
-    // The case's orientation in the world: weapon frame, then camera.
+    _tmpC.set(1, 0.5, 0.25).normalize().transformDirection(eject.anchor.matrixWorld);
     eject.anchor.getWorldQuaternion(_tmpQuat);
-    binding.worldCamera.getWorldQuaternion(this.scratchQuat).multiply(_tmpQuat);
-    this.casings.eject(_tmpB, _tmpD, this.rand, eject.velocity, this.scratchQuat);
+    this.stageUp(binding, _tmpD);
+    this.fpCasings.eject(_tmpA, _tmpC, _tmpD, _tmpQuat, this.rand);
   }
+
+  /** The world's up, as seen from the weapon stage this frame. */
+  private stageUp(binding: ViewmodelBinding, out: THREE.Vector3): THREE.Vector3 {
+    binding.worldCamera.getWorldQuaternion(this.scratchQuat).invert();
+    return out.set(0, 1, 0).applyQuaternion(this.scratchQuat);
+  }
+
+  /** A first-person case has cleared the frame: let the world land it. */
+  private readonly handoff = (casing: StageCasing): void => {
+    const binding = this.binding;
+    if (!binding) return;
+    viewmodelToWorld(casing.position, binding.camera, binding.worldCamera, _tmpA);
+    const speed = casing.velocity.length();
+    viewmodelDirToWorld(casing.velocity, binding.camera, binding.worldCamera, _tmpB);
+    // The stage rides with the camera, so the case also carries the player's
+    // own motion once it is in the world.
+    _tmpB.multiplyScalar(speed).addScaledVector(game.player.velocity, 0.9);
+    binding.worldCamera.getWorldQuaternion(this.scratchQuat).multiply(casing.rotation);
+    this.casings.launch(_tmpA, _tmpB, this.scratchQuat, casing.spin);
+  };
 
   private readonly scratchQuat = new THREE.Quaternion();
 
@@ -1214,9 +1236,9 @@ export class FxManager {
       this.fpFlash.mesh.matrix.copy(anchor.matrixWorld);
       this.fpFlash.mesh.matrixWorld.copy(anchor.matrixWorld);
       // On the hands and receiver: just ahead of and above the crown.
-      _tmpA.set(0, 0.03, -0.06).applyMatrix4(anchor.matrixWorld);
+      _tmpA.set(0, 0.025, -0.02).applyMatrix4(anchor.matrixWorld);
       this.stageLight.position.copy(_tmpA);
-      this.stageLight.intensity = 1.5 * this.fpFlashEnergy;
+      this.stageLight.intensity = 3 * this.fpFlashEnergy;
     } else {
       this.stageLight.intensity = 0;
     }
@@ -1241,6 +1263,9 @@ export class FxManager {
     this.particles.flush();
     this.tracers.flush();
     this.decals.update(dt);
+    if (this.binding) {
+      this.fpCasings.update(dt, this.stageUp(this.binding, _tmpD), this.handoff);
+    }
     this.casings.update(dt, world);
   }
 
@@ -1249,6 +1274,7 @@ export class FxManager {
     this.particles.dispose();
     this.decals.dispose();
     this.tracers.dispose();
+    this.fpCasings.dispose();
     this.casings.dispose();
     this.fpFlash.dispose();
     this.tpFlash.dispose();

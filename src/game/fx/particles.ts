@@ -798,7 +798,7 @@ void main() {
     float g2 = 0.55;
     float cosT = dot(-vSunView, V);
     float phase = (1.0 - g2 * g2) / pow(1.0 + g2 * g2 - 2.0 * g2 * cosT, 1.5);
-    float scatter = phase * (1.0 - density * 0.6) * 0.16;
+    float scatter = phase * (1.0 - density * 0.6) * 0.09;
     // Sky from above, sand bounce from below: the view-space up is the
     // world up carried through the view matrix.
     vec3 upView = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);

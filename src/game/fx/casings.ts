@@ -215,6 +215,25 @@ export class CasingRenderer {
     if (dirty) this.mesh.instanceMatrix.needsUpdate = true;
   }
 
+  /** Put a case in flight with an exact state (a hand-off from the stage). */
+  launch(
+    position: THREE.Vector3,
+    velocity: THREE.Vector3,
+    rotation: THREE.Quaternion,
+    spin: THREE.Vector3,
+  ): void {
+    const casing = this.casings[this.cursor]!;
+    this.cursor = (this.cursor + 1) % this.casings.length;
+    casing.position.copy(position);
+    casing.velocity.copy(velocity);
+    casing.rotation.copy(rotation);
+    casing.spin.copy(spin);
+    casing.life = 0;
+    casing.bounces = 0;
+    casing.resting = false;
+    casing.active = true;
+  }
+
   dispose(): void {
     // Releases the instanceMatrix/instanceColor buffers; the geometry's
     // dispose does not cover them.
@@ -223,3 +242,114 @@ export class CasingRenderer {
     (this.mesh.material as THREE.Material).dispose();
   }
 }
+
+/** A first-person case in flight, in the weapon stage's space. */
+export interface StageCasing {
+  position: THREE.Vector3;
+  velocity: THREE.Vector3;
+  rotation: THREE.Quaternion;
+  spin: THREE.Vector3;
+  life: number;
+  active: boolean;
+}
+
+/**
+ * First-person brass flies in the weapon's own pass for its first instants.
+ *
+ * Cases leave the port beside the receiver, and the receiver is drawn after
+ * the world with the depth cleared, so a world-space case is hidden behind
+ * the very gun that threw it. Shooters draw their own brass with the weapon;
+ * so does this, under the world's gravity carried into the stage, until the
+ * case has cleared the frame and is handed to the world simulation to land.
+ */
+export class StageCasings {
+  readonly mesh: THREE.InstancedMesh;
+  private readonly casings: StageCasing[] = [];
+  private cursor = 0;
+  private readonly dummy = new THREE.Object3D();
+
+  constructor(
+    source: CasingRenderer,
+    capacity = 8,
+    private readonly handoffAge = 0.32,
+  ) {
+    this.mesh = new THREE.InstancedMesh(
+      source.mesh.geometry,
+      source.mesh.material,
+      capacity,
+    );
+    this.mesh.frustumCulled = false;
+    this.mesh.name = "fx-casings-fp";
+    this.mesh.userData["noCollide"] = true;
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.dummy.position.set(0, -9999, 0);
+    this.dummy.updateMatrix();
+    for (let i = 0; i < capacity; i += 1) {
+      this.casings.push({
+        position: new THREE.Vector3(),
+        velocity: new THREE.Vector3(),
+        rotation: new THREE.Quaternion(),
+        spin: new THREE.Vector3(),
+        life: 0,
+        active: false,
+      });
+      this.mesh.setMatrixAt(i, this.dummy.matrix);
+    }
+  }
+
+  /** `up` is the world's up in stage space. */
+  eject(
+    position: THREE.Vector3,
+    direction: THREE.Vector3,
+    up: THREE.Vector3,
+    orientation: THREE.Quaternion,
+    rand: () => number,
+  ): void {
+    const casing = this.casings[this.cursor]!;
+    this.cursor = (this.cursor + 1) % this.casings.length;
+    casing.position.copy(position);
+    casing.velocity
+      .copy(direction)
+      .multiplyScalar(1.9 + rand() * 0.8)
+      .addScaledVector(up, 0.9 + rand() * 0.5);
+    casing.spin.set(16 + rand() * 12, (rand() - 0.5) * 6, (rand() - 0.5) * 10);
+    casing.rotation
+      .copy(orientation)
+      .multiply(_quat.setFromEuler(_euler.set(-Math.PI / 2, 0, 0)));
+    casing.life = 0;
+    casing.active = true;
+  }
+
+  update(dt: number, up: THREE.Vector3, handoff: (casing: StageCasing) => void): void {
+    let dirty = false;
+    for (let i = 0; i < this.casings.length; i += 1) {
+      const casing = this.casings[i]!;
+      if (!casing.active) continue;
+      dirty = true;
+      casing.life += dt;
+      if (casing.life > this.handoffAge) {
+        casing.active = false;
+        handoff(casing);
+        this.mesh.setMatrixAt(i, this.dummy.matrix);
+        continue;
+      }
+      casing.velocity.addScaledVector(up, -9.81 * dt);
+      casing.position.addScaledVector(casing.velocity, dt);
+      _quat.setFromEuler(
+        _euler.set(casing.spin.x * dt, casing.spin.y * dt, casing.spin.z * dt),
+      );
+      casing.rotation.multiply(_quat);
+      _lie.copy(casing.rotation);
+      this.mesh.setMatrixAt(i, _matrix.compose(casing.position, _lie, _unit));
+    }
+    if (dirty) this.mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  dispose(): void {
+    // Geometry and material belong to the world renderer.
+    this.mesh.dispose();
+  }
+}
+
+const _matrix = new THREE.Matrix4();
+const _unit = new THREE.Vector3(1, 1, 1);
