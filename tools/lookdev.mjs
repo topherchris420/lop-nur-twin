@@ -496,7 +496,10 @@ const SETS = {
     {
       id: "compound-mid",
       note: "the compound at 60-200 m from the flight line",
-      setup: "await ld.place(null, null, null, -0.02)",
+      // GROUND_OVERLOOK in layout.ts (compound u=52, v=-152) facing its
+      // target. A null position kept wherever the previous shot left the
+      // player, which in this set is the hangar wall.
+      setup: "await ld.place(949.8, 1264.5, 152.7, -0.02)",
       frames: 4,
     },
     {
@@ -825,8 +828,20 @@ function installPageHelpers() {
     group.traverse((o) => {
       if (!o.isMesh || o.userData?.noCollide) return;
       if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
-      const c = o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld);
-      candidates.push(c);
+      const local = o.geometry.boundingSphere.center;
+      // Clutter is instanced: one mesh per prop type, its geometry at the
+      // origin. Taking the mesh's own bounding sphere put every candidate at
+      // the world origin, kilometres from the site, so the cover frames were
+      // empty lakebed. Walk the instances instead.
+      if (o.isInstancedMesh) {
+        const m = new o.matrixWorld.constructor();
+        for (let i = 0; i < o.count; i += 1) {
+          o.getMatrixAt(i, m);
+          candidates.push(local.clone().applyMatrix4(m).applyMatrix4(o.matrixWorld));
+        }
+      } else {
+        candidates.push(local.clone().applyMatrix4(o.matrixWorld));
+      }
     });
     candidates.sort(
       (a, b) => Math.hypot(a.x - 1290, a.z - 1350) - Math.hypot(b.x - 1290, b.z - 1350),
