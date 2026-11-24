@@ -95,16 +95,39 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     groundGrimeHeight: 1.5,
     seamDrips: 0.7,
   } as const;
+  // the cast face: blowholes, aggregate and mottled cement that the low sun
+  // rakes across, and sun-bleached patches breaking up each pour
+  const castFace = { micro: "concrete", microScale: 0.55, bleach: 0.35 } as const;
+  // painted steel: chips through to primer, uneven sheen, rust at fasteners
+  const paintedSteel = {
+    micro: "paint",
+    microScale: 0.5,
+    chips: 0.18,
+    bleach: 0.4,
+    rivetRust: 0.7,
+  } as const;
 
   // poured concrete: wide expansion joints, no rivets
-  applyPreset(m.concrete, "concrete", { seed: 11, ...weathered });
-  applyPreset(m.concreteLight, "concrete", { seed: 23, dust: 0.4, ...weathered });
-  applyPreset(m.dirtyConcreteWall, "concrete", { seed: 37, streaks: 0.55, ...weathered });
+  applyPreset(m.concrete, "concrete", { seed: 11, ...weathered, ...castFace });
+  applyPreset(m.concreteLight, "concrete", {
+    seed: 23,
+    dust: 0.4,
+    ...weathered,
+    ...castFace,
+  });
+  applyPreset(m.dirtyConcreteWall, "concrete", {
+    seed: 37,
+    streaks: 0.55,
+    ...weathered,
+    ...castFace,
+  });
   applyPreset(m.stucco, "concrete", {
     seed: 41,
     plateScale: 9,
     seamRelief: 0.22,
     ...weathered,
+    ...castFace,
+    microScale: 0.35,
   });
 
   // sheet cladding: tight plates, rivets, oxidisation running down the seams
@@ -112,6 +135,7 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     seed: 53,
     sheetProfile: "corrugated",
     ...weathered,
+    ...paintedSteel,
   });
   applyPreset(m.shutter, "cladding", {
     seed: 53,
@@ -128,6 +152,7 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     sheetProfile: "corrugated",
     rust: 0.28,
     ...weathered,
+    ...paintedSteel,
   });
   applyPreset(m.corrugatedWhite, "cladding", {
     seed: 67,
@@ -135,6 +160,8 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     rust: 0.18,
     dust: 0.34,
     ...weathered,
+    ...paintedSteel,
+    chips: 0.1,
   });
   applyPreset(m.rustyMetal, "cladding", {
     seed: 71,
@@ -153,6 +180,9 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     seamDarken: 0.74,
     rivets: false,
     ...weathered,
+    // panels are pressed sheet, never quite flat, and bleached unevenly
+    bleach: 0.3,
+    oilCan: 0.012,
   } as const;
   applyPreset(m.whitePanel, "cladding", { seed: 79, ...facade });
   applyPreset(m.monolithRoof, "cladding", {
@@ -176,6 +206,9 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     seamDarken: 0.82,
     dust: 0.5,
     rimIntensity: 0.06,
+    micro: "concrete",
+    microScale: 0.6,
+    bleach: 0.45,
   });
 
   // machined metal: fine plates, strong rim, almost no grime
@@ -198,6 +231,11 @@ function decorateHardSurfaces(m: SharedMaterials): SharedMaterials {
     streaks: 0.5,
     rust: 0.22,
     groundGrime: weathered.groundGrime,
+    micro: "paint",
+    microScale: 0.6,
+    chips: 0.12,
+    bleach: 0.45,
+    oilCan: 0.01,
   });
   applyPreset(m.radomeWhite, "plated", {
     seed: 131,
@@ -349,7 +387,7 @@ function useSharedMaterials(): SharedMaterials {
         roughness: 0.5,
         metalness: 0.5,
       }),
-      roofDark: new THREE.MeshStandardMaterial({ color: "#3c3a36", roughness: 0.95 }),
+      roofDark: new THREE.MeshStandardMaterial({ color: "#7a7468", roughness: 0.95 }),
       glass: new THREE.MeshStandardMaterial({
         color: "#31505f",
         roughness: 0.12,
@@ -1315,24 +1353,153 @@ function Radome({ def, m }: BuilderProps) {
   );
 }
 
+/** Dressing that must never become a collider: the baker skips it. */
+const DRESSING = { noCollide: true };
+
+/**
+ * A ring of bund wall lathed from its section: outer face battered in, a
+ * 30 mm chamfer each side of the coping, plumb inner face.
+ */
+function makeBundWall(inner: number, outer: number, height: number) {
+  const top = outer - 0.3;
+  const profile = [
+    [inner, 0],
+    [outer, 0],
+    [top, height - 0.03],
+    [top - 0.03, height],
+    [inner + 0.03, height],
+    [inner, height - 0.03],
+    [inner, 0],
+  ].map(([x, y]) => new THREE.Vector2(x, y));
+  return new THREE.LatheGeometry(profile, 96);
+}
+
+/**
+ * The steel a storage tank is hung with, merged into one geometry: a spiral
+ * stair climbing half the shell on brackets, its inner and outer handrails
+ * and posts, the roof edge guard rail, and a flanged nozzle with a gate
+ * valve at the foot of the stair.
+ */
+function makeTankSteelwork(r: number, h: number) {
+  const parts: THREE.BufferGeometry[] = [];
+  const put = (g: THREE.BufferGeometry, x: number, y: number, z: number, yaw = 0) => {
+    g.rotateY(yaw);
+    g.translate(x, y, z);
+    parts.push(g);
+  };
+  const rise = 0.2;
+  const steps = Math.floor((h - 0.4) / rise);
+  const sweep = Math.PI * 0.85;
+  const start = -Math.PI * 0.15;
+  const width = 0.85;
+  const mid = r + 0.12 + width / 2;
+  for (let i = 0; i <= steps; i++) {
+    const a = start + (i / steps) * sweep;
+    const y = 0.2 + i * rise;
+    const yaw = -a;
+    const cx = Math.cos(a);
+    const sz = Math.sin(a);
+    // tread, then a bracket back to the shell under every third one
+    put(new THREE.BoxGeometry(width, 0.035, 0.27), cx * mid, y, sz * mid, yaw);
+    if (i % 3 === 0) {
+      put(
+        new THREE.BoxGeometry(width + 0.1, 0.06, 0.05),
+        cx * (mid - 0.05),
+        y - 0.06,
+        sz * (mid - 0.05),
+        yaw,
+      );
+    }
+    // outer stringer and the two handrails, in short chords along the helix
+    const step = (1 / steps) * sweep;
+    const chord = Math.hypot(step * (r + width + 0.12), rise);
+    const pitch = Math.atan2(rise, step * (r + width + 0.12));
+    for (const [rad, dy, size] of [
+      [r + 0.14 + width, -0.1, 0.18],
+      [r + 0.14 + width, 0.95, 0.045],
+      [r + 0.14 + width, 0.5, 0.03],
+    ] as const) {
+      const rail = new THREE.BoxGeometry(0.04, size, chord * 1.02);
+      rail.rotateX(-pitch);
+      put(
+        rail,
+        Math.cos(a + step / 2) * rad,
+        y + rise / 2 + dy,
+        Math.sin(a + step / 2) * rad,
+        yaw,
+      );
+    }
+    if (i % 3 === 0) {
+      const rad = r + 0.14 + width;
+      put(new THREE.BoxGeometry(0.045, 1.0, 0.045), cx * rad, y + 0.5, sz * rad, yaw);
+    }
+  }
+  // roof edge guard rail and posts
+  const roofY = h + 0.05;
+  for (const [y, tube] of [
+    [roofY + 1.0, 0.03],
+    [roofY + 0.5, 0.022],
+  ] as const) {
+    const ring = new THREE.TorusGeometry(r - 0.15, tube, 4, 96);
+    ring.rotateX(Math.PI / 2);
+    put(ring, 0, y, 0);
+  }
+  for (let i = 0; i < 32; i++) {
+    const a = (i / 32) * Math.PI * 2;
+    put(
+      new THREE.BoxGeometry(0.045, 1.0, 0.045),
+      Math.cos(a) * (r - 0.15),
+      roofY + 0.5,
+      Math.sin(a) * (r - 0.15),
+    );
+  }
+  // shell nozzle with bolted flanges and a gate valve, on the pipe line
+  const nozzle = (z: number, radius: number, length: number) => {
+    const g = new THREE.CylinderGeometry(radius, radius, length, 16);
+    g.rotateX(Math.PI / 2);
+    put(g, 0, 0.5, z);
+  };
+  nozzle(-r - 0.25, 0.2, 0.5);
+  for (const z of [-r - 0.05, -r - 0.5, -r - 1.1, -r - 1.5]) nozzle(z, 0.27, 0.05);
+  const bonnet = new THREE.CylinderGeometry(0.12, 0.16, 0.5, 12);
+  put(bonnet, 0, 0.95, -r - 1.3);
+  const wheel = new THREE.TorusGeometry(0.22, 0.02, 4, 16);
+  wheel.rotateX(Math.PI / 2);
+  put(wheel, 0, 1.25, -r - 1.3);
+  const merged = mergeGeometries(
+    parts.map((g) => (g.index ? g.toNonIndexed() : g)),
+    false,
+  );
+  for (const g of parts) g.dispose();
+  return merged ?? new THREE.BufferGeometry();
+}
+
 function FuelTank({ def, m }: BuilderProps) {
   const r = def.size[0] / 2;
   const h = def.size[1];
+  const bund = useMemo(() => makeBundWall(r + 5.9, r + 6.5, 1.2), [r]);
+  const steelwork = useMemo(() => makeTankSteelwork(r, h), [r, h]);
+  useEffect(
+    () => () => {
+      bund.dispose();
+      steelwork.dispose();
+    },
+    [bund, steelwork],
+  );
   return (
     <group>
-      {/* earth bund */}
-      <mesh material={m.concrete} receiveShadow position={[0, 0.6, 0]}>
-        <cylinderGeometry args={[r + 5.5, r + 6.5, 1.2, 24, 1, true]} />
-      </mesh>
+      {/* Bund wall: battered concrete with a chamfered coping. Its footprint
+          matches the old open ring, so the baked collider is unchanged. */}
+      <mesh material={m.concrete} geometry={bund} receiveShadow castShadow />
       <mesh material={m.tankSteel} castShadow receiveShadow position={[0, h / 2, 0]}>
-        <cylinderGeometry args={[r, r, h, 24]} />
+        <cylinderGeometry args={[r, r, h, 96]} />
       </mesh>
       {/* rust bleed at the base seam */}
-      <mesh material={m.rustyMetal} position={[0, h * 0.06, 0]}>
-        <cylinderGeometry args={[r + 0.02, r + 0.02, h * 0.12, 24, 1, true]} />
+      <mesh material={m.rustyMetal} position={[0, h * 0.06, 0]} userData={DRESSING}>
+        <cylinderGeometry args={[r + 0.02, r + 0.02, h * 0.12, 96, 1, true]} />
       </mesh>
       <mesh material={m.tankSteel} castShadow position={[0, h, 0]} scale={[1, 0.25, 1]}>
-        <sphereGeometry args={[r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <sphereGeometry args={[r, 96, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
       {/* wind girders, painted with the shell */}
       {[0.25, 0.55, 0.85].map((f) => (
@@ -1341,20 +1508,25 @@ function FuelTank({ def, m }: BuilderProps) {
           material={m.tankSteel}
           position={[0, h * f, 0]}
           rotation={[Math.PI / 2, 0, 0]}
+          userData={DRESSING}
         >
-          <torusGeometry args={[r + 0.06, 0.08, 6, 32]} />
+          <torusGeometry args={[r + 0.06, 0.08, 6, 96]} />
         </mesh>
       ))}
-      {/* access ladder and transfer pipe */}
-      <mesh material={m.metalDark} castShadow position={[r + 0.3, h / 2, 0]}>
-        <boxGeometry args={[0.5, h, 0.2]} />
-      </mesh>
+      {/* spiral stair, handrails, roof rail and flanged pipework: one draw */}
+      <mesh
+        material={m.metalDark}
+        geometry={steelwork}
+        castShadow
+        receiveShadow
+        userData={DRESSING}
+      />
       <mesh
         material={m.metalDark}
         position={[0, 0.5, -r - 2.5]}
         rotation={[Math.PI / 2, 0, 0]}
       >
-        <cylinderGeometry args={[0.16, 0.16, 5, 8]} />
+        <cylinderGeometry args={[0.16, 0.16, 5, 16]} />
       </mesh>
     </group>
   );
