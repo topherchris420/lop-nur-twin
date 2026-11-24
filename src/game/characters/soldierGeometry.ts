@@ -109,7 +109,10 @@ function superCos(c: number, p: number): number {
  * Loft rings along their centres. The path tangent is estimated from the
  * neighbouring centres; `u` is projected off it to give each ring's frame.
  */
-export function sweep(rings: readonly SweepRing[], options: SweepOptions): THREE.BufferGeometry {
+export function sweep(
+  rings: readonly SweepRing[],
+  options: SweepOptions,
+): THREE.BufferGeometry {
   const seg = options.seg;
   const n = rings.length;
   const capStart = options.capStart ?? false;
@@ -139,7 +142,10 @@ export function sweep(rings: readonly SweepRing[], options: SweepOptions): THREE
     if (tangent.lengthSq() < 1e-12) tangent.set(0, 1, 0);
     tangent.normalize();
     // Transport the previous frame so a curving strap does not twist.
-    u.copy(i === 0 ? uHint : prevU).addScaledVector(tangent, -(i === 0 ? uHint : prevU).dot(tangent));
+    u.copy(i === 0 ? uHint : prevU).addScaledVector(
+      tangent,
+      -(i === 0 ? uHint : prevU).dot(tangent),
+    );
     if (u.lengthSq() < 1e-8) u.set(0, 0, 1).addScaledVector(tangent, -tangent.z);
     u.normalize();
     prevU.copy(u);
@@ -214,12 +220,16 @@ export function sweep(rings: readonly SweepRing[], options: SweepOptions): THREE
 }
 
 /** True when the first ring's normals face its centre. */
-function pointsInward(geometry: THREE.BufferGeometry, rings: readonly SweepRing[]): boolean {
+function pointsInward(
+  geometry: THREE.BufferGeometry,
+  rings: readonly SweepRing[],
+): boolean {
   const position = geometry.getAttribute("position");
   const normal = geometry.getAttribute("normal");
   const mid = Math.floor(rings.length / 2);
   const c = rings[mid]!.c;
-  const seg = position.count >= rings.length ? Math.floor(position.count / rings.length) : 1;
+  const seg =
+    position.count >= rings.length ? Math.floor(position.count / rings.length) : 1;
   const i = mid * seg;
   _v.set(position.getX(i) - c[0], position.getY(i) - c[1], position.getZ(i) - c[2]);
   _n.set(normal.getX(i), normal.getY(i), normal.getZ(i));
@@ -355,7 +365,11 @@ export function strap(
   const normal = geometry.getAttribute("normal");
   const p0 = pts[Math.floor(count / 2)]!;
   const iMid = Math.floor(count / 2) * ps + 1;
-  _v.set(positions[iMid * 3]! - p0.x, positions[iMid * 3 + 1]! - p0.y, positions[iMid * 3 + 2]! - p0.z);
+  _v.set(
+    positions[iMid * 3]! - p0.x,
+    positions[iMid * 3 + 1]! - p0.y,
+    positions[iMid * 3 + 2]! - p0.z,
+  );
   _n.set(normal.getX(iMid), normal.getY(iMid), normal.getZ(iMid));
   if (_v.dot(_n) < 0) flip(geometry);
   return geometry;
@@ -416,7 +430,10 @@ export function rbox(
  * Merge coincident vertices whose normals agree, so a box's six faces become
  * one connected surface for the bakes.
  */
-export function weld(geometry: THREE.BufferGeometry, tolerance = 1e-5): THREE.BufferGeometry {
+export function weld(
+  geometry: THREE.BufferGeometry,
+  tolerance = 1e-5,
+): THREE.BufferGeometry {
   const position = geometry.getAttribute("position");
   const normal = geometry.getAttribute("normal");
   const index = geometry.getIndex();

@@ -155,9 +155,11 @@ export class ViewmodelStage {
       .lerp(direction, sunAhead * 0.8)
       .normalize();
     this.rim.color.copy(RIM_SKY).lerp(color, sunAhead);
-    this.rim.intensity = (0.22 + intensity * 0.16 + sunAhead * intensity * 1.6) * fillScale;
+    this.rim.intensity =
+      (0.22 + intensity * 0.16 + sunAhead * intensity * 1.6) * fillScale;
     this.bounce.intensity = (0.04 + intensity * 0.12) * fillScale;
-    this.shoulder.intensity = (0.07 + intensity * 0.15) * fillScale * (1 - sunAhead * 0.5);
+    this.shoulder.intensity =
+      (0.07 + intensity * 0.15) * fillScale * (1 - sunAhead * 0.5);
   }
 
   /**

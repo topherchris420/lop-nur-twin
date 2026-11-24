@@ -391,7 +391,12 @@ export class ViewmodelAnimator {
     // carried the sight point off its unrotated place.
     if (ads > 0.001) {
       _poseQuat.setFromEuler(
-        _euler2.set(this.poseRot.value.x, this.poseRot.value.y, this.poseRot.value.z, "YXZ"),
+        _euler2.set(
+          this.poseRot.value.x,
+          this.poseRot.value.y,
+          this.poseRot.value.z,
+          "YXZ",
+        ),
       );
       _sightRot.copy(model.sightOffset).multiplyScalar(k).applyQuaternion(_poseQuat);
       root.position.x += (k * model.sightOffset.x - _sightRot.x) * ads;

@@ -141,24 +141,28 @@ export function bakeOcclusion(
       tx[1] = -uz;
       tx[2] = uy;
     }
-    const tl = Math.hypot(tx[0]!, tx[1]!, tx[2]!) || 1;
-    tx[0]! /= tl;
-    tx[1]! /= tl;
-    tx[2]! /= tl;
-    bt[0] = uy * tx[2]! - uz * tx[1]!;
-    bt[1] = uz * tx[0]! - ux * tx[2]!;
-    bt[2] = ux * tx[1]! - uy * tx[0]!;
+    const tl = Math.hypot(tx[0], tx[1], tx[2]) || 1;
+    tx[0] /= tl;
+    tx[1] /= tl;
+    tx[2] /= tl;
+    bt[0] = uy * tx[2] - uz * tx[1];
+    bt[1] = uz * tx[0] - ux * tx[2];
+    bt[2] = ux * tx[1] - uy * tx[0];
 
     const allowed = occluderMask(groups[v]!);
     let occlusion = 0;
     for (const [dx, dy, dz] of DIRS) {
-      const rx = tx[0]! * dx + bt[0]! * dy + ux * dz;
-      const ry = tx[1]! * dx + bt[1]! * dy + uy * dz;
-      const rz = tx[2]! * dx + bt[2]! * dy + uz * dz;
+      const rx = tx[0] * dx + bt[0] * dy + ux * dz;
+      const ry = tx[1] * dx + bt[1] * dy + uy * dz;
+      const rz = tx[2] * dx + bt[2] * dy + uz * dz;
       // Start clear of the vertex's own surface voxel.
       for (let s = 2; s <= maxSteps; s += 1) {
         const d = s * CELL;
-        const id = cell(px + rx * d + ux * CELL * 0.6, py + ry * d + uy * CELL * 0.6, pz + rz * d + uz * CELL * 0.6);
+        const id = cell(
+          px + rx * d + ux * CELL * 0.6,
+          py + ry * d + uy * CELL * 0.6,
+          pz + rz * d + uz * CELL * 0.6,
+        );
         if (id < 0) break;
         if (grid[id]! & allowed) {
           occlusion += 1 - (s - 2) / (maxSteps - 1);
@@ -178,7 +182,8 @@ export function bakeOcclusion(
     const dz = positions[b * 3 + 2]! - positions[a * 3 + 2]!;
     const l = Math.hypot(dx, dy, dz);
     if (l < 1e-7) return;
-    const d = (dx * normals[a * 3]! + dy * normals[a * 3 + 1]! + dz * normals[a * 3 + 2]!) / l;
+    const d =
+      (dx * normals[a * 3]! + dy * normals[a * 3 + 1]! + dz * normals[a * 3 + 2]!) / l;
     sum[a] = sum[a]! - d;
     hits[a] = hits[a]! + 1;
   };

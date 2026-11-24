@@ -2,14 +2,13 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { seededNoise2D } from "@/lib/noise";
 import type { Team } from "../core/types";
-import { applySoldierShade, SOLDIER_MAT, type CamoPalette, type SoldierMat } from "./soldierShade";
 import {
-  B,
-  BONE_COUNT,
-  createBones,
-  createSkeleton,
-  restSegmentDistanceSq,
-} from "./rig";
+  applySoldierShade,
+  SOLDIER_MAT,
+  type CamoPalette,
+  type SoldierMat,
+} from "./soldierShade";
+import { B, BONE_COUNT, createBones, createSkeleton, restSegmentDistanceSq } from "./rig";
 import { AO_GROUP, bakeOcclusion, type AoGroup } from "./soldierBake";
 import {
   bendY,
@@ -209,7 +208,15 @@ const CHEST = [B.spine2, B.spine3] as const;
 const WAIST = [B.pelvis, B.spine1] as const;
 const NECK = [B.spine3, B.neck, B.head] as const;
 const HEAD = [B.head] as const;
-const SHIRT = [B.pelvis, B.spine1, B.spine2, B.spine3, B.neck, B.clavicleL, B.clavicleR] as const;
+const SHIRT = [
+  B.pelvis,
+  B.spine1,
+  B.spine2,
+  B.spine3,
+  B.neck,
+  B.clavicleL,
+  B.clavicleR,
+] as const;
 
 function armBones(side: number): readonly number[] {
   return side < 0
@@ -234,8 +241,17 @@ const legGroup = (side: number): AoGroup => (side < 0 ? AO_GROUP.legL : AO_GROUP
 const foldNoise = seededNoise2D(0x50d1);
 
 /** Periodic noise around a ring: sampled on a circle, so no seam at 2 pi. */
-function ringNoise(theta: number, y: number, scale: number, freqY: number, seed = 0): number {
-  return foldNoise(Math.cos(theta) * scale + seed * 7.3 + y * freqY, Math.sin(theta) * scale - seed * 3.1);
+function ringNoise(
+  theta: number,
+  y: number,
+  scale: number,
+  freqY: number,
+  seed = 0,
+): number {
+  return foldNoise(
+    Math.cos(theta) * scale + seed * 7.3 + y * freqY,
+    Math.sin(theta) * scale - seed * 3.1,
+  );
 }
 
 function bump(x: number, centre: number, width: number): number {
@@ -248,7 +264,14 @@ function smooth01(x: number, a: number, b: number): number {
   return t * t * (3 - 2 * t);
 }
 
-type ProfileRow = readonly [y: number, outer: number, inner: number, front: number, back: number, z: number];
+type ProfileRow = readonly [
+  y: number,
+  outer: number,
+  inner: number,
+  front: number,
+  back: number,
+  z: number,
+];
 
 /** Linear-in-y interpolation of a profile table, eased between rows. */
 function sampleProfile(table: readonly ProfileRow[], y: number): ProfileRow {
@@ -357,7 +380,9 @@ function band(
   return sweep(list, {
     seg,
     u: [1, 0, 0],
-    ...(extra ? { disp: (ring: number, theta: number) => extra(rows[ring]![0], theta) } : {}),
+    ...(extra
+      ? { disp: (ring: number, theta: number) => extra(rows[ring]![0], theta) }
+      : {}),
   });
 }
 
@@ -370,7 +395,12 @@ const _bz = new THREE.Vector3();
  * Orient a part so its local +z looks along `out` and its local +y is as close
  * to `up` as that allows, then move it to `at`.
  */
-function orient(geometry: THREE.BufferGeometry, at: V3, out: V3, up: V3 = [0, 1, 0]): THREE.BufferGeometry {
+function orient(
+  geometry: THREE.BufferGeometry,
+  at: V3,
+  out: V3,
+  up: V3 = [0, 1, 0],
+): THREE.BufferGeometry {
   _bz.set(out[0], out[1], out[2]).normalize();
   _by.set(up[0], up[1], up[2]);
   _by.addScaledVector(_bz, -_by.dot(_bz));
@@ -476,9 +506,11 @@ function faceRelief(y: number, theta: number): number {
   const nose =
     0.019 * bump(dt, 0, 0.13) * bump(y, 1.603, 0.022) +
     0.009 * bump(dt, 0, 0.1) * bump(y, 1.632, 0.014);
-  const socket = -0.006 * (bump(dt, 0.36, 0.16) + bump(dt, -0.36, 0.16)) * bump(y, 1.637, 0.012);
+  const socket =
+    -0.006 * (bump(dt, 0.36, 0.16) + bump(dt, -0.36, 0.16)) * bump(y, 1.637, 0.012);
   const brow = 0.004 * bump(dt, 0, 0.6) * bump(y, 1.657, 0.01);
-  const cheek = 0.003 * (bump(dt, 0.55, 0.25) + bump(dt, -0.55, 0.25)) * bump(y, 1.605, 0.02);
+  const cheek =
+    0.003 * (bump(dt, 0.55, 0.25) + bump(dt, -0.55, 0.25)) * bump(y, 1.605, 0.02);
   return nose + socket + brow + cheek;
 }
 
@@ -501,14 +533,21 @@ function buildParts(kit: Kit, variant: SoldierVariant): Part[] {
       group: spec.group ?? AO_GROUP.torso,
     });
   };
-  const camoCloth = (bones: readonly number[], group: AoGroup = AO_GROUP.torso): PartSpec => ({
+  const camoCloth = (
+    bones: readonly number[],
+    group: AoGroup = AO_GROUP.torso,
+  ): PartSpec => ({
     color: 0xffffff,
     mat: SOLDIER_MAT.cloth,
     camo: true,
     bones,
     group,
   });
-  const gearSpec = (bones: readonly number[], rigid = true, mat: SoldierMat = SOLDIER_MAT.nylon): PartSpec => ({
+  const gearSpec = (
+    bones: readonly number[],
+    rigid = true,
+    mat: SoldierMat = SOLDIER_MAT.nylon,
+  ): PartSpec => ({
     color: kit.gearCamo ? 0xf0f0f0 : kit.gear,
     mat,
     camo: kit.gearCamo,
@@ -528,25 +567,32 @@ function buildParts(kit: Kit, variant: SoldierVariant): Part[] {
       () => 0,
       (y, theta) =>
         0.0025 * ringNoise(theta, y, 1.3, 9, 1) +
-        0.0035 * bump(y, 1.04, 0.035) * Math.sin(y * 290 + theta * 3 + ringNoise(theta, y, 1, 3, 2) * 2),
+        0.0035 *
+          bump(y, 1.04, 0.035) *
+          Math.sin(y * 290 + theta * 3 + ringNoise(theta, y, 1, 3, 2) * 2),
       2.5,
     ),
     { color: kit.shirt, mat: SOLDIER_MAT.cloth, bones: SHIRT },
   );
   // Collar of the combat shirt.
   add(band(NECK_PROFILE, 1.465, 1.515, 0.008, 22), { ...camoCloth(NECK), rigid: false });
-  add(bodyTube(NECK_PROFILE, 1.45, 1.58, 6, 16, 1, () => 0, null), {
-    color: kit.face === "balaclava" ? kit.faceCloth : kit.skin,
-    mat: kit.face === "balaclava" ? SOLDIER_MAT.knit : SOLDIER_MAT.skin,
-    bones: NECK,
-  });
+  add(
+    bodyTube(NECK_PROFILE, 1.45, 1.58, 6, 16, 1, () => 0, null),
+    {
+      color: kit.face === "balaclava" ? kit.faceCloth : kit.skin,
+      mat: kit.face === "balaclava" ? SOLDIER_MAT.knit : SOLDIER_MAT.skin,
+      bones: NECK,
+    },
+  );
 
   for (const side of [-1, 1]) {
     const hip = side * 0.095;
     const knee = side * 0.098;
     const ankle = side * 0.1;
     const legX = (y: number) =>
-      y > 0.487 ? knee + (hip - knee) * ((y - 0.487) / (0.918 - 0.487)) : ankle + (knee - ankle) * ((y - 0.086) / (0.487 - 0.086));
+      y > 0.487
+        ? knee + (hip - knee) * ((y - 0.487) / (0.918 - 0.487))
+        : ankle + (knee - ankle) * ((y - 0.086) / (0.487 - 0.086));
     add(
       bodyTube(
         LEG_PROFILE,
@@ -561,13 +607,23 @@ function buildParts(kit: Kit, variant: SoldierVariant): Part[] {
           const n = ringNoise(theta, y, 1.4, 7, side + 3);
           let d = 0.004 * n;
           // Drape folds down the thigh, diagonal.
-          d += 0.0028 * smooth01(y, 0.55, 0.62) * (1 - smooth01(y, 0.84, 0.9)) *
+          d +=
+            0.0028 *
+            smooth01(y, 0.55, 0.62) *
+            (1 - smooth01(y, 0.84, 0.9)) *
             Math.sin(y * 48 + theta * 2.2 * side + n * 2.5);
           // Behind the knee the cloth bunches; in front it is under the pad.
-          d += 0.0045 * bump(y, 0.48, 0.055) * (0.35 + 0.65 * back) *
+          d +=
+            0.0045 *
+            bump(y, 0.48, 0.055) *
+            (0.35 + 0.65 * back) *
             Math.sin(y * 260 + theta * 1.5 + n * 2);
           // Shin drape, near vertical.
-          d += 0.002 * smooth01(y, 0.24, 0.3) * (1 - smooth01(y, 0.4, 0.44)) * Math.sin(theta * 5 + y * 9 + n);
+          d +=
+            0.002 *
+            smooth01(y, 0.24, 0.3) *
+            (1 - smooth01(y, 0.4, 0.44)) *
+            Math.sin(theta * 5 + y * 9 + n);
           // Bloused over the boot: gathered pleats.
           d += 0.0055 * bump(y, 0.205, 0.028) * Math.abs(Math.sin(theta * 6.5 + n * 2.5));
           return d;
@@ -594,7 +650,11 @@ function buildParts(kit: Kit, variant: SoldierVariant): Part[] {
           const n = ringNoise(theta, y, 1.2, 8, side + 9);
           let d = 0.003 * n;
           // Inside of the elbow folds hardest.
-          d += 0.004 * bump(y, 1.115, 0.045) * (0.3 + 0.7 * front) * Math.sin(y * 300 + theta * 1.6 + n * 2);
+          d +=
+            0.004 *
+            bump(y, 1.115, 0.045) *
+            (0.3 + 0.7 * front) *
+            Math.sin(y * 300 + theta * 1.6 + n * 2);
           // Sleeve pushed up the forearm.
           d += 0.003 * bump(y, 0.96, 0.03) * Math.sin(y * 340 + theta + n * 2);
           // Drape under the deltoid.
@@ -638,7 +698,8 @@ function buildHead(kit: Kit, variant: SoldierVariant, add: Add): void {
       28,
       1,
       () => 0,
-      (y, theta) => faceRelief(y, theta) * (balaclava ? 0.8 : 1) + (balaclava ? 0.004 : 0),
+      (y, theta) =>
+        faceRelief(y, theta) * (balaclava ? 0.8 : 1) + (balaclava ? 0.004 : 0),
       2.2,
     ),
     {
@@ -673,7 +734,9 @@ function buildHead(kit: Kit, variant: SoldierVariant, add: Add): void {
             0.006 +
             relief +
             0.003 * n +
-            0.003 * Math.sin(y * 330 + theta * 2 + n * 2) * (1 - smooth01(y, 1.58, 1.61)) +
+            0.003 *
+              Math.sin(y * 330 + theta * 2 + n * 2) *
+              (1 - smooth01(y, 1.58, 1.61)) +
             0.004 * bump(y, 1.612, 0.006)
           );
         },
@@ -700,7 +763,9 @@ function buildHead(kit: Kit, variant: SoldierVariant, add: Add): void {
       bones: HEAD,
       rigid: true,
     });
-    const lens: V3[] = pts.slice(2, 9).map((p) => [p[0] * 1.06, p[1], (p[2] - 0.012) * 1.06 + 0.012]);
+    const lens: V3[] = pts
+      .slice(2, 9)
+      .map((p) => [p[0] * 1.06, p[1], (p[2] - 0.012) * 1.06 + 0.012]);
     add(strap(lens, 0.034, 0.004, 20, out), {
       color: 0x15191b,
       mat: SOLDIER_MAT.glass,
@@ -712,7 +777,11 @@ function buildHead(kit: Kit, variant: SoldierVariant, add: Add): void {
     const lens: V3[] = [];
     for (let i = 0; i <= 8; i += 1) {
       const a = -1.05 + (i / 8) * 2.1;
-      lens.push([Math.sin(a) * 0.084, lensY - Math.abs(Math.sin(a)) * 0.004, -Math.cos(a) * 0.11 + 0.011]);
+      lens.push([
+        Math.sin(a) * 0.084,
+        lensY - Math.abs(Math.sin(a)) * 0.004,
+        -Math.cos(a) * 0.11 + 0.011,
+      ]);
     }
     const out = (p: THREE.Vector3) => new THREE.Vector3(p.x, 0, p.z - 0.011).normalize();
     add(strap(lens, 0.034, 0.004, 22, out), {
@@ -722,7 +791,11 @@ function buildHead(kit: Kit, variant: SoldierVariant, add: Add): void {
       bones: HEAD,
       rigid: true,
     });
-    const bar: V3[] = lens.map((p) => [p[0] * 1.01, lensY + 0.018, (p[2] - 0.011) * 1.01 + 0.011]);
+    const bar: V3[] = lens.map((p) => [
+      p[0] * 1.01,
+      lensY + 0.018,
+      (p[2] - 0.011) * 1.01 + 0.011,
+    ]);
     add(strap(bar, 0.006, 0.007, 20, out), {
       color: 0x1b1c1b,
       mat: SOLDIER_MAT.polymer,
@@ -764,7 +837,9 @@ function shellNormal(theta: number, phi: number): THREE.Vector3 {
   const b = shellPoint(theta, phi + e).sub(shellPoint(theta, phi - e));
   const n = new THREE.Vector3().crossVectors(b, a).normalize();
   // Outward.
-  const radial = shellPoint(theta, phi).sub(new THREE.Vector3(HELM.cx, HELM.cy - 0.03, HELM.cz));
+  const radial = shellPoint(theta, phi).sub(
+    new THREE.Vector3(HELM.cx, HELM.cy - 0.03, HELM.cz),
+  );
   if (n.dot(radial) < 0) n.negate();
   return n;
 }
@@ -782,7 +857,12 @@ function rimPhi(theta: number): number {
   return ear + (nape - ear) * smooth01(a, 1.95, Math.PI);
 }
 
-function shell(seg: number, rows: number, offset: number, phiScale = 1): THREE.BufferGeometry {
+function shell(
+  seg: number,
+  rows: number,
+  offset: number,
+  phiScale = 1,
+): THREE.BufferGeometry {
   const positions: number[] = [];
   for (let r = 0; r <= rows; r += 1) {
     const v = r / rows;
@@ -804,7 +884,10 @@ function shell(seg: number, rows: number, offset: number, phiScale = 1): THREE.B
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  g.setAttribute("normal", new THREE.Float32BufferAttribute(new Float32Array(positions.length), 3));
+  g.setAttribute(
+    "normal",
+    new THREE.Float32BufferAttribute(new Float32Array(positions.length), 3),
+  );
   g.setIndex(indices);
   const welded = weld(g);
   welded.computeVertexNormals();
@@ -860,8 +943,22 @@ function shellPatch(
   for (let i = 0; i < nv; i += 1) {
     for (let j = 0; j < nu; j += 1) {
       const a = i * w + j;
-      indices.push(top + a, top + a + 1, top + a + w, top + a + 1, top + a + w + 1, top + a + w);
-      indices.push(bottom + a, bottom + a + w, bottom + a + 1, bottom + a + 1, bottom + a + w, bottom + a + w + 1);
+      indices.push(
+        top + a,
+        top + a + 1,
+        top + a + w,
+        top + a + 1,
+        top + a + w + 1,
+        top + a + w,
+      );
+      indices.push(
+        bottom + a,
+        bottom + a + w,
+        bottom + a + 1,
+        bottom + a + 1,
+        bottom + a + w,
+        bottom + a + w + 1,
+      );
     }
   }
   // Side walls.
@@ -899,7 +996,13 @@ function shellPatch(
 function buildHelmet(kit: Kit, add: Add): void {
   const shellSpec: PartSpec = kit.helmetCover
     ? { color: 0xe8e2d6, mat: SOLDIER_MAT.cloth, camo: true, bones: HEAD, rigid: true }
-    : { color: kit.helmet, mat: SOLDIER_MAT.polymer, rough: 0.46, bones: HEAD, rigid: true };
+    : {
+        color: kit.helmet,
+        mat: SOLDIER_MAT.polymer,
+        rough: 0.46,
+        bones: HEAD,
+        rigid: true,
+      };
   add(shell(44, 14, 0), shellSpec);
 
   // Rim trim: the rubber edge band, which also gives the shell a thickness.
@@ -932,12 +1035,19 @@ function buildHelmet(kit: Kit, add: Add): void {
       rigid: true,
     });
     const at2 = shellPoint(front, 1.22, 0.028);
-    add(orient(rbox(0.036, 0.034, 0.03, 0.006), [at2.x, at2.y - 0.004, at2.z], [n.x, 0, n.z]), {
-      color: 0x262725,
-      mat: SOLDIER_MAT.polymer,
-      bones: HEAD,
-      rigid: true,
-    });
+    add(
+      orient(
+        rbox(0.036, 0.034, 0.03, 0.006),
+        [at2.x, at2.y - 0.004, at2.z],
+        [n.x, 0, n.z],
+      ),
+      {
+        color: 0x262725,
+        mat: SOLDIER_MAT.polymer,
+        bones: HEAD,
+        rigid: true,
+      },
+    );
     for (const s of [-1, 1]) {
       const knob = cylinder(0.008, 0.008, 0.012, 10);
       knob.rotateZ(Math.PI / 2);
@@ -961,7 +1071,13 @@ function buildHelmet(kit: Kit, add: Add): void {
     }
     add(
       strap(pts, 0.022, 0.011, 18, (p) => p.clone().sub(centre).normalize()),
-      { color: kit.helmetCover ? 0x6d604a : hw, mat: SOLDIER_MAT.polymer, rough: 0.55, bones: HEAD, rigid: true },
+      {
+        color: kit.helmetCover ? 0x6d604a : hw,
+        mat: SOLDIER_MAT.polymer,
+        rough: 0.55,
+        bones: HEAD,
+        rigid: true,
+      },
     );
     // Rail bolts.
     for (const k of [-0.32, 0.32]) {
@@ -991,12 +1107,15 @@ function buildHelmet(kit: Kit, add: Add): void {
       const a = (i / 16) * Math.PI * 2;
       ring.push([s * 0.083, 1.612 + Math.sin(a) * 0.036, 0.012 + Math.cos(a) * 0.029]);
     }
-    add(strap(ring, 0.014, 0.012, 32, () => new THREE.Vector3(s, 0, 0), true), {
-      color: 0x1c1c1b,
-      mat: SOLDIER_MAT.leather,
-      bones: HEAD,
-      rigid: true,
-    });
+    add(
+      strap(ring, 0.014, 0.012, 32, () => new THREE.Vector3(s, 0, 0), true),
+      {
+        color: 0x1c1c1b,
+        mat: SOLDIER_MAT.leather,
+        bones: HEAD,
+        rigid: true,
+      },
+    );
     const top = shellPoint(mid, 1.2, 0.012);
     add(
       strap(
@@ -1023,7 +1142,8 @@ function buildHelmet(kit: Kit, add: Add): void {
       [-0.05, 1.572, -0.108],
     ];
     const curve = new THREE.CatmullRomCurve3(path.map((p) => new THREE.Vector3(...p)));
-    for (const p of curve.getSpacedPoints(10)) boom.push({ c: [p.x, p.y, p.z], a: 0.0032, b: 0.0032 });
+    for (const p of curve.getSpacedPoints(10))
+      boom.push({ c: [p.x, p.y, p.z], a: 0.0032, b: 0.0032 });
     add(sweep(boom, { seg: 6, capStart: true, capEnd: true }), {
       color: 0x1e1e1d,
       mat: SOLDIER_MAT.polymer,
@@ -1055,20 +1175,31 @@ function buildHelmet(kit: Kit, add: Add): void {
   {
     const at = shellPoint(back, 1.5, 0.02);
     const n = shellNormal(back, 1.5);
-    add(orient(rbox(0.096, 0.058, 0.036, 0.012), [at.x, at.y, at.z], [n.x, n.y * 0.4, n.z]), {
-      color: kit.gear,
-      mat: SOLDIER_MAT.nylon,
-      bones: HEAD,
-      rigid: true,
-    });
+    add(
+      orient(rbox(0.096, 0.058, 0.036, 0.012), [at.x, at.y, at.z], [n.x, n.y * 0.4, n.z]),
+      {
+        color: kit.gear,
+        mat: SOLDIER_MAT.nylon,
+        bones: HEAD,
+        rigid: true,
+      },
+    );
     const at2 = shellPoint(back, 0.8, 0.014);
     const n2 = shellNormal(back, 0.8);
-    add(orient(rbox(0.026, 0.034, 0.02, 0.005), [at2.x, at2.y, at2.z], [n2.x, n2.y, n2.z], [0, 0, -1]), {
-      color: 0x20211f,
-      mat: SOLDIER_MAT.polymer,
-      bones: HEAD,
-      rigid: true,
-    });
+    add(
+      orient(
+        rbox(0.026, 0.034, 0.02, 0.005),
+        [at2.x, at2.y, at2.z],
+        [n2.x, n2.y, n2.z],
+        [0, 0, -1],
+      ),
+      {
+        color: 0x20211f,
+        mat: SOLDIER_MAT.polymer,
+        bones: HEAD,
+        rigid: true,
+      },
+    );
   }
   // Bungee cords across the cover / shell.
   for (const k of [-1, 1]) {
@@ -1078,12 +1209,15 @@ function buildHelmet(kit: Kit, add: Add): void {
       const p = shellPoint(back + k * (0.9 - t * 1.8) * 0.9, 0.55 + t * 0.55, 0.004);
       pts.push([p.x, p.y, p.z]);
     }
-    add(strap(pts, 0.005, 0.005, 16, (p) => p.clone().sub(centre).normalize()), {
-      color: 0x2a2620,
-      mat: SOLDIER_MAT.knit,
-      bones: HEAD,
-      rigid: true,
-    });
+    add(
+      strap(pts, 0.005, 0.005, 16, (p) => p.clone().sub(centre).normalize()),
+      {
+        color: 0x2a2620,
+        mat: SOLDIER_MAT.knit,
+        bones: HEAD,
+        rigid: true,
+      },
+    );
   }
 }
 
@@ -1091,7 +1225,11 @@ function buildHelmet(kit: Kit, add: Add): void {
 /* Plate carrier                                                       */
 /* ------------------------------------------------------------------ */
 
-function buildCarrier(kit: Kit, add: Add, gear: (bones: readonly number[], rigid?: boolean, mat?: SoldierMat) => PartSpec): void {
+function buildCarrier(
+  kit: Kit,
+  add: Add,
+  gear: (bones: readonly number[], rigid?: boolean, mat?: SoldierMat) => PartSpec,
+): void {
   // Front panel space: origin at the plate centre, +z outward, bent round the
   // chest. Everything sewn to the front shares the bend.
   const frontY = 1.212;
@@ -1145,7 +1283,12 @@ function buildCarrier(kit: Kit, add: Add, gear: (bones: readonly number[], rigid
       [s * 0.092, 1.372, 0.118],
     ];
     add(
-      strap(pts, 0.058, 0.017, 24, (p) => p.clone().sub(new THREE.Vector3(s * 0.05, 1.28, 0)).normalize()),
+      strap(pts, 0.058, 0.017, 24, (p) =>
+        p
+          .clone()
+          .sub(new THREE.Vector3(s * 0.05, 1.28, 0))
+          .normalize(),
+      ),
       { ...gear([B.spine3, B.clavicleL, B.clavicleR], false), mat: SOLDIER_MAT.nylon },
     );
     // Buckle where the strap meets the front plate.
@@ -1160,7 +1303,16 @@ function buildCarrier(kit: Kit, add: Add, gear: (bones: readonly number[], rigid
 
   // Cummerbund wrapping the ribs.
   add(
-    band(TORSO_PROFILE, 1.035, 1.19, 0.016, 40, 0, 2.5, (y, theta) => 0.0015 * ringNoise(theta, y, 2, 5, 30)),
+    band(
+      TORSO_PROFILE,
+      1.035,
+      1.19,
+      0.016,
+      40,
+      0,
+      2.5,
+      (y, theta) => 0.0015 * ringNoise(theta, y, 2, 5, 30),
+    ),
     gear(TORSO, false, SOLDIER_MAT.pals),
   );
 
@@ -1227,7 +1379,10 @@ function buildCarrier(kit: Kit, add: Add, gear: (bones: readonly number[], rigid
       });
     }
   } else {
-    add(toBack(rbox(0.22, 0.25, 0.05, 0.016, 2), 0, -0.012, 0.047), gear(CHEST, true, SOLDIER_MAT.pals));
+    add(
+      toBack(rbox(0.22, 0.25, 0.05, 0.016, 2), 0, -0.012, 0.047),
+      gear(CHEST, true, SOLDIER_MAT.pals),
+    );
     add(toBack(rbox(0.07, 0.13, 0.05, 0.012, 2), -0.105, 0.03, 0.05), gear(CHEST));
   }
   // Drag handle across the top of the back plate.
@@ -1265,8 +1420,15 @@ function buildCarrier(kit: Kit, add: Add, gear: (bones: readonly number[], rigid
 /* Belt                                                                */
 /* ------------------------------------------------------------------ */
 
-function buildBelt(kit: Kit, add: Add, gear: (bones: readonly number[], rigid?: boolean, mat?: SoldierMat) => PartSpec): void {
-  add(band(TORSO_PROFILE, 0.928, 0.99, 0.02, 40, 0, 2.4), gear(WAIST, false, SOLDIER_MAT.pals));
+function buildBelt(
+  kit: Kit,
+  add: Add,
+  gear: (bones: readonly number[], rigid?: boolean, mat?: SoldierMat) => PartSpec,
+): void {
+  add(
+    band(TORSO_PROFILE, 0.928, 0.99, 0.02, 40, 0, 2.4),
+    gear(WAIST, false, SOLDIER_MAT.pals),
+  );
   add(place(rbox(0.056, 0.04, 0.016, 0.005, 1), 0, 0.96, -0.122), {
     color: kit.hardware,
     mat: SOLDIER_MAT.metal,
@@ -1282,8 +1444,14 @@ function buildBelt(kit: Kit, add: Add, gear: (bones: readonly number[], rigid?: 
     add(place(g, -0.105 - k * 0.032, 0.94, -0.118 + k * 0.02), gear(WAIST));
   }
   // Dump pouch, IFAK at the back.
-  add(place(rbox(0.11, 0.075, 0.05, 0.014, 2), 0.095, 0.945, 0.15, 0, -0.35), gear(WAIST));
-  add(place(rbox(0.12, 0.085, 0.055, 0.014, 2), -0.07, 0.955, 0.152, 0, 0.3), gear(WAIST));
+  add(
+    place(rbox(0.11, 0.075, 0.05, 0.014, 2), 0.095, 0.945, 0.15, 0, -0.35),
+    gear(WAIST),
+  );
+  add(
+    place(rbox(0.12, 0.085, 0.055, 0.014, 2), -0.07, 0.955, 0.152, 0, 0.3),
+    gear(WAIST),
+  );
   if (!kit.dropLeg) {
     // Pistol on the right hip.
     add(place(rbox(0.036, 0.16, 0.085, 0.01, 2), 0.205, 0.875, 0.01, 0, 0, 0.06), {
@@ -1308,7 +1476,11 @@ function buildBelt(kit: Kit, add: Add, gear: (bones: readonly number[], rigid?: 
 function buildLegKit(kit: Kit, side: number, add: Add): void {
   const shin = side < 0 ? B.shinL : B.shinR;
   const thigh = side < 0 ? B.thighL : B.thighR;
-  const legX = (y: number) => side * (y > 0.487 ? 0.098 - 0.003 * ((y - 0.487) / 0.431) : 0.1 - 0.002 * ((y - 0.086) / 0.401));
+  const legX = (y: number) =>
+    side *
+    (y > 0.487
+      ? 0.098 - 0.003 * ((y - 0.487) / 0.431)
+      : 0.1 - 0.002 * ((y - 0.086) / 0.401));
   const group = legGroup(side);
 
   // Knee pad: a hard cap on a soft pad, strapped above and below the knee.
@@ -1474,7 +1646,12 @@ function buildGlove(kit: Kit, side: number, add: Add): void {
   const barR = side < 0 ? 0.021 : 0.016;
   const bx = -(0.019 + barR);
   const by = -0.074;
-  const parts: Array<{ g: THREE.BufferGeometry; color: number; mat: SoldierMat; bones: readonly number[] }> = [];
+  const parts: Array<{
+    g: THREE.BufferGeometry;
+    color: number;
+    mat: SoldierMat;
+    bones: readonly number[];
+  }> = [];
 
   // Back of the hand / palm.
   const palm = rbox(0.032, 0.088, 0.086, 0.013, 2);
@@ -1556,7 +1733,13 @@ function buildGlove(kit: Kit, side: number, add: Add): void {
     let g = part.g;
     if (side < 0) g = mirrorX(g);
     g.translate(wx, wy, wz);
-    add(g, { color: part.color, mat: part.mat, bones: part.bones, rigid: part.bones.length === 1, group });
+    add(g, {
+      color: part.color,
+      mat: part.mat,
+      bones: part.bones,
+      rigid: part.bones.length === 1,
+      group,
+    });
   }
 }
 
@@ -1697,7 +1880,8 @@ function weightsAt(
     outWeight[i] = w;
     total += w;
   }
-  for (let i = 0; i < 4; i += 1) outWeight[i] = total > 0 ? outWeight[i]! / total : i === 0 ? 1 : 0;
+  for (let i = 0; i < 4; i += 1)
+    outWeight[i] = total > 0 ? outWeight[i]! / total : i === 0 ? 1 : 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1753,7 +1937,15 @@ function buildGeometry(team: Team, variant: SoldierVariant): CachedBuild {
       pbr[v * 4 + 1] = part.metal;
       pbr[v * 4 + 2] = part.mat;
       pbr[v * 4 + 3] = part.camo ? 1 : 0;
-      if (!part.rigid) weightsAt(part.bones, position.getX(v), position.getY(v), position.getZ(v), _bi, _w);
+      if (!part.rigid)
+        weightsAt(
+          part.bones,
+          position.getX(v),
+          position.getY(v),
+          position.getZ(v),
+          _bi,
+          _w,
+        );
       for (let k = 0; k < 4; k += 1) {
         skinIndex[v * 4 + k] = _bi[k]!;
         skinWeight[v * 4 + k] = _w[k]!;

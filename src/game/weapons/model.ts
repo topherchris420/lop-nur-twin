@@ -897,7 +897,10 @@ function buildLongGun(
     [-0.001, -0.018, 0.0026],
   ];
   for (const [py, pz, pr] of pins) {
-    asm.add(m.steel, place(tube(pr * 0.82, pr * 0.82, 0.04, 14), 0, py, pz, 0, Math.PI / 2, 0));
+    asm.add(
+      m.steel,
+      place(tube(pr * 0.82, pr * 0.82, 0.04, 14), 0, py, pz, 0, Math.PI / 2, 0),
+    );
     for (const sx of [-1, 1]) {
       asm.add(
         m.steel,
@@ -930,9 +933,18 @@ function buildLongGun(
     );
   }
   // Roll marks on the left of the magwell and the selector, paint-filled.
-  asm.add(m.markings, place(leftDecal(MARKINGS.model, 0.05, 0.0062), -0.0233, -0.0045, -0.079));
-  asm.add(m.markings, place(leftDecal(MARKINGS.serial, 0.05, 0.0062), -0.0233, -0.0122, -0.079));
-  asm.add(m.markings, place(leftDecal(MARKINGS.selector, 0.026, 0.026), side - 0.0003, 0.012, -0.012));
+  asm.add(
+    m.markings,
+    place(leftDecal(MARKINGS.model, 0.05, 0.0062), -0.0233, -0.0045, -0.079),
+  );
+  asm.add(
+    m.markings,
+    place(leftDecal(MARKINGS.serial, 0.05, 0.0062), -0.0233, -0.0122, -0.079),
+  );
+  asm.add(
+    m.markings,
+    place(leftDecal(MARKINGS.selector, 0.026, 0.026), side - 0.0003, 0.012, -0.012),
+  );
 
   /* ------------------------------------------------- upper receiver */
   const upperLen = 0.2 + spec.receiverBack;
@@ -969,16 +981,35 @@ function buildLongGun(
       m.receiver,
       place(extrudeSection(core, upperLen - 0.004, 0.0006, 2), 0, upperY, upperZ),
     );
-    asm.add(m.receiver, place(extrudeSection(bottom, upperLen, 0.0016), 0, upperY, upperZ));
+    asm.add(
+      m.receiver,
+      place(extrudeSection(bottom, upperLen, 0.0016), 0, upperY, upperZ),
+    );
     // A shell deflector ridge and a rear sling cup on the left, so the flank
     // has more than one feature at the distance it is seen from.
     asm.add(
       m.steel,
-      place(tube(0.0058, 0.0058, 0.004, 24, 0.0006), -0.0215, upperY - 0.013, 0.058, 0, Math.PI / 2, 0),
+      place(
+        tube(0.0058, 0.0058, 0.004, 24, 0.0006),
+        -0.0215,
+        upperY - 0.013,
+        0.058,
+        0,
+        Math.PI / 2,
+        0,
+      ),
     );
     asm.add(
       m.nitride,
-      place(tube(0.0034, 0.0034, 0.0016, 18, 0.0003), -0.0236, upperY - 0.013, 0.058, 0, Math.PI / 2, 0),
+      place(
+        tube(0.0034, 0.0034, 0.0016, 18, 0.0003),
+        -0.0236,
+        upperY - 0.013,
+        0.058,
+        0,
+        Math.PI / 2,
+        0,
+      ),
     );
   }
   // Brass deflector and forward assist on the ejection side.
@@ -1021,18 +1052,10 @@ function buildLongGun(
   for (const dz of [-0.012, 0, 0.012]) {
     portAsm.add(
       m.receiver,
-      place(
-        chamferedBox(0.0009, 0.014, 0.0022, { radius: 0.0004 }),
-        -0.0016,
-        0.001,
-        dz,
-      ),
+      place(chamferedBox(0.0009, 0.014, 0.0022, { radius: 0.0004 }), -0.0016, 0.001, dz),
     );
   }
-  portAsm.add(
-    m.steel,
-    place(tube(0.0016, 0.0016, 0.05, 12), -0.0024, -0.0098, 0.002),
-  );
+  portAsm.add(m.steel, place(tube(0.0016, 0.0016, 0.05, 12), -0.0024, -0.0098, 0.002));
   portAsm.add(
     m.steel,
     place(chamferedBox(0.0022, 0.004, 0.005, { radius: 0.0009 }), -0.0016, 0.006, 0.0165),

@@ -15,7 +15,9 @@ import { creaseNormals, profileShape } from "./geometry";
  */
 
 /** A section in the XY plane from `[x, y, filletRadius]` corners. */
-export function section(points: readonly (readonly [number, number, number?])[]): THREE.Shape {
+export function section(
+  points: readonly (readonly [number, number, number?])[],
+): THREE.Shape {
   // `profileShape` reads `[z, y]` and maps z to -x; feed it -x to get x.
   return profileShape(points.map(([x, y, r]) => [-x, y, r] as const));
 }
