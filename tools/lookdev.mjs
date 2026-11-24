@@ -139,7 +139,11 @@ const height = Number(arg("height", 720));
 // heading the HUD prints is 360 - look. The sun sits at azimuth 112 (ESE).
 const APRON = [1290, 1350];
 const DESERT = [1440, 1830];
-const HANGAR = [960, 1300];
+// About 12 m off the main assembly hangar's south-east facade (compound
+// u=-36, v=21 in layout.ts terms); look 44 faces the wall square on. The old
+// [960, 1300] stood 113 m south of the hall facing west, so every "hangar
+// wall" frame was open lakebed.
+const HANGAR = [1006.7, 1450.1];
 
 /* ------------------------------------------------------------------ */
 /* Shot sets                                                           */
@@ -176,7 +180,7 @@ const SETS = {
     {
       id: "hangar",
       note: "hangar wall at close range",
-      setup: `await ld.place(${HANGAR}, 80, 0.02)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.02)`,
     },
     {
       id: "ground",
@@ -368,14 +372,14 @@ const SETS = {
     {
       id: "impacts-wall",
       note: "a burst into the hangar wall at close range: puffs, sparks, decals",
-      setup: `await ld.place(${HANGAR}, 80, 0.0)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.0)`,
       actions: [{ mouse: "left", down: true }, { frames: 10 }],
       after: [{ mouse: "left", down: false }, { frames: 10 }],
     },
     {
       id: "impacts-wall-after",
       note: "the same wall a moment later: decals and settling dust",
-      setup: `await ld.place(${HANGAR}, 80, 0.0)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.0)`,
       actions: [
         { mouse: "left", down: true },
         { frames: 10 },
@@ -486,7 +490,7 @@ const SETS = {
     {
       id: "hangar-wall",
       note: "hangar wall at close range",
-      setup: `await ld.place(${HANGAR}, 80, 0.02)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.02)`,
       frames: 4,
     },
     {
