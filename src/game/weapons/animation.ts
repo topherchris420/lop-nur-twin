@@ -49,6 +49,9 @@ const _targetRot = new THREE.Vector3();
 const _euler = new THREE.Euler(0, 0, 0, "YXZ");
 const _adsPos = new THREE.Vector3();
 const _zero = new THREE.Vector3(0, 0, 0);
+const _euler2 = new THREE.Euler(0, 0, 0, "YXZ");
+const _poseQuat = new THREE.Quaternion();
+const _sightRot = new THREE.Vector3();
 
 export interface ViewmodelInput {
   /** Look delta this frame, radians. Drives sway. */
@@ -296,13 +299,15 @@ export class ViewmodelAnimator {
     /* --------------------------------- multi-stage recoil spring ---- */
     if (runtime.firedThisFrame) {
       const kick = runtime.viewKick;
-      // Violent primary linear impulse
-      this.recoil.velocity.z += kick * 56;
+      // Primary linear impulse: 25-30 mm straight back into the shoulder.
+      this.recoil.velocity.z += kick * 70;
       this.recoil.velocity.y += kick * 16;
       this.recoil.velocity.x += (Math.random() - 0.5) * kick * 20;
 
-      // Violent rotational barrel flip, torsional twist, and lateral whip
-      this.recoilRot.velocity.x -= kick * 125;
+      // Barrel flip, torsional twist, and lateral whip. Positive X pitch
+      // raises the muzzle (as the sprint pose does); this was negative, so
+      // every shot dipped the muzzle into the ground.
+      this.recoilRot.velocity.x += kick * 125;
       this.recoilRot.velocity.z +=
         runtime.viewRoll * 38 + (Math.random() - 0.5) * kick * 26;
       this.recoilRot.velocity.y += (Math.random() - 0.5) * kick * 24;
@@ -310,9 +315,9 @@ export class ViewmodelAnimator {
       this.boltVelocity = -model.parts.boltTravel * 52;
       this.triggerPull = 1.0;
     }
-    // High-stiffness recoil recovery with subtle kinetic settling oscillation
-    springTo(this.recoil, _zero, 560, 32, dt);
-    springTo(this.recoilRot, _zero, 490, 28, dt);
+    // Near-critically damped recovery, back in about 120-150 ms.
+    springTo(this.recoil, _zero, 420, 30, dt);
+    springTo(this.recoilRot, _zero, 400, 28, dt);
 
     /* -------------------------------------------------- breathing */
     this.breathPhase += dt * (ads > 0.5 ? 1.15 : 1.65);
@@ -377,6 +382,22 @@ export class ViewmodelAnimator {
       "YXZ",
     );
     root.quaternion.setFromEuler(_euler);
+
+    // Aimed, the sight has to sit on the camera axis whatever the pose
+    // rotation is doing: the position target above assumes the hip yaw and
+    // cant have fully unwound, and while the rotation spring lagged the dot
+    // sat 55 px right of the crosshair. Correct the position by how far the
+    // pose rotation (not sway or recoil, which should move the sight) has
+    // carried the sight point off its unrotated place.
+    if (ads > 0.001) {
+      _poseQuat.setFromEuler(
+        _euler2.set(this.poseRot.value.x, this.poseRot.value.y, this.poseRot.value.z, "YXZ"),
+      );
+      _sightRot.copy(model.sightOffset).multiplyScalar(k).applyQuaternion(_poseQuat);
+      root.position.x += (k * model.sightOffset.x - _sightRot.x) * ads;
+      root.position.y += (k * model.sightOffset.y - _sightRot.y) * ads;
+      root.position.z += (k * model.sightOffset.z - _sightRot.z) * ads;
+    }
 
     /* -------------------------------------------- moving sub-parts */
     // Bolt: driven back by the shot or inspect, returned by recoil spring

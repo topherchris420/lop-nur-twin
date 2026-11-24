@@ -764,14 +764,17 @@ export function getWeaponMaterials(): WeaponMaterials {
     shader.fragmentShader = patchShader("optic lens (fresnel)", shader.fragmentShader, [
       [
         "#include <opaque_fragment>",
-        `float lensFres = pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 2.4);
-       diffuseColor.a = mix(0.08, 0.5, lensFres);
-       outgoingLight += vec3(0.85, 0.92, 1.0) * lensFres * lensFres * 0.55;
+        `float lensFres = pow(1.0 - clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0), 2.4);
+       // Broadband AR coating: a faint amber-magenta cast head-on that turns
+       // green-blue toward grazing, the colour a coated objective throws.
+       vec3 lensCoat = mix(vec3(0.62, 0.32, 0.55), vec3(0.3, 0.72, 0.62), lensFres);
+       diffuseColor.a = mix(0.07, 0.62, lensFres);
+       outgoingLight += lensCoat * (0.035 + lensFres * 0.22) + vec3(0.85, 0.92, 1.0) * lensFres * lensFres * 0.4;
        #include <opaque_fragment>`,
       ],
     ]);
   };
-  lens.customProgramCacheKey = () => "lens-fresnel-v2";
+  lens.customProgramCacheKey = () => "lens-fresnel-v3";
 
   const reticle = new THREE.MeshBasicMaterial({
     name: "weapon-reticle",

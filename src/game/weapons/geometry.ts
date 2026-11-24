@@ -323,87 +323,31 @@ export function picatinnyRail(
   const ribDepth = 0.0056;
   const count = Math.max(1, Math.floor(length / pitch));
   const start = -length / 2 + (length - (count - 1) * pitch) / 2;
+  // The classic trapezoid cross-section: 45° flanks the ring clamps onto
+  // and a flat crest that catches the sun. Extruded with a rounded break so
+  // every crest edge carries a highlight. Hand-indexed triangles here once
+  // wound inward and the whole rail rendered as a black sawtooth.
+  const top = width / 2 - height * 0.42;
+  const bottom = width / 2;
+  const crest = new THREE.Shape();
+  crest.moveTo(-bottom, baseHeight - 0.0004);
+  crest.lineTo(bottom, baseHeight - 0.0004);
+  crest.lineTo(top, height);
+  crest.lineTo(-top, height);
+  crest.closePath();
+  const bevel = 0.00035;
   for (let i = 0; i < count; i += 1) {
-    // The classic trapezoid cross-section: 45° flanks the ring clamps onto.
-    const rib = new THREE.BufferGeometry();
-    const top = width / 2 - height * 0.42;
-    const bottom = width / 2;
-    const y0 = baseHeight;
-    const y1 = height;
-    const hz = ribDepth / 2;
-    const verts = new Float32Array([
-      -bottom,
-      y0,
-      -hz,
-      bottom,
-      y0,
-      -hz,
-      top,
-      y1,
-      -hz,
-      -top,
-      y1,
-      -hz,
-      -bottom,
-      y0,
-      hz,
-      bottom,
-      y0,
-      hz,
-      top,
-      y1,
-      hz,
-      -top,
-      y1,
-      hz,
-    ]);
-    const idx = [
-      0,
-      1,
-      2,
-      0,
-      2,
-      3, // back
-      5,
-      4,
-      7,
-      5,
-      7,
-      6, // front
-      4,
-      5,
-      1,
-      4,
-      1,
-      0, // bottom
-      3,
-      2,
-      6,
-      3,
-      6,
-      7, // top
-      4,
-      0,
-      3,
-      4,
-      3,
-      7, // left
-      1,
-      5,
-      6,
-      1,
-      6,
-      2, // right
-    ];
-    rib.setAttribute("position", new THREE.BufferAttribute(verts, 3));
-    rib.setIndex(idx);
-    // Flat faces: shared vertices average the flank and top normals and
-    // every rib shades like a twist of rope.
-    const flat = rib.toNonIndexed();
-    rib.dispose();
-    flat.computeVertexNormals();
-    flat.translate(0, 0, start + i * pitch);
-    parts.push(flat);
+    const rib = new THREE.ExtrudeGeometry(crest, {
+      depth: ribDepth - bevel * 2,
+      bevelEnabled: true,
+      bevelThickness: bevel,
+      bevelSize: bevel * 0.9,
+      bevelOffset: -bevel * 0.9,
+      bevelSegments: 2,
+      curveSegments: 1,
+    });
+    rib.translate(0, 0, start + i * pitch - (ribDepth - bevel * 2) / 2);
+    parts.push(creaseNormals(rib));
   }
   return mergeAndDispose(parts);
 }

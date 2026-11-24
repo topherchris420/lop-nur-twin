@@ -139,9 +139,22 @@ const MAG_TUBE_RADIUS = 0.0105;
 const MAG_TUBE_DROP = 0.023;
 const MAG_TUBE_OFFSET = 0.05;
 
+/**
+ * Where the support palm sits round the handguard, radians up from the near
+ * side's horizontal. At 1.2 (palm nearly under the handguard) the fingers
+ * had so much arc left that their tips came up over the rail, which read as
+ * fingertips clipping through the gun; at 0.85 the palm takes more of the
+ * near side and the tips finish on the far flank, below the rail's crest.
+ */
+const SUPPORT_ANGLE = 0.85;
+const SUPPORT_C = Math.cos(SUPPORT_ANGLE);
+const SUPPORT_S = Math.sin(SUPPORT_ANGLE);
+
 function specForClass(weaponClass: WeaponClass): LongGunSpec {
   const base: LongGunSpec = {
-    muzzleZ: -0.5,
+    // Barrel and muzzle device run 18 cm past the handguard; at 14 cm, most
+    // of it flash hider, the rifle read as ending at the handguard.
+    muzzleZ: -0.545,
     handguardFront: -0.36,
     handguardRadius: 0.0235,
     barrelRadius: 0.0058,
@@ -354,27 +367,29 @@ function buildOptic(
             [tubeR * 0.9, 0.022],
             [tubeR * 0.8, 0.026],
           ],
-          32,
+          56,
         ),
         0,
         axisY,
         0,
       ),
     );
-    // Turret housings and caps.
+    // Turret housings and caps, standing on the tube wall. Centred on the
+    // wall they put half a box inside the bore, and from behind the optic
+    // that was an opaque grey block where the glass should be.
     asm.add(
       m.optic,
       place(
         chamferedBox(0.016, 0.012, 0.016, { radius: 0.004 }),
         0,
-        axisY + tubeR,
+        axisY + tubeR * 0.92 + 0.006,
         -0.001,
       ),
     );
     asm.add(
       m.optic,
       place(
-        tube(0.0068, 0.0072, 0.007, 20),
+        tube(0.0068, 0.0072, 0.007, 36),
         0,
         axisY + tubeR + 0.009,
         -0.001,
@@ -385,12 +400,17 @@ function buildOptic(
     );
     asm.add(
       m.optic,
-      place(chamferedBox(0.012, 0.016, 0.016, { radius: 0.004 }), tubeR, axisY, -0.001),
+      place(
+        chamferedBox(0.012, 0.016, 0.016, { radius: 0.004 }),
+        tubeR * 0.92 + 0.006,
+        axisY,
+        -0.001,
+      ),
     );
     asm.add(
       m.optic,
       place(
-        tube(0.0068, 0.0072, 0.007, 20),
+        tube(0.0068, 0.0072, 0.007, 36),
         tubeR + 0.008,
         axisY,
         -0.001,
@@ -403,7 +423,7 @@ function buildOptic(
     asm.add(
       m.bareMetal,
       place(
-        shell(0.0073, 0.0069, 0.0016, 20),
+        shell(0.0073, 0.0069, 0.0016, 36),
         0,
         axisY + tubeR + 0.0125,
         -0.001,
@@ -415,7 +435,7 @@ function buildOptic(
     asm.add(
       m.bareMetal,
       place(
-        shell(0.0073, 0.0069, 0.0016, 20),
+        shell(0.0073, 0.0069, 0.0016, 36),
         tubeR + 0.0115,
         axisY,
         -0.001,
@@ -424,11 +444,11 @@ function buildOptic(
         0,
       ),
     );
-    const front = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.98, 32), m.lens);
+    const front = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.9, 48), m.lens);
     front.position.set(0, axisY, -0.026);
     front.renderOrder = 2;
     group.add(front);
-    const rear = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.82, 32), m.lens);
+    const rear = new THREE.Mesh(new THREE.CircleGeometry(tubeR * 0.82, 48), m.lens);
     rear.position.set(0, axisY, 0.025);
     rear.renderOrder = 2;
     group.add(rear);
@@ -658,12 +678,17 @@ function makeReticleTexture(kind: string): THREE.Texture {
   ctx.lineCap = "butt";
 
   if (kind === "reddot") {
-    const glow = ctx.createRadialGradient(c, c, 0, c, c, 22);
-    glow.addColorStop(0, "rgba(255,255,255,1)");
-    glow.addColorStop(0.35, "rgba(255,255,255,0.55)");
+    // A 2 MOA dot: a hard core a few pixels across with a faint halo for
+    // the bloom to pick up. A 22 px gradient read as an orange blob.
+    const glow = ctx.createRadialGradient(c, c, 0, c, c, 12);
+    glow.addColorStop(0, "rgba(255,255,255,0.35)");
     glow.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(c, c, 3.2, 0, Math.PI * 2);
+    ctx.fill();
   } else if (kind === "holo") {
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -1516,7 +1541,7 @@ function buildLongGun(
     asm.add(
       m.steel,
       place(
-        tube(0.0158, 0.0158, bufferLen, 20),
+        tube(0.0158, 0.0158, bufferLen, 40),
         0,
         spec.receiverTop - 0.032,
         stockZ0 + 0.02 + bufferLen / 2,
@@ -1952,8 +1977,8 @@ function longGunGrasp(
       // Underhand: the palm cups the bottom left of the handguard, fingers
       // wrap under it and up the far side, the thumb lies forward along the
       // near side, and the forearm drops away below the weapon.
-      palm: [-0.35 * (seatR + 0.001), seatY - 0.93 * (seatR + 0.001), hold],
-      facing: [0.35, 0.93, 0],
+      palm: [-SUPPORT_C * (seatR + 0.001), seatY - SUPPORT_S * (seatR + 0.001), hold],
+      facing: [SUPPORT_C, SUPPORT_S, 0],
       indexSide: [-0.3, 0, -0.95],
       forearm: [-0.5, -0.55, 0.67],
       thumb: [0.22, 0.18, -0.96],
@@ -2569,8 +2594,9 @@ function deriveTransforms(model: WeaponModel, weaponClass: WeaponClass): void {
   // proportions, sits in the lower-right third and shows its top rail.
   if (weaponClass === "pistol") {
     // Two hands, arms extended, the pistol just right of centre.
-    model.hipPosition.set(0.072, -0.108, -0.385);
-    model.hipRotation.set(0.03, 0.2, -0.08);
+    // Bore on the aim axis: at 0.2 rad of yaw it pointed 25 degrees left.
+    model.hipPosition.set(0.062, -0.108, -0.385);
+    model.hipRotation.set(0.03, 0.05, -0.05);
   } else if (weaponClass === "melee") {
     model.hipPosition.set(0.105, -0.118, -0.37);
     model.hipRotation.set(0.3, 0.3, -1.1);
