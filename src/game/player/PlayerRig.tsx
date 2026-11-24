@@ -250,6 +250,14 @@ export function PlayerRig({
     bindViewmodelStage(stage);
     return () => bindViewmodelStage(null);
   }, [stage]);
+  // The weapon's sockets answer in stage space; the effects layer needs the
+  // stage and both cameras to draw the flash on the crown and carry smoke,
+  // brass and light into the world on the same pixel.
+  useEffect(() => {
+    if (!fx) return;
+    fx.bindViewmodel(stage.scene, stage.camera, camera);
+    return () => fx.bindViewmodel(null, null, null);
+  }, [fx, stage, camera]);
   const laser = useMemo(() => createTacticalLaser(), []);
   const viewmodelRoot = stage.root;
   /** 0..1 death-camera blend; eased so respawning stands you back up. */
@@ -549,7 +557,7 @@ export function PlayerRig({
               : active.def.weaponClass === "pistol"
                 ? 0.2
                 : 0.26;
-          fx.muzzleFlash(_muzzle, _forward, calibre, false, true);
+          fx.muzzleFlash(_muzzle, _forward, calibre, false, true, model.parts.muzzleTip);
           _probeEnd.copy(_eye).addScaledVector(_forward, 200);
           applyNearMissSuppression(_eye, _probeEnd, player);
         }
@@ -561,15 +569,15 @@ export function PlayerRig({
         model.parts.ejectionPort.getWorldPosition(_muzzle);
         model.parts.ejectionPort.getWorldQuaternion(_quat);
         _ejectDir.set(1, 0.35, 0).applyQuaternion(_quat).normalize();
-        fx.ejectCasing(_muzzle, _ejectDir, player.velocity);
+        fx.ejectCasing(_muzzle, _ejectDir, player.velocity, model.parts.ejectionPort);
       }
 
       // Barrel heat mirage distortion waves and rising barrel smoke
       if (active.barrelHeat > 0.15 && fx) {
         model.parts.muzzleTip.getWorldPosition(_muzzle);
-        fx.barrelHeatMirage(_muzzle, _forward, active.barrelHeat);
+        fx.barrelHeatMirage(_muzzle, _forward, active.barrelHeat, model.parts.muzzleTip);
         if (active.barrelHeat > 0.25) {
-          fx.barrelSmoke(_muzzle, _forward, active.barrelHeat);
+          fx.barrelSmoke(_muzzle, _forward, active.barrelHeat, model.parts.muzzleTip);
         }
       }
 
