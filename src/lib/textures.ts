@@ -82,13 +82,15 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
   const ctx = makeCanvas(W, H);
   const rand = mulberry32(seed);
 
-  ctx.fillStyle = "#b3aea1";
+  // Neutral portland grey: concrete has to stay concrete under a warm sun,
+  // not drift into the colour of the sand around it.
+  ctx.fillStyle = "#b2b1ac";
   ctx.fillRect(0, 0, W, H);
-  speckle(ctx, rand, 9000, ["#c2bdb0", "#a19c8f", "#bab4a5", "#918c80"], 3);
+  speckle(ctx, rand, 9000, ["#c1c0bb", "#a1a09b", "#b9b8b2", "#91908b"], 3);
 
   // faded longitudinal weathering bands
   for (let i = 0; i < 12; i++) {
-    ctx.fillStyle = rand() > 0.5 ? "#bcb7aa" : "#a29d91";
+    ctx.fillStyle = rand() > 0.5 ? "#bdbcb6" : "#a3a29c";
     ctx.globalAlpha = 0.06 + rand() * 0.08;
     const x = rand() * W;
     ctx.fillRect(x, 0, 6 + rand() * 24, H);
@@ -96,12 +98,12 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
   ctx.globalAlpha = 1;
 
   // Construction joints: transverse every 25 m from the `from` end, and
-  // longitudinal every 12.5 m out from the centreline. Both land on the close-
-  // range shader's 6.25 m contraction grid (anchored at `from`, on the
+  // longitudinal every 10 m out from the centreline. Both land on the close-
+  // range shader's 5 m contraction grid (anchored at `from`, on the
   // centreline), so up close the two never draw a joint twice a few
   // centimetres apart. Thin and faint: from the air they read as the pour
   // pattern, and on foot the shader's own joint covers them.
-  ctx.strokeStyle = "#7e7a6f";
+  ctx.strokeStyle = "#7d7c77";
   ctx.lineWidth = 1;
   ctx.globalAlpha = 0.32;
   for (let y = 25 * pxPerMy; y < H; y += 25 * pxPerMy) {
@@ -110,7 +112,7 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
     ctx.lineTo(W, y);
     ctx.stroke();
   }
-  for (let off = 12.5; off < widthM / 2 - 1; off += 12.5) {
+  for (let off = 10; off < widthM / 2 - 1; off += 10) {
     for (const side of [-1, 1]) {
       const x = W / 2 + side * off * pxPerMx;
       ctx.beginPath();
@@ -288,18 +290,18 @@ export function makeApronTexture(
   const ctx = makeCanvas(W, H);
   const rand = mulberry32(seed);
 
-  ctx.fillStyle = "#a29d92";
+  ctx.fillStyle = "#a9a8a3";
   ctx.fillRect(0, 0, W, H);
   speckle(
     ctx,
     rand,
     Math.round((14000 * W * H) / (1024 * 1024)),
-    ["#afa99d", "#8f8a80", "#b7b1a4", "#7e796f"],
+    ["#b4b3ae", "#92918c", "#bbbab4", "#81807b"],
     3,
   );
 
   if (sizeM) {
-    ctx.strokeStyle = "#57534a";
+    ctx.strokeStyle = "#565550";
     ctx.globalAlpha = 0.4;
     ctx.lineWidth = 1;
     const pxX = W / sizeM[0];
@@ -1019,9 +1021,9 @@ export function makeLakebedColorTexture(seed: number): THREE.CanvasTexture {
       const crust = bank * THREE.MathUtils.smoothstep(warp, 0.28, 0.73);
       const sand = 203 + 30 * sediment + 15 * fine;
       const i = 4 * (y * size + x);
-      image.data[i] = sand + 10 + crust * 15;
-      image.data[i + 1] = sand + 6 + crust * 23;
-      image.data[i + 2] = sand - 2 + crust * 31;
+      image.data[i] = sand + 4 + crust * 15;
+      image.data[i + 1] = sand + 3 + crust * 20;
+      image.data[i + 2] = sand + 1 + crust * 26;
       image.data[i + 3] = 255;
     }
   ctx.putImageData(image, 0, 0);
