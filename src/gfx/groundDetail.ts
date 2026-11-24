@@ -2,8 +2,17 @@ import * as THREE from "three";
 import { getGroundDetailMaps, type GroundDetailKind } from "@/lib/textures";
 import { getQualityProfile } from "@/lib/quality";
 import { SITE_SEED } from "@/lib/noise";
-import { STRUCTURES } from "@/lib/layout";
+import {
+  APRONS,
+  RUNWAYS,
+  STREETS,
+  STRUCTURES,
+  TAXIWAYS,
+  segmentCenter,
+  segmentLength,
+} from "@/lib/layout";
 import type { QualityTier } from "@/lib/store";
+import { sunState } from "@/lib/sunState";
 import { patchShader } from "./shaderPatch";
 
 /**
@@ -15,36 +24,45 @@ import { patchShader } from "./shaderPatch";
  * the bottom half of every frame is ground between one and five metres away
  * and the large-scale maps have long since resolved to a flat wash.
  *
- * This module patches a `MeshStandardMaterial` with the missing octaves:
+ * This module patches a `MeshStandardMaterial` with the missing octaves. Every
+ * tier with ground detail gets the texture-driven layer:
  *
  *  - a **detail normal** sampled twice from one tiling map (a ~1 m grain layer
  *    and a ~10 m macro layer, axis-swapped so the two do not beat against each
  *    other) and folded into the shading normal;
- *  - **roughness variation** — the single most valuable term here. A constant
- *    0.96 over an entire apron is what makes concrete read as plastic. The
- *    packed map's green channel is a signed surface-state field: below 0.5 is
+ *  - **roughness variation** from a signed surface-state field: below 0.5 is
  *    traffic-polished and compacted, above it is loose and dusty, and the two
  *    move albedo in opposite directions as well as roughness;
- *  - **aggregate grain** in the albedo, correlated with the relief so grains
- *    that catch the light also sit paler;
- *  - **slab joints** on a real 6 m pour grid, in the strip's own frame so they
- *    never run diagonally, with a groove that tilts the shading normal;
- *  - **cracks** gated by a per-slab hash so only some slabs are cracked, which
- *    decorrelates the crack tile from the joint grid;
- *  - **traffic polish** stretched along the direction the strip is driven;
- *  - a **dust overlay** that settles on upward-facing loose patches and in
- *    the joints, lifting albedo toward the lakebed tint as roughness rises;
- *  - a **large-scale albedo mottle** (analytic sin/hash, 4–18 m) so a 512 px
- *    tile cannot stamp across an apron.
+ *  - **aggregate grain** in the albedo, correlated with the relief;
+ *  - **slab joints** on a real 6.25 m pour grid, in the strip's own frame so
+ *    they never run diagonally, with a groove that tilts the shading normal;
+ *  - **traffic polish** and a **dust overlay**, and contact darkening at the
+ *    feet of the largest structures.
+ *
+ * The top tier adds an analytic layer (`GD_PROC`) on the surfaces that fill
+ * the bottom half of a first-person frame, so the ground carries a scale
+ * ladder from millimetres to a hundred metres instead of a soft wash:
+ *
+ *  - **lakebed**: polygonal desiccation cracks (two Voronoi octaves, 0.3 to
+ *    1.4 m plates) with dark fissures and raised, curled, salt-rimmed lips;
+ *    wind ripples in drifted sand; desert-pavement pebbles with directional
+ *    contact shadows; vehicle ruts with tread; and 4-100 m colour regions
+ *    (salt bloom, damp silt, drift sand) so nothing reads as a tile. Bladed
+ *    ground inside the compound swaps the playa crust for compacted grit,
+ *    dense ruts and cracked dried-puddle patches;
+ *  - **pavement**: joint sealant (intact, failed and sand-filled, or
+ *    overbanded), spalled joint edges, mid-slab and corner cracks, patch
+ *    repairs, replaced slabs, oil and rubber stains, chipped paint, and a
+ *    broken, sand-drifted edge wherever the pavement meets bare ground;
+ *  - **the join**: broken concrete and drifted grit scattered on the ground
+ *    just off every pavement edge, and a dark contact line under the slab lip.
  *
  * Everything is fenced behind a distance fade. The micro amount `gdAmt` is 0
- * at and beyond `fadeEnd` (`gdFade.y`): mottling, the extra roughness swing,
- * the upward dust lift and the fine normal all ride that factor, so those
- * terms cannot move the aerial route past the fade. The pre-existing macro
- * fade is untouched — it still ends at 2.1×fadeEnd, far below the altitude
- * the aerial camera flies at. Analytic joints additionally fade on `fwidth`
- * so a groove thinner than about a pixel and a half drops out instead of
- * shimmering.
+ * at and beyond `fadeEnd` (`gdFade.y`), and the metre-scale terms end at
+ * 2.1×fadeEnd, far below the altitude the aerial camera flies at, so the twin
+ * route sees exactly the aerial-authored surface. Every analytic line is
+ * filtered against its own pixel footprint (`fwidth`) and fades to its mean
+ * instead of shimmering once it is thinner than about a pixel.
  *
  * Patching happens through `onBeforeCompile`, per the rules in
  * `.claude/skills/blender-hardsurface/SKILL.md`, so shadows, fog, the env map,
@@ -52,6 +70,9 @@ import { patchShader } from "./shaderPatch";
  * injection sits immediately before `<project_vertex>` and leaves
  * `<logdepthbuf_vertex>` untouched.
  */
+
+/** The ground families the site actually has. */
+export type GroundDetailFamily = "pavement" | "desert" | "dirt";
 
 export interface GroundDetailOptions {
   /** Tiling tangent-space detail normal. */
@@ -97,6 +118,18 @@ export interface GroundDetailOptions {
    * apron surround is not the same surface as untouched lakebed.
    */
   compactAttribute?: boolean;
+  /** Which procedural stack `procedural` turns on. */
+  family?: GroundDetailFamily;
+  /**
+   * The analytic layer (see the module comment). Several hundred ALU per
+   * fragment on the surface that fills half the frame, so top tier only.
+   */
+  procedural?: boolean;
+  /**
+   * Width in metres of a strip mesh whose `uv.x` runs across it. Turns on a
+   * ragged, blended long edge for graded dirt strips. 0 leaves edges alone.
+   */
+  edgeWidth?: number;
 }
 
 interface Resolved {
@@ -116,6 +149,9 @@ interface Resolved {
   axis: [number, number];
   origin: [number, number];
   compactAttribute: boolean;
+  family: GroundDetailFamily;
+  procedural: boolean;
+  edgeWidth: number;
 }
 
 const DEFAULTS: Omit<Resolved, "dustColor"> & { dustColor: string } = {
@@ -135,7 +171,80 @@ const DEFAULTS: Omit<Resolved, "dustColor"> & { dustColor: string } = {
   axis: [1, 0],
   origin: [0, 0],
   compactAttribute: false,
+  family: "desert",
+  procedural: false,
+  edgeWidth: 0,
 };
+
+/* ------------------------------------------------------------------ */
+/* Pavement footprints                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The circular concrete fillets that soften the runway T-junction and the
+ * apron throat. `Pavements.tsx` draws them; the ground shader needs the same
+ * circles to know where concrete ends.
+ */
+export const PAVEMENT_FILLETS = (() => {
+  const t0 = TAXIWAYS[0];
+  const t1 = TAXIWAYS[1];
+  const out: Array<{
+    id: string;
+    point: [number, number];
+    radius: number;
+    segment: (typeof TAXIWAYS)[number];
+  }> = [];
+  if (t0) out.push({ id: "runway-fillet", point: t0.from, radius: 31, segment: t0 });
+  if (t0) out.push({ id: "taxiway-elbow", point: t0.to, radius: 27, segment: t0 });
+  if (t1) out.push({ id: "apron-fillet", point: t1.to, radius: 30, segment: t1 });
+  return out;
+})();
+
+/**
+ * Every concrete surface as an oriented box or a circle, in the local frame.
+ * `A` is centre XZ and half-extents (or radius in `z`); `B.xy` is the unit
+ * direction of the shape's local x axis in world XZ, `B.z` is 1 for a circle.
+ * The union of these is the edge both sides of the join are shaded against:
+ * where a taxiway runs into an apron the union has no edge, so neither gets a
+ * broken lip or a sand drift at a junction that is not there.
+ */
+function buildPavementShapes(): { a: THREE.Vector4[]; b: THREE.Vector4[] } {
+  const a: THREE.Vector4[] = [];
+  const b: THREE.Vector4[] = [];
+  for (const seg of [...RUNWAYS, ...TAXIWAYS, ...STREETS]) {
+    const [cx, cz] = segmentCenter(seg);
+    const len = segmentLength(seg) || 1;
+    const ux = (seg.to[0] - seg.from[0]) / len;
+    const uz = (seg.to[1] - seg.from[1]) / len;
+    a.push(new THREE.Vector4(cx, cz, len / 2, seg.width / 2));
+    b.push(new THREE.Vector4(ux, uz, 0, 0));
+  }
+  // `apronCorners` in layout.ts: local x runs along (cos r, sin r) for a
+  // plane laid with euler [-π/2, 0, -r], matching the terrain flattening.
+  for (const apron of APRONS) {
+    a.push(
+      new THREE.Vector4(
+        apron.center[0],
+        apron.center[1],
+        apron.size[0] / 2,
+        apron.size[1] / 2,
+      ),
+    );
+    b.push(new THREE.Vector4(Math.cos(apron.rotation), Math.sin(apron.rotation), 0, 0));
+  }
+  for (const fillet of PAVEMENT_FILLETS) {
+    a.push(new THREE.Vector4(fillet.point[0], fillet.point[1], fillet.radius, 0));
+    b.push(new THREE.Vector4(1, 0, 1, 0));
+  }
+  return { a, b };
+}
+
+const PAVE = buildPavementShapes();
+const PAVE_N = PAVE.a.length;
+
+/* ------------------------------------------------------------------ */
+/* GLSL                                                                */
+/* ------------------------------------------------------------------ */
 
 const HEAD = /* glsl */ `
 uniform sampler2D gdNormalMap;
@@ -162,6 +271,552 @@ varying float vGdCompact;
 
 float gdHash21(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+#ifdef GD_PROC
+uniform vec3 gdSun;             // world, toward the sun
+uniform vec4 gdPaveA[${PAVE_N}];
+uniform vec4 gdPaveB[${PAVE_N}];
+uniform float gdEdgeW;
+#ifdef GD_EDGE_UV
+varying vec2 vGdUv;
+#endif
+
+// Arithmetic hashes: no sin(), stable on the integer cell ids they are fed.
+float gdH12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+vec2 gdH22(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.xx + p3.yz) * p3.zy);
+}
+float gdVN(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  float a = gdH12(i);
+  float b = gdH12(i + vec2(1.0, 0.0));
+  float c = gdH12(i + vec2(0.0, 1.0));
+  float d = gdH12(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// Box-filtered coverage of the band |d| < w by a pixel of footprint fp, all
+// in metres (d >= 0). Once the band is thinner than the pixel it keeps its
+// mean (2w/fp) instead of flickering between full and nothing, so a field of
+// cracks fades to its average tone rather than ending on a line.
+float gdBand(float d, float w, float fp) {
+  float aa = max(fp * 1.5, 1e-4);
+  return clamp((min(d + 0.5 * aa, w) - max(d - 0.5 * aa, -w)) / aa, 0.0, 1.0);
+}
+
+// Distance to the nearest Voronoi border (cell units), the unit vector from
+// that border into the cell, and hashes of the cell and of the border.
+vec3 gdVoronoi(vec2 p, float jit, out vec2 dir) {
+  vec2 n = floor(p);
+  vec2 f = fract(p);
+  vec2 mg = vec2(0.0);
+  vec2 mr = vec2(0.0);
+  float md = 8.0;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 g = vec2(float(i), float(j));
+      vec2 r = g + 0.5 + (gdH22(n + g) - 0.5) * jit - f;
+      float d = dot(r, r);
+      if (d < md) { md = d; mr = r; mg = g; }
+    }
+  }
+  md = 8.0;
+  dir = vec2(0.0, 1.0);
+  vec2 mb = mg;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 g = mg + vec2(float(i), float(j));
+      vec2 r = g + 0.5 + (gdH22(n + g) - 0.5) * jit - f;
+      vec2 dr = r - mr;
+      float l2 = dot(dr, dr);
+      if (l2 > 1e-6) {
+        vec2 nd = dr * inversesqrt(l2);
+        float d = dot(0.5 * (mr + r), nd);
+        if (d < md) { md = d; dir = -nd; mb = g; }
+      }
+    }
+  }
+  vec2 ca = n + mg;
+  vec2 cb = n + mb;
+  return vec3(md, gdH12(ca + 0.37), gdH12(ca + cb + 17.0));
+}
+
+// Signed distance to the union of every concrete surface (negative inside).
+float gdPaveSd(vec2 p) {
+  float d = 1e5;
+  for (int i = 0; i < ${PAVE_N}; i++) {
+    vec4 a = gdPaveA[i];
+    vec4 b = gdPaveB[i];
+    vec2 c = p - a.xy;
+    float s;
+    if (b.z > 0.5) {
+      s = length(c) - a.z;
+    } else {
+      vec2 l = vec2(b.x * c.x + b.y * c.y, b.x * c.y - b.y * c.x);
+      vec2 q = abs(l) - a.zw;
+      s = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0);
+    }
+    d = min(d, s);
+  }
+  return d;
+}
+
+// One scatter layer: at most one stone per cell, kept inside the cell along
+// with its shadow, so a single tap answers it. angular 0 is a rounded pebble,
+// 1 a broken chunk with a flat tilted face. Returns the stone's coverage.
+float gdScatter(vec2 p, float cell, float density, vec2 rr, float seed, float fp,
+                float angular, vec3 tintA, vec3 tintB,
+                inout vec3 col, inout vec3 bump, inout float rough) {
+  vec2 q = p / cell;
+  vec2 id = floor(q);
+  float pick = gdH12(id + seed);
+  if (pick >= density) return 0.0;
+  vec2 h = gdH22(id * 1.31 + seed * 7.0);
+  float r = mix(rr.x, rr.y, h.x * h.x);
+  float vis = 1.0 - smoothstep(0.45, 1.1, fp / r);
+  if (vis <= 0.0) return 0.0;
+  float slack = max(0.0, 0.5 - 1.9 * r / cell);
+  vec2 lp = (fract(q) - 0.5 - (h - 0.5) * 2.0 * slack) * cell;
+  float an = h.y * 6.2832;
+  vec2 cs = vec2(cos(an), sin(an));
+  vec2 rp = vec2(cs.x * lp.x + cs.y * lp.y, cs.x * lp.y - cs.y * lp.x);
+  vec2 ab = r * vec2(1.0, 0.55 + 0.4 * fract(pick * 13.7));
+  vec2 e = rp / ab;
+  float dR = length(e) - 1.0;
+  vec2 qa = abs(e) - vec2(0.62);
+  float dA = length(max(qa, vec2(0.0))) + min(max(qa.x, qa.y), 0.0) - 0.36;
+  float sd = mix(dR, dA, angular);
+  float aa = max(fp / r, 0.05);
+  float body = 1.0 - smoothstep(-aa, aa, sd);
+  // directional contact shadow, cast away from the sun
+  float day = smoothstep(0.02, 0.18, gdSun.y);
+  vec2 so = -gdSun.xz / max(gdSun.y, 0.3) * r * 0.5;
+  float sh = 1.0 - smoothstep(-0.25, 0.45, length((lp - so) / (r * 1.02)) - 1.0);
+  float ring = 1.0 - smoothstep(0.0, 0.55, sd);
+  col *= 1.0 - vis * (1.0 - body) * (0.5 * sh * day + 0.22 * ring);
+  float t = fract(pick * 31.7 + h.x * 5.3);
+  vec3 ic = mix(tintA, tintB, t * t) * (0.78 + 0.44 * gdH12(id + 91.0));
+  vec2 ew = e.x * cs + e.y * vec2(-cs.y, cs.x);
+  vec2 facet = (gdH22(id + 47.0) - 0.5) * 0.8;
+  float bevel = smoothstep(-0.35, 0.0, sd);
+  vec2 tilt = mix(ew * 0.9, facet + ew * 0.7 * bevel, angular);
+  col = mix(col, ic * (1.0 - 0.25 * bevel * angular), body * vis);
+  bump.xz += tilt * body * vis;
+  rough = mix(rough, mix(0.58, 0.92, angular), body * vis);
+  return body * vis;
+}
+
+// One family of vehicle tracks: lanes of paired ruts that wander, start and
+// stop. Returns the rut-floor amount; writes the berm amount.
+float gdTrack(vec2 p, vec2 d, float spacing, float seed, float fp, float density,
+              inout vec3 bump, inout vec3 col, out float berm) {
+  berm = 0.0;
+  vec2 nrm = vec2(-d.y, d.x);
+  float a = dot(p, d);
+  float c = dot(p, nrm) + 7.0 * sin(a / 61.0 + seed) + 2.2 * sin(a / 17.0 + seed * 2.3);
+  float lane = floor(c / spacing);
+  float lh = gdH12(vec2(lane, seed));
+  if (lh > density) return 0.0;
+  float run = smoothstep(0.36, 0.5, gdVN(vec2(a / 37.0, lane * 7.1 + seed)));
+  if (run <= 0.0) return 0.0;
+  float q = c - (lane + 0.5) * spacing - (fract(lh * 3.7) - 0.5) * spacing * 0.5;
+  float gauge = 0.8 + 0.12 * fract(lh * 9.1);
+  float s = abs(q) - gauge;          // + is away from the track's centreline
+  float r = abs(s);
+  float aa = max(fp, 0.004);
+  float rutW = 0.13 + 0.04 * fract(lh * 5.3);
+  float floorA = (1.0 - smoothstep(rutW - aa, rutW + 0.04 + aa, r)) * run;
+  berm = smoothstep(rutW, rutW + 0.06, r) * (1.0 - smoothstep(rutW + 0.08, rutW + 0.22, r)) * run;
+  float outward = sign(s) * sign(q);
+  float wall = smoothstep(rutW - 0.05, rutW, r) * (1.0 - smoothstep(rutW + 0.02, rutW + 0.07, r));
+  float bermOut = smoothstep(rutW + 0.1, rutW + 0.15, r) * (1.0 - smoothstep(rutW + 0.17, rutW + 0.24, r));
+  float keep = 1.0 - smoothstep(0.05, 0.14, fp);
+  bump.xz += nrm * outward * (-0.75 * wall + 0.35 * bermOut) * run * keep;
+  // tyre tread: chevron blocks across the rut floor
+  float tp = (a + abs(s) * 0.55) / 0.11;
+  float tk = (1.0 - smoothstep(0.25, 0.55, fwidth(tp))) * floorA;
+  float tw = sin(6.2832 * tp);
+  bump.xz += d * cos(6.2832 * tp) * 0.45 * tk;
+  col *= 1.0 + tw * 0.05 * tk;
+  return floorA;
+}
+#endif
+`;
+
+/**
+ * Pavement, top tier. Runs inside the joint block, so it has the strip frame
+ * (`gdLocal`, `gdCellF`, `gdCell`, `gdSlab`) and the joint coverage.
+ */
+const PAVEMENT_PROC = /* glsl */ `
+{
+  vec2 gdP = vGdWorld.xz;
+  vec2 gdAx = gdBasis.xy;
+  vec2 gdPr = vec2(-gdBasis.y, gdBasis.x);
+  float gdSp = gdJoint.x;
+  float gdHW = gdJoint.y * 0.5;
+  vec2 gdFrac = fract(gdCellF);
+  vec2 gdSlabM = gdFrac * gdSp;                      // metres from the slab corner
+  vec2 gdToJ = min(gdSlabM, gdSp - gdSlabM);         // metres to each axis' joint
+  float gdJx = step(gdToJ.x, gdToJ.y);               // 1: nearest joint is transverse
+  float gdJd = min(gdToJ.x, gdToJ.y);
+  vec2 gdJid = gdJx > 0.5
+    ? vec2(floor(gdCellF.x + 0.5), gdCell.y)
+    : vec2(gdCell.x + 0.5, floor(gdCellF.y + 0.5) + 0.5);
+  float gdJh = gdH12(gdJid * 1.37 + gdJx * 41.0);
+  float gdAlong = gdJx > 0.5 ? gdLocal.y : gdLocal.x;
+  vec2 gdToJointW = gdJx > 0.5
+    ? gdAx * sign(gdFrac.x - 0.5)
+    : gdPr * sign(gdFrac.y - 0.5);
+  float gdSB = gdH12(gdCell * 1.71 + 3.3);
+  float gdSC = gdH12(gdCell * 2.13 - 8.7);
+  float gdRepl = step(gdSlab, 0.08);                 // a slab cut out and re-poured
+  float gdWide = gdMacroAmt;
+
+  // --- slab finish: re-poured slabs are smoother, cooler and darker --------
+  diffuseColor.rgb *= mix(vec3(1.0), vec3(0.86, 0.87, 0.89), gdRepl * gdWide);
+  roughnessFactor = clamp(roughnessFactor - gdRepl * 0.06 * gdWide, 0.45, 1.0);
+
+  // --- broom finish: fine transverse striations, crisp underfoot -----------
+  {
+    float gdBr = gdLocal.x / 0.016 + gdVN(gdLocal * vec2(0.6, 4.0)) * 3.0;
+    float gdBrK = (1.0 - smoothstep(0.25, 0.6, fwidth(gdBr))) * gdFine * (1.0 - gdRepl)
+                * (0.35 + 0.65 * gdVN(gdLocal * vec2(0.45, 1.3) + gdSlab * 20.0));
+    gdBump.xz += gdAx * cos(6.2832 * gdBr) * 0.16 * gdBrK;
+    diffuseColor.rgb *= 1.0 + sin(6.2832 * gdBr) * 0.03 * gdBrK;
+  }
+
+  // --- joint sealant ---------------------------------------------------------
+  // Intact sealant is a dark rubbery bead with a little sheen. On some joints
+  // it has been overbanded wide; along others it has failed in runs and the
+  // groove has filled with sand.
+  float gdOver = step(0.8, gdJh) * (1.0 - gdRepl);
+  float gdLost = smoothstep(0.52, 0.66, gdVN(vec2(gdAlong * 0.8, gdJh * 57.0))) * (1.0 - gdOver);
+  float gdSealW = mix(gdHW * 0.8,
+                      gdHW * (1.8 + 1.3 * gdVN(vec2(gdAlong * 2.7, gdJh * 13.0))),
+                      gdOver);
+  float gdSealC = gdBand(gdJd, gdSealW, gdFp) * gdWide;
+  float gdSeal = gdSealC * (1.0 - gdLost);
+  float gdSand = gdSealC * gdLost;
+  vec3 gdSealCol = vec3(0.034, 0.032, 0.03) * (0.85 + 0.3 * gdSf.r);
+  diffuseColor.rgb = mix(diffuseColor.rgb, gdSealCol, gdSeal * 0.92);
+  roughnessFactor = mix(roughnessFactor, 0.5 + 0.12 * gdSf.g, gdSeal);
+  diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor * (0.72 + 0.25 * gdSf.r), gdSand * 0.9);
+  roughnessFactor = mix(roughnessFactor, 1.0, gdSand);
+  // the overband bead stands slightly proud of the slab
+  gdBump.xz -= gdToJointW * gdOver * gdBand(abs(gdJd - gdSealW * 0.8), gdSealW * 0.25, gdFp) * 0.35;
+
+  // --- spalled joint edges ---------------------------------------------------
+  float gdSpN = gdVN(vec2(gdAlong * 2.3, gdJh * 23.0 + 5.0));
+  float gdSpW = max(0.0, gdSpN - 0.64) * 0.42 * (0.55 + 0.9 * gdVN(gdP * 11.0));
+  float gdSpall = gdBand(gdJd, gdHW + gdSpW, gdFp) * step(0.004, gdSpW) * gdWide;
+  float gdSpRim = gdBand(abs(gdJd - gdHW - gdSpW), 0.006, gdFp) * step(0.004, gdSpW) * gdWide;
+  gdSpall *= 1.0 - gdSeal * 0.7;
+  diffuseColor.rgb *= 1.0 - gdSpall * (0.34 - 0.2 * gdSf.r) - gdSpRim * 0.3;
+  roughnessFactor = mix(roughnessFactor, 1.0, gdSpall);
+  gdBump.xz += gdToJointW * gdSpall * 0.55;
+  gdBump.xz += (gdSf.rg - 0.5) * 2.2 * gdSpall * gdFine;
+
+  // --- mid-slab and corner cracks -------------------------------------------
+  float gdCrackA = 0.0;
+  if (gdSB > 0.6 && gdCracks > 0.0) {
+    vec2 gdP0 = (0.22 + 0.56 * vec2(gdSC, fract(gdSC * 7.7))) * gdSp;
+    float gdTh = gdSB * 19.0;
+    vec2 gdCd = vec2(cos(gdTh), sin(gdTh));
+    vec2 gdRs = gdSlabM - gdP0;
+    float gdT = dot(gdRs, gdCd);
+    float gdN = dot(gdRs, vec2(-gdCd.y, gdCd.x));
+    gdN += (gdVN(vec2(gdT * 1.5, gdSB * 40.0)) - 0.5) * 0.55
+         + (gdVN(vec2(gdT * 8.0, gdSC * 30.0)) - 0.5) * 0.07;
+    float gdCw = 0.0022 + 0.0035 * gdVN(vec2(gdT * 0.6, 3.0));
+    float gdSh = 0.016 * max(0.0, gdVN(vec2(gdT * 3.0, 9.0 + gdSB)) - 0.55);
+    gdCrackA = max(gdCrackA, gdBand(abs(gdN), gdCw, gdFp));
+    gdCrackA = max(gdCrackA, gdBand(abs(gdN), gdCw + gdSh, gdFp) * 0.45);
+  }
+  if (gdSC > 0.84 && gdCracks > 0.0) {
+    // a corner break: the piece toward one corner has dropped a little
+    vec2 gdCorner = step(0.5, vec2(fract(gdSB * 5.3), fract(gdSB * 9.1)));
+    vec2 gdCl = abs(gdSlabM - gdCorner * gdSp);
+    vec2 gdAb = vec2(0.5, 0.5) + 1.2 * vec2(fract(gdSC * 13.0), fract(gdSC * 29.0));
+    float gdCn = (gdCl.x / gdAb.x + gdCl.y / gdAb.y - 1.0) * (gdAb.x * gdAb.y / length(gdAb));
+    gdCn += (gdVN(gdSlabM * 6.0) - 0.5) * 0.05;
+    gdCrackA = max(gdCrackA, gdBand(abs(gdCn), 0.003, gdFp));
+    float gdPiece = 1.0 - smoothstep(-gdFp, gdFp, gdCn);
+    diffuseColor.rgb *= 1.0 - gdPiece * 0.06 * gdWide;
+  }
+  gdCrackA *= gdWide * gdCracks * (1.0 - gdSeam);
+  diffuseColor.rgb *= 1.0 - gdCrackA * 0.7;
+  roughnessFactor = mix(roughnessFactor, 1.0, gdCrackA);
+
+  // --- patch repairs -----------------------------------------------------------
+  if (gdSB > 0.16 && gdSB < 0.29) {
+    vec2 gdPc = (0.3 + 0.4 * vec2(gdSC, fract(gdSC * 3.3))) * gdSp;
+    vec2 gdPh = vec2(0.35 + 1.15 * fract(gdSB * 11.0), 0.3 + 0.85 * fract(gdSC * 17.0));
+    vec2 gdPq = abs(gdSlabM - gdPc) - gdPh;
+    float gdPd = length(max(gdPq, vec2(0.0))) + min(max(gdPq.x, gdPq.y), 0.0);
+    float gdIn = (1.0 - smoothstep(-gdFp, gdFp, gdPd)) * gdWide;
+    float gdRim = gdBand(abs(gdPd), 0.01 + 0.012 * gdVN(gdSlabM * 7.0), gdFp) * gdWide;
+    bool gdAsphalt = fract(gdSC * 29.0) > 0.45;
+    vec3 gdPcol = gdAsphalt
+      ? vec3(0.055, 0.052, 0.048) * (0.8 + 0.6 * gdSf.r)
+      : diffuseColor.rgb * vec3(1.06, 1.07, 1.09);
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdPcol, gdIn);
+    roughnessFactor = mix(roughnessFactor, gdAsphalt ? 0.82 : 0.78, gdIn);
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdSealCol, gdRim * 0.85);
+    roughnessFactor = mix(roughnessFactor, 0.55, gdRim);
+    gdBump.xz += (gdSf.rg - 0.5) * 0.9 * gdIn * gdFine;
+  }
+
+  // --- oil and rubber -----------------------------------------------------------
+  {
+    float gdCl = smoothstep(0.5, 0.78, gdVN(gdP / 19.0 + 3.7));
+    float gdO = gdVN(gdP / 2.1 + 9.1) * 0.6 + gdVN(gdP / 0.62) * 0.28 + gdVN(gdP / 0.17) * 0.12;
+    float gdOil = smoothstep(0.6, 0.74, gdO) * gdCl * gdWide;
+    float gdHalo = smoothstep(0.5, 0.62, gdO) * gdCl * gdWide;
+    diffuseColor.rgb *= 1.0 - gdHalo * 0.12;
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.32, 0.3, 0.28), gdOil * 0.75);
+    roughnessFactor = mix(roughnessFactor, 0.47, gdOil * 0.85);
+    // rubber laid down along the direction of travel
+    float gdRb = gdVN(vec2(gdLocal.x / 7.5, gdLocal.y / 0.22) + gdSlab);
+    float gdRub = smoothstep(0.68, 0.86, gdRb) * smoothstep(0.55, 0.8, gdVN(gdP / 31.0 - 5.0)) * gdWide;
+    diffuseColor.rgb *= 1.0 - gdRub * 0.28;
+    roughnessFactor = mix(roughnessFactor, 0.62, gdRub * 0.6);
+  }
+
+  // --- paint: worn thin, chipped to the concrete ---------------------------------
+  #ifdef USE_MAP
+  {
+    float gdPaint = smoothstep(0.6, 0.78, dot(sampledDiffuseColor.rgb, vec3(0.3333)));
+    float gdChip = smoothstep(0.58, 0.66, gdVN(gdP * 6.0) * 0.7 + gdVN(gdP * 23.0) * 0.3);
+    float gdWear = smoothstep(0.35, 0.75, gdVN(gdP * 1.3));
+    diffuseColor.rgb *= 1.0 - gdPaint * gdWide * (0.48 * gdChip + 0.16 * gdWear);
+    roughnessFactor = mix(roughnessFactor, 0.62, gdPaint * (1.0 - gdChip) * 0.5 * gdWide);
+  }
+  #endif
+
+  // --- the edge where concrete meets bare ground --------------------------------
+  // Measured against the union of every concrete surface, so a junction
+  // between two pavements has no edge.
+  if (gdAmt > 0.0) {
+    float gdE = -gdPaveSd(gdP);
+    if (gdE < 3.2) {
+      float gdBrk = gdVN(gdP * 1.6) * 0.62 + gdVN(gdP * 5.9) * 0.28 + gdVN(gdP * 21.0) * 0.1;
+      float gdCut = max(0.0, gdBrk - 0.4) * 0.95 * gdAmt * (1.0 - smoothstep(0.02, 0.07, gdFp));
+      float gdEc = gdE - gdCut;
+      if (gdEc < 0.0) discard;
+      float gdCr = 1.0 - smoothstep(0.0, 0.07 + 0.08 * gdBrk, gdEc);
+      diffuseColor.rgb *= 1.0 - gdCr * 0.38 * gdAmt;
+      roughnessFactor = mix(roughnessFactor, 1.0, gdCr * gdAmt);
+      gdBump.xz += (gdSf.rg - 0.5) * 2.0 * gdCr * gdFine;
+      // sand blown up onto the slab, deepest against the lip
+      float gdReach = 0.3 + 2.4 * gdVN(gdP * 0.33 + 4.0);
+      float gdDrift = 1.0 - smoothstep(0.0, gdReach, gdEc);
+      gdDrift *= smoothstep(0.2, 0.55, gdVN(gdP * 1.9) * 0.55 + 0.45 * gdDrift + 0.1 * gdSf.g);
+      diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor * (0.86 + 0.2 * gdSf.r), gdDrift * 0.88 * gdAmt);
+      roughnessFactor = mix(roughnessFactor, 1.0, gdDrift * gdAmt);
+      // grit and pebbles washed onto the concrete
+      float gdNear = 1.0 - smoothstep(0.0, 1.6, gdEc);
+      gdScatter(gdP, 0.21, 0.55 * gdNear * gdAmt, vec2(0.008, 0.03), 31.0, gdFp, 0.5,
+                vec3(0.07, 0.055, 0.045), vec3(0.32, 0.29, 0.24),
+                diffuseColor.rgb, gdBump, roughnessFactor);
+    }
+  }
+}
+`;
+
+/**
+ * Lakebed, bladed compound ground and graded dirt, top tier. Runs after the
+ * texture layer; everything rides `gdMacroAmt` (or `gdAmt` for the fine
+ * terms) so the aerial route never sees it.
+ */
+const GROUND_PROC = /* glsl */ `
+{
+  vec2 gdP = vGdWorld.xz;
+  float gdW = gdMacroAmt;
+  float gdC = 0.0;
+  #ifdef GD_COMPACT
+    gdC = vGdCompact;
+  #endif
+  #ifdef GD_FAM_DIRT
+    gdC = 1.0;
+  #endif
+
+  // --- colour regions, 4 to 100 m --------------------------------------------
+  float gdM1 = gdVN(gdP / 43.0);
+  float gdM2 = gdVN(gdP / 13.7 + 7.3);
+  float gdM3 = gdVN(gdP / 97.0 - 3.1);
+  float gdM4 = gdVN(gdP / 4.7 + 1.9);
+  float gdSalt = smoothstep(0.6, 0.82, gdM1 * 0.65 + gdM4 * 0.35) * (1.0 - 0.6 * gdC);
+  float gdDamp = smoothstep(0.6, 0.84, gdM3 * 0.7 + gdM2 * 0.3);
+  float gdDriftR = smoothstep(0.56, 0.74, gdM4 * 0.5 + gdM2 * 0.5);
+  diffuseColor.rgb *= 1.0 + ((gdM2 - 0.5) * 0.2 + (gdM3 - 0.5) * 0.16) * gdW;
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.6, 0.58, 0.53), gdSalt * 0.26 * gdW);
+  diffuseColor.rgb *= mix(vec3(1.0), vec3(0.8, 0.75, 0.7), gdDamp * 0.75 * gdW);
+  roughnessFactor = mix(roughnessFactor, 0.84, gdDamp * 0.6 * gdW);
+
+  // --- vehicle ruts ---------------------------------------------------------------
+  float gdRut = 0.0;
+  float gdBerm = 0.0;
+  {
+    float gdB;
+    float gdDen = mix(0.34, 0.7, gdC);
+    gdRut = max(gdRut, gdTrack(gdP, vec2(0.906, 0.423), mix(41.0, 23.0, gdC), 1.3, gdFp, gdDen, gdBump, diffuseColor.rgb, gdB));
+    gdBerm = max(gdBerm, gdB);
+    gdRut = max(gdRut, gdTrack(gdP, vec2(-0.342, 0.94), mix(57.0, 29.0, gdC), 4.1, gdFp, gdDen, gdBump, diffuseColor.rgb, gdB));
+    gdBerm = max(gdBerm, gdB);
+    gdRut = max(gdRut, gdTrack(gdP, vec2(0.574, -0.819), mix(73.0, 37.0, gdC), 7.7, gdFp, gdDen * 0.8, gdBump, diffuseColor.rgb, gdB));
+    gdBerm = max(gdBerm, gdB);
+    #ifdef GD_FAM_DIRT
+    {
+      // the strip's own traffic: two worn lanes either side of its centreline
+      vec2 gdRel = gdP - gdBasis.zw;
+      float gdQ = dot(gdRel, vec2(-gdBasis.y, gdBasis.x));
+      float gdA = dot(gdRel, gdBasis.xy);
+      float gdQs = gdQ + 1.4 * sin(gdA / 37.0) + 0.5 * sin(gdA / 11.0);
+      float gdR = abs(abs(abs(gdQs) - 2.6) - 0.86);
+      float gdF = 1.0 - smoothstep(0.12, 0.2 + gdFp, gdR);
+      gdRut = max(gdRut, gdF);
+      gdBerm = max(gdBerm, smoothstep(0.16, 0.24, gdR) * (1.0 - smoothstep(0.26, 0.42, gdR)));
+    }
+    #endif
+    gdRut *= gdW;
+    gdBerm *= gdW;
+    diffuseColor.rgb *= 1.0 - gdRut * 0.13 + gdBerm * 0.07;
+    roughnessFactor = clamp(roughnessFactor - gdRut * 0.07 + gdBerm * 0.04, 0.45, 1.0);
+  }
+
+  // --- drifted sand and wind ripples -------------------------------------------------
+  float gdDrift = gdDriftR * (1.0 - 0.45 * gdC) * (1.0 - gdRut * 0.8);
+  {
+    vec2 gdWd = vec2(0.8, 0.6);
+    float gdS = dot(gdP, gdWd) / 0.085 + gdVN(gdP * 1.15) * 3.5 + gdVN(gdP * 0.23) * 7.0;
+    float gdKeep = (1.0 - smoothstep(0.22, 0.5, fwidth(gdS))) * gdAmt;
+    float gdDh = cos(6.2832 * gdS) + 0.45 * cos(12.566 * gdS + 1.1);
+    float gdRip = gdDrift * gdKeep;
+    gdBump.xz -= gdWd * gdDh * 0.2 * gdRip;
+    diffuseColor.rgb *= 1.0 + sin(6.2832 * gdS) * 0.035 * gdRip;
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor * 1.04, gdDrift * 0.42 * gdW);
+    roughnessFactor = mix(roughnessFactor, 1.0, gdDrift * gdW);
+  }
+
+  // --- desiccation cracks --------------------------------------------------------------
+  // Open playa carries a continuous crust; bladed ground only cracks where a
+  // puddle dried out. Ruts crush it and drifts bury it.
+  float gdPuddle = smoothstep(0.68, 0.8, gdVN(gdP / 6.3 + 2.2) * 0.65 + gdVN(gdP / 1.9) * 0.35);
+  float gdCrustR = smoothstep(0.22, 0.5, gdM2 * 0.55 + gdM1 * 0.45);
+  // a dried puddle is a thin skin over bladed fill, not a playa: half strength
+  float gdCrust = mix(gdCrustR, gdPuddle * 0.55, gdC) * (1.0 - 0.88 * gdRut) * (1.0 - 0.8 * gdDrift) * gdAmt;
+  float gdCellP = mix(0.95, 0.42, gdC);
+  if (gdCrust > 0.002) {
+    vec2 gdWarp = (vec2(gdVN(gdP * 2.3), gdVN(gdP * 2.3 + 5.2)) - 0.5) * 0.14;
+    vec2 gdDir;
+    vec3 gdV = gdVoronoi((gdP + gdWarp) / gdCellP, 0.86, gdDir);
+    float gdD = gdV.x * gdCellP;                               // metres to the fissure
+    float gdVkeep = 1.0 - smoothstep(gdCellP * 0.12, gdCellP * 0.4, gdFp);
+    float gdWc = (0.005 + 0.014 * gdV.z) * mix(1.0, 0.55, gdC);   // half width
+    float gdLipW = 0.05 + 0.03 * gdV.y;
+    float gdFis = gdBand(gdD, gdWc, gdFp) * gdCrust * gdVkeep;
+    float gdLip = (1.0 - smoothstep(gdWc, gdWc + gdLipW, gdD)) * (1.0 - gdFis) * gdCrust * gdVkeep;
+    // plates curl up at their rims; the lip faces in toward its own plate.
+    // The wall tilt flips sign across the fissure, so once the fissure is
+    // narrower than a couple of pixels it would only alias into dashes.
+    float gdNk = 1.0 - smoothstep(0.03, 0.12, gdFp);
+    float gdWall = gdBand(gdD, gdWc * 1.4, gdFp) * (1.0 - smoothstep(gdWc * 1.5, gdWc * 5.0, gdFp));
+    gdBump.xz += gdDir * (gdLip * 0.7 - gdWall * 1.1) * gdCrust * gdVkeep * gdNk;
+    // per-plate tone and a faint dish toward the middle of each plate
+    float gdPlate = (gdV.y - 0.5) * 0.09 * gdCrust * gdVkeep;
+    float gdDish = smoothstep(0.05, gdCellP * 0.4, gdD);
+    diffuseColor.rgb *= 1.0 + gdPlate - gdDish * 0.035 * gdCrust * gdVkeep;
+    // salt wicks to the rims; the fissure itself is shadow
+    diffuseColor.rgb *= 1.0 + gdLip * (0.07 + 0.14 * gdSalt);
+    diffuseColor.rgb *= 1.0 - gdFis * (0.72 - 0.12 * gdC);
+    roughnessFactor = mix(roughnessFactor, 1.0, gdFis);
+    // a crust in the far field is a slightly darker, rougher surface, not a
+    // blank one: hand the faded lines over to their mean
+    diffuseColor.rgb *= 1.0 - 0.05 * gdCrust * (1.0 - gdVkeep);
+
+    // secondary cracks subdivide some plates
+    if (gdFp < 0.04) {
+      vec2 gdDir2;
+      float gdCell2 = gdCellP * 0.4;
+      vec3 gdV2 = gdVoronoi((gdP - gdWarp * 0.5) / gdCell2 + 13.7, 0.8, gdDir2);
+      float gdD2 = gdV2.x * gdCell2;
+      float gdSub = step(0.42, gdV.y) * smoothstep(0.35, 0.6, gdVN(gdP * 0.9 + 8.0));
+      float gdK2 = (1.0 - smoothstep(0.01, 0.04, gdFp)) * gdSub * gdCrust;
+      float gdW2 = 0.002 + 0.004 * gdV2.z;
+      float gdF2 = gdBand(gdD2, gdW2, gdFp) * gdK2 * (1.0 - gdFis);
+      float gdL2 = (1.0 - smoothstep(gdW2, gdW2 + 0.025, gdD2)) * gdK2 * (1.0 - gdF2);
+      gdBump.xz += gdDir2 * (gdL2 * 0.4 - gdF2 * 0.6);
+      diffuseColor.rgb *= (1.0 - gdF2 * 0.55) * (1.0 + gdL2 * 0.05);
+    }
+  }
+
+  // --- the join: debris off the edge of the concrete ---------------------------------
+  #ifdef GD_COMPACT
+  if (gdC > 0.02 && gdAmt > 0.0) {
+    float gdSdT = gdPaveSd(gdP);
+    if (gdSdT < 3.5) {
+      // contact under the slab lip, and the hollow a broken edge leaves
+      float gdLipAo = (1.0 - smoothstep(0.0, 0.1, abs(gdSdT))) ;
+      float gdUnder = 1.0 - smoothstep(-0.6, -0.05, gdSdT);
+      diffuseColor.rgb *= 1.0 - (gdLipAo * 0.42 + (1.0 - gdUnder) * step(gdSdT, 0.0) * 0.18) * gdAmt;
+      // sand banked against the edge
+      float gdBank = (1.0 - smoothstep(0.0, 0.6 + 1.4 * gdVN(gdP * 0.5), gdSdT)) * step(0.0, gdSdT);
+      diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor * 1.02, gdBank * 0.45 * gdAmt);
+      roughnessFactor = mix(roughnessFactor, 1.0, gdBank * gdAmt);
+      // broken concrete strewn off the edge
+      float gdDens = (1.0 - smoothstep(-0.3, 3.2, gdSdT)) * 0.8 * gdAmt;
+      gdScatter(gdP, 0.32, gdDens, vec2(0.025, 0.1), 77.0, gdFp, 1.0,
+                vec3(0.27, 0.26, 0.24), vec3(0.42, 0.4, 0.36),
+                diffuseColor.rgb, gdBump, roughnessFactor);
+      gdScatter(gdP, 0.13, gdDens * 0.8, vec2(0.008, 0.03), 79.0, gdFp, 0.8,
+                vec3(0.22, 0.21, 0.19), vec3(0.4, 0.38, 0.34),
+                diffuseColor.rgb, gdBump, roughnessFactor);
+    }
+  }
+  #endif
+
+  // --- stones ----------------------------------------------------------------------
+  // Desert pavement: a lag of dark, wind-varnished pebbles with a few pale
+  // quartz ones, each with a contact shadow cast away from the sun. Bladed
+  // ground keeps fine grit and loses most of the large stones.
+  {
+    float gdLag = 0.3 + 0.5 * smoothstep(0.35, 0.75, gdM3 * 0.6 + gdM4 * 0.4);
+    gdLag *= (1.0 - 0.7 * gdDrift) * (1.0 - 0.6 * gdRut) * gdAmt;
+    gdScatter(gdP, 1.45, gdLag * mix(0.55, 0.12, gdC), vec2(0.035, 0.11), 3.0, gdFp, 0.25,
+              vec3(0.07, 0.052, 0.04), vec3(0.36, 0.33, 0.28),
+              diffuseColor.rgb, gdBump, roughnessFactor);
+    gdScatter(gdP, 0.43, gdLag * mix(0.5, 0.35, gdC), vec2(0.012, 0.042), 11.0, gdFp, 0.35,
+              vec3(0.08, 0.06, 0.045), vec3(0.3, 0.27, 0.22),
+              diffuseColor.rgb, gdBump, roughnessFactor);
+    gdScatter(gdP, 0.14, gdLag * mix(0.35, 0.6, gdC), vec2(0.004, 0.014), 17.0, gdFp, 0.5,
+              vec3(0.1, 0.085, 0.07), vec3(0.34, 0.31, 0.27),
+              diffuseColor.rgb, gdBump, roughnessFactor);
+  }
+
+  // --- graded dirt strips: a ragged edge that dissolves into the lakebed --------------
+  #ifdef GD_EDGE_UV
+  if (gdEdgeW > 0.0) {
+    float gdEd = (0.5 - abs(vGdUv.x - 0.5)) * gdEdgeW;
+    float gdRag = 0.15 + 1.6 * (gdVN(gdP * 0.7) * 0.7 + gdVN(gdP * 3.1) * 0.3);
+    float gdCutD = gdRag * gdAmt * (1.0 - smoothstep(0.03, 0.09, gdFp));
+    if (gdEd < gdCutD) discard;
+    float gdSoft = 1.0 - smoothstep(0.0, 2.5, gdEd - gdCutD);
+    diffuseColor.rgb = mix(diffuseColor.rgb, gdDustColor * 0.95, gdSoft * 0.35 * gdW);
+  }
+  #endif
+
+  // the stacked multiplies above can undershoot; keep albedo physical
+  diffuseColor.rgb = max(diffuseColor.rgb, vec3(0.0));
+  roughnessFactor = clamp(roughnessFactor, 0.45, 1.0);
 }
 `;
 
@@ -212,6 +867,17 @@ const SURFACE = /* glsl */ `
       gdCalm = 1.0 - vGdCompact * 0.55;
     #endif
 
+    #ifdef GD_PROC
+      // Pixel footprint in metres. Lines at every orientation are filtered
+      // against it, so it sits between the two derivatives: the max fades a
+      // crack running across the view long before it stops resolving.
+      vec2 gdDxW = dFdx(vGdWorld.xz);
+      vec2 gdDyW = dFdy(vGdWorld.xz);
+      float gdFa = length(gdDxW);
+      float gdFb = length(gdDyW);
+      float gdFp = mix(sqrt(gdFa * gdFb), max(gdFa, gdFb), 0.3);
+    #endif
+
     // --- shading normal ------------------------------------------------
     if (gdFine > 0.0) {
       vec2 gdNf = texture2D(gdNormalMap, gdUv).xy * 2.0 - 1.0;
@@ -219,7 +885,15 @@ const SURFACE = /* glsl */ `
     }
     if (gdMacroAmt > 0.0) {
       vec2 gdNm = texture2D(gdNormalMap, gdUvM).xy * 2.0 - 1.0;
-      gdBump.xz += gdNm.yx * gdNormalStrength.y * gdMacroAmt * gdCalm;
+      float gdMacroN = gdNormalStrength.y * gdMacroAmt * gdCalm;
+      #ifdef GD_PROC
+        // The macro tap scales millimetre grit up 9x into soft 3-10 cm
+        // dimples, which is the whole "blurred sand" look; and past a few
+        // tens of metres it only reads as an 11 m repeat. The analytic
+        // cracks, ruts and ripples carry metre-scale form instead.
+        gdMacroN *= 0.3 * (1.0 - 0.7 * smoothstep(0.02, 0.12, gdFp));
+      #endif
+      gdBump.xz += gdNm.yx * gdMacroN;
     }
 
     // --- albedo grain ---------------------------------------------------
@@ -245,9 +919,13 @@ const SURFACE = /* glsl */ `
       // Broad wear borrows the surface maps' irregular edges. Crossing two
       // sine waves alone made regular dark diamonds on both sand and concrete.
       float gdMottle = sin(dot(gdWp, vec2(0.18, 0.07)) + gdSm.g * 5.0);
+      #ifdef GD_PROC
+        // the analytic colour regions below replace the sine's job
+        gdMottle *= 0.35;
+      #endif
       diffuseColor.rgb *= 1.0 + (gdMottle * 0.10 + (gdSm.r - 0.5) * 0.19) * gdAmt;
 
-      #ifdef GD_COMPACT
+      #if defined(GD_COMPACT) && !defined(GD_PROC)
         // Loose stones belong to the lakebed. The highlight, rounded normal
         // and occlusion all end at the stone, including in grazing views.
         vec2 stoneUv = gdWp * 0.82;
@@ -361,9 +1039,15 @@ const SURFACE = /* glsl */ `
       // per-slab PBR drift: a pour is never uniform across a day's work
       vec2 gdCell = floor(gdCellF);
       float gdSlab = gdHash21(gdCell + 13.0);
+      #ifdef GD_PROC
+        float gdSlabDrift = 0.09;
+      #else
+        float gdSlabDrift = 0.05;
+      #endif
       roughnessFactor = clamp(roughnessFactor + (gdSlab - 0.5) * 0.09 * gdMacroAmt, 0.45, 1.0);
-      diffuseColor.rgb *= 1.0 + (gdHash21(gdCell * 1.31 - 7.0) - 0.5) * 0.05 * gdMacroAmt;
+      diffuseColor.rgb *= 1.0 + (gdHash21(gdCell * 1.31 - 7.0) - 0.5) * gdSlabDrift * gdMacroAmt;
 
+      #ifndef GD_PROC
       if (gdCracks > 0.0) {
         // gate on the slab hash so only a minority of slabs are cracked; the
         // 6 m slab grid and the ~11 m crack tile share no period, so the crack
@@ -375,6 +1059,11 @@ const SURFACE = /* glsl */ `
         diffuseColor.rgb *= 1.0 - gdCrack * 0.42;
         roughnessFactor = clamp(roughnessFactor + gdCrack * 0.2, 0.45, 1.0);
       }
+      #endif
+
+      #ifdef GD_PROC
+      ${PAVEMENT_PROC}
+      #endif
     }
     #endif
 
@@ -391,6 +1080,10 @@ const SURFACE = /* glsl */ `
       roughnessFactor = clamp(roughnessFactor - gdWear * (0.28 + 0.06 * gdAmt), 0.45, 1.0);
       diffuseColor.rgb *= 1.0 - gdWear * (0.11 + 0.03 * gdAmt);
     }
+    #endif
+
+    #if defined(GD_PROC) && !defined(GD_JOINTS)
+    ${GROUND_PROC}
     #endif
   }
 }
@@ -450,6 +1143,9 @@ const CONTACT = buildContactBoxes();
 const CONTACT_A = CONTACT.a;
 const CONTACT_B = CONTACT.b;
 
+/** Shared by every ground material: the sun moves them all together. */
+const SUN_UNIFORM: THREE.IUniform<THREE.Vector3> = { value: sunState.direction };
+
 /**
  * Injects the close-range ground pipeline into a standard material.
  *
@@ -475,6 +1171,8 @@ export function applyGroundDetail<M extends THREE.MeshStandardMaterial>(
 
   const joints = o.jointSpacing > 0;
   const tracks = o.tracks > 0;
+  const proc = o.procedural;
+  const edgeUv = proc && o.edgeWidth > 0;
 
   const uniforms: Record<string, THREE.IUniform> = {
     gdNormalMap: { value: options.normalMap },
@@ -497,6 +1195,14 @@ export function applyGroundDetail<M extends THREE.MeshStandardMaterial>(
     gdDustColor: { value: o.dustColor },
     gdBoxA: { value: CONTACT_A },
     gdBoxB: { value: CONTACT_B },
+    ...(proc
+      ? {
+          gdSun: SUN_UNIFORM,
+          gdPaveA: { value: PAVE.a },
+          gdPaveB: { value: PAVE.b },
+          gdEdgeW: { value: o.edgeWidth },
+        }
+      : {}),
   };
 
   material.userData.groundDetail = uniforms;
@@ -512,6 +1218,9 @@ varying vec3 vGdWorld;
 #ifdef GD_COMPACT
 attribute float gdCompact;
 varying float vGdCompact;
+#endif
+#ifdef GD_EDGE_UV
+varying vec2 vGdUv;
 #endif`,
       ],
       // `transformed` is final here and the logdepth / clipping chunks that
@@ -521,6 +1230,9 @@ varying float vGdCompact;
         `vGdWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
 #ifdef GD_COMPACT
 vGdCompact = gdCompact;
+#endif
+#ifdef GD_EDGE_UV
+vGdUv = uv;
 #endif
 #include <project_vertex>`,
       ],
@@ -543,13 +1255,19 @@ vGdCompact = gdCompact;
 
   // Defines switch the injection, and the GLSL string itself is versioned:
   // three caches programs on this key, not on the onBeforeCompile output.
-  const cacheKey = `gd21:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}`;
+  const famKey = o.family === "pavement" ? "p" : o.family === "dirt" ? "d" : "s";
+  const cacheKey = `gd30:${joints ? 1 : 0}${tracks ? 1 : 0}${o.compactAttribute ? 1 : 0}${
+    proc ? famKey : "-"
+  }${edgeUv ? 1 : 0}`;
   material.customProgramCacheKey = () => cacheKey;
   material.defines = {
     ...material.defines,
     ...(joints ? { GD_JOINTS: "" } : {}),
     ...(tracks ? { GD_TRACKS: "" } : {}),
     ...(o.compactAttribute ? { GD_COMPACT: "" } : {}),
+    ...(proc ? { GD_PROC: "" } : {}),
+    ...(proc && o.family === "dirt" ? { GD_FAM_DIRT: "" } : {}),
+    ...(edgeUv ? { GD_EDGE_UV: "" } : {}),
   };
 
   material.needsUpdate = true;
@@ -564,6 +1282,7 @@ export const GROUND_DETAIL_PRESETS = {
    * traffic polishes lanes into it and wind-blown sand fills the grooves.
    */
   pavement: {
+    family: "pavement" as const,
     scale: 1.05,
     macro: 10.7,
     // Fine normal is eased off from 1.0: the map already carries relief, and
@@ -586,6 +1305,7 @@ export const GROUND_DETAIL_PRESETS = {
    * from.
    */
   desert: {
+    family: "desert" as const,
     scale: 1.35,
     macro: 8.6,
     // Still stronger than pavement so the lakebed stays pebbled, but not
@@ -598,6 +1318,7 @@ export const GROUND_DETAIL_PRESETS = {
   },
   /** Graded dirt strips and haul roads: coarser, looser, no joints. */
   dirt: {
+    family: "dirt" as const,
     scale: 1.5,
     macro: 7.4,
     normalStrength: [0.92, 0.6] as [number, number],
@@ -607,9 +1328,10 @@ export const GROUND_DETAIL_PRESETS = {
     dust: 0.22,
     dustColor: "#cbbc94",
   },
-} satisfies Record<string, Omit<GroundDetailOptions, "normalMap" | "surfaceMap">>;
-
-export type GroundDetailFamily = keyof typeof GROUND_DETAIL_PRESETS;
+} satisfies Record<
+  GroundDetailFamily,
+  Omit<GroundDetailOptions, "normalMap" | "surfaceMap">
+>;
 
 /** Which canvas detail set each family samples. */
 const FAMILY_MAPS: Record<GroundDetailFamily, GroundDetailKind> = {
@@ -617,6 +1339,12 @@ const FAMILY_MAPS: Record<GroundDetailFamily, GroundDetailKind> = {
   desert: "desert",
   dirt: "desert",
 };
+
+/** The tier that can afford the analytic layer: the one with the post stack. */
+function proceduralTier(tier: QualityTier): boolean {
+  const profile = getQualityProfile(tier);
+  return profile.groundDetailRich && profile.groundDetailSize >= 512;
+}
 
 /**
  * Resolves a preset against the active quality tier, building (and caching)
@@ -632,10 +1360,13 @@ export function groundDetailFor(
   if (profile.groundDetailSize === 0) return null;
 
   const kind = FAMILY_MAPS[family];
+  const procedural = proceduralTier(tier);
+  // the analytic layer draws the crust itself; the map then carries grit only
   const maps = getGroundDetailMaps(
     kind,
     SITE_SEED + (kind === "concrete" ? 610 : 620),
     profile.groundDetailSize,
+    { crust: !procedural },
   );
   const preset = GROUND_DETAIL_PRESETS[family];
   const range = profile.groundDetailRange;
@@ -646,6 +1377,7 @@ export function groundDetailFor(
     // the tiers that cannot afford them
     ...(profile.groundDetailRich ? {} : { cracks: 0, tracks: 0 }),
     fade: [range * 0.2, range],
+    procedural,
     ...overrides,
     normalMap: maps.normal,
     surfaceMap: maps.surface,

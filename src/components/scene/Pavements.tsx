@@ -14,7 +14,11 @@ import {
 } from "@/lib/layout";
 import { makeApronTexture, makeDirtTexture, makePavementTexture } from "@/lib/textures";
 import { SITE_SEED } from "@/lib/noise";
-import { applyGroundDetailPreset, type GroundDetailFamily } from "@/gfx/groundDetail";
+import {
+  applyGroundDetailPreset,
+  PAVEMENT_FILLETS,
+  type GroundDetailFamily,
+} from "@/gfx/groundDetail";
 
 import { useSubjectFilter } from "@/lib/sceneVisibility";
 import { useTwinStore, type QualityTier } from "@/lib/store";
@@ -66,6 +70,7 @@ function useGroundMaterial(
   axisZ: number,
   originX: number,
   originZ: number,
+  edgeWidth = 0,
 ): THREE.MeshStandardMaterial {
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
@@ -76,8 +81,9 @@ function useGroundMaterial(
     return applyGroundDetailPreset(mat, tier, family, {
       axis: [axisX, axisZ],
       origin: [originX, originZ],
+      edgeWidth,
     });
-  }, [map, roughness, family, tier, axisX, axisZ, originX, originZ]);
+  }, [map, roughness, family, tier, axisX, axisZ, originX, originZ, edgeWidth]);
 
   useEffect(() => () => material.dispose(), [material]);
   return material;
@@ -164,6 +170,8 @@ function DirtMesh({ seg, index, visible }: StripMeshProps) {
   }, [length, seg.kind, index]);
   useEffect(() => () => texture.dispose(), [texture]);
   const [ax, az] = segmentAxis(seg);
+  // The strip's uv.x runs across it, so its long edges can break up into the
+  // lakebed instead of ending on a ruled line.
   const material = useGroundMaterial(
     texture,
     0.98,
@@ -173,6 +181,7 @@ function DirtMesh({ seg, index, visible }: StripMeshProps) {
     az,
     seg.from[0],
     seg.from[1],
+    seg.width,
   );
   return (
     <mesh
@@ -196,14 +205,22 @@ function DirtMesh({ seg, index, visible }: StripMeshProps) {
  */
 function ApronMesh({
   apron,
-  texture,
+  index,
   visible,
 }: {
   apron: (typeof APRONS)[number];
-  texture: THREE.Texture;
+  index: number;
   visible: boolean;
 }) {
   const tier = useTwinStore((s) => s.qualityTier);
+  // Each apron paints its own canvas so the 25 m construction joints fall on
+  // whole multiples of 25 m from its centre, on top of the shader's grid.
+  const [sizeX, sizeZ] = apron.size;
+  const texture = useMemo(
+    () => makeApronTexture(SITE_SEED + 400 + index, [sizeX, sizeZ]),
+    [index, sizeX, sizeZ],
+  );
+  useEffect(() => () => texture.dispose(), [texture]);
   // `terrain.ts` builds the apron's local frame from (cos, sin) of the same
   // rotation, so the joint basis matches the footprint that flattened the
   // ground underneath it.
@@ -277,20 +294,9 @@ function FilletMesh({
 
 export function Pavements() {
   const isDrawn = useSubjectFilter();
+  // the round fillets have no slab layout of their own to paint
   const apronTexture = useMemo(() => makeApronTexture(SITE_SEED + 400), []);
   useEffect(() => () => apronTexture.dispose(), [apronTexture]);
-
-  // fillets inherit the joint frame of the strip they blend into, so the slab
-  // grid runs continuously through the junction instead of turning at it
-  const fillets = useMemo(() => {
-    const t0 = TAXIWAYS[0];
-    const t1 = TAXIWAYS[1];
-    return [
-      { id: "runway-fillet", point: t0?.from, radius: 31, seg: t0 },
-      { id: "taxiway-elbow", point: t0?.to, radius: 27, seg: t0 },
-      { id: "apron-fillet", point: t1?.to, radius: 30, seg: t1 },
-    ];
-  }, []);
 
   return (
     <group name="pavements">
@@ -318,21 +324,21 @@ export function Pavements() {
         />
       ))}
       {/* Circular concrete fillets soften the runway T-junction and apron throat,
-          matching the broad rounded transitions visible in the overhead image. */}
-      {fillets.map(({ id, point, radius, seg }) =>
-        point && seg ? (
-          <FilletMesh
-            key={id}
-            id={id}
-            point={point}
-            radius={radius}
-            axis={segmentAxis(seg)}
-            texture={apronTexture}
-            visible={isDrawn(seg)}
-            entityId={seg.id}
-          />
-        ) : null,
-      )}
+          matching the broad rounded transitions visible in the overhead image.
+          Each inherits the joint frame of the strip it blends into, so the slab
+          grid runs continuously through the junction instead of turning at it. */}
+      {PAVEMENT_FILLETS.map(({ id, point, radius, segment }) => (
+        <FilletMesh
+          key={id}
+          id={id}
+          point={point}
+          radius={radius}
+          axis={segmentAxis(segment)}
+          texture={apronTexture}
+          visible={isDrawn(segment)}
+          entityId={segment.id}
+        />
+      ))}
       {STREETS.map((seg, i) => (
         <PavedMesh
           key={seg.id}
@@ -350,13 +356,8 @@ export function Pavements() {
       {ROADS.map((seg, i) => (
         <DirtMesh key={seg.id} seg={seg} index={i + 10} visible={isDrawn(seg)} />
       ))}
-      {APRONS.map((apron) => (
-        <ApronMesh
-          key={apron.id}
-          apron={apron}
-          texture={apronTexture}
-          visible={isDrawn(apron)}
-        />
+      {APRONS.map((apron, i) => (
+        <ApronMesh key={apron.id} apron={apron} index={i} visible={isDrawn(apron)} />
       ))}
     </group>
   );
