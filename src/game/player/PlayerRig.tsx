@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGameStore } from "../core/gameStore";
 import { readFlag } from "@/lib/params";
+import { useTwinStore } from "@/lib/store";
 import { game, eyePosition } from "../core/gameState";
 import {
   HUMAN_METRICS,
@@ -275,6 +276,13 @@ export function PlayerRig({
   useEffect(() => {
     stage.setEnvironment(environment);
   }, [stage, environment]);
+
+  // Weapon self-shadowing is a top-tier feature; the lower tiers keep the
+  // pass exactly as cheap as it was.
+  const qualityTier = useTwinStore((s) => s.qualityTier);
+  useEffect(() => {
+    stage.setShadows(qualityTier >= 3);
+  }, [stage, qualityTier]);
 
   useEffect(() => () => stage.dispose(), [stage]);
 

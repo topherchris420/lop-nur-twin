@@ -15,7 +15,6 @@ import {
   lathe,
   mergeAndDispose,
   mirrorX,
-  mlokSlots,
   picatinnyRail,
   place,
   portRing,
@@ -24,6 +23,13 @@ import {
   shell,
   tube,
 } from "./geometry";
+import {
+  MARKINGS,
+  extrudeSection,
+  leftDecal,
+  octagonHandguard,
+  section,
+} from "./receiver";
 
 /**
  * Procedural weapon models.
@@ -789,69 +795,166 @@ function buildLongGun(
       0.0016,
     ),
   );
-  // Selector, magazine release, bolt catch, takedown pins.
+  // Selector, bolt catch, pins. These are the machined parts the eye looks
+  // for on a receiver's left flank, and each is modelled as what it is: a
+  // lever lying flat against the side on a round hub, a paddle with a
+  // serrated tip, pin heads standing proud of the forging by a millimetre.
+  // The selector shaft runs through so both sides carry a hub.
+  const side = -0.019;
   asm.add(
     m.steel,
-    place(tube(0.0072, 0.0072, 0.044, 14), 0, 0.012, -0.012, 0, Math.PI / 2, 0),
+    place(tube(0.0062, 0.0062, 0.0408, 28), 0, 0.012, -0.012, 0, Math.PI / 2, 0),
   );
   asm.add(
     m.steel,
     place(
-      chamferedBox(0.019, 0.0075, 0.011, { radius: 0.002 }),
-      -0.026,
-      0.012,
-      -0.006,
-      0,
-      0,
-      0.35,
+      sideSlab(
+        profileShape([
+          [-0.016, 0.0105, 0.0035],
+          [0.004, 0.0085, 0.002],
+          [0.006, 0.0145, 0.002],
+          [-0.016, 0.0145, 0.003],
+        ]),
+        0.0026,
+        0.0008,
+      ),
+      side - 0.0021,
+      0.0,
+      0.0,
     ),
   );
+  // Thumb ridge on the lever's tip.
   asm.add(
     m.steel,
-    place(tube(0.0058, 0.0058, 0.012, 12), 0.024, 0.004, -0.062, 0, Math.PI / 2, 0),
+    place(
+      chamferedBox(0.0022, 0.0062, 0.0028, { radius: 0.0009 }),
+      side - 0.0042,
+      0.0118,
+      -0.0275,
+    ),
   );
+  // Bolt catch: a hinged plate with a ribbed paddle below it.
   asm.add(
     m.steel,
-    place(chamferedBox(0.008, 0.017, 0.02, { radius: 0.002 }), -0.023, 0.006, -0.058),
+    place(
+      sideSlab(
+        profileShape([
+          [-0.05, 0.022, 0.002],
+          [-0.064, 0.022, 0.002],
+          [-0.066, 0.006, 0.003],
+          [-0.058, -0.001, 0.003],
+          [-0.05, 0.004, 0.002],
+        ]),
+        0.0024,
+        0.0007,
+      ),
+      side - 0.0017,
+      0,
+      0,
+    ),
   );
+  for (let r = 0; r < 3; r += 1) {
+    asm.add(
+      m.steel,
+      place(
+        chamferedBox(0.0012, 0.0011, 0.009, { radius: 0.0004, bevelSegments: 1 }),
+        side - 0.0033,
+        0.0025 + r * 0.0024,
+        -0.059,
+      ),
+    );
+  }
+  // Takedown and pivot pins, trigger and hammer pins: heads on both sides.
+  const pins: [number, number, number][] = [
+    [0.026, -0.098, 0.0036],
+    [0.026, 0.036, 0.0036],
+    [-0.004, -0.036, 0.0026],
+    [-0.001, -0.018, 0.0026],
+  ];
+  for (const [py, pz, pr] of pins) {
+    asm.add(m.steel, place(tube(pr * 0.82, pr * 0.82, 0.04, 14), 0, py, pz, 0, Math.PI / 2, 0));
+    for (const sx of [-1, 1]) {
+      asm.add(
+        m.steel,
+        place(
+          tube(pr, pr * 1.04, 0.0014, 20, 0.0004),
+          sx * (0.0192 + (py > 0.02 ? 0.0003 : 0)),
+          py,
+          pz,
+          0,
+          Math.PI / 2,
+          0,
+        ),
+      );
+    }
+  }
+  // Magazine release button on the right, with its guard fence.
   asm.add(
     m.steel,
-    place(tube(0.0035, 0.0035, 0.042, 10), 0, 0.026, -0.098, 0, Math.PI / 2, 0),
+    place(tube(0.0052, 0.0052, 0.006, 20), 0.022, 0.004, -0.062, 0, Math.PI / 2, 0),
   );
-  asm.add(
-    m.steel,
-    place(tube(0.0035, 0.0035, 0.042, 10), 0, 0.026, 0.036, 0, Math.PI / 2, 0),
-  );
+  for (const dz of [-0.0085, 0.0085]) {
+    asm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.004, 0.016, 0.003, { radius: 0.0012 }),
+        0.0205,
+        0.004,
+        -0.062 + dz,
+      ),
+    );
+  }
+  // Roll marks on the left of the magwell and the selector, paint-filled.
+  asm.add(m.markings, place(leftDecal(MARKINGS.model, 0.05, 0.0062), -0.0233, -0.0045, -0.079));
+  asm.add(m.markings, place(leftDecal(MARKINGS.serial, 0.05, 0.0062), -0.0233, -0.0122, -0.079));
+  asm.add(m.markings, place(leftDecal(MARKINGS.selector, 0.026, 0.026), side - 0.0003, 0.012, -0.012));
 
   /* ------------------------------------------------- upper receiver */
   const upperLen = 0.2 + spec.receiverBack;
   const upperZ = -0.05;
-  // Flat-top upper: full width through the port, then shoulders chamfered
-  // in to the rail base. As a box it was one grey slab filling the frame.
+  // Flat-top upper in three extrusions: the body below, the shoulders and
+  // rail base above, and between them a core set 3 mm in on the left, which
+  // leaves a real groove for the charging handle to ride in. Every edge is a
+  // rounded bevel with a smooth normal, so each one carries a highlight line;
+  // as one hard-edged extrusion it read as a slab.
+  const upperY = spec.receiverTop - 0.021;
   {
-    const section = new THREE.Shape();
-    const pts: [number, number][] = [
-      [-0.0205, -0.021],
-      [0.0205, -0.021],
-      [0.0205, 0.005],
-      [0.0125, 0.021],
-      [-0.0125, 0.021],
-      [-0.0205, 0.005],
-    ];
-    section.moveTo(pts[0]![0], pts[0]![1]);
-    for (const [x, y] of pts.slice(1)) section.lineTo(x, y);
-    section.closePath();
-    const upper = new THREE.ExtrudeGeometry(section, {
-      depth: upperLen - 0.003,
-      bevelEnabled: true,
-      bevelThickness: 0.0015,
-      bevelSize: 0.0012,
-      bevelOffset: -0.0012,
-      bevelSegments: 2,
-    });
-    upper.translate(0, spec.receiverTop - 0.021, upperZ - (upperLen - 0.003) / 2);
-    upper.computeVertexNormals();
-    asm.add(m.receiver, upper);
+    const top = section([
+      [-0.0205, -0.0005, 0.0005],
+      [0.0205, -0.0005, 0.0005],
+      [0.0205, 0.0062, 0.0024],
+      [0.0128, 0.021, 0.0028],
+      [-0.0128, 0.021, 0.0028],
+      [-0.0205, 0.0062, 0.0024],
+    ]);
+    const core = section([
+      [-0.0172, -0.0062, 0.0005],
+      [0.0205, -0.0062, 0],
+      [0.0205, 0.0002, 0],
+      [-0.0172, 0.0002, 0.0005],
+    ]);
+    const bottom = section([
+      [-0.0205, -0.021, 0.0018],
+      [0.0205, -0.021, 0.0018],
+      [0.0205, -0.0056, 0.0005],
+      [-0.0205, -0.0056, 0.0005],
+    ]);
+    asm.add(m.receiver, place(extrudeSection(top, upperLen, 0.0016), 0, upperY, upperZ));
+    asm.add(
+      m.receiver,
+      place(extrudeSection(core, upperLen - 0.004, 0.0006, 2), 0, upperY, upperZ),
+    );
+    asm.add(m.receiver, place(extrudeSection(bottom, upperLen, 0.0016), 0, upperY, upperZ));
+    // A shell deflector ridge and a rear sling cup on the left, so the flank
+    // has more than one feature at the distance it is seen from.
+    asm.add(
+      m.steel,
+      place(tube(0.0058, 0.0058, 0.004, 24, 0.0006), -0.0215, upperY - 0.013, 0.058, 0, Math.PI / 2, 0),
+    );
+    asm.add(
+      m.nitride,
+      place(tube(0.0034, 0.0034, 0.0016, 18, 0.0003), -0.0236, upperY - 0.013, 0.058, 0, Math.PI / 2, 0),
+    );
   }
   // Brass deflector and forward assist on the ejection side.
   asm.add(
@@ -884,13 +987,30 @@ function buildLongGun(
   // Parts are placed relative to the group, which carries the port's
   // position; placing them in weapon space as well hung the dust cover a
   // couple of centimetres off the receiver.
-  portAsm.add(
-    m.nitride,
-    place(chamferedBox(0.004, 0.021, 0.038, { radius: 0.003 }), -0.0035, 0, 0),
-  );
+  // Dust cover: a thin plate proud of the flank with stiffening ribs, a
+  // hinge rod along its lower edge and the latch bump at the rear.
   portAsm.add(
     m.receiver,
-    place(chamferedBox(0.005, 0.024, 0.042, { radius: 0.003 }), -0.0015, 0, 0),
+    place(chamferedBox(0.0016, 0.019, 0.04, { radius: 0.0006 }), -0.0027, 0.0005, 0),
+  );
+  for (const dz of [-0.012, 0, 0.012]) {
+    portAsm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.0009, 0.014, 0.0022, { radius: 0.0004 }),
+        -0.0016,
+        0.001,
+        dz,
+      ),
+    );
+  }
+  portAsm.add(
+    m.steel,
+    place(tube(0.0016, 0.0016, 0.05, 12), -0.0024, -0.0098, 0.002),
+  );
+  portAsm.add(
+    m.steel,
+    place(chamferedBox(0.0022, 0.004, 0.005, { radius: 0.0009 }), -0.0016, 0.006, 0.0165),
   );
   portAsm.flushInto(ejectionPort);
   ejectionPort.position.set(0.024, spec.receiverTop - 0.022, -0.036);
@@ -936,35 +1056,35 @@ function buildLongGun(
     }
   } else {
     const hgShell = spec.stockKind === "collapsible" ? m.polymerTan : m.receiver;
-    // Free-float handguard: a rounded-square section, not a pipe. Its flats
-    // are what catch the key light and make the part read as machined.
-    const hgW = spec.handguardRadius * 1.96;
-    const hgH = spec.handguardRadius * 2.1;
-    asm.add(
-      hgShell,
-      place(
-        chamferedBox(hgW, hgH, hgLen, {
-          radius: spec.handguardRadius * 0.6,
-          curveSegments: 5,
-        }),
-        0,
-        spec.receiverTop - 0.028,
-        hgCenter,
-      ),
-    );
-    // M-LOK slot rows at 3, 6 and 9 o'clock, a hair proud so they read as
-    // dark recesses without boolean geometry.
-    const slots = Math.max(3, Math.floor(hgLen / 0.048));
-    for (const angle of [Math.PI / 2, -Math.PI / 2, Math.PI]) {
-      const g = mlokSlots(slots, hgLen / slots);
-      g.rotateZ(angle);
-      const half = Math.abs(Math.sin(angle)) > 0.5 ? hgW / 2 : hgH / 2;
-      g.translate(
-        Math.sin(angle) * (half - 0.0005),
-        spec.receiverTop - 0.028 + Math.cos(angle) * (half - 0.0005),
-        hgCenter,
+    // Free-float handguard: an octagon of plates with M-LOK slots cut clean
+    // through the sides and bottom, lightening holes on the 45 degree flats,
+    // and a dark liner the slots show. See `octagonHandguard`.
+    const apothem = spec.handguardRadius * 0.98;
+    const hg = octagonHandguard({
+      length: hgLen,
+      apothem,
+      wall: 0.0022,
+      slotLength: 0.032,
+      slotWidth: 0.0072,
+      slotPitch: 0.04,
+      ventRadius: 0.0024,
+    });
+    const hgY = spec.receiverTop - 0.028;
+    asm.add(hgShell, place(hg.shell, 0, hgY, hgCenter));
+    asm.add(hgShell, place(hg.caps, 0, hgY, hgCenter));
+    asm.add(m.carbonFouling, place(hg.liner, 0, hgY, hgCenter));
+    // Rail riser from the top flat to the rail's base.
+    const riser = spec.receiverTop - (hgY + apothem);
+    if (riser > 0.0004) {
+      asm.add(
+        m.receiver,
+        place(
+          chamferedBox(0.0172, riser + 0.0012, hgLen - 0.006, { radius: 0.0008 }),
+          0,
+          hgY + apothem + riser / 2 - 0.0006,
+          hgCenter,
+        ),
       );
-      asm.add(m.nitride, g);
     }
   }
   // Barrel nut.
@@ -988,7 +1108,7 @@ function buildLongGun(
         spec.barrelRadius,
         spec.barrelRadius * 1.14,
         Math.abs(spec.muzzleZ - -0.13) - 0.03,
-        18,
+        36,
       ),
       0,
       barrelY,
@@ -1041,7 +1161,7 @@ function buildLongGun(
             [muzzleR * 0.92, -muzzleLen / 2],
             [spec.barrelRadius * 0.75, -muzzleLen / 2],
           ],
-          22,
+          40,
         ),
         0,
         barrelY,
@@ -1339,18 +1459,46 @@ function buildLongGun(
   /* --------------------------------------------- charging handle */
   const chargingHandle = new THREE.Group();
   const chAsm = new Assembler();
+  // A reciprocating side charger riding in the left-hand groove: a stem in
+  // the slot and a serrated knob standing a centimetre off the flank, where
+  // the support hand's thumb finds it on a reload.
   chAsm.add(
-    m.receiver,
-    place(chamferedBox(0.052, 0.0085, 0.024, { radius: 0.002 }), 0, 0, 0),
+    m.steel,
+    place(chamferedBox(0.005, 0.0046, 0.016, { radius: 0.0009 }), 0.0018, 0, 0),
   );
   chAsm.add(
     m.receiver,
-    place(chamferedBox(0.014, 0.014, 0.03, { radius: 0.003 }), -0.024, -0.002, 0.004),
+    place(
+      chamferedBox(0.0095, 0.0098, 0.0135, { radius: 0.0034, curveSegments: 4 }),
+      -0.0056,
+      0,
+      0.0005,
+    ),
   );
-  chAsm.add(m.steel, place(tube(0.0055, 0.0055, 0.06, 12), 0, -0.006, -0.03));
+  for (let r = 0; r < 3; r += 1) {
+    chAsm.add(
+      m.receiver,
+      place(
+        chamferedBox(0.0084, 0.0011, 0.0016, { radius: 0.0004, bevelSegments: 1 }),
+        -0.0058,
+        -0.0028 + r * 0.0028,
+        0.0078,
+      ),
+    );
+  }
   chAsm.flushInto(chargingHandle, false);
-  chargingHandle.position.set(0, spec.receiverTop - 0.012, upperZ + upperLen / 2 - 0.006);
+  chargingHandle.position.set(-0.0205, upperY - 0.003, upperZ - upperLen / 2 + 0.065);
   root.add(chargingHandle);
+  // The rear T-handle stays as the static latch it is on a side-charger.
+  asm.add(
+    m.receiver,
+    place(
+      chamferedBox(0.036, 0.0065, 0.012, { radius: 0.0018 }),
+      0,
+      spec.receiverTop - 0.004,
+      upperZ + upperLen / 2 - 0.004,
+    ),
+  );
 
   /* -------------------------------------------------------- stock */
   const stockZ0 = upperZ + upperLen / 2;
@@ -2412,16 +2560,23 @@ function deriveTransforms(model: WeaponModel, weaponClass: WeaponClass): void {
   // converges on the centre and its left flank — the side the support hand
   // is on — faces the eye. A slight cant to the right keeps the handguard's
   // top and the glove on it in view instead of the underside.
+  //
+  // The pass draws through a long lens (see `ViewmodelStage`), so the weapon
+  // is held further out than a rifle really is, the way shipping shooters
+  // frame it. At 24 cm under a 78 degree lens the rear of the receiver was
+  // 14 cm from the eye and perspective blew it up into a toy-sized slab that
+  // filled the lower right; at 34 cm under 64 degrees the rifle keeps its
+  // proportions, sits in the lower-right third and shows its top rail.
   if (weaponClass === "pistol") {
     // Two hands, arms extended, the pistol just right of centre.
-    model.hipPosition.set(0.06, -0.088, -0.3);
-    model.hipRotation.set(0.02, 0.22, -0.08);
+    model.hipPosition.set(0.072, -0.108, -0.385);
+    model.hipRotation.set(0.03, 0.2, -0.08);
   } else if (weaponClass === "melee") {
-    model.hipPosition.set(0.085, -0.095, -0.29);
+    model.hipPosition.set(0.105, -0.118, -0.37);
     model.hipRotation.set(0.3, 0.3, -1.1);
   } else {
-    model.hipPosition.set(0.105, -0.11, -0.24);
-    model.hipRotation.set(0.01, 0.12, -0.07);
+    model.hipPosition.set(0.088, -0.126, -0.34);
+    model.hipRotation.set(0.025, 0.095, -0.11);
   }
 }
 
@@ -2458,8 +2613,15 @@ export function buildWeaponModel(def: WeaponDef, showArms = true): WeaponModel {
   deriveTransforms(model, def.weaponClass);
   model.root.name = `weapon-${def.id}`;
   // The viewmodel renders in its own pass; nothing about it should collide.
+  // Every opaque part casts onto and receives from every other — the stage's
+  // key light decides whether a shadow map exists at all.
   model.root.traverse((o) => {
     o.userData["noCollide"] = true;
+    if (o instanceof THREE.Mesh) {
+      const transparent = (o.material as THREE.Material).transparent;
+      o.castShadow = !transparent;
+      o.receiveShadow = !transparent;
+    }
   });
   return model;
 }
