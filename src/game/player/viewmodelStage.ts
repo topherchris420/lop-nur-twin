@@ -18,6 +18,10 @@ import { horizontalToVerticalFov } from "../core/types";
  * still reads as being in the same place.
  */
 
+/** Roughly where a held weapon sits in eye space, between grip and muzzle. */
+const WEAPON_CENTER = new THREE.Vector3(0.05, -0.12, -0.5);
+const RIM_SKY = new THREE.Color(0x9dc4ff);
+
 export interface ViewmodelStageOptions {
   /** Horizontal field of view for the weapon, in degrees. */
   fov: number;
@@ -38,12 +42,13 @@ export class ViewmodelStage {
   private readonly options: ViewmodelStageOptions;
   private adsBlend = 0;
 
-  // A slightly narrower lens than the world's 80, which is what shipping
-  // shooters do: it magnifies the hands and the receiver, the parts that
-  // establish the player as a body, without a rifle held where a rifle is
-  // held eating the screen. This was 96 while the arms were tubes; at that
-  // width a glove on the handguard is a smudge half a metre away.
-  constructor(options: ViewmodelStageOptions = { fov: 78, adsFov: 64 }) {
+  // A long lens, well under the world's 80, which is what shipping shooters
+  // do. Perspective is what makes a viewmodel read as a toy: under a wide
+  // lens the receiver's rear, a hand's width from the eye, balloons against
+  // a muzzle seventy centimetres out. A narrow lens with the weapon held
+  // further away keeps a rifle's real proportions — the optic, receiver and
+  // handguard read at one scale — and the hands still fill the lower right.
+  constructor(options: ViewmodelStageOptions = { fov: 64, adsFov: 50 }) {
     this.options = options;
     // A very short depth range: the weapon lives between 5 cm and 4 m, so the
     // pass gets the whole precision budget to itself.
@@ -52,6 +57,26 @@ export class ViewmodelStage {
 
     this.key = new THREE.DirectionalLight(0xfff1da, 1.45);
     this.key.position.set(0.6, 1.1, 0.35);
+    // The key aims at where the weapon is held, not at the eye, so its shadow
+    // frustum can be a tight box around the rifle and the hands: about a
+    // millimetre a texel at 1024. Self-shadowing is what grounds a viewmodel
+    // — the optic's shadow on the rail, the glove's on the handguard, the
+    // receiver's on the magazine — and the lack of it is a large part of why
+    // the weapon read as a cutout. Off below the high tiers (`setShadows`).
+    this.key.target.position.copy(WEAPON_CENTER);
+    const shadowCamera = this.key.shadow.camera;
+    shadowCamera.left = -0.5;
+    shadowCamera.right = 0.5;
+    shadowCamera.top = 0.5;
+    shadowCamera.bottom = -0.5;
+    shadowCamera.near = 0.5;
+    shadowCamera.far = 4;
+    shadowCamera.updateProjectionMatrix();
+    this.key.shadow.mapSize.set(1024, 1024);
+    this.key.shadow.bias = -0.0004;
+    this.key.shadow.normalBias = 0.0012;
+    this.key.shadow.radius = 2;
+    this.key.castShadow = false;
     this.scene.add(this.key);
     this.scene.add(this.key.target);
 
@@ -93,7 +118,7 @@ export class ViewmodelStage {
     intensity: number,
     dayFactor = 1,
   ): void {
-    this.key.position.copy(direction).multiplyScalar(3);
+    this.key.position.copy(direction).multiplyScalar(2).add(WEAPON_CENTER);
     this.key.color.copy(color);
     // The weapon pass has its own lights, so it has to fall off with the
     // world's or the rifle stays daylit against a moonlit apron -- under the
@@ -101,23 +126,47 @@ export class ViewmodelStage {
     // the world's ratios exactly (moon ~0.09 of the sun, sky fill a few
     // percent) was judged too dark to read in a blind comparison: a shooter
     // keeps its weapon legible. So the falloff stops well short of physical.
+    //
+    // A blind review still found the night rifle "lit almost as in daytime",
+    // so the falloff now goes most of the way: the key drops to a fifth and
+    // the fills to a third, leaving bevels and the rim to carry the shape.
     const night = 1 - THREE.MathUtils.clamp(dayFactor, 0, 1);
-    const keyScale = 1 - night * 0.65;
-    const fillScale = 1 - night * 0.55;
+    const keyScale = 1 - night * 0.8;
+    const fillScale = 1 - night * 0.68;
     // The combat grade sits near exposure 0.64. A key under 1 leaves a
     // gunmetal receiver on the wrong side of AgX's toe, which is how the
     // rifle became a black cutout against the sand. `direction` is already
-    // in view space (camera looks down -Z); when the sun is in front of the
-    // lens the same key has to climb or the rifle stays a silhouette inside
-    // the glare.
+    // in view space (camera looks down -Z).
+    //
+    // A sun ahead of the lens lights the far side of the weapon, not the side
+    // the eye sees. The key used to climb 2.6x there, which made the backlit
+    // rifle the brightest of any frame; now the key holds and the rim turns
+    // toward the sun instead, so a backlit rifle goes dark with lit edges.
     const sunAhead = Math.max(0, -direction.z);
-    this.key.intensity = (1.15 + intensity * 1.35 * (1 + sunAhead * 1.6)) * keyScale;
-    // Full sun stays under half a unit. Higher than that and the sand bounce
-    // lifts the whole rifle off the key and the parkerising goes grey.
-    this.fill.intensity = (0.22 + intensity * 0.26) * fillScale;
-    this.rim.intensity = (0.28 + intensity * 0.22) * fillScale;
-    this.bounce.intensity = (0.04 + intensity * 0.14) * fillScale;
-    this.shoulder.intensity = (0.14 + intensity * 0.3) * fillScale;
+    this.key.intensity = (1.25 + intensity * 1.5) * keyScale;
+    // The fills sit at about a fifth of the key in full sun. More than that
+    // and the shadow side of the receiver reads as flat ambient grey — the
+    // 2:1 ratio that made every surface sit at mid-grey — and the key's
+    // raking modelling disappears.
+    this.fill.intensity = (0.14 + intensity * 0.16) * fillScale * (1 - sunAhead * 0.35);
+    this.rim.position
+      .set(-0.8, 0.35, -1)
+      .normalize()
+      .lerp(direction, sunAhead * 0.8)
+      .normalize();
+    this.rim.color.copy(RIM_SKY).lerp(color, sunAhead);
+    this.rim.intensity = (0.22 + intensity * 0.16 + sunAhead * intensity * 1.6) * fillScale;
+    this.bounce.intensity = (0.04 + intensity * 0.12) * fillScale;
+    this.shoulder.intensity = (0.07 + intensity * 0.15) * fillScale * (1 - sunAhead * 0.5);
+  }
+
+  /**
+   * Self-shadowing for the weapon and hands. One small map over a few dozen
+   * draws; the renderer's own shadow switch still governs whether it runs.
+   */
+  setShadows(enabled: boolean): void {
+    if (this.key.castShadow === enabled) return;
+    this.key.castShadow = enabled;
   }
 
   setEnvironment(texture: THREE.Texture | null): void {

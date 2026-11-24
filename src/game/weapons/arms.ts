@@ -146,7 +146,9 @@ function solidField(s: ContactSolid): Field {
  * Right hand, local frame: +x toward the little finger, +y distal (wrist to
  * knuckles), +z dorsal. The left hand is this model mirrored in x. Joint
  * centres, segment lengths and radii are a large adult hand plus ~1 mm of
- * glove.
+ * glove. The radii leave a couple of millimetres between neighbouring
+ * fingers at the knuckles: at 10.5 mm, on 20 mm centres, they overlapped and
+ * the four fingers meshed as one paddle, which is the mitten a review saw.
  */
 interface FingerDef {
   mcp: V3;
@@ -162,28 +164,28 @@ const FINGERS: readonly FingerDef[] = [
     mcp: [-0.0285, 0.089, 0.0015],
     dir: [-0.07, 1, 0],
     lengths: [0.043, 0.026, 0.022],
-    radii: [0.0104, 0.0097, 0.0089, 0.0081],
+    radii: [0.0093, 0.0086, 0.0078, 0.007],
     rest: [0.12, 0.2, 0.12],
   },
   {
     mcp: [-0.0085, 0.0935, 0.0025],
     dir: [0, 1, 0],
     lengths: [0.047, 0.029, 0.023],
-    radii: [0.0107, 0.01, 0.0091, 0.0083],
+    radii: [0.0095, 0.0088, 0.008, 0.0072],
     rest: [0.14, 0.22, 0.14],
   },
   {
     mcp: [0.0115, 0.0895, 0.0015],
     dir: [0.07, 1, 0],
     lengths: [0.044, 0.028, 0.022],
-    radii: [0.0101, 0.0095, 0.0087, 0.0079],
+    radii: [0.0091, 0.0085, 0.0077, 0.0069],
     rest: [0.16, 0.25, 0.16],
   },
   {
     mcp: [0.0295, 0.0795, -0.0005],
     dir: [0.16, 1, 0],
     lengths: [0.035, 0.021, 0.019],
-    radii: [0.0091, 0.0085, 0.0078, 0.0071],
+    radii: [0.0082, 0.0076, 0.0069, 0.0062],
     rest: [0.2, 0.3, 0.2],
   },
 ];
@@ -749,7 +751,10 @@ function bakeSleeve(hand: SolvedHand, seed: number): BakedMesh {
     // Denser rings near the cuff, where the folds are.
     const s = Math.pow(t, 1.6) * length;
     const cuff = Math.max(0, 1 - s / 0.022);
-    const base = 0.0355 + s * 0.042 - cuff * cuff * 0.004;
+    // A turned hem stands a couple of millimetres proud at the mouth of the
+    // sleeve, over the glove's gauntlet.
+    const hem = smoothstep(0.016, 0.006, s) * 0.0024;
+    const base = 0.0355 + s * 0.042 - cuff * cuff * 0.004 + hem;
     const flat = 0.8 + Math.min(1, s / 0.2) * 0.1;
     for (let j = 0; j <= radial; j += 1) {
       const a = (j / radial) * Math.PI * 2;
@@ -767,7 +772,7 @@ function bakeSleeve(hand: SolvedHand, seed: number): BakedMesh {
         Math.sin(seamAngle * 2 + s * 15) * (0.001 + 0.0029 * Math.min(1, s / 0.14));
       const fold =
         drape +
-        (crease1 * 0.0032 + crease2 * 0.0022) * (0.35 + bunch) +
+        (crease1 * 0.0046 + crease2 * 0.003) * (0.35 + bunch) +
         long * 0.0016 * (1 - cuff);
       const r = base + fold + elastic;
       const ca = Math.cos(a);
@@ -913,18 +918,24 @@ export function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
       finish === "sleeve"
         ? `
         {
-          vec3 q = vObj * 26.0;
+          // Blobs at the real pattern scale, 3-8 cm, with edges as crisp as
+          // printed fabric: each threshold is antialiased to its own pixel
+          // footprint rather than smeared over a fixed band.
+          vec3 q = vObj * 19.0;
           float n1 = vmFbm(q);
-          float n2 = vmFbm(q * 1.7 + vec3(4.1, 2.3, 7.7));
-          float n3 = vmFbm(q * 3.1 + vec3(9.4, 1.1, 5.3));
+          float n2 = vmFbm(q * 1.6 + vec3(4.1, 2.3, 7.7));
+          float n3 = vmFbm(q * 2.6 + vec3(9.4, 1.1, 5.3));
+          float w1 = max(fwidth(n1), 0.003);
+          float w2 = max(fwidth(n2), 0.003);
+          float w3 = max(fwidth(n3), 0.003);
           vec3 base = vec3(0.62, 0.53, 0.40);
           vec3 khaki = vec3(0.74, 0.66, 0.52);
           vec3 brown = vec3(0.42, 0.33, 0.24);
           vec3 olive = vec3(0.46, 0.44, 0.31);
           vec3 camo = base;
-          camo = mix(camo, khaki, smoothstep(0.52, 0.56, n1));
-          camo = mix(camo, olive, smoothstep(0.58, 0.61, n2));
-          camo = mix(camo, brown, smoothstep(0.63, 0.66, n3) * (1.0 - smoothstep(0.5, 0.6, n1)));
+          camo = mix(camo, khaki, smoothstep(0.54 - w1, 0.54 + w1, n1));
+          camo = mix(camo, olive, smoothstep(0.595 - w2, 0.595 + w2, n2));
+          camo = mix(camo, brown, smoothstep(0.645 - w3, 0.645 + w3, n3) * (1.0 - smoothstep(0.5, 0.6, n1)));
           // A folded, twin-needle seam follows the sleeve UVs along the arm.
           // Filter the reinforcing yarn and stitches to their pixel footprint.
           float u = fract(vUv.x - 0.11 + vUv.y * 0.0056);
@@ -935,14 +946,10 @@ export function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
           float freq = vUv.y * 23.0;
           float stitch = 0.5 + 0.5 * cos(freq * 6.283185);
           stitch = mix(stitch, 0.5, smoothstep(0.22, 0.64, fwidth(freq)));
-          vec2 grid = vUv * vec2(40.0, 17.0);
-          vec2 yarn = abs(fract(grid) - 0.5);
-          vec2 fw = fwidth(grid);
-          vec2 strand = (1.0 - smoothstep(vec2(0.038), vec2(0.038) + max(fw, vec2(0.001)), yarn))
-            * (1.0 - smoothstep(vec2(0.2), vec2(0.55), fw));
-          float reinforced = max(strand.x, strand.y);
+          // The ripstop grid is relief only (see the normal patch below): drawn
+          // into the albedo it read as a UV checker.
           camo = mix(camo, vec3(0.57, 0.51, 0.40), 0.15);
-          camo *= 1.0 - 0.16 * welt - 0.085 * reinforced;
+          camo *= 1.0 - 0.16 * welt;
           camo = mix(camo, vec3(0.70, 0.64, 0.50), rows * stitch * 0.58);
           diffuseColor.rgb *= pow(camo, vec3(2.2));
         }`
@@ -950,9 +957,16 @@ export function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
     const relief =
       finish === "glove"
         ? `float vmH = (vmNoise(vObj * 1400.0) - 0.5) * 0.00012 + (vmNoise(vObj * 420.0) - 0.5) * 0.00008;`
-        : `vec2 vmW = abs(fract(vUv * vec2(90.0, 40.0)) - 0.5);
-           float vmGrid = smoothstep(0.42, 0.5, max(vmW.x, vmW.y));
-           float vmH = vmGrid * 0.00004 + (vmNoise(vObj * 900.0) - 0.5) * 0.00006;`;
+        : `// Ripstop at a 5 mm pitch and a twill grain under it, both faded
+           // out by their pixel footprint so neither can alias into a lattice.
+           vec2 vmG = vUv * vec2(48.0, 20.0);
+           vec2 vmW = abs(fract(vmG) - 0.5);
+           float vmFade = 1.0 - smoothstep(0.25, 0.6, max(fwidth(vmG).x, fwidth(vmG).y));
+           float vmGrid = smoothstep(0.43, 0.5, max(vmW.x, vmW.y)) * vmFade;
+           float vmTwill = vmNoise(vec3(vObj.x * 2600.0 + vObj.y * 2600.0, vObj.z * 900.0, 0.0));
+           float vmTwillFade = 1.0 - smoothstep(0.3, 0.9, length(fwidth(vObj)) * 2600.0);
+           float vmH = vmGrid * 0.000018 + (vmTwill - 0.5) * 0.00003 * vmTwillFade
+             + (vmNoise(vObj * 900.0) - 0.5) * 0.00005;`;
     shader.fragmentShader = patchShader(
       "first-person arms (fragment)",
       shader.fragmentShader,
@@ -995,7 +1009,7 @@ export function armMaterial(finish: Finish): THREE.MeshStandardMaterial {
   if (finish === "sleeve") {
     material.defines = { ...(material.defines ?? {}), USE_UV: "" };
   }
-  material.customProgramCacheKey = () => `vm-arm-${finish}-v2`;
+  material.customProgramCacheKey = () => `vm-arm-${finish}-v3`;
   return material;
 }
 
@@ -1019,7 +1033,8 @@ interface BakedArm {
  */
 const cache = new Map<string, BakedArm>();
 
-const CELL = 0.0022;
+// Fine enough to resolve the crease between two fingers.
+const CELL = 0.002;
 
 /** Contact solids near enough to a hand to touch or shadow it. */
 function nearby(solids: readonly ContactSolid[], at: V3): ContactSolid[] {

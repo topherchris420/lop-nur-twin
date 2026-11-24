@@ -11,7 +11,102 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
  * bite. So the primitive here is a *chamfered* box, not a box.
  */
 
-const CHAMFER = 0.0006;
+const CHAMFER = 0.0009;
+
+/**
+ * Smooth normals across shallow edges and keep them hard across sharp ones.
+ *
+ * `ExtrudeGeometry` and every merge here are non-indexed, and
+ * `computeVertexNormals()` on a non-indexed geometry gives each triangle its
+ * own flat normal. That is why a rounded corner rendered as three facets and
+ * a 20-sided barrel as twenty stripes, and why no edge ever caught a soft
+ * highlight: a bevel only reads as an edge when its normal sweeps smoothly
+ * from one face to the next. This welds vertices that share a position (to a
+ * hundredth of a millimetre — three's own `toCreasedNormals` quantises to a
+ * centimetre, which would weld half a rifle together) and averages, area
+ * weighted, the faces on each side of an edge sharper than `creaseAngle`.
+ */
+export function creaseNormals(
+  geometry: THREE.BufferGeometry,
+  creaseAngle = 0.7,
+): THREE.BufferGeometry {
+  let result = geometry;
+  if (result.getIndex()) {
+    const expanded = result.toNonIndexed();
+    result.dispose();
+    result = expanded;
+  }
+  const pos = result.getAttribute("position");
+  const count = pos.count;
+  const faces = Math.floor(count / 3);
+  const faceN = new Float32Array(faces * 3);
+  const faceU = new Float32Array(faces * 3);
+  for (let f = 0; f < faces; f += 1) {
+    const a = f * 3;
+    const ax = pos.getX(a);
+    const ay = pos.getY(a);
+    const az = pos.getZ(a);
+    const e1x = pos.getX(a + 1) - ax;
+    const e1y = pos.getY(a + 1) - ay;
+    const e1z = pos.getZ(a + 1) - az;
+    const e2x = pos.getX(a + 2) - ax;
+    const e2y = pos.getY(a + 2) - ay;
+    const e2z = pos.getZ(a + 2) - az;
+    const nx = e1y * e2z - e1z * e2y;
+    const ny = e1z * e2x - e1x * e2z;
+    const nz = e1x * e2y - e1y * e2x;
+    const len = Math.hypot(nx, ny, nz) || 1;
+    faceN[f * 3] = nx;
+    faceN[f * 3 + 1] = ny;
+    faceN[f * 3 + 2] = nz;
+    faceU[f * 3] = nx / len;
+    faceU[f * 3 + 1] = ny / len;
+    faceU[f * 3 + 2] = nz / len;
+  }
+  const buckets = new Map<string, number[]>();
+  const keys: string[] = new Array(count);
+  for (let i = 0; i < count; i += 1) {
+    const key = `${Math.round(pos.getX(i) * 1e5)},${Math.round(pos.getY(i) * 1e5)},${Math.round(pos.getZ(i) * 1e5)}`;
+    keys[i] = key;
+    const list = buckets.get(key);
+    if (list) list.push(i);
+    else buckets.set(key, [i]);
+  }
+  const creaseDot = Math.cos(creaseAngle);
+  const normals = new Float32Array(count * 3);
+  for (let i = 0; i < count; i += 1) {
+    const f = Math.floor(i / 3);
+    const ux = faceU[f * 3]!;
+    const uy = faceU[f * 3 + 1]!;
+    const uz = faceU[f * 3 + 2]!;
+    let sx = 0;
+    let sy = 0;
+    let sz = 0;
+    for (const j of buckets.get(keys[i]!)!) {
+      const g = Math.floor(j / 3);
+      const d = ux * faceU[g * 3]! + uy * faceU[g * 3 + 1]! + uz * faceU[g * 3 + 2]!;
+      if (d < creaseDot) continue;
+      sx += faceN[g * 3]!;
+      sy += faceN[g * 3 + 1]!;
+      sz += faceN[g * 3 + 2]!;
+    }
+    const len = Math.hypot(sx, sy, sz);
+    if (len < 1e-20) {
+      sx = ux;
+      sy = uy;
+      sz = uz;
+    } else {
+      sx /= len;
+      sy /= len;
+      sz /= len;
+    }
+    normals[i * 3] = sx;
+    normals[i * 3 + 1] = sy;
+    normals[i * 3 + 2] = sz;
+  }
+  result.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
+  return result;
+}
 
 /** Rounded-rectangle path in the XY plane, centred on the origin. */
 function roundedRectShape(w: number, h: number, radius: number): THREE.Shape {
@@ -47,6 +142,8 @@ export interface BoxOptions {
   chamfer?: number;
   /** Curve subdivision for the rounded corners. */
   curveSegments?: number;
+  /** Steps across the edge break; 1 is a flat 45° chamfer, 2+ a rounded edge. */
+  bevelSegments?: number;
 }
 
 /**
@@ -72,12 +169,11 @@ export function chamferedBox(
     bevelThickness: chamfer,
     bevelSize: chamfer,
     bevelOffset: 0,
-    bevelSegments: 1,
+    bevelSegments: options.bevelSegments ?? 2,
     curveSegments: options.curveSegments ?? 3,
   });
   geometry.translate(0, 0, -(d - chamfer * 2) / 2 - chamfer);
-  geometry.computeVertexNormals();
-  return withWearFrame(geometry, w / 2, h / 2, d / 2);
+  return withWearFrame(creaseNormals(geometry), w / 2, h / 2, d / 2);
 }
 
 /**
@@ -164,8 +260,7 @@ export function tube(
   parts.push(discBottom);
   const merged = mergeAndDispose(parts);
   merged.rotateX(Math.PI / 2);
-  merged.computeVertexNormals();
-  return merged;
+  return creaseNormals(merged, 0.62);
 }
 
 /** An open tube (no caps) along Z — for barrel shrouds and handguards. */
@@ -185,12 +280,11 @@ export function shell(
     bevelEnabled: true,
     bevelThickness: 0.0004,
     bevelSize: 0.0004,
-    bevelSegments: 1,
+    bevelSegments: 2,
     curveSegments: segments,
   });
   geometry.translate(0, 0, -length / 2);
-  geometry.computeVertexNormals();
-  return geometry;
+  return creaseNormals(geometry, 0.62);
 }
 
 /**
@@ -229,87 +323,31 @@ export function picatinnyRail(
   const ribDepth = 0.0056;
   const count = Math.max(1, Math.floor(length / pitch));
   const start = -length / 2 + (length - (count - 1) * pitch) / 2;
+  // The classic trapezoid cross-section: 45° flanks the ring clamps onto
+  // and a flat crest that catches the sun. Extruded with a rounded break so
+  // every crest edge carries a highlight. Hand-indexed triangles here once
+  // wound inward and the whole rail rendered as a black sawtooth.
+  const top = width / 2 - height * 0.42;
+  const bottom = width / 2;
+  const crest = new THREE.Shape();
+  crest.moveTo(-bottom, baseHeight - 0.0004);
+  crest.lineTo(bottom, baseHeight - 0.0004);
+  crest.lineTo(top, height);
+  crest.lineTo(-top, height);
+  crest.closePath();
+  const bevel = 0.00035;
   for (let i = 0; i < count; i += 1) {
-    // The classic trapezoid cross-section: 45° flanks the ring clamps onto.
-    const rib = new THREE.BufferGeometry();
-    const top = width / 2 - height * 0.42;
-    const bottom = width / 2;
-    const y0 = baseHeight;
-    const y1 = height;
-    const hz = ribDepth / 2;
-    const verts = new Float32Array([
-      -bottom,
-      y0,
-      -hz,
-      bottom,
-      y0,
-      -hz,
-      top,
-      y1,
-      -hz,
-      -top,
-      y1,
-      -hz,
-      -bottom,
-      y0,
-      hz,
-      bottom,
-      y0,
-      hz,
-      top,
-      y1,
-      hz,
-      -top,
-      y1,
-      hz,
-    ]);
-    const idx = [
-      0,
-      1,
-      2,
-      0,
-      2,
-      3, // back
-      5,
-      4,
-      7,
-      5,
-      7,
-      6, // front
-      4,
-      5,
-      1,
-      4,
-      1,
-      0, // bottom
-      3,
-      2,
-      6,
-      3,
-      6,
-      7, // top
-      4,
-      0,
-      3,
-      4,
-      3,
-      7, // left
-      1,
-      5,
-      6,
-      1,
-      6,
-      2, // right
-    ];
-    rib.setAttribute("position", new THREE.BufferAttribute(verts, 3));
-    rib.setIndex(idx);
-    // Flat faces: shared vertices average the flank and top normals and
-    // every rib shades like a twist of rope.
-    const flat = rib.toNonIndexed();
-    rib.dispose();
-    flat.computeVertexNormals();
-    flat.translate(0, 0, start + i * pitch);
-    parts.push(flat);
+    const rib = new THREE.ExtrudeGeometry(crest, {
+      depth: ribDepth - bevel * 2,
+      bevelEnabled: true,
+      bevelThickness: bevel,
+      bevelSize: bevel * 0.9,
+      bevelOffset: -bevel * 0.9,
+      bevelSegments: 2,
+      curveSegments: 1,
+    });
+    rib.translate(0, 0, start + i * pitch - (ribDepth - bevel * 2) / 2);
+    parts.push(creaseNormals(rib));
   }
   return mergeAndDispose(parts);
 }
@@ -419,9 +457,7 @@ export function curvedMagazine(
     );
     parts.push(seg);
   }
-  const merged = mergeAndDispose(parts);
-  merged.computeVertexNormals();
-  return merged;
+  return mergeAndDispose(parts);
 }
 
 /** Where a `curvedMagazine` spine sits `drop` metres below its top, in Z. */
@@ -553,8 +589,7 @@ export function sideSlab(
   });
   geometry.translate(0, 0, -(width - b * 2) / 2);
   geometry.rotateY(Math.PI / 2);
-  geometry.computeVertexNormals();
-  return withSlabWearFrame(geometry, width / 2);
+  return withSlabWearFrame(creaseNormals(geometry), width / 2);
 }
 
 /**
@@ -620,7 +655,25 @@ export function mirrorX(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
       array[i + 2] = tmp;
     }
     index.needsUpdate = true;
+    clone.computeVertexNormals();
+    return clone;
   }
-  clone.computeVertexNormals();
+  // Non-indexed: reverse each triangle so it still faces outward.
+  for (const name of Object.keys(clone.attributes)) {
+    const attr = clone.getAttribute(name);
+    const size = attr.itemSize;
+    const array = attr.array as Float32Array;
+    for (let t = 0; t + 2 < attr.count; t += 3) {
+      for (let k = 0; k < size; k += 1) {
+        const a = t * size + k;
+        const c = (t + 2) * size + k;
+        const tmp = array[a]!;
+        array[a] = array[c]!;
+        array[c] = tmp;
+      }
+    }
+    attr.needsUpdate = true;
+  }
+  // `scale` already mirrored the normals through the normal matrix.
   return clone;
 }
