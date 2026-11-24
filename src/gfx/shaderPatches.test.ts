@@ -30,6 +30,7 @@ import { figureMaterial } from "../bethesda/rain/figures";
 import { pull } from "../bethesda/live/diorama/cast";
 import { FACADE_PATCH } from "../bethesda/live/diorama/city";
 import { applySoldierShade } from "../game/characters/soldierShade";
+import { groundedComposite } from "../game/render/groundedAO";
 import { installCascadeShadows } from "../game/render/shadowCascade";
 import { armMaterial } from "../game/weapons/arms";
 import { applyEdgeWear, getWeaponMaterials } from "../game/weapons/materials";
@@ -177,6 +178,8 @@ const SITES: Record<string, () => THREE.Material[]> = {
 
 /** Patches `THREE.ShaderChunk` itself rather than a material; checked on its own below. */
 const CHUNK_PATCHES = ["game/render/shadowCascade.ts"];
+/** Patches a library pass's own shader (N8AO's compositor); checked on its own below. */
+const LIBRARY_PATCHES = ["game/render/groundedAO.ts"];
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -230,7 +233,7 @@ describe("shader patches against the installed three", () => {
 
   it("lists every file that patches a shader", () => {
     expect(patching.map(({ file }) => file).sort()).toEqual(
-      [...Object.keys(SITES), ...CHUNK_PATCHES].sort(),
+      [...Object.keys(SITES), ...CHUNK_PATCHES, ...LIBRARY_PATCHES].sort(),
     );
   });
 
@@ -287,6 +290,16 @@ describe("shader patches against the installed three", () => {
       }
     });
   }
+
+  it("game/render/groundedAO.ts: the splice lands in the installed N8AO", () => {
+    // The compositor is built inside N8AO at runtime; its source is the
+    // package's own bundle, so the anchor is checked against that text.
+    const bundle = readFileSync(
+      path.resolve(SRC, "../node_modules/n8ao/dist/N8AO.js"),
+      "utf8",
+    );
+    expect(groundedComposite(bundle)).toContain("groundedDirect");
+  });
 
   it("runs every splice site that is written", () => {
     // A second patch added to a listed file is not run by listing the file.
