@@ -31,8 +31,8 @@ export function viewmodelToWorld(
   const s = stageCamera.projectionMatrix.elements;
   const w = worldCamera.projectionMatrix.elements;
   // elements[0] = f / aspect, elements[5] = f for a perspective projection.
-  const sx = Math.abs(w[0]!) > 1e-6 ? s[0]! / w[0]! : 1;
-  const sy = Math.abs(w[5]!) > 1e-6 ? s[5]! / w[5]! : 1;
+  const sx = Math.abs(w[0]) > 1e-6 ? s[0] / w[0] : 1;
+  const sy = Math.abs(w[5]) > 1e-6 ? s[5] / w[5] : 1;
   _view.x *= sx;
   _view.y *= sy;
   return out.copy(_view).applyMatrix4(worldCamera.matrixWorld);
