@@ -635,7 +635,9 @@ const HARD_SURFACE_SURFACE = /* glsl */ `
       float hsPhase = hsFold * 6.2831853;
       float hsFoldSlope = 0.5 * cos(hsPhase) + 0.17 * cos(2.0 * hsPhase);
       #ifdef HS_SHUTTER
-        float foldLap = pow(0.5 + 0.5 * sin(hsPhase), 5.0);
+        // pow() of a negative base is undefined in GLSL; rounding can take
+        // 0.5 + 0.5 * sin() a hair below zero, so clamp it first.
+        float foldLap = pow(max(0.5 + 0.5 * sin(hsPhase), 0.0), 5.0);
         diffuseColor.rgb *= 1.0 - 0.23 * foldLap * hsResolved;
       #endif
     #endif

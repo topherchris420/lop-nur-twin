@@ -797,7 +797,7 @@ void main() {
     // Henyey-Greenstein forward scatter, so smoke glows when backlit.
     float g2 = 0.55;
     float cosT = dot(-vSunView, V);
-    float phase = (1.0 - g2 * g2) / pow(1.0 + g2 * g2 - 2.0 * g2 * cosT, 1.5);
+    float phase = (1.0 - g2 * g2) / pow(max(1.0 + g2 * g2 - 2.0 * g2 * cosT, 1e-4), 1.5);
     float scatter = phase * (1.0 - density * 0.6) * 0.09;
     // Sky from above, sand bounce from below: the view-space up is the
     // world up carried through the view matrix.

@@ -161,8 +161,8 @@ void main() {
   } else {
     // Tongue (2) and jet (4): a fat turbulent cone, swelling then guttering.
     bool jet = vKind > 3.5;
-    float swell = jet ? pow(sin(min(y * 1.15, 1.0) * PI), 0.5)
-                      : pow(sin(clamp(pow(y, 0.62), 0.0, 1.0) * PI), 0.75);
+    float swell = jet ? pow(max(sin(min(y * 1.15, 1.0) * PI), 0.0), 0.5)
+                      : pow(max(sin(clamp(pow(max(y, 0.0), 0.62), 0.0, 1.0) * PI), 0.0), 0.75);
     float n1 = vnoise(vec2(y * 5.0 + seed * 31.0, x * 1.5 + seed * 7.0));
     float n2 = vnoise(vec2(y * 13.0 - seed * 19.0, x * 3.5 + seed * 2.0));
     float turb = n1 * 0.65 + n2 * 0.35;
@@ -173,7 +173,8 @@ void main() {
     float tip = smoothstep(1.02, 0.55, y + turb * 0.4);
     mask = body * tip * smoothstep(0.0, 0.04, y);
     // A brighter shock band a little way out, where the gas re-compresses.
-    float shock = jet ? 0.0 : exp(-pow((y - 0.24) * 9.0, 2.0)) * 0.35;
+    float shockX = (y - 0.24) * 9.0;
+    float shock = jet ? 0.0 : exp(-shockX * shockX) * 0.35;
     heat = clamp((1.0 - d * 0.8) * (1.0 - y * 0.9) + shock, 0.0, 1.0);
   }
   heat = clamp(heat * (0.55 + 0.45 * temp) + temp * 0.15, 0.0, 1.0);

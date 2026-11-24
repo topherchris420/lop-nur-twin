@@ -24,7 +24,12 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     !(color.g >= 0.0 || color.g <= 0.0),
     !(color.b >= 0.0 || color.b <= 0.0)
   );
-  color = mix(color, vec3(0.0), vec3(bad));
+  // Select, never blend: mix(NaN, 0.0, 1.0) evaluates NaN * 0.0 + 0.0, which
+  // is still NaN, so a mix() here let every NaN through to the bloom chain
+  // and one bad pixel blacked out the whole frame.
+  if (bad.r) color.r = 0.0;
+  if (bad.g) color.g = 0.0;
+  if (bad.b) color.b = 0.0;
   outputColor = vec4(min(color, vec3(ceiling)), inputColor.a);
 }
 `;

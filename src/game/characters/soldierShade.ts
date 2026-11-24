@@ -306,7 +306,7 @@ soldierHeight = 0.0;
   float ndotv = clamp(dot(viewN, normalize(vViewPosition)), 0.0, 1.0);
   float soft = (mat == ${SOLDIER_MAT.cloth} || mat == ${SOLDIER_MAT.knit} || mat == ${SOLDIER_MAT.loop}
     || mat == ${SOLDIER_MAT.suede}) ? 1.0 : (mat == ${SOLDIER_MAT.nylon} || mat == ${SOLDIER_MAT.pals}) ? 0.5 : 0.0;
-  base *= 1.0 + pow(1.0 - ndotv, 3.0) * 0.35 * soft;
+  base *= 1.0 + pow(max(1.0 - ndotv, 0.0), 3.0) * 0.35 * soft;
 
   diffuseColor.rgb = base;
   roughnessFactor = rough;
