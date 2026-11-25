@@ -210,6 +210,9 @@ class Run:
     norm_error: np.ndarray  # | |psi(T)|^2 - 1 | per row
     steps: int
     explicit_modes: np.ndarray  # explicit mode count per row
+    # Peak over the samples of eliminated population / trap population, per row.
+    # Adiabatic elimination is second order in this ratio, so it must stay small.
+    eliminated_ratio: np.ndarray
 
 
 def _sub_basis(rA, rB):
@@ -281,6 +284,7 @@ def propagate(parts, offsets, omegas, durations, steps, samples=4001, reverse=Fa
     psi = np.zeros((rows, 2 + modes), dtype=np.complex128)
     psi[:, 0] = 1.0
     middle = np.empty((rows, samples))
+    ratio = np.zeros(rows)
 
     def record(index, tau, state):
         a, b = pulses(tau, areas, reverse)
@@ -292,6 +296,9 @@ def propagate(parts, offsets, omegas, durations, steps, samples=4001, reverse=Fa
             + 2 * a * b * Q[:, 2] * np.real(np.conj(cA) * cB)
         )
         middle[:, index] = np.sum(np.abs(state[:, 2:]) ** 2, axis=1) + far
+        traps = np.abs(cA) ** 2 + np.abs(cB) ** 2
+        here = np.divide(far, traps, out=np.zeros(rows), where=traps > 0)
+        np.maximum(ratio, here, out=ratio)
 
     record(0, 0.0, psi)
     dim = 2 + width
@@ -335,4 +342,5 @@ def propagate(parts, offsets, omegas, durations, steps, samples=4001, reverse=Fa
         norm_error=np.abs(norms - 1.0),
         steps=steps,
         explicit_modes=counts,
+        eliminated_ratio=ratio,
     )

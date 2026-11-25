@@ -35,6 +35,33 @@ def reference_three_level(area, steps=20000, reverse=False):
     return abs(psi[2]) ** 2, peak
 
 
+def synthetic_search(work, protocol, verdict_of=lambda k: "PASS" if k <= 3 else "FAIL", selected=True):
+    """A complete development search written from rules, not simulation."""
+    digest = study.design_hash(protocol)
+    grid = study.distances(protocol)
+    ok = {"evaluable": True, "F": 0.0, "M": 0.0}
+
+    def cell(design, k, budget, verdict):
+        interval = {"F": [0.95, 0.97], "M": [0.001, 0.002]} if verdict == "PASS" else {"F": [0.1, 0.2], "M": [0.2, 0.3]}
+        return {
+            "design": design, "distance_index": k, "distance_um": grid[k] / model.MICRON, "budget": budget,
+            "dev_verdict": verdict, "selected": {"F": 0.5, "M": 0.1} if selected else None, "dev_interval": interval,
+            "V2_window": ok, "V8_steps": ok, "V4_reversed": {"fail_on_M": True}, "max_norm_error": 1e-12,
+            "design_sha256": digest, "seed_list": study.dev_seeds(protocol), "cpu_s": 1.0,
+        }
+
+    for design in study.DESIGNS:
+        for k in range(len(grid)):
+            for budget in study.BUDGETS:
+                study.put(work / "cells" / f"{study.cell_label(design, k, budget)}.json", cell(design, k, budget, verdict_of(k)))
+        for k in study.fit_indices(protocol):
+            power = protocol["predicted_slopes"][design]
+            treq = None if design == "G3" else 2.0 * (grid[k] / 1e-6) ** power
+            study.put(work / "noiseless" / f"{design}-d{k:02d}.json",
+                      {"design": design, "distance_index": k, "T_req_s": treq, "design_sha256": digest, "max_norm_error": 0.0})
+    study.put(work / "control-G0.json", cell("G0", 0, "reference", "PASS"))
+
+
 class GridTest(unittest.TestCase):
     def setUp(self):
         self.protocol = study.load_protocol()
@@ -241,6 +268,25 @@ class NumericsRuleTest(unittest.TestCase):
         self.assertLess(float(ratio.max()), 0.1 + 1e-12)
 
 
+class EliminationCapTest(unittest.TestCase):
+    def test_runs_whose_eliminated_population_rivals_the_traps_are_skipped(self):
+        protocol = study.load_protocol()
+        grid = study.distances(protocol)
+        generous = study.budget(protocol, "generous")
+        seeds = study.dev_seeds(protocol)[:2]
+        cap = protocol["model"]["elimination_cap"]
+        setting = [(10 ** (13 / 8), 10.0)]
+        # G1 at 100 um, generous: the setting an automated review found reporting M = 1.29.
+        far = study.run_settings(protocol, "G1", grid[16], generous, setting, seeds)[0]
+        self.assertEqual(far["skipped"], "elimination cap")
+        self.assertGreater(far["eliminated_ratio"], cap)
+        self.assertNotIn("M", far)
+        near = study.run_settings(protocol, "G1", grid[8], generous, setting, seeds)[0]
+        self.assertNotIn("skipped", near)
+        self.assertLessEqual(near["eliminated_ratio"], cap)
+        self.assertLessEqual(near["M"], 1.0)
+
+
 class RecordTest(unittest.TestCase):
     def test_records_round_trip_with_flat_lists_on_one_line(self):
         value = {"b": [1, 2.5, None, "run"], "a": {"x": [[1, 2], [3]], "y": 1e-7}}
@@ -263,26 +309,33 @@ class RecordTest(unittest.TestCase):
 
 
 class HeldoutRunnerTest(unittest.TestCase):
-    def test_runner_scores_selected_settings_once_and_only_when_sealed_properly(self):
+    def sealed(self, work):
         # A stand-in protocol with its own salt: no registered held-out seed is computed.
         protocol = study.load_protocol()
         protocol["status"] = "frozen"
         protocol["seeds"]["heldout"]["salt"] = "unit-test-salt"
         protocol["seeds"]["heldout"]["count"] = 3
+        path = work / "protocol.json"
+        path.write_text(json.dumps(protocol))
+        (work / "freeze.json").write_text(json.dumps({"protocol_sha256": study.protocol_hash(path)}))
+        # Every cell selected nothing, so only the real G0 control is simulated.
+        synthetic_search(work / "dev", protocol, selected=False)
+        record = study.dev_cell(protocol, "G0", 1e-6, "reference", chosen=[(1000.0, 640.0)], extras=False)
+        record["distance_index"] = 0
+        record["design_sha256"] = study.design_hash(protocol)
+        study.put(work / "dev" / "control-G0.json", record)
+        return protocol, path, record
+
+    def test_runner_scores_selected_settings_once_and_only_when_sealed_properly(self):
         with tempfile.TemporaryDirectory() as work:
             work = Path(work)
-            path = work / "protocol.json"
-            path.write_text(json.dumps(protocol))
-            (work / "freeze.json").write_text(json.dumps({"protocol_sha256": study.protocol_hash(path)}))
-            record = study.dev_cell(protocol, "G0", 1e-6, "reference", chosen=[(1000.0, 640.0)], extras=False)
-            record["distance_index"] = 0
-            record["design_sha256"] = study.design_hash(protocol)
-            study.put(work / "dev" / "control-G0.json", record)
+            protocol, path, record = self.sealed(work)
             result = study.heldout(path, work / "dev", work / "heldout")
             scored = json.loads((work / "heldout" / "control-G0.json").read_text())
             self.assertEqual(scored["verdict"], "PASS")
             self.assertEqual(len(scored["seed_list"]), 3)
             self.assertTrue(result["checks"]["V3"])
+            self.assertTrue(result["complete"])
             self.assertEqual(result["stage"], "held-out")
             with self.assertRaises(FileExistsError):
                 study.heldout(path, work / "dev", work / "heldout")
@@ -296,6 +349,26 @@ class HeldoutRunnerTest(unittest.TestCase):
             study.put(work / "dev" / "control-G0.json", record)
             with self.assertRaises(ValueError):
                 study.heldout(path, work / "dev", work / "again")
+            self.assertFalse((work / "again").exists())
+
+    def test_runner_refuses_an_incomplete_or_stale_search_before_any_seed_exists(self):
+        with tempfile.TemporaryDirectory() as work:
+            work = Path(work)
+            protocol, path, _ = self.sealed(work)
+            self.assertEqual(study.missing_records(protocol, work / "dev"), [])
+            gone = work / "dev" / "cells" / f"{study.cell_label('G2', 7, 'harsh')}.json"
+            kept = gone.read_text()
+            gone.unlink()
+            with self.assertRaises(ValueError):
+                study.heldout(path, work / "dev", work / "out")
+            self.assertFalse((work / "out").exists())
+            gone.write_text(kept)
+            stale = work / "dev" / "noiseless" / "G3-d20.json"
+            study.put(stale, dict(json.loads(stale.read_text()), design_sha256="0" * 64))
+            self.assertEqual(study.missing_records(protocol, work / "dev"), ["noiseless/G3-d20.json"])
+            with self.assertRaises(ValueError):
+                study.heldout(path, work / "dev", work / "out")
+            self.assertFalse((work / "out").exists())
 
     def test_command_line_refuses_the_draft(self):
         with tempfile.TemporaryDirectory() as work:
@@ -306,33 +379,9 @@ class HeldoutRunnerTest(unittest.TestCase):
 class AnalysisTest(unittest.TestCase):
     def test_rules_applied_to_a_complete_synthetic_search(self):
         protocol = study.load_protocol()
-        digest = study.design_hash(protocol)
-        grid = study.distances(protocol)
-        ok = {"evaluable": True, "F": 0.0, "M": 0.0}
-
-        def cell(design, k, budget, verdict):
-            interval = {"F": [0.95, 0.97], "M": [0.001, 0.002]} if verdict == "PASS" else {"F": [0.1, 0.2], "M": [0.2, 0.3]}
-            return {
-                "design": design, "distance_index": k, "budget": budget, "dev_verdict": verdict,
-                "selected": {"F": 0.5, "M": 0.1}, "dev_interval": interval, "V2_window": ok, "V8_steps": ok,
-                "V4_reversed": {"fail_on_M": True}, "max_norm_error": 1e-12, "design_sha256": digest,
-                "seed_list": study.dev_seeds(protocol), "cpu_s": 1.0,
-            }
-
         with tempfile.TemporaryDirectory() as work:
             work = Path(work)
-            for design in study.DESIGNS:
-                for k in range(len(grid)):
-                    for budget in study.BUDGETS:
-                        verdict = "PASS" if k <= 3 else "FAIL"
-                        study.put(work / "cells" / f"{study.cell_label(design, k, budget)}.json", cell(design, k, budget, verdict))
-                for k in study.fit_indices(protocol):
-                    power = protocol["predicted_slopes"][design]
-                    treq = None if design == "G3" else 2.0 * (grid[k] / 1e-6) ** power
-                    study.put(work / "noiseless" / f"{design}-d{k:02d}.json",
-                              {"design": design, "distance_index": k, "T_req_s": treq, "design_sha256": digest, "max_norm_error": 0.0})
-            control = cell("G0", 0, "reference", "PASS")
-            study.put(work / "control-G0.json", control)
+            synthetic_search(work, protocol)
             result = study.analyze(protocol, work)
         self.assertTrue(result["complete"])
         self.assertTrue(all(result["checks"].values()), result["checks"])
@@ -343,6 +392,24 @@ class AnalysisTest(unittest.TestCase):
         self.assertEqual(result["H2"]["G3"]["verdict"], "INCONCLUSIVE")
         self.assertEqual(result["H3"], "UPHELD")
         self.assertEqual(result["stage"], "development preview, not confirmatory")
+
+    def test_h2_and_h3_are_incomplete_without_every_current_noiseless_record(self):
+        protocol = study.load_protocol()
+        grid_um = [d / model.MICRON for d in study.distances(protocol)]
+        with tempfile.TemporaryDirectory() as work:
+            work = Path(work)
+            synthetic_search(work, protocol)
+            (work / "noiseless" / "G3-d22.json").unlink()
+            stale = work / "noiseless" / "G1-d24.json"
+            study.put(stale, dict(json.loads(stale.read_text()), design_sha256="0" * 64))
+            result = study.analyze(protocol, work)
+        self.assertEqual(result["H2"]["G1"]["verdict"], "INCOMPLETE")
+        self.assertIsNone(result["H2"]["G1"]["slope"])
+        self.assertEqual(result["H2"]["G2"]["verdict"], "CONFIRMED")
+        self.assertEqual(result["H2"]["G3"]["verdict"], "INCOMPLETE")
+        self.assertEqual(result["H3"], "INCOMPLETE")
+        self.assertEqual(result["noiseless_missing"], {"G1": [grid_um[24]], "G2": [], "G3": [grid_um[22]]})
+        self.assertFalse(result["checks"]["V5"])
 
 
 if __name__ == "__main__":

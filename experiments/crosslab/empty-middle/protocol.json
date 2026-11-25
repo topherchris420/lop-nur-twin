@@ -33,9 +33,10 @@
     "middle_occupation": "Population in every mediator mode, explicit or eliminated",
     "explicit_window": 100,
     "explicit_mode_cap": 400,
+    "elimination_cap": 0.1,
     "samples": 4001,
     "integrator": "Strang split: exact diagonal phases and an exact exponential of the coupling in span{A, B, rA, rB}; steps a multiple of 4000 with max |E| dt <= 0.5",
-    "far_modes": "A mode is explicit when |E| <= 100 Omega max(1, r / 10), r its coupling relative to the resonant mode's (the larger of |rA| and |rB|); every other mode enters by adiabatic elimination: shift and exchange -sum (Omega_i r_i)(Omega_j r_j) / E on A and B, and population |sum Omega r c / E|^2 counted in P_mid",
+    "far_modes": "A mode is explicit when |E| <= 100 Omega max(1, r / 10), r its coupling relative to the resonant mode's (the larger of |rA| and |rB|); every other mode enters by adiabatic elimination: shift and exchange -sum (Omega_i r_i)(Omega_j r_j) / E on A and B, and population |sum Omega r c / E|^2 counted in P_mid; elimination holds only while the eliminated population stays at most elimination_cap times the trap population",
     "noise": {
       "trap_offsets": "dA, dB ~ Normal(0, 1/T2*) per seed, quasi-static",
       "lattice_disorder": "on-site energies ~ Normal(0, sigma_W) per seed and site; traps tuned to the realized resonant mode first",
@@ -95,6 +96,7 @@
     "settings_per_cell": 511,
     "loss_cap": "a setting with exp(-Gamma T) < 0.90 is a loss-cap fail and is not run",
     "mode_cap": "a setting with more than 400 explicit modes is a mode-cap fail and is not run",
+    "elimination_cap": "a setting whose eliminated population exceeds 0.1 of the trap population at any sample on any seed is an elimination-cap fail and its numbers are not kept; on that seed the middle then holds more than a tenth of the atom, so over eight dev seeds, or without noise, its M exceeds 0.01 and it cannot pass",
     "selection": "largest dev margin min[(F - 0.90)/0.10, (0.01 - M)/0.01], ties to shorter T; if none passes, the largest-margin setting goes forward"
   },
   "seeds": {
@@ -126,19 +128,20 @@
   "rules": {
     "cell": {
       "PASS": "lower bound of F >= 0.90 and upper bound of M < 0.01",
-      "FAIL": "upper bound of F < 0.90, or lower bound of M >= 0.01, or every setting hit the loss or mode cap",
+      "FAIL": "upper bound of F < 0.90, or lower bound of M >= 0.01, or every setting hit the loss, mode or elimination cap, or the held-out run of the selected setting hit a cap",
       "INCONCLUSIVE": "anything else"
     },
     "limit": "d* is the largest grid distance that is PASS with every shorter one; u is the shortest FAIL; D* is the largest d* across G1 to G3",
     "H1": ["INVALID", "INCOMPLETE", "OPEN AT SCALE", "MICROSCALE ONLY", "INCONCLUSIVE"],
-    "H2": ["CONFIRMED", "NOT CONFIRMED", "INCONCLUSIVE"],
-    "H3": ["CONTRADICTED", "UPHELD", "INCONCLUSIVE"]
+    "H2": ["CONFIRMED", "NOT CONFIRMED", "INCONCLUSIVE", "INCOMPLETE"],
+    "H3": ["CONTRADICTED", "UPHELD", "INCONCLUSIVE", "INCOMPLETE"],
+    "inputs": "H2 and H3 use only noiseless records that carry this protocol's design hash; a design missing any of its 17 is INCOMPLETE for H2, and G3 missing any is INCOMPLETE for H3. The held-out run refuses, before any held-out seed exists or any file is written, unless all 225 cells, the G0 control and the 51 noiseless records are present and carry that hash"
   },
   "checks": {
     "V1": "every run conserves norm to 1e-8",
     "V2": "on the first dev seed, doubling the explicit window and its mode cap at each selected setting changes F and M by less than 1e-4, or by less than a tenth of the distance from the nearer bound of that cell's dev interval to the threshold",
     "V3": "G0 at 1 kHz with its dev-selected pulse area is PASS at the reference budget",
-    "V4": "every selected setting re-run with the A side first is FAIL on M",
+    "V4": "every selected setting re-run with the A side first is FAIL on M; a re-run past the elimination cap counts as FAIL on M, since the middle then holds more than a tenth of the atom on some seed",
     "V5": "every result record carries the SHA-256 of this protocol's content without its status and registration date, and it matches",
     "V6": "no held-out seed appears in any development log before the held-out run",
     "V7": "at 1 um, at least one of G1 to G3 is PASS at the generous budget",
@@ -151,6 +154,8 @@
     "Settings with more than 400 explicit modes are mode-cap fails: they put several modes within the coupling of resonance, so the middle cannot stay near-empty.",
     "G2's couplings sit L(1 - 1/n) apart, within 1 um of d; the grid distance d is still the one reported.",
     "V2 and V8 also pass a change smaller than a tenth of the distance from the cell's nearer dev-interval bound to its threshold, since such a change cannot move a verdict. In development, G1 at 10 um (reference) selected a fast, failed transfer with F = 0.003 and M = 0.25, where doubling the steps or the window changed M by 1.3e-4 on the first dev seed; under the draft rule that alone would make H1 INVALID. V2 also doubles the mode cap with the window.",
-    "V5 hashes the protocol's content without status and registered, so a development search run before the freeze stays bound to the frozen protocol, and the held-out runner refuses any selected setting whose record carries another hash."
+    "V5 hashes the protocol's content without status and registered, so a development search run before the freeze stays bound to the frozen protocol, and the held-out runner refuses any selected setting whose record carries another hash.",
+    "Elimination cap. The per-mode rule bounds each eliminated mode but not their sum, and in development G1 at 100 um (generous, 42.17 Hz, area 10) reported a middle occupation of 1.29 with its reduced state still normalized; on the first dev seed, doubling the window lowered it to 0.59. A setting whose eliminated population exceeds 0.1 of the trap population at any sample is now an elimination-cap fail. Such a setting cannot pass on dev seeds or without noise, so no verdict changes, and every kept run reports a middle occupation of at most 1. V4 counts a reversed re-run past the cap as FAIL on M.",
+    "Inputs are checked. H2 and H3 read only noiseless records made under this protocol and are INCOMPLETE, a new verdict for them, when any is missing, so a partial or stale search no longer reads as a finished one. The held-out run checks the whole development search before it makes a held-out seed or writes a file, so a missing or stale record cannot use up the held-out split."
   ]
 }

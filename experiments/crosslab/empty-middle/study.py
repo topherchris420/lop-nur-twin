@@ -114,6 +114,16 @@ def dev_seeds(protocol):
 
 def heldout_seeds(protocol_path=PROTOCOL, freeze_path=None):
     """Held-out seeds, only from a frozen protocol that matches its freeze record."""
+    protocol = check_frozen(protocol_path, freeze_path)
+    rule = protocol["seeds"]["heldout"]
+    salt = rule["salt"]
+    return [
+        int(sha256(f"{salt}:{i}".encode()).hexdigest()[:8], 16) for i in range(rule["count"])
+    ]
+
+
+def check_frozen(protocol_path=PROTOCOL, freeze_path=None):
+    """The protocol, if it is frozen and matches its freeze record."""
     protocol = load_protocol(protocol_path)
     if protocol.get("status") != "frozen":
         raise PermissionError("the protocol is not frozen; held-out seeds stay sealed")
@@ -123,11 +133,7 @@ def heldout_seeds(protocol_path=PROTOCOL, freeze_path=None):
     freeze = json.loads(freeze_path.read_text())
     if freeze.get("protocol_sha256") != protocol_hash(protocol_path):
         raise PermissionError("the protocol does not match its freeze record")
-    rule = protocol["seeds"]["heldout"]
-    salt = rule["salt"]
-    return [
-        int(sha256(f"{salt}:{i}".encode()).hexdigest()[:8], 16) for i in range(rule["count"])
-    ]
+    return protocol
 
 
 @lru_cache(maxsize=64)
@@ -182,6 +188,7 @@ def run_settings(protocol, design, distance, conditions, chosen, seeds, reverse=
     """
     registered = protocol["model"]["explicit_window"]
     window = window or registered
+    elimination_cap = protocol["model"]["elimination_cap"]
     # A wider window for check V2 brings its mode cap along with it.
     cap = protocol["model"]["explicit_mode_cap"] * window // registered
     loss = conditions["loss_per_s"]
@@ -239,15 +246,21 @@ def run_settings(protocol, design, distance, conditions, chosen, seeds, reverse=
             )
             for i, (entry, _) in enumerate(batch):
                 results.setdefault(id(entry), []).append(
-                    (run.arrival[i], run.middle[i], run.norm_error[i], run.explicit_modes[i])
+                    (run.arrival[i], run.middle[i], run.norm_error[i], run.explicit_modes[i], run.eliminated_ratio[i])
                 )
         for entry, _ in members:
             got = results[id(entry)]
+            entry["explicit_modes"] = int(max(g[3] for g in got))
+            entry["steps"] = int(steps)
+            entry["eliminated_ratio"] = float(max(g[4] for g in got))
+            if entry["eliminated_ratio"] > elimination_cap:
+                # Elimination has left its range on some seed. Such a setting
+                # cannot pass (see the protocol), and its numbers are not kept.
+                entry["skipped"] = "elimination cap"
+                continue
             entry["arrival"] = np.array([g[0] for g in got])
             entry["middle"] = np.stack([g[1] for g in got])
             entry["norm_error"] = float(max(g[2] for g in got))
-            entry["explicit_modes"] = int(max(g[3] for g in got))
-            entry["steps"] = int(steps)
     for entry in entries:
         if "arrival" in entry:
             entry["F"] = float(np.mean(entry["arrival"]) * entry["survival"])
@@ -364,7 +377,7 @@ def noiseless_treq(protocol, design, distance, batch=64):
 
 
 def _summary(entry):
-    keep = ("omega_over_2pi_hz", "area", "duration_s", "survival", "skipped", "F", "M", "margin", "steps", "explicit_modes", "norm_error")
+    keep = ("omega_over_2pi_hz", "area", "duration_s", "survival", "skipped", "F", "M", "margin", "steps", "explicit_modes", "eliminated_ratio", "norm_error")
     return {k: entry[k] for k in keep if k in entry}
 
 
@@ -420,6 +433,10 @@ def dev_cell(protocol, design, distance, budget_name, seeds=None, chosen=None, e
         if "arrival" in rev:
             rev_interval = bootstrap(rev["arrival"], rev["middle"], rev["survival"], protocol)
             out["V4_reversed"] = {"interval": rev_interval, "fail_on_M": rev_interval["M"][0] >= protocol["thresholds"]["middle_max"]}
+        elif rev.get("skipped") == "elimination cap":
+            # Past the cap, the eliminated modes alone hold over a tenth of the trap
+            # population on some seed: the middle is far from empty.
+            out["V4_reversed"] = {"skipped": "elimination cap", "fail_on_M": True}
     out["cpu_s"] = time.process_time() - started
     return out
 
@@ -535,6 +552,17 @@ def _expected_path(fn, job):
     if fn is _noiseless_job:
         return Path("noiseless") / f"{job[0]}-d{job[1]:02d}.json"
     return Path("control-G0.json")
+
+
+def required_records(protocol):
+    """Paths of every record a complete development search writes."""
+    return [_expected_path(fn, job) for fn, job in search_jobs(protocol)]
+
+
+def missing_records(protocol, dev_dir):
+    """Required development records that are absent or carry another design hash."""
+    digest = design_hash(protocol)
+    return [str(rel) for rel in required_records(protocol) if not _current(Path(dev_dir) / rel, digest)]
 
 
 def _current(path, digest):
@@ -655,10 +683,15 @@ def analyze(protocol, dev_dir, heldout_dir=None):
         grid_um,
     )
     fit_grid = {k: grid_um[k] for k in fit}
-    treq = {g: {k: (noiseless.get((g, k)) or {}).get("T_req_s") for k in fit} for g in DESIGNS}
+    current = {key: r for key, r in noiseless.items() if r.get("design_sha256") == digest}
+    absent = {g: [k for k in fit if (g, k) not in current] for g in DESIGNS}
+    treq = {g: {k: (current.get((g, k)) or {}).get("T_req_s") for k in fit} for g in DESIGNS}
     h2 = {}
     for g in DESIGNS:
-        outcome, slope = h2_verdict(treq[g], fit_grid, protocol["predicted_slopes"][g], protocol["noiseless"]["tolerance"])
+        if absent[g]:
+            outcome, slope = "INCOMPLETE", None
+        else:
+            outcome, slope = h2_verdict(treq[g], fit_grid, protocol["predicted_slopes"][g], protocol["noiseless"]["tolerance"])
         h2[g] = {"verdict": outcome, "slope": slope, "predicted": protocol["predicted_slopes"][g]}
     cap_s = protocol["compute_cap_cpu_hours_per_cell"] * 3600
     return {
@@ -670,7 +703,8 @@ def analyze(protocol, dev_dir, heldout_dir=None):
         "limits": per_budget,
         "H1": h1,
         "H2": h2,
-        "H3": h3_verdict(treq["G3"], fit),
+        "H3": "INCOMPLETE" if absent["G3"] else h3_verdict(treq["G3"], fit),
+        "noiseless_missing": {g: [grid_um[k] for k in absent[g]] for g in DESIGNS},
         "noiseless_T_req_s": {g: {f"{grid_um[k]:.4g}": treq[g][k] for k in fit} for g in DESIGNS},
         "compute_cap_exceeded": [label(k) for k, r in cells.items() if r.get("cpu_s", 0.0) > cap_s],
         "cpu_hours": sum(r.get("cpu_s", 0.0) for r in dev_records) / 3600,
@@ -681,24 +715,29 @@ def analyze(protocol, dev_dir, heldout_dir=None):
 def heldout(protocol_path, dev_dir, out_dir, freeze_path=None):
     """The one held-out run: each dev-selected setting, scored once on held-out seeds.
 
-    Refuses unless the protocol is frozen and matches its freeze record, every
-    dev record carries the frozen protocol's design hash, and out_dir is empty.
+    Refuses unless the protocol is frozen and matches its freeze record, out_dir
+    is empty, and every record of a complete development search is present and
+    carries the frozen protocol's design hash.
     """
-    seeds = heldout_seeds(protocol_path, freeze_path)
-    protocol = load_protocol(protocol_path)
+    protocol = check_frozen(protocol_path, freeze_path)
     digest = design_hash(protocol)
     out_dir = Path(out_dir)
     if out_dir.exists() and any(out_dir.iterdir()):
         raise FileExistsError("the held-out run happens once; its output directory is not empty")
-    if set(seeds) & set(dev_seeds(protocol)):
-        raise ValueError("a held-out seed is also a development seed")
+    # Everything is checked before a held-out seed exists or a file is written,
+    # so a bad input leaves the held-out split unexposed.
+    missing = missing_records(protocol, dev_dir)
+    if missing:
+        raise ValueError(f"the development search is incomplete or stale: {len(missing)} records, first {missing[0]}")
     cells, _, control = _load_dir(dev_dir)
     records = [(Path("cells") / f"{cell_label(*k)}.json", r) for k, r in sorted(cells.items())]
-    if control:
-        records.append((Path("control-G0.json"), control))
+    records.append((Path("control-G0.json"), control))
     for _, record in records:
         if record.get("design_sha256") != digest:
             raise ValueError(f"{record['design']} d{record['distance_index']:02d} was selected under another protocol")
+    seeds = heldout_seeds(protocol_path, freeze_path)
+    if set(seeds) & set(dev_seeds(protocol)):
+        raise ValueError("a held-out seed is also a development seed")
     grid = distances(protocol)
     for rel, record in records:
         out = {k: record[k] for k in ("design", "distance_index", "distance_um", "budget")}
