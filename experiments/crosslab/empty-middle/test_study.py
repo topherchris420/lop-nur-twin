@@ -286,6 +286,12 @@ class HeldoutRunnerTest(unittest.TestCase):
             self.assertEqual(result["stage"], "held-out")
             with self.assertRaises(FileExistsError):
                 study.heldout(path, work / "dev", work / "heldout")
+            # A selected setting that a held-out run finds past a cap is a FAIL, not a crash.
+            slow = dict(record, selected=dict(record["selected"], omega_over_2pi_hz=1e-3))
+            study.put(work / "dev" / "control-G0.json", slow)
+            study.heldout(path, work / "dev", work / "capped")
+            capped = json.loads((work / "capped" / "control-G0.json").read_text())
+            self.assertEqual((capped["verdict"], capped["skipped"]), ("FAIL", "loss cap"))
             record["design_sha256"] = "0" * 64
             study.put(work / "dev" / "control-G0.json", record)
             with self.assertRaises(ValueError):

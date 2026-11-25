@@ -709,6 +709,11 @@ def heldout(protocol_path, dev_dir, out_dir, freeze_path=None):
             setting = [(record["selected"]["omega_over_2pi_hz"], record["selected"]["area"])]
             conditions = budget(protocol, record["budget"])
             entry = run_settings(protocol, record["design"], grid[record["distance_index"]], conditions, setting, seeds)[0]
+            if "arrival" not in entry:
+                # A held-out disorder draw can push the selected setting past a cap.
+                out.update({"skipped": entry["skipped"], "verdict": "FAIL", "max_norm_error": 0.0})
+                put(out_dir / rel, out)
+                continue
             interval = bootstrap(entry["arrival"], entry["middle"], entry["survival"], protocol)
             out.update({
                 "F": entry["F"],
