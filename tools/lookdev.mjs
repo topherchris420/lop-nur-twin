@@ -139,7 +139,11 @@ const height = Number(arg("height", 720));
 // heading the HUD prints is 360 - look. The sun sits at azimuth 112 (ESE).
 const APRON = [1290, 1350];
 const DESERT = [1440, 1830];
-const HANGAR = [960, 1300];
+// About 12 m off the main assembly hangar's south-east facade (compound
+// u=-36, v=21 in layout.ts terms); look 44 faces the wall square on. The old
+// [960, 1300] stood 113 m south of the hall facing west, so every "hangar
+// wall" frame was open lakebed.
+const HANGAR = [1006.7, 1450.1];
 
 /* ------------------------------------------------------------------ */
 /* Shot sets                                                           */
@@ -176,7 +180,7 @@ const SETS = {
     {
       id: "hangar",
       note: "hangar wall at close range",
-      setup: `await ld.place(${HANGAR}, 80, 0.02)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.02)`,
     },
     {
       id: "ground",
@@ -368,14 +372,14 @@ const SETS = {
     {
       id: "impacts-wall",
       note: "a burst into the hangar wall at close range: puffs, sparks, decals",
-      setup: `await ld.place(${HANGAR}, 80, 0.0)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.0)`,
       actions: [{ mouse: "left", down: true }, { frames: 10 }],
       after: [{ mouse: "left", down: false }, { frames: 10 }],
     },
     {
       id: "impacts-wall-after",
       note: "the same wall a moment later: decals and settling dust",
-      setup: `await ld.place(${HANGAR}, 80, 0.0)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.0)`,
       actions: [
         { mouse: "left", down: true },
         { frames: 10 },
@@ -429,13 +433,17 @@ const SETS = {
     {
       id: "apron-concrete",
       note: "apron pavement close: slab joints, stains, wear",
-      setup: `await ld.place(${APRON}, 45, -0.42)`,
+      // On the operations hardstand. APRON stands on bladed compound ground
+      // a street's width from any pavement, so this frame never showed slabs.
+      setup: "await ld.place(1113.7, 1415.6, -75, -0.38)",
       frames: 4,
     },
     {
       id: "pavement-edge",
       note: "where pavement meets lakebed",
-      setup: `await ld.place(${APRON}, 225, -0.22)`,
+      // 8 m inside the main apron's runway-side edge (compound u=-30,
+      // v=-150), facing out across it to the lakebed.
+      setup: "await ld.place(892.2, 1322.9, 44, -0.2)",
       frames: 4,
     },
     {
@@ -486,13 +494,16 @@ const SETS = {
     {
       id: "hangar-wall",
       note: "hangar wall at close range",
-      setup: `await ld.place(${HANGAR}, 80, 0.02)`,
+      setup: `await ld.place(${HANGAR}, 44, 0.02)`,
       frames: 4,
     },
     {
       id: "compound-mid",
       note: "the compound at 60-200 m from the flight line",
-      setup: "await ld.place(null, null, null, -0.02)",
+      // GROUND_OVERLOOK in layout.ts (compound u=52, v=-152) facing its
+      // target. A null position kept wherever the previous shot left the
+      // player, which in this set is the hangar wall.
+      setup: "await ld.place(949.8, 1264.5, 152.7, -0.02)",
       frames: 4,
     },
     {
@@ -821,8 +832,20 @@ function installPageHelpers() {
     group.traverse((o) => {
       if (!o.isMesh || o.userData?.noCollide) return;
       if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
-      const c = o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld);
-      candidates.push(c);
+      const local = o.geometry.boundingSphere.center;
+      // Clutter is instanced: one mesh per prop type, its geometry at the
+      // origin. Taking the mesh's own bounding sphere put every candidate at
+      // the world origin, kilometres from the site, so the cover frames were
+      // empty lakebed. Walk the instances instead.
+      if (o.isInstancedMesh) {
+        const m = new o.matrixWorld.constructor();
+        for (let i = 0; i < o.count; i += 1) {
+          o.getMatrixAt(i, m);
+          candidates.push(local.clone().applyMatrix4(m).applyMatrix4(o.matrixWorld));
+        }
+      } else {
+        candidates.push(local.clone().applyMatrix4(o.matrixWorld));
+      }
     });
     candidates.sort(
       (a, b) => Math.hypot(a.x - 1290, a.z - 1350) - Math.hypot(b.x - 1290, b.z - 1350),
@@ -1361,6 +1384,12 @@ for (let si = 0; si < shots.length; si += 1) {
     ) {
       retried.add(si);
       console.log(`${shot.id.padEnd(20)} page reloaded mid-shot; retrying`);
+      // puppeteer keeps its own record of held buttons across a reload, so a
+      // shot that died holding the trigger or ADS would fail its retry with
+      // "'left' is already pressed". Let go of everything first.
+      for (const button of ["left", "right", "middle"]) {
+        await page.mouse.up({ button }).catch(() => {});
+      }
       si -= 1;
       continue;
     }

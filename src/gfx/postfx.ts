@@ -142,7 +142,7 @@ uniform float haloRadius;
 uniform float ghostDispersal;
 uniform vec3 flareTint;
 
-vec3 computeOpticalGhosts(vec2 uv, vec2 lightPos, float intensity) {
+vec3 computeOpticalGhosts(vec2 uv, vec2 lightPos, float intensity, float ghostGain) {
   vec2 delta = lightPos - uv;
   vec2 ghostVec = (vec2(0.5) - lightPos) * ghostDispersal;
 
@@ -176,7 +176,9 @@ vec3 computeOpticalGhosts(vec2 uv, vec2 lightPos, float intensity) {
     exp(-length(uv - (lightPos - haloVec * 0.975)) * 28.0)
   ) * haloWeight;
 
-  return (vec3(starburst) + ghosts * 1.2 + halo * 1.4) * intensity * flareTint;
+  // Ghosts and the halo ring are a fifth of what they were: drawn at full
+  // strength they crossed the weapon and the hands as a coloured ring.
+  return (vec3(starburst) + (ghosts * 1.2 + halo * 1.4) * ghostGain) * intensity * flareTint;
 }
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
@@ -194,14 +196,16 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
       float source = dot(texture2D(inputBuffer, sunUv).rgb, vec3(0.2126, 0.7152, 0.0722));
       float transmission = smoothstep(4.0, 12.0, source)
         * smoothstep(0.0, 0.035, min(border.x, border.y));
-      flare += computeOpticalGhosts(uv, sunUv, sunFlareIntensity * transmission);
+      flare += computeOpticalGhosts(uv, sunUv, sunFlareIntensity * transmission, 0.2);
     }
   }
 
   // Muzzle flash optical burst (originating from weapon muzzle screen quadrant)
   if (muzzleFlashIntensity > 0.001) {
     vec2 flashUv = vec2(0.58, 0.72);
-    vec3 flashFlare = computeOpticalGhosts(uv, flashUv, muzzleFlashIntensity * 1.8);
+    // Only the muzzle's own starburst: ghosts from a fixed screen point sat
+    // across the gun in every shot.
+    vec3 flashFlare = computeOpticalGhosts(uv, flashUv, muzzleFlashIntensity * 0.35, 0.0);
     flare += flashFlare * vec3(1.25, 0.95, 0.72);
   }
 
@@ -419,6 +423,9 @@ uniform float slope;
 uniform float offset;
 uniform float power;
 uniform float saturation;
+uniform float logContrast;
+uniform vec3 shadowTint;
+uniform vec3 highlightTint;
 
 const mat3 LINEAR_SRGB_TO_LINEAR_REC2020 = mat3(
   vec3(0.6274, 0.0691, 0.0164),
@@ -465,9 +472,7 @@ vec3 agxLook(vec3 c) {
   // Gentle toe lift so deep shadows never harshly clip
   c = pow(max(vec3(0.0005), c * slope + offset), vec3(power));
 
-  // Subtle military split-toning: cool slate shadows, warm sunlit highlights
-  vec3 shadowTint = vec3(0.96, 0.98, 1.03);
-  vec3 highlightTint = vec3(1.03, 1.01, 0.97);
+  // Split toning: cool slate shadows, warm sunlit highlights
   vec3 graded = mix(c * shadowTint, c * highlightTint, smoothstep(0.15, 0.75, luma));
 
   return luma + saturation * (graded - luma);
@@ -482,6 +487,11 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   // log2 encode into the AgX working range
   color = log2(max(color, 1e-10));
   color = (color - AGX_MIN_EV) / (AGX_MAX_EV - AGX_MIN_EV);
+  // Contrast in log space, pivoting on exposed mid-grey (0.18): a steeper
+  // straight line into the same sigmoid, so the toe reaches a real black and
+  // the shoulder still rolls off instead of clipping.
+  const float AGX_PIVOT = (-2.4739312 - AGX_MIN_EV) / (AGX_MAX_EV - AGX_MIN_EV);
+  color = AGX_PIVOT + (color - AGX_PIVOT) * logContrast;
   color = clamp(color, 0.0, 1.0);
 
   color = agxContrast(color);
@@ -508,6 +518,12 @@ export interface AgXToneMappingOptions {
   power?: number;
   /** 1 = AgX default, > 1 restores chroma AgX intentionally desaturates. */
   saturation?: number;
+  /** Contrast in log space around exposed mid-grey; 1 = AgX's own curve. */
+  logContrast?: number;
+  /** Multiplier on the shadows of the split tone. */
+  shadowTint?: THREE.ColorRepresentation;
+  /** Multiplier on the highlights of the split tone. */
+  highlightTint?: THREE.ColorRepresentation;
 }
 
 export class AgXToneMappingEffect extends Effect {
@@ -517,6 +533,9 @@ export class AgXToneMappingEffect extends Effect {
     offset = 0,
     power = 1,
     saturation = 1,
+    logContrast = 1,
+    shadowTint = new THREE.Color(0.96, 0.98, 1.03),
+    highlightTint = new THREE.Color(1.03, 1.01, 0.97),
   }: AgXToneMappingOptions = {}) {
     super("AgXToneMappingEffect", AGX_FRAGMENT, {
       blendFunction: BlendFunction.SRC,
@@ -526,6 +545,9 @@ export class AgXToneMappingEffect extends Effect {
         ["offset", new THREE.Uniform(offset)],
         ["power", new THREE.Uniform(power)],
         ["saturation", new THREE.Uniform(saturation)],
+        ["logContrast", new THREE.Uniform(logContrast)],
+        ["shadowTint", new THREE.Uniform(new THREE.Color(shadowTint))],
+        ["highlightTint", new THREE.Uniform(new THREE.Color(highlightTint))],
       ]),
     });
   }
@@ -553,6 +575,21 @@ export class AgXToneMappingEffect extends Effect {
 
   set saturation(value: number) {
     this.setUniform("saturation", value);
+  }
+
+  set logContrast(value: number) {
+    this.setUniform("logContrast", value);
+  }
+
+  /** Split-tone multipliers for the shadows and the highlights. */
+  setSplitTone(
+    shadow: THREE.ColorRepresentation,
+    highlight: THREE.ColorRepresentation,
+  ): void {
+    (this.uniforms.get("shadowTint")?.value as THREE.Color | undefined)?.set(shadow);
+    (this.uniforms.get("highlightTint")?.value as THREE.Color | undefined)?.set(
+      highlight,
+    );
   }
 }
 

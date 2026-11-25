@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { mulberry32 } from "@/lib/noise";
+import { mulberry32, seededNoise2D } from "@/lib/noise";
 
 /**
  * GPU particle engine.
@@ -29,12 +29,23 @@ export const SPRITE = {
   heatHaze: 9,
   bloodMist: 10,
   tracerHead: 11,
+  /** Noise-built smoke with a baked density-gradient normal in RG. */
+  billow: 12,
+  /** A thinner, wispier billow for drift and barrel smoke. */
+  wisp: 13,
+  /** A tall dust column, denser at its foot, for sand spurts. */
+  plume: 14,
+  /** A soft round glow, for impact flashes and embers. */
+  glow: 15,
 } as const;
+
+/** Sprites whose RG channels hold a shading normal rather than colour. */
+export const NORMAL_SPRITES: ReadonlySet<SpriteId> = new Set<SpriteId>([12, 13, 14]);
 
 export type SpriteId = (typeof SPRITE)[keyof typeof SPRITE];
 
 const ATLAS_COLS = 4;
-const ATLAS_ROWS = 3;
+const ATLAS_ROWS = 4;
 const ATLAS_TILE = 256;
 
 /* ------------------------------------------------------------------ */
@@ -330,7 +341,119 @@ function drawTracerHead(ctx: CanvasRenderingContext2D): void {
   ctx.fillRect(c - 1.5, 0, 3, ATLAS_TILE);
 }
 
+/* ------------------------------------------------------------------ */
+/* Density tiles                                                       */
+/* ------------------------------------------------------------------ */
+
+function smoothstep01(edge0: number, edge1: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * A density field rasterised straight into RGBA, with its gradient baked into
+ * RG as a shading normal (0.5 = flat). The particle shader tilts each pixel's
+ * sphere normal by it, so the sun picks out individual billows instead of
+ * lighting the whole puff as one ball. Alpha is the density itself.
+ *
+ * Pure (no canvas), so the field can be inspected without a browser.
+ */
+export function buildDensityTile(
+  kind: "billow" | "wisp" | "plume",
+  seed: number,
+  size: number,
+): Uint8ClampedArray<ArrayBuffer> {
+  const noise = seededNoise2D(seed);
+  const warp = seededNoise2D(seed ^ 0x5bd1);
+  const field = new Float32Array(size * size);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      // u right, v up, both -1..1.
+      const u = ((x + 0.5) / size) * 2 - 1;
+      const v = 1 - ((y + 0.5) / size) * 2;
+      let d = 0;
+      if (kind === "plume") {
+        // A column that widens and thins as it climbs, streaked vertically.
+        const climb = (v + 1) / 2;
+        const width = 0.22 + climb * 0.5;
+        const wu = u + warp(u * 1.4, v * 1.1) * 0.12;
+        let streak = 0;
+        let amp = 0.5;
+        let f = 1.6;
+        for (let o = 0; o < 4; o += 1) {
+          streak += Math.abs(noise(wu * f * 2.2, v * f * 0.9)) * amp;
+          amp *= 0.5;
+          f *= 2.1;
+        }
+        const across = Math.max(0, 1 - Math.pow(Math.abs(wu) / width, 2));
+        const foot = Math.min(1, (v + 1) * 3);
+        const top = Math.max(0, 1 - Math.pow(climb, 1.6));
+        d = across * foot * top * (0.45 + streak * 1.1);
+      } else {
+        const wisp = kind === "wisp";
+        const wu = u + warp(u * 1.2, v * 1.2) * (wisp ? 0.32 : 0.18);
+        const wv = v + warp(u * 1.2 + 5.2, v * 1.2 + 1.3) * (wisp ? 0.32 : 0.18);
+        let billow = 0;
+        let amp = 0.5;
+        let f = wisp ? 1.2 : 1.45;
+        for (let o = 0; o < 4; o += 1) {
+          // 1 - |noise| gives the rounded, cauliflower lobes of a billow.
+          billow += (1 - Math.abs(noise(wu * f, wv * f))) * amp;
+          amp *= 0.5;
+          f *= 2.03;
+        }
+        // Lobes push the silhouette out and bite holes into it, around a core
+        // that stays dense: smoke, not lace.
+        const r = Math.sqrt(wu * wu + wv * wv) + (0.62 - billow) * (wisp ? 0.9 : 0.7);
+        const shape = 1 - smoothstep01(wisp ? 0.05 : 0.2, wisp ? 0.8 : 0.92, r);
+        const detail = Math.max(0, billow - 0.3) * 1.6;
+        d = wisp ? shape * shape * (0.25 + detail * 0.9) : shape * (0.45 + detail * 0.75);
+      }
+      field[y * size + x] = Math.min(1, Math.max(0, d));
+    }
+  }
+  const out = new Uint8ClampedArray(size * size * 4);
+  const k = kind === "plume" ? 1.6 : 2.2;
+  const at = (xx: number, yy: number): number =>
+    field[
+      Math.min(size - 1, Math.max(0, yy)) * size + Math.min(size - 1, Math.max(0, xx))
+    ]!;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      // Canvas y runs down; the shader's v runs up.
+      const gx = (at(x + 1, y) - at(x - 1, y)) * 0.5 * (size / 64);
+      const gy = (at(x, y - 1) - at(x, y + 1)) * 0.5 * (size / 64);
+      const i = (y * size + x) * 4;
+      out[i] = 128 + Math.max(-127, Math.min(127, -gx * k * 127));
+      out[i + 1] = 128 + Math.max(-127, Math.min(127, -gy * k * 127));
+      out[i + 2] = 255;
+      out[i + 3] = Math.round(field[y * size + x]! * 255);
+    }
+  }
+  return out;
+}
+
+/** Soft round glow: impact flashes, embers, the halo around a spark. */
+function drawGlow(ctx: CanvasRenderingContext2D): void {
+  const c = ATLAS_TILE / 2;
+  const g = ctx.createRadialGradient(c, c, 0, c, c, c);
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.12, "rgba(255,255,255,0.75)");
+  g.addColorStop(0.35, "rgba(255,255,255,0.22)");
+  g.addColorStop(0.7, "rgba(255,255,255,0.04)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, ATLAS_TILE, ATLAS_TILE);
+}
+
 let atlasTexture: THREE.CanvasTexture | null = null;
+
+type Painter = (
+  ctx: CanvasRenderingContext2D,
+  seed: number,
+  ox: number,
+  oy: number,
+) => void;
 
 export function getParticleAtlas(): THREE.CanvasTexture {
   if (atlasTexture) return atlasTexture;
@@ -338,7 +461,14 @@ export function getParticleAtlas(): THREE.CanvasTexture {
   canvas.width = ATLAS_TILE * ATLAS_COLS;
   canvas.height = ATLAS_TILE * ATLAS_ROWS;
   const ctx = canvas.getContext("2d")!;
-  const painters: ((ctx: CanvasRenderingContext2D, seed: number) => void)[] = [
+  const density =
+    (kind: "billow" | "wisp" | "plume"): Painter =>
+    (c, seed, ox, oy) => {
+      const data = buildDensityTile(kind, seed, ATLAS_TILE);
+      // putImageData ignores the transform, so it takes the tile origin.
+      c.putImageData(new ImageData(data, ATLAS_TILE, ATLAS_TILE), ox, oy);
+    };
+  const painters: Painter[] = [
     drawSmoke,
     (c) => drawSpark(c),
     drawDust,
@@ -351,6 +481,10 @@ export function getParticleAtlas(): THREE.CanvasTexture {
     drawHeatHaze,
     drawBloodMist,
     (c) => drawTracerHead(c),
+    density("billow"),
+    density("wisp"),
+    density("plume"),
+    (c) => drawGlow(c),
   ];
   for (let i = 0; i < painters.length; i += 1) {
     const col = i % ATLAS_COLS;
@@ -360,11 +494,13 @@ export function getParticleAtlas(): THREE.CanvasTexture {
     ctx.beginPath();
     ctx.rect(0, 0, ATLAS_TILE, ATLAS_TILE);
     ctx.clip();
-    painters[i]!(ctx, 0x1000 + i * 977);
+    painters[i]!(ctx, 0x1000 + i * 977, col * ATLAS_TILE, row * ATLAS_TILE);
     ctx.restore();
   }
   atlasTexture = new THREE.CanvasTexture(canvas);
-  atlasTexture.colorSpace = THREE.SRGBColorSpace;
+  // Raw bytes: the colour tiles are pure white (identical either way) and the
+  // density tiles carry a normal in RG that an sRGB decode would bend.
+  atlasTexture.colorSpace = THREE.NoColorSpace;
   atlasTexture.generateMipmaps = true;
   atlasTexture.minFilter = THREE.LinearMipmapLinearFilter;
   atlasTexture.anisotropy = 4;
@@ -381,7 +517,10 @@ export interface SpawnParams {
   lifetime: number;
   size0: number;
   size1: number;
-  /** Linear RGB — values above 1 are intentional for emissive effects. */
+  /**
+   * Linear RGB. For an unlit particle this is the emitted colour (values above
+   * 1 are intentional for hot effects); for a lit one it is the albedo.
+   */
   color0: THREE.Color;
   color1: THREE.Color;
   alpha0: number;
@@ -397,6 +536,16 @@ export interface SpawnParams {
   stretch: number;
   /** Turbulence amplitude, in m/s. */
   turbulence: number;
+  /** 0 = colour as given; 1 = colour is albedo, shaded by sun, sky and flash. */
+  lit: number;
+  /**
+   * Fade toward this plane (xyz unit normal, w = offset, `dot(n, p) = w`)
+   * over `softRange` metres: an analytic soft particle against the surface a
+   * puff was born on, which is the intersection anyone actually sees. A
+   * `softRange` of 0 turns it off.
+   */
+  softPlane: THREE.Vector4;
+  softRange: number;
 }
 
 export function makeSpawnParams(): SpawnParams {
@@ -418,7 +567,35 @@ export function makeSpawnParams(): SpawnParams {
     additive: 0,
     stretch: 0,
     turbulence: 0,
+    lit: 0,
+    softPlane: new THREE.Vector4(0, 1, 0, 0),
+    softRange: 0,
   };
+}
+
+/** Put a reused spawn record back to its defaults. */
+export function resetSpawnParams(p: SpawnParams): SpawnParams {
+  p.position.set(0, 0, 0);
+  p.velocity.set(0, 0, 0);
+  p.lifetime = 1;
+  p.size0 = 0.1;
+  p.size1 = 0.2;
+  p.color0.setRGB(1, 1, 1);
+  p.color1.setRGB(1, 1, 1);
+  p.alpha0 = 1;
+  p.alpha1 = 0;
+  p.gravity = 0;
+  p.drag = 0.4;
+  p.rotation = 0;
+  p.rotationRate = 0;
+  p.sprite = SPRITE.smoke;
+  p.additive = 0;
+  p.stretch = 0;
+  p.turbulence = 0;
+  p.lit = 0;
+  p.softPlane.set(0, 1, 0, 0);
+  p.softRange = 0;
+  return p;
 }
 
 /* ------------------------------------------------------------------ */
@@ -436,13 +613,23 @@ attribute vec4 aColor0;     // rgb, alpha0
 attribute vec4 aColor1;     // rgb, alpha1
 attribute vec4 aPhys;       // gravity, drag, rotation, rotationRate
 attribute vec4 aStyle;      // sprite index, additive, stretch, turbulence
+attribute vec4 aLight;      // lit, normal strength, soft range, unused
+attribute vec4 aPlane;      // soft plane normal xyz, offset w
 
 uniform float uTime;
 uniform vec2 uAtlas;        // cols, rows
+uniform vec3 uSunDir;       // world, toward the sun
 
 varying vec4 vColor;
 varying vec2 vUv;
 varying float vAdditive;
+varying vec4 vLight;
+varying vec2 vBill;
+varying vec4 vFrame;        // view-space sprite +u (xy) and +v (zw)
+varying float vSoft;
+varying vec3 vViewPos;
+varying vec3 vWorldPos;
+varying vec3 vSunView;
 
 void main() {
   float age = uTime - aParams.x;
@@ -455,6 +642,13 @@ void main() {
     vColor = vec4(0.0);
     vUv = vec2(0.0);
     vAdditive = 0.0;
+    vLight = vec4(0.0);
+    vBill = vec2(0.0);
+    vFrame = vec4(0.0);
+    vSoft = 0.0;
+    vViewPos = vec3(0.0);
+    vWorldPos = vec3(0.0);
+    vSunView = vec3(0.0, 1.0, 0.0);
     return;
   }
 
@@ -488,7 +682,10 @@ void main() {
     );
   }
 
-  float size = mix(aParams.z, aParams.w, t);
+  // Smoke and dust swell fast and then slow: ease the size ramp out.
+  float lit = aLight.x;
+  float st = lit > 0.5 ? 1.0 - (1.0 - t) * (1.0 - t) : t;
+  float size = mix(aParams.z, aParams.w, st);
   float rot = aPhys.z + aPhys.w * age;
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
@@ -499,6 +696,7 @@ void main() {
   float s = sin(rot);
   vec2 rotated = vec2(corner.x * c - corner.y * s, corner.x * s + corner.y * c);
   vec2 offset = rotated * size;
+  vFrame = vec4(c, s, -s, c);
 
   float stretch = aStyle.z;
   if (stretch > 0.0001) {
@@ -511,11 +709,21 @@ void main() {
       float along = corner.y * size * (1.0 + stretch * min(len, 40.0) * 0.06);
       float across = corner.x * size;
       offset = dir * along + perp * across;
+      vFrame = vec4(-perp, dir);
     }
   }
 
   mv.xy += offset;
   gl_Position = projectionMatrix * mv;
+
+  vBill = corner * 2.0;
+  vViewPos = mv.xyz;
+  // The mesh has an identity model matrix: invert the view transform to put
+  // the corner back in the world, for the soft plane and the flash light.
+  vWorldPos = (mv.xyz - viewMatrix[3].xyz) * mat3(viewMatrix);
+  vSoft = dot(vWorldPos, aPlane.xyz) - aPlane.w;
+  vSunView = normalize((viewMatrix * vec4(uSunDir, 0.0)).xyz);
+  vLight = aLight;
 
   vColor = vec4(mix(aColor0.rgb, aColor1.rgb, t), mix(aColor0.a, aColor1.a, t));
   vAdditive = aStyle.y;
@@ -538,25 +746,95 @@ const FRAGMENT = /* glsl */ `
 #include <logdepthbuf_pars_fragment>
 
 uniform sampler2D uAtlasMap;
+uniform vec3 uSunColor;     // sun radiance on a white Lambert surface
+uniform vec3 uSkyColor;     // sky fill from above
+uniform vec3 uGroundColor;  // bounce from below
+uniform vec4 uFlashPos;     // world xyz, w = reach (0 = off)
+uniform vec3 uFlashColor;   // flash radiance at 1 m
+
 varying vec4 vColor;
 varying vec2 vUv;
 varying float vAdditive;
+varying vec4 vLight;
+varying vec2 vBill;
+varying vec4 vFrame;
+varying float vSoft;
+varying vec3 vViewPos;
+varying vec3 vWorldPos;
+varying vec3 vSunView;
 
 void main() {
   #include <logdepthbuf_fragment>
   vec4 texel = texture2D(uAtlasMap, vUv);
   float alpha = texel.a * vColor.a;
+  // Soft against the surface the particle was born on.
+  float softRange = vLight.z;
+  if (softRange > 0.0) alpha *= smoothstep(0.0, softRange, vSoft);
+  // Never let a particle fill the lens.
+  float viewDist = -vViewPos.z;
+  alpha *= smoothstep(0.1, 0.38, viewDist);
   if (alpha < 0.003) discard;
-  vec3 rgb = texel.rgb * vColor.rgb;
+
+  float normalStrength = vLight.y;
+  vec3 base = (normalStrength > 0.0 ? vec3(1.0) : texel.rgb) * vColor.rgb;
+  vec3 rgb = base;
+  float lit = vLight.x;
+  if (lit > 0.0) {
+    // A puff is a ball: bend a sphere normal by the baked billow gradient.
+    vec3 n = vec3(vBill * 0.75, 0.66);
+    if (normalStrength > 0.0) {
+      vec2 g = (texel.rg - 0.5) * 2.0 * normalStrength;
+      n.xy += vFrame.xy * g.x + vFrame.zw * g.y;
+    }
+    n = normalize(n);
+    vec3 V = normalize(-vViewPos);
+    float density = texel.a;
+    // Wrapped diffuse: light reaches round the back of a thin puff.
+    float ndl = dot(n, vSunView);
+    float diffuse = clamp((ndl + 0.5) / 1.5, 0.0, 1.0);
+    // Thick cores self-shadow; thin rims transmit.
+    diffuse *= mix(1.0, 0.62, density * vColor.a);
+    // Henyey-Greenstein forward scatter, so smoke glows when backlit.
+    float g2 = 0.55;
+    float cosT = dot(-vSunView, V);
+    float phase = (1.0 - g2 * g2) / pow(max(1.0 + g2 * g2 - 2.0 * g2 * cosT, 1e-4), 1.5);
+    float scatter = phase * (1.0 - density * 0.6) * 0.09;
+    // Sky from above, sand bounce from below: the view-space up is the
+    // world up carried through the view matrix.
+    vec3 upView = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+    float up = dot(n, upView) * 0.5 + 0.5;
+    vec3 ambient = mix(uGroundColor, uSkyColor, up);
+    vec3 light = uSunColor * (diffuse + scatter) + ambient;
+    if (uFlashPos.w > 0.0) {
+      vec3 toFlash = uFlashPos.xyz - vWorldPos;
+      float d = length(toFlash);
+      float reach = 1.0 - smoothstep(uFlashPos.w * 0.4, uFlashPos.w, d);
+      light += uFlashColor * reach / (0.15 + d * d);
+    }
+    rgb = mix(base, base * light, lit);
+  }
   // The blend is ONE, ONE_MINUS_SRC_ALPHA (premultiplied source-over), so
   // both paths premultiply rgb by alpha. Additive particles then write zero
   // alpha and leave the destination alone; alpha-blended ones cover it by
   // alpha. Unpremultiplied rgb here made smoke and dust add their full colour
   // whatever their alpha.
   gl_FragColor = vec4(rgb * alpha, mix(alpha, 0.0, vAdditive));
+  #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }
 `;
+
+/** Lighting the particle shader shades lit puffs with, written per frame. */
+export interface ParticleLighting {
+  sunDirection: THREE.Vector3;
+  sunColor: THREE.Color;
+  skyColor: THREE.Color;
+  groundColor: THREE.Color;
+  /** Flash position; `flashReach` 0 turns the flash term off. */
+  flashPosition: THREE.Vector3;
+  flashReach: number;
+  flashColor: THREE.Color;
+}
 
 export class ParticleSystem {
   readonly mesh: THREE.Mesh;
@@ -571,6 +849,8 @@ export class ParticleSystem {
   private readonly color1: Float32Array;
   private readonly phys: Float32Array;
   private readonly style: Float32Array;
+  private readonly light: Float32Array;
+  private readonly plane: Float32Array;
   private readonly geometry: THREE.InstancedBufferGeometry;
   private readonly material: THREE.ShaderMaterial;
   private dirtyLow = Infinity;
@@ -592,6 +872,8 @@ export class ParticleSystem {
     this.color1 = new Float32Array(capacity * 4);
     this.phys = new Float32Array(capacity * 4);
     this.style = new Float32Array(capacity * 4);
+    this.light = new Float32Array(capacity * 4);
+    this.plane = new Float32Array(capacity * 4);
     // Everything starts dead: spawnTime far in the past with zero lifetime.
     for (let i = 0; i < capacity; i += 1) {
       this.params[i * 4] = -1000;
@@ -610,14 +892,23 @@ export class ParticleSystem {
     add("aColor1", this.color1, 4);
     add("aPhys", this.phys, 4);
     add("aStyle", this.style, 4);
+    add("aLight", this.light, 4);
+    add("aPlane", this.plane, 4);
 
     this.material = new THREE.ShaderMaterial({
+      name: "fx-particles",
       vertexShader: VERTEX,
       fragmentShader: FRAGMENT,
       uniforms: {
         uTime: { value: 0 },
         uAtlasMap: { value: getParticleAtlas() },
         uAtlas: { value: new THREE.Vector2(ATLAS_COLS, ATLAS_ROWS) },
+        uSunDir: { value: new THREE.Vector3(0.4, 0.8, -0.4).normalize() },
+        uSunColor: { value: new THREE.Color(1.7, 1.55, 1.35) },
+        uSkyColor: { value: new THREE.Color(0.3, 0.36, 0.44) },
+        uGroundColor: { value: new THREE.Color(0.32, 0.27, 0.2) },
+        uFlashPos: { value: new THREE.Vector4(0, 0, 0, 0) },
+        uFlashColor: { value: new THREE.Color(0, 0, 0) },
       },
       transparent: true,
       depthWrite: false,
@@ -671,17 +962,49 @@ export class ParticleSystem {
     this.style[i4 + 1] = p.additive;
     this.style[i4 + 2] = p.stretch;
     this.style[i4 + 3] = p.turbulence;
+    this.light[i4] = p.lit;
+    this.light[i4 + 1] = NORMAL_SPRITES.has(p.sprite) ? 1 : 0;
+    this.light[i4 + 2] = Math.max(0, p.softRange);
+    this.light[i4 + 3] = 0;
+    this.plane[i4] = p.softPlane.x;
+    this.plane[i4 + 1] = p.softPlane.y;
+    this.plane[i4 + 2] = p.softPlane.z;
+    this.plane[i4 + 3] = p.softPlane.w;
 
     if (i < this.dirtyLow) this.dirtyLow = i;
     if (i > this.dirtyHigh) this.dirtyHigh = i;
     return i;
   }
 
-  update(dt: number): void {
+  /** Write this frame's sun, sky and flash into the shader. */
+  setLighting(lighting: ParticleLighting): void {
+    const u = this.material.uniforms;
+    (u["uSunDir"]!.value as THREE.Vector3).copy(lighting.sunDirection);
+    (u["uSunColor"]!.value as THREE.Color).copy(lighting.sunColor);
+    (u["uSkyColor"]!.value as THREE.Color).copy(lighting.skyColor);
+    (u["uGroundColor"]!.value as THREE.Color).copy(lighting.groundColor);
+    (u["uFlashPos"]!.value as THREE.Vector4).set(
+      lighting.flashPosition.x,
+      lighting.flashPosition.y,
+      lighting.flashPosition.z,
+      lighting.flashReach,
+    );
+    (u["uFlashColor"]!.value as THREE.Color).copy(lighting.flashColor);
+  }
+
+  /**
+   * Move the clock. Call before this frame's spawns, so a particle born this
+   * frame is drawn at age zero: a 40 ms spark spawned after the clock moved
+   * by a 50 ms frame was already dead when it was drawn.
+   */
+  advance(dt: number): void {
     this.time += dt;
     this.material.uniforms["uTime"]!.value = this.time;
+  }
+
+  /** Upload only the slots touched since the last frame. */
+  flush(): void {
     if (this.dirtyHigh < this.dirtyLow) return;
-    // Upload only the slots touched since the last frame.
     const lo = this.dirtyLow;
     const count = this.dirtyHigh - lo + 1;
     const flush = (name: string, size: number): void => {
@@ -699,8 +1022,16 @@ export class ParticleSystem {
     flush("aColor1", 4);
     flush("aPhys", 4);
     flush("aStyle", 4);
+    flush("aLight", 4);
+    flush("aPlane", 4);
     this.dirtyLow = Infinity;
     this.dirtyHigh = -1;
+  }
+
+  /** Advance and upload in one call, for callers that spawn before it. */
+  update(dt: number): void {
+    this.advance(dt);
+    this.flush();
   }
 
   get now(): number {

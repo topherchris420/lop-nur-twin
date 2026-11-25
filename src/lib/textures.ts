@@ -82,37 +82,49 @@ export function makePavementTexture(opts: PavementOptions): THREE.CanvasTexture 
   const ctx = makeCanvas(W, H);
   const rand = mulberry32(seed);
 
-  ctx.fillStyle = "#b3aea1";
+  // Neutral portland grey: concrete has to stay concrete under a warm sun,
+  // not drift into the colour of the sand around it.
+  ctx.fillStyle = "#b2b1ac";
   ctx.fillRect(0, 0, W, H);
-  speckle(ctx, rand, 9000, ["#c2bdb0", "#a19c8f", "#bab4a5", "#918c80"], 3);
+  speckle(ctx, rand, 9000, ["#c1c0bb", "#a1a09b", "#b9b8b2", "#91908b"], 3);
 
   // faded longitudinal weathering bands
   for (let i = 0; i < 12; i++) {
-    ctx.fillStyle = rand() > 0.5 ? "#bcb7aa" : "#a29d91";
+    ctx.fillStyle = rand() > 0.5 ? "#bdbcb6" : "#a3a29c";
     ctx.globalAlpha = 0.06 + rand() * 0.08;
     const x = rand() * W;
     ctx.fillRect(x, 0, 6 + rand() * 24, H);
   }
   ctx.globalAlpha = 1;
 
-  // concrete expansion joints: transverse every 25 m, longitudinal thirds
-  ctx.strokeStyle = "#7e7a6f";
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = 0.4;
+  // Construction joints: transverse every 25 m from the `from` end, and
+  // longitudinal every 10 m out from the centreline. Both land on the close-
+  // range shader's 5 m contraction grid (anchored at `from`, on the
+  // centreline), so up close the two never draw a joint twice a few
+  // centimetres apart. Thin and faint: from the air they read as the pour
+  // pattern, and on foot the shader's own joint covers them.
+  ctx.strokeStyle = "#7d7c77";
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.32;
   for (let y = 25 * pxPerMy; y < H; y += 25 * pxPerMy) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(W, y);
     ctx.stroke();
   }
-  const nLong = Math.max(2, Math.round(widthM / 12));
-  for (let i = 1; i < nLong; i++) {
-    const x = (W / nLong) * i;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H);
-    ctx.stroke();
+  for (let off = 10; off < widthM / 2 - 1; off += 10) {
+    for (const side of [-1, 1]) {
+      const x = W / 2 + side * off * pxPerMx;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
   }
+  ctx.beginPath();
+  ctx.moveTo(W / 2, 0);
+  ctx.lineTo(W / 2, H);
+  ctx.stroke();
   ctx.globalAlpha = 1;
 
   const paint = (alpha: number) => {
@@ -260,37 +272,69 @@ export function makeDirtTexture(seed: number, ruts: boolean): THREE.CanvasTextur
 /* Concrete (apron & buildings)                                        */
 /* ------------------------------------------------------------------ */
 
-export function makeApronTexture(seed: number): THREE.CanvasTexture {
-  const S = 1024;
-  const ctx = makeCanvas(S, S);
+/**
+ * Apron concrete. With `sizeM` the canvas is drawn for one apron of that size
+ * (width along the plane's u, depth along v): the 25 m construction joints sit
+ * at whole multiples of 25 m from its centre, which is where the close-range
+ * shader anchors its 6.25 m grid, and the pixel aspect follows the apron so
+ * stains stay round. Without it, a joint-free square for the round fillets.
+ */
+export function makeApronTexture(
+  seed: number,
+  sizeM?: [number, number],
+): THREE.CanvasTexture {
+  const fit = (m: number) => Math.min(2048, Math.max(256, Math.round(m * 4)));
+  const W = sizeM ? fit(sizeM[0]) : 1024;
+  const H = sizeM ? fit(sizeM[1]) : 1024;
+  const S = Math.sqrt(W * H);
+  const ctx = makeCanvas(W, H);
   const rand = mulberry32(seed);
 
-  ctx.fillStyle = "#a29d92";
-  ctx.fillRect(0, 0, S, S);
-  speckle(ctx, rand, 14000, ["#afa99d", "#8f8a80", "#b7b1a4", "#7e796f"], 3);
+  ctx.fillStyle = "#a9a8a3";
+  ctx.fillRect(0, 0, W, H);
+  speckle(
+    ctx,
+    rand,
+    Math.round((14000 * W * H) / (1024 * 1024)),
+    ["#b4b3ae", "#92918c", "#bbbab4", "#81807b"],
+    3,
+  );
 
-  // expansion joints every 25 m over a 250 m apron → 10 panels
-  ctx.strokeStyle = "#57534a";
-  ctx.globalAlpha = 0.55;
-  ctx.lineWidth = 2;
-  const step = S / 10;
-  for (let i = 1; i < 10; i++) {
-    ctx.beginPath();
-    ctx.moveTo(i * step, 0);
-    ctx.lineTo(i * step, S);
-    ctx.moveTo(0, i * step);
-    ctx.lineTo(S, i * step);
-    ctx.stroke();
+  if (sizeM) {
+    ctx.strokeStyle = "#565550";
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 1;
+    const pxX = W / sizeM[0];
+    const pxY = H / sizeM[1];
+    for (let off = 0; off < sizeM[0] / 2 - 1; off += 25) {
+      for (const side of off === 0 ? [1] : [-1, 1]) {
+        const x = W / 2 + side * off * pxX;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+    }
+    for (let off = 0; off < sizeM[1] / 2 - 1; off += 25) {
+      for (const side of off === 0 ? [1] : [-1, 1]) {
+        const y = H / 2 + side * off * pxY;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+    }
   }
-  // oil / rubber stains
-  for (let i = 0; i < 26; i++) {
+  // oil / rubber stains, a count that keeps their density per square metre
+  const stains = Math.round((26 * S * S) / (1024 * 1024));
+  for (let i = 0; i < stains; i++) {
     ctx.fillStyle = "#3a3835";
     ctx.globalAlpha = 0.05 + rand() * 0.12;
     const r = 8 + rand() * 46;
     ctx.beginPath();
     ctx.ellipse(
-      rand() * S,
-      rand() * S,
+      rand() * W,
+      rand() * H,
       r,
       r * (0.5 + rand() * 0.5),
       rand() * Math.PI,
@@ -977,9 +1021,9 @@ export function makeLakebedColorTexture(seed: number): THREE.CanvasTexture {
       const crust = bank * THREE.MathUtils.smoothstep(warp, 0.28, 0.73);
       const sand = 203 + 30 * sediment + 15 * fine;
       const i = 4 * (y * size + x);
-      image.data[i] = sand + 10 + crust * 15;
-      image.data[i + 1] = sand + 6 + crust * 23;
-      image.data[i + 2] = sand - 2 + crust * 31;
+      image.data[i] = sand + 4 + crust * 15;
+      image.data[i + 1] = sand + 3 + crust * 20;
+      image.data[i + 2] = sand + 1 + crust * 26;
       image.data[i + 3] = 255;
     }
   ctx.putImageData(image, 0, 0);
@@ -1167,10 +1211,20 @@ function strokeWrapped(
  * them at two very different scales (see `src/gfx/groundDetail.ts`) and any
  * large blob in the source would read as an obvious repeat at the coarse one.
  */
+export interface GroundDetailMapOptions {
+  /**
+   * Bake the dried-silt plate rims into the desert height. The top tier draws
+   * scale-correct desiccation cracks analytically and wants the map to carry
+   * grit only; two crack fields at different scales read as noise.
+   */
+  crust?: boolean;
+}
+
 export function makeGroundDetailMaps(
   kind: GroundDetailKind,
   seed: number,
   size = 512,
+  options: GroundDetailMapOptions = {},
 ): GroundDetailMaps {
   const S = Math.max(128, Math.min(1024, size));
   const recipe = DETAIL_RECIPES[kind];
@@ -1188,7 +1242,10 @@ export function makeGroundDetailMaps(
   const o3 = recipe.octaves[3];
   const step = lattice / S;
   const ripple = recipe.ripple;
-  const plates = kind === "desert" ? saltCrust(mulberry32(seed + 113), 7) : null;
+  const plates =
+    kind === "desert" && options.crust !== false
+      ? saltCrust(mulberry32(seed + 113), 7)
+      : null;
   for (let y = 0; y < S; y++) {
     const v = y * step;
     const row = y * S;
@@ -1316,11 +1373,13 @@ export function getGroundDetailMaps(
   kind: GroundDetailKind,
   seed: number,
   size: number,
+  options: GroundDetailMapOptions = {},
 ): GroundDetailMaps {
-  const key = `${kind}:${size}`;
+  const crust = kind === "desert" && options.crust !== false;
+  const key = `${kind}:${size}:${crust ? "crust" : "grit"}`;
   const cached = detailCache.get(key);
   if (cached) return cached;
-  const maps = makeGroundDetailMaps(kind, seed, size);
+  const maps = makeGroundDetailMaps(kind, seed, size, { crust });
   detailCache.set(key, maps);
   return maps;
 }
