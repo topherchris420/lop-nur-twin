@@ -35,12 +35,13 @@
     "explicit_mode_cap": 400,
     "samples": 4001,
     "integrator": "Strang split: exact diagonal phases and an exact exponential of the coupling in span{A, B, rA, rB}; steps a multiple of 4000 with max |E| dt <= 0.5",
-    "far_modes": "Modes outside +-100 Omega enter by adiabatic elimination: shift and exchange -sum (Omega_i r_i)(Omega_j r_j) / E on A and B, and population |sum Omega r c / E|^2 counted in P_mid",
+    "far_modes": "A mode is explicit when |E| <= 100 Omega max(1, |rA|, |rB|), the window scaled by its coupling relative to the resonant mode's; every other mode enters by adiabatic elimination: shift and exchange -sum (Omega_i r_i)(Omega_j r_j) / E on A and B, and population |sum Omega r c / E|^2 counted in P_mid",
     "noise": {
       "trap_offsets": "dA, dB ~ Normal(0, 1/T2*) per seed, quasi-static",
       "lattice_disorder": "on-site energies ~ Normal(0, sigma_W) per seed and site; traps tuned to the realized resonant mode first",
       "loss": "arrival multiplied by exp(-Gamma T)"
-    }
+    },
+    "check_tolerance": 0.0001
   },
   "designs": {
     "G0": "Control: one mode at resonance, coupling independent of d",
@@ -135,19 +136,21 @@
   },
   "checks": {
     "V1": "every run conserves norm to 1e-8",
-    "V2": "on the first dev seed, doubling the explicit window at each selected setting changes F and M by less than 1e-4",
+    "V2": "on the first dev seed, doubling the explicit window and its mode cap at each selected setting changes F and M by less than 1e-4, or by less than a tenth of the distance from the nearer bound of that cell's dev interval to the threshold",
     "V3": "G0 at 1 kHz with its dev-selected pulse area is PASS at the reference budget",
     "V4": "every selected setting re-run with the A side first is FAIL on M",
-    "V5": "every result record carries this protocol's SHA-256 and it matches",
+    "V5": "every result record carries the SHA-256 of this protocol's content without its status and registration date, and it matches",
     "V6": "no held-out seed appears in any development log before the held-out run",
     "V7": "at 1 um, at least one of G1 to G3 is PASS at the generous budget",
-    "V8": "on the first dev seed, doubling the step count at each selected setting changes F and M by less than 1e-4"
+    "V8": "on the first dev seed, doubling the step count at each selected setting changes F and M by less than 1e-4, or by less than a tenth of the distance from the nearer bound of that cell's dev interval to the threshold"
   },
   "compute_cap_cpu_hours_per_cell": 8,
   "amendments_before_freeze": [
-    "Explicit modes are those within +-100 Omega of resonance; every other mode enters by adiabatic elimination. The draft's 'at least 8 per side' rule is dropped because it forced stiff explicit modes far outside the window.",
+    "Explicit modes are those within +-100 Omega max(1, |rA|, |rB|) of resonance, so every eliminated mode's coupling is under 1% of its detuning; every other mode enters by adiabatic elimination. The draft's 'at least 8 per side' rule is dropped because it forced stiff explicit modes far outside the window. Without the scaling by r, G1 at 1 mm, whose traps sit where the lowest mode is small and so couple to higher modes up to 640 times harder, gave an eliminated middle occupation above 1.",
     "The draft's solver tolerance (relative 1e-9, absolute 1e-11) is replaced by the fixed-grid Strang integrator above and check V8.",
     "Settings with more than 400 explicit modes are mode-cap fails: they put several modes within the coupling of resonance, so the middle cannot stay near-empty.",
-    "G2's couplings sit L(1 - 1/n) apart, within 1 um of d; the grid distance d is still the one reported."
+    "G2's couplings sit L(1 - 1/n) apart, within 1 um of d; the grid distance d is still the one reported.",
+    "V2 and V8 also pass a change smaller than a tenth of the distance from the cell's nearer dev-interval bound to its threshold, since such a change cannot move a verdict. In development, G1 at 10 um (reference) selected a fast, failed transfer with F = 0.003 and M = 0.25, where doubling the steps or the window changed M by 1.3e-4 on the first dev seed; under the draft rule that alone would make H1 INVALID. V2 also doubles the mode cap with the window.",
+    "V5 hashes the protocol's content without status and registered, so a development search run before the freeze stays bound to the frozen protocol, and the held-out runner refuses any selected setting whose record carries another hash."
   ]
 }

@@ -203,5 +203,141 @@ class RuleTest(unittest.TestCase):
         self.assertEqual(entries[0]["skipped"], "loss cap")
 
 
+
+class HashTest(unittest.TestCase):
+    def test_design_hash_ignores_only_status_and_registration(self):
+        protocol = study.load_protocol()
+        base = study.design_hash(protocol)
+        frozen = dict(protocol, status="frozen", registered="2026-12-01")
+        self.assertEqual(study.design_hash(frozen), base)
+        changed = json.loads(json.dumps(protocol))
+        changed["thresholds"]["arrival_min"] = 0.91
+        self.assertNotEqual(study.design_hash(changed), base)
+
+
+class NumericsRuleTest(unittest.TestCase):
+    def setUp(self):
+        self.protocol = study.load_protocol()
+
+    def test_small_changes_pass_and_large_ones_pass_only_far_from_a_threshold(self):
+        near = {"dev_interval": {"F": [0.905, 0.93], "M": [0.004, 0.0095]}}
+        far = {"dev_interval": {"F": [0.002, 0.004], "M": [0.24, 0.26]}}
+        small = {"evaluable": True, "F": 5e-5, "M": 5e-5}
+        large = {"evaluable": True, "F": 5e-4, "M": 1.3e-4}
+        self.assertTrue(study.numerics_ok(small, near, self.protocol))
+        self.assertFalse(study.numerics_ok(large, near, self.protocol))
+        self.assertTrue(study.numerics_ok(large, far, self.protocol))
+        self.assertFalse(study.numerics_ok({"evaluable": False}, far, self.protocol))
+
+    def test_window_scales_with_each_modes_coupling(self):
+        spec = model.free_guide_lowest(100e-6)
+        omega = 2 * math.pi * 0.05
+        part = model.partition(spec, omega, 100)
+        plain = np.abs(spec.energies) <= 100 * omega
+        self.assertGreater(part.energies.size, int(plain.sum()))
+        far = np.ones(spec.energies.size, dtype=bool)
+        far[np.isin(spec.energies, part.energies)] = False
+        ratio = omega * np.maximum(np.abs(spec.rA[far]), np.abs(spec.rB[far])) / np.abs(spec.energies[far])
+        self.assertLess(float(ratio.max()), 0.01 + 1e-12)
+
+
+class RecordTest(unittest.TestCase):
+    def test_records_round_trip_with_flat_lists_on_one_line(self):
+        value = {"b": [1, 2.5, None, "run"], "a": {"x": [[1, 2], [3]], "y": 1e-7}}
+        text = study._dumps(value)
+        self.assertEqual(json.loads(text), value)
+        self.assertIn('"b": [1, 2.5, null, "run"]', text)
+
+    def test_noiseless_search_returns_the_first_pass_in_order_of_T(self):
+        protocol = study.load_protocol()
+        found, tried, how = study.noiseless_treq(protocol, "G0", 1e-6, batch=16)
+        self.assertEqual(how, "found")
+        times = [e["duration_s"] for e in tried]
+        self.assertEqual(times, sorted(times))
+        self.assertIs(tried[-1], found)
+        for entry in tried[:-1]:
+            self.assertFalse(entry["arrival"][0] >= 0.9 and entry["M"] < 0.01)
+        alone = study.noiseless_treq(protocol, "G0", 1e-6, batch=1)[0]
+        self.assertEqual(alone["duration_s"], found["duration_s"])
+        self.assertAlmostEqual(alone["arrival"][0], found["arrival"][0], places=10)
+
+
+class HeldoutRunnerTest(unittest.TestCase):
+    def test_runner_scores_selected_settings_once_and_only_when_sealed_properly(self):
+        # A stand-in protocol with its own salt: no registered held-out seed is computed.
+        protocol = study.load_protocol()
+        protocol["status"] = "frozen"
+        protocol["seeds"]["heldout"]["salt"] = "unit-test-salt"
+        protocol["seeds"]["heldout"]["count"] = 3
+        with tempfile.TemporaryDirectory() as work:
+            work = Path(work)
+            path = work / "protocol.json"
+            path.write_text(json.dumps(protocol))
+            (work / "freeze.json").write_text(json.dumps({"protocol_sha256": study.protocol_hash(path)}))
+            record = study.dev_cell(protocol, "G0", 1e-6, "reference", chosen=[(1000.0, 640.0)], extras=False)
+            record["distance_index"] = 0
+            record["design_sha256"] = study.design_hash(protocol)
+            study.put(work / "dev" / "control-G0.json", record)
+            result = study.heldout(path, work / "dev", work / "heldout")
+            scored = json.loads((work / "heldout" / "control-G0.json").read_text())
+            self.assertEqual(scored["verdict"], "PASS")
+            self.assertEqual(len(scored["seed_list"]), 3)
+            self.assertTrue(result["checks"]["V3"])
+            self.assertEqual(result["stage"], "held-out")
+            with self.assertRaises(FileExistsError):
+                study.heldout(path, work / "dev", work / "heldout")
+            record["design_sha256"] = "0" * 64
+            study.put(work / "dev" / "control-G0.json", record)
+            with self.assertRaises(ValueError):
+                study.heldout(path, work / "dev", work / "again")
+
+    def test_command_line_refuses_the_draft(self):
+        with tempfile.TemporaryDirectory() as work:
+            with self.assertRaises(PermissionError):
+                study.main(["heldout", str(Path(work) / "dev"), str(Path(work) / "out")])
+
+
+class AnalysisTest(unittest.TestCase):
+    def test_rules_applied_to_a_complete_synthetic_search(self):
+        protocol = study.load_protocol()
+        digest = study.design_hash(protocol)
+        grid = study.distances(protocol)
+        ok = {"evaluable": True, "F": 0.0, "M": 0.0}
+
+        def cell(design, k, budget, verdict):
+            interval = {"F": [0.95, 0.97], "M": [0.001, 0.002]} if verdict == "PASS" else {"F": [0.1, 0.2], "M": [0.2, 0.3]}
+            return {
+                "design": design, "distance_index": k, "budget": budget, "dev_verdict": verdict,
+                "selected": {"F": 0.5, "M": 0.1}, "dev_interval": interval, "V2_window": ok, "V8_steps": ok,
+                "V4_reversed": {"fail_on_M": True}, "max_norm_error": 1e-12, "design_sha256": digest,
+                "seed_list": study.dev_seeds(protocol), "cpu_s": 1.0,
+            }
+
+        with tempfile.TemporaryDirectory() as work:
+            work = Path(work)
+            for design in study.DESIGNS:
+                for k in range(len(grid)):
+                    for budget in study.BUDGETS:
+                        verdict = "PASS" if k <= 3 else "FAIL"
+                        study.put(work / "cells" / f"{study.cell_label(design, k, budget)}.json", cell(design, k, budget, verdict))
+                for k in study.fit_indices(protocol):
+                    power = protocol["predicted_slopes"][design]
+                    treq = None if design == "G3" else 2.0 * (grid[k] / 1e-6) ** power
+                    study.put(work / "noiseless" / f"{design}-d{k:02d}.json",
+                              {"design": design, "distance_index": k, "T_req_s": treq, "design_sha256": digest, "max_norm_error": 0.0})
+            control = cell("G0", 0, "reference", "PASS")
+            study.put(work / "control-G0.json", control)
+            result = study.analyze(protocol, work)
+        self.assertTrue(result["complete"])
+        self.assertTrue(all(result["checks"].values()), result["checks"])
+        self.assertEqual(result["H1"], "MICROSCALE ONLY")
+        self.assertAlmostEqual(result["limits"]["generous"]["D_star_um"], 10 ** (3 / 8))
+        self.assertEqual(result["H2"]["G1"]["verdict"], "CONFIRMED")
+        self.assertEqual(result["H2"]["G2"]["verdict"], "CONFIRMED")
+        self.assertEqual(result["H2"]["G3"]["verdict"], "INCONCLUSIVE")
+        self.assertEqual(result["H3"], "UPHELD")
+        self.assertEqual(result["stage"], "development preview, not confirmatory")
+
+
 if __name__ == "__main__":
     unittest.main()

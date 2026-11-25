@@ -10,27 +10,40 @@ A distance passes when, over held-out seeds, the lower 95% bootstrap bound of ar
 
 Four mediators are compared at 25 distances from 1 um to 1 mm and three hardware budgets:
 
-| Design | Mediator                                                | How distance enters        |
-| ------ | ------------------------------------------------------- | -------------------------- |
-| G0     | One mode, fixed coupling (control)                      | It does not                |
-| G1     | Free hard-wall guide of length d + 1 um, lowest mode    | Gap falls as 1/d^2         |
-| G2     | The same guide, mode nearest the kinetic energy E_kin   | Gap falls as 1/d           |
-| G3     | Lattice chain, 0.532 um spacing, band-centre zero mode | Gap falls as 1/d           |
+| Design | Mediator                                               | How distance enters |
+| ------ | ------------------------------------------------------ | ------------------- |
+| G0     | One mode, fixed coupling (control)                     | It does not         |
+| G1     | Free hard-wall guide of length d + 1 um, lowest mode   | Gap falls as 1/d^2  |
+| G2     | The same guide, mode nearest the kinetic energy E_kin  | Gap falls as 1/d    |
+| G3     | Lattice chain, 0.532 um spacing, band-centre zero mode | Gap falls as 1/d    |
 
 Each cell searches 511 settings of coupling and pulse area on eight dev seeds, selects the one with the largest margin, and would score it once on 40 held-out seeds. A seed is one draw of quasi-static trap offsets and, for G3, lattice disorder; the same draw is used in every design, budget and setting. The verdict on the primary hypothesis is read at the generous budget with 1 mm as the line for macroscopic. All values are in [`protocol.json`](protocol.json).
 
 ## Changes from the written draft
 
-The draft preregistration fixed a mode window of +-100 Omega with at least eight modes per side, and a solver tolerance. Building the model changed four things, all listed under `amendments_before_freeze` in the protocol:
+The draft preregistration fixed a mode window of +-100 Omega with at least eight modes per side, and a solver tolerance. Building the model changed six things, all listed under `amendments_before_freeze` in the protocol and all waiting for confirmation before the freeze:
 
-1. Modes outside +-100 Omega enter by adiabatic elimination, a second-order shift and exchange on the traps plus their population in the middle. On G1 at 1 um the result agrees with a +-1500 Omega explicit window to 1e-5. Keeping eight explicit modes per side forced modes thousands of Omega away into the integrator, and leaving them out entirely shifted the lattice's middle occupation by about 3%.
+1. A mode is explicit when it lies within +-100 Omega max(1, |r_A|, |r_B|) of resonance, the window scaled by that mode's coupling relative to the resonant mode's. Every other mode enters by adiabatic elimination, a second-order shift and exchange on the traps plus its population in the middle, so every eliminated mode's coupling is under 1% of its detuning. Eight explicit modes per side forced modes thousands of Omega away into the integrator. A plain +-100 Omega window broke down for G1 at large distances: its traps sit where the lowest mode is small, they couple to higher modes up to 640 times harder, and the eliminated middle occupation came out above 1.
 2. The integrator is a Strang split with exact exponentials on a fixed grid, steps a multiple of 4,000 with max |E| dt <= 0.5. New check V8 doubles the steps at each selected setting.
 3. Settings with more than 400 explicit modes are mode-cap fails. They put several modes inside the coupling of resonance, so the middle cannot stay near-empty.
 4. G2's couplings sit L(1 - 1/n) apart, within 1 um of the grid distance.
+5. V2 and V8 also pass a change smaller than a tenth of the distance from the cell's nearer dev-interval bound to its threshold, where it cannot move a verdict. A fast, failed G1 transfer at 10 um (F = 0.003, M = 0.25) changed M by 1.3e-4 when its steps or window were doubled, and under the draft rule that alone would have made H1 INVALID. V2 doubles the mode cap with the window.
+6. Records carry the SHA-256 of the protocol without `status` and `registered` (check V5), so a development search run on the draft stays bound to the frozen protocol. The freeze record still hashes the whole file.
 
-## Development smoke run
+## Running it
 
-See [`record/dev-smoke/`](record/dev-smoke/). These are development seeds only and say nothing confirmatory.
+| Command                               | What it does                                                                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `study.py search DIR --workers 4`     | Every development job: 225 cells, the G0 control and 51 noiseless runs. Resumes; skips records already made under this protocol.                             |
+| `study.py analyze DIR`                | Checks V1 to V8, the limits d\*, u and D\*, and H1 to H3 from a search, as a development preview.                                                            |
+| `study.py heldout DEV OUT`            | The one held-out run. Refuses until the protocol is frozen and matches `freeze.json`, every dev record carries the frozen protocol's hash, and OUT is empty. |
+| `study.py cell`, `noiseless`, `smoke` | One cell, one noiseless run, or the control and a few cells.                                                                                                 |
+
+The noiseless series has no seeds, so H2 and H3 come out the same before and after the freeze.
+
+## Development search
+
+See [`record/dev/`](record/dev/) and its [`analysis.json`](record/dev/analysis.json). These are development seeds only and say nothing confirmatory.
 
 ## Reproduce
 
@@ -39,18 +52,15 @@ With Python 3.12 and NumPy 2.3.5:
 ```bash
 study=experiments/crosslab/empty-middle
 python -m unittest discover -s "$study" -p 'test_*.py'
-python "$study/study.py" cell /tmp/g1-1um.json --design G1 --distance 0 --budget reference
-python "$study/study.py" noiseless /tmp/g1-10um.json --design G1 --distance 8
-python "$study/study.py" smoke /tmp/smoke
+OPENBLAS_NUM_THREADS=1 python "$study/study.py" search /tmp/em-dev --workers 4
+python "$study/study.py" analyze /tmp/em-dev
 ```
-
-A full development search is 225 cells; one cell takes about two CPU minutes on a laptop core.
 
 ## Before the held-out run
 
-1. Confirm the remaining choices in the preregistration and the four changes above.
+1. Confirm the remaining choices in the preregistration and the six changes above.
 2. Run the full development search and the noiseless series, and publish them.
 3. Freeze: set `status` to `frozen`, write `freeze.json` with the protocol's SHA-256, commit, and record the date.
-4. Generate the held-out seeds and run once from that commit. The held-out runner is written at the freeze.
+4. Run `study.py heldout record/dev record/heldout` once from that commit. It generates the held-out seeds and scores each dev-selected setting on them.
 
 Results will be limits of this one-dimensional, single-atom model, not of physics.

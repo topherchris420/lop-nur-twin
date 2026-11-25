@@ -4,12 +4,16 @@ The protocol is a draft. This file runs development seeds only; the held-out
 seeds are generated only from a frozen protocol whose hash matches its freeze
 record, and nothing here freezes one.
 
-    python study.py smoke OUT        controls and a few dev cells
+    python study.py search DIR [--workers 4]   every dev cell, the control and the noiseless series
+    python study.py analyze DIR                checks, limits and hypotheses from a search
+    python study.py smoke OUT                  the control and a few dev cells
     python study.py cell OUT --design G1 --distance 0 --budget reference
     python study.py noiseless OUT --design G1 --distance 8
+    python study.py heldout DEV OUT            refuses until the protocol is frozen
 """
 
 import argparse
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import lru_cache
 from hashlib import sha256
 import json
@@ -25,6 +29,8 @@ import model
 HERE = Path(__file__).resolve().parent
 PROTOCOL = HERE / "protocol.json"
 DESIGNS = ("G1", "G2", "G3")
+BUDGETS = ("harsh", "reference", "generous")
+UNHASHED = ("status", "registered")
 
 
 def load_protocol(path=PROTOCOL):
@@ -32,7 +38,24 @@ def load_protocol(path=PROTOCOL):
 
 
 def protocol_hash(path=PROTOCOL):
+    """SHA-256 of the protocol file's bytes, as its freeze record holds it."""
     return sha256(Path(path).read_bytes()).hexdigest()
+
+
+def design_hash(protocol):
+    """SHA-256 of the protocol without its status and registration date (check V5).
+
+    Freezing changes only those two fields, so a development search run on the
+    draft stays bound to the frozen protocol.
+    """
+    content = {k: v for k, v in protocol.items() if k not in UNHASHED}
+    return sha256(json.dumps(content, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def fit_indices(protocol):
+    """Grid indices of the noiseless fit: the 17 distances from 10 um to 1 mm."""
+    grid = distances(protocol)
+    return [k for k, d in enumerate(grid) if d >= 10 * model.MICRON * (1 - 1e-9)]
 
 
 def distances(protocol):
@@ -157,8 +180,10 @@ def run_settings(protocol, design, distance, conditions, chosen, seeds, reverse=
     chosen is a list of (f, area). Each entry holds the setting, T, the skip
     reason if it was not run, and per-seed arrival and middle traces if it was.
     """
-    window = window or protocol["model"]["explicit_window"]
-    cap = protocol["model"]["explicit_mode_cap"]
+    registered = protocol["model"]["explicit_window"]
+    window = window or registered
+    # A wider window for check V2 brings its mode cap along with it.
+    cap = protocol["model"]["explicit_mode_cap"] * window // registered
     loss = conditions["loss_per_s"]
     sites = max_sites(protocol)
     samples = protocol["model"]["samples"]
@@ -315,8 +340,13 @@ def h3_verdict(treq, indices):
     return "INCONCLUSIVE"
 
 
-def noiseless_treq(protocol, design, distance, max_settings=None):
-    """Shortest T among settings that pass without noise, trying T in order."""
+def noiseless_treq(protocol, design, distance, batch=64):
+    """Shortest T among settings that pass without noise, trying T in order.
+
+    Settings run in batches of increasing T; the first that passes in that
+    order is the answer, exactly as if they had been tried one at a time.
+    Returns (passing entry or None, entries tried, outcome).
+    """
     conditions = budget(protocol, "noiseless")
     t = protocol["thresholds"]
     limit = protocol["noiseless"]["max_duration_s"]
@@ -325,21 +355,32 @@ def noiseless_treq(protocol, design, distance, max_settings=None):
         key=lambda s: s[1] / (2 * math.pi * s[0]),
     )
     tried = []
-    for count, setting in enumerate(ordered):
-        if max_settings is not None and count >= max_settings:
-            return None, tried, "stopped early"
-        entry = run_settings(protocol, design, distance, conditions, [setting], [None])[0]
-        tried.append(_summary(entry))
-        if "arrival" not in entry:
-            continue
-        if entry["arrival"][0] >= t["arrival_min"] and entry["M"] < t["middle_max"]:
-            return entry["duration_s"], tried, "found"
+    for start in range(0, len(ordered), batch):
+        for entry in run_settings(protocol, design, distance, conditions, ordered[start : start + batch], [None]):
+            tried.append(entry)
+            if "arrival" in entry and entry["arrival"][0] >= t["arrival_min"] and entry["M"] < t["middle_max"]:
+                return entry, tried, "found"
     return None, tried, "none"
 
 
 def _summary(entry):
     keep = ("omega_over_2pi_hz", "area", "duration_s", "survival", "skipped", "F", "M", "margin", "steps", "explicit_modes", "norm_error")
     return {k: entry[k] for k in keep if k in entry}
+
+
+def _round(value):
+    return None if value is None else float(f"{value:.7g}")
+
+
+def _table(entries):
+    """Every setting of a cell, as columns in the order of settings(protocol)."""
+    return {
+        "status": [e.get("skipped", "run") for e in entries],
+        "F": [_round(e.get("F")) for e in entries],
+        "M": [_round(e.get("M")) for e in entries],
+        "steps": [e.get("steps") for e in entries],
+        "explicit_modes": [e.get("explicit_modes") for e in entries],
+    }
 
 
 def dev_cell(protocol, design, distance, budget_name, seeds=None, chosen=None, extras=True):
@@ -355,7 +396,8 @@ def dev_cell(protocol, design, distance, budget_name, seeds=None, chosen=None, e
         "distance_um": distance / model.MICRON,
         "budget": budget_name,
         "seeds": "dev",
-        "settings": [_summary(e) for e in entries],
+        "seed_list": list(seeds),
+        "settings": _table(entries),
         "max_norm_error": max((e["norm_error"] for e in entries if "norm_error" in e), default=0.0),
     }
     if best is None:
@@ -392,75 +434,350 @@ def _delta(a, b):
     }
 
 
+def numerics_ok(delta, record, protocol):
+    """Checks V2 and V8 for one cell's selected setting.
+
+    A change passes below the check tolerance, or below a tenth of the distance
+    from the nearer bound of the cell's dev interval to its threshold, where it
+    cannot move the verdict.
+    """
+    if not delta or not delta.get("evaluable"):
+        return False
+    t = protocol["thresholds"]
+    tolerance = protocol["model"]["check_tolerance"]
+    interval = record["dev_interval"]
+    room_F = min(abs(b - t["arrival_min"]) for b in interval["F"]) / 10
+    room_M = min(abs(b - t["middle_max"]) for b in interval["M"]) / 10
+    return delta["F"] < max(tolerance, room_F) and delta["M"] < max(tolerance, room_M)
+
+
+def _dumps(value, level=0):
+    """JSON with objects indented and lists of plain values on one line."""
+    pad = "  " * (level + 1)
+    end = "  " * level
+    if isinstance(value, dict):
+        if not value:
+            return "{}"
+        items = [f"{pad}{json.dumps(k)}: {_dumps(value[k], level + 1)}" for k in sorted(value)]
+        return "{\n" + ",\n".join(items) + "\n" + end + "}"
+    if isinstance(value, (list, tuple)):
+        if all(not isinstance(v, (dict, list, tuple)) for v in value):
+            return json.dumps(list(value), separators=(", ", ": "), allow_nan=False)
+        return "[\n" + ",\n".join(pad + _dumps(v, level + 1) for v in value) + "\n" + end + "]"
+    return json.dumps(value, allow_nan=False)
+
+
 def put(path, value):
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n")
+    path.write_text(_dumps(value) + "\n")
+
+
+def cell_label(design, index, budget_name):
+    return f"{design}-d{index:02d}-{budget_name}"
+
+
+def _cell_job(job):
+    design, index, budget_name = job
+    protocol = load_protocol()
+    record = dev_cell(protocol, design, distances(protocol)[index], budget_name)
+    record["distance_index"] = index
+    record["design_sha256"] = design_hash(protocol)
+    return Path("cells") / f"{cell_label(design, index, budget_name)}.json", record
+
+
+def _control_job(_):
+    protocol = load_protocol()
+    areas = [(1000.0, float(a)) for a in protocol["search"]["pulse_areas"]]
+    record = dev_cell(protocol, "G0", distances(protocol)[0], "reference", chosen=areas)
+    record["distance_index"] = 0
+    record["check"] = "V3: G0 at 1 kHz with its dev-selected pulse area, reference budget"
+    record["design_sha256"] = design_hash(protocol)
+    return Path("control-G0.json"), record
+
+
+def _noiseless_job(job):
+    design, index = job
+    protocol = load_protocol()
+    started = time.process_time()
+    found, tried, how = noiseless_treq(protocol, design, distances(protocol)[index])
+    record = {
+        "design": design,
+        "distance_index": index,
+        "distance_um": distances(protocol)[index] / model.MICRON,
+        "T_req_s": found["duration_s"] if found else None,
+        "outcome": how,
+        "passing_setting": _summary(found) if found else None,
+        "tried": {
+            "duration_s": [_round(e["duration_s"]) for e in tried],
+            "omega_over_2pi_hz": [_round(e["omega_over_2pi_hz"]) for e in tried],
+            "area": [e["area"] for e in tried],
+            **{k: v for k, v in _table(tried).items() if k != "explicit_modes"},
+        },
+        "max_norm_error": max((e["norm_error"] for e in tried if "norm_error" in e), default=0.0),
+        "cpu_s": time.process_time() - started,
+        "design_sha256": design_hash(protocol),
+    }
+    return Path("noiseless") / f"{design}-d{index:02d}.json", record
+
+
+def search_jobs(protocol):
+    """Every development job, heaviest first so the workers stay busy."""
+    jobs = [(_noiseless_job, (design, k)) for k in reversed(fit_indices(protocol)) for design in DESIGNS]
+    jobs += [(_cell_job, (design, k, b)) for design in ("G1", "G2", "G3") for k in range(len(distances(protocol))) for b in BUDGETS]
+    jobs.append((_control_job, None))
+    return jobs
+
+
+def _expected_path(fn, job):
+    if fn is _cell_job:
+        return Path("cells") / f"{cell_label(*job)}.json"
+    if fn is _noiseless_job:
+        return Path("noiseless") / f"{job[0]}-d{job[1]:02d}.json"
+    return Path("control-G0.json")
+
+
+def _current(path, digest):
+    if not path.exists():
+        return False
+    return json.loads(path.read_text()).get("design_sha256") == digest
+
+
+def search(protocol, out_dir, workers=1):
+    """Run every dev job not already in out_dir under this protocol, then analyse."""
+    out_dir = Path(out_dir)
+    digest = design_hash(protocol)
+    todo = [(fn, job) for fn, job in search_jobs(protocol) if not _current(out_dir / _expected_path(fn, job), digest)]
+    print(f"{len(todo)} jobs to run", flush=True)
+    if workers <= 1:
+        for fn, job in todo:
+            rel, record = fn(job)
+            put(out_dir / rel, record)
+            print(rel, flush=True)
+    else:
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            futures = {pool.submit(fn, job): job for fn, job in todo}
+            for future in as_completed(futures):
+                rel, record = future.result()
+                put(out_dir / rel, record)
+                print(rel, record.get("dev_verdict", record.get("outcome")), flush=True)
+    result = analyze(protocol, out_dir)
+    put(out_dir / "analysis.json", result)
+    return result
+
+
+def _load_dir(directory):
+    directory = Path(directory)
+    cells = {}
+    for path in sorted((directory / "cells").glob("*.json")):
+        record = json.loads(path.read_text())
+        cells[(record["design"], record["distance_index"], record["budget"])] = record
+    noiseless = {}
+    for path in sorted((directory / "noiseless").glob("*.json")):
+        record = json.loads(path.read_text())
+        noiseless[(record["design"], record["distance_index"])] = record
+    control_path = directory / "control-G0.json"
+    control = json.loads(control_path.read_text()) if control_path.exists() else None
+    return cells, noiseless, control
+
+
+def analyze(protocol, dev_dir, heldout_dir=None):
+    """Checks V1 to V8, limits and the three hypotheses.
+
+    Without held-out records this is a development preview of the same rules:
+    it says nothing confirmatory.
+    """
+    digest = design_hash(protocol)
+    t = protocol["thresholds"]
+    grid_um = [d / model.MICRON for d in distances(protocol)]
+    cells, noiseless, control = _load_dir(dev_dir)
+    held_cells, _, held_control = _load_dir(heldout_dir) if heldout_dir else ({}, {}, None)
+    dev_records = list(cells.values()) + list(noiseless.values()) + ([control] if control else [])
+    every = dev_records + list(held_cells.values()) + ([held_control] if held_control else [])
+    selected = [(k, r) for k, r in cells.items() if r.get("selected")]
+    if control and control.get("selected"):
+        selected.append((("G0", 0, "reference"), control))
+
+    def label(key):
+        return cell_label(*key)
+
+    v2_fail = [label(k) for k, r in selected if not numerics_ok(r.get("V2_window"), r, protocol)]
+    v8_fail = [label(k) for k, r in selected if not numerics_ok(r.get("V8_steps"), r, protocol)]
+    v4_fail = [label(k) for k, r in selected if not r.get("V4_reversed", {}).get("fail_on_M", False)]
+    dev_set = set(dev_seeds(protocol))
+    held_seed_lists = [r.get("seed_list", []) for r in held_cells.values()]
+
+    def verdict(key):
+        if heldout_dir:
+            record = held_cells.get(key)
+            return record["verdict"] if record else None
+        record = cells.get(key)
+        return record["dev_verdict"] if record else None
+
+    control_verdict = (held_control or {}).get("verdict") if heldout_dir else (control or {}).get("dev_verdict")
+    checks = {
+        "V1": all(r.get("max_norm_error", 0.0) <= 1e-8 for r in every),
+        "V2": not v2_fail,
+        "V3": control_verdict == "PASS",
+        "V4": not v4_fail,
+        "V5": bool(every) and all(r.get("design_sha256") == digest for r in every),
+        "V6": all(set(r.get("seed_list", [])) <= dev_set for r in dev_records)
+        and not any(set(s) & dev_set for s in held_seed_lists),
+        "V7": any(verdict((g, 0, "generous")) == "PASS" for g in DESIGNS),
+        "V8": not v8_fail,
+    }
+    keys = [(g, k, b) for g in DESIGNS for k in range(len(grid_um)) for b in BUDGETS]
+    fit = fit_indices(protocol)
+    complete = (
+        all(key in cells for key in keys)
+        and control is not None
+        and all((g, k) in noiseless for g in DESIGNS for k in fit)
+        and (not heldout_dir or (all(key in held_cells for key in keys) and held_control is not None))
+    )
+    per_budget = {}
+    for b in BUDGETS:
+        designs = {}
+        for g in DESIGNS:
+            verdicts = [verdict((g, k, b)) for k in range(len(grid_um))]
+            d_star, u = limits(verdicts, grid_um)
+            designs[g] = {"verdicts": verdicts, "d_star_um": d_star, "u_um": u}
+        stars = [v["d_star_um"] for v in designs.values() if v["d_star_um"] is not None]
+        per_budget[b] = {"designs": designs, "D_star_um": max(stars) if stars else None}
+    line = protocol["macroscopic_line_um"]
+    chosen = protocol["verdict_budget"]
+    gating = ("V1", "V2", "V4", "V5", "V6", "V8")
+    h1 = h1_verdict(
+        {g: per_budget[chosen]["designs"][g]["verdicts"] for g in DESIGNS},
+        all(checks[c] for c in gating),
+        checks["V3"] and checks["V7"],
+        complete,
+        line,
+        grid_um,
+    )
+    fit_grid = {k: grid_um[k] for k in fit}
+    treq = {g: {k: (noiseless.get((g, k)) or {}).get("T_req_s") for k in fit} for g in DESIGNS}
+    h2 = {}
+    for g in DESIGNS:
+        outcome, slope = h2_verdict(treq[g], fit_grid, protocol["predicted_slopes"][g], protocol["noiseless"]["tolerance"])
+        h2[g] = {"verdict": outcome, "slope": slope, "predicted": protocol["predicted_slopes"][g]}
+    cap_s = protocol["compute_cap_cpu_hours_per_cell"] * 3600
+    return {
+        "stage": "held-out" if heldout_dir else "development preview, not confirmatory",
+        "design_sha256": digest,
+        "complete": complete,
+        "checks": checks,
+        "check_failures": {"V2": v2_fail, "V4": v4_fail, "V8": v8_fail},
+        "limits": per_budget,
+        "H1": h1,
+        "H2": h2,
+        "H3": h3_verdict(treq["G3"], fit),
+        "noiseless_T_req_s": {g: {f"{grid_um[k]:.4g}": treq[g][k] for k in fit} for g in DESIGNS},
+        "compute_cap_exceeded": [label(k) for k, r in cells.items() if r.get("cpu_s", 0.0) > cap_s],
+        "cpu_hours": sum(r.get("cpu_s", 0.0) for r in dev_records) / 3600,
+        "thresholds": t,
+    }
+
+
+def heldout(protocol_path, dev_dir, out_dir, freeze_path=None):
+    """The one held-out run: each dev-selected setting, scored once on held-out seeds.
+
+    Refuses unless the protocol is frozen and matches its freeze record, every
+    dev record carries the frozen protocol's design hash, and out_dir is empty.
+    """
+    seeds = heldout_seeds(protocol_path, freeze_path)
+    protocol = load_protocol(protocol_path)
+    digest = design_hash(protocol)
+    out_dir = Path(out_dir)
+    if out_dir.exists() and any(out_dir.iterdir()):
+        raise FileExistsError("the held-out run happens once; its output directory is not empty")
+    if set(seeds) & set(dev_seeds(protocol)):
+        raise ValueError("a held-out seed is also a development seed")
+    cells, _, control = _load_dir(dev_dir)
+    records = [(Path("cells") / f"{cell_label(*k)}.json", r) for k, r in sorted(cells.items())]
+    if control:
+        records.append((Path("control-G0.json"), control))
+    for _, record in records:
+        if record.get("design_sha256") != digest:
+            raise ValueError(f"{record['design']} d{record['distance_index']:02d} was selected under another protocol")
+    grid = distances(protocol)
+    for rel, record in records:
+        out = {k: record[k] for k in ("design", "distance_index", "distance_um", "budget")}
+        out.update({"seeds": "heldout", "seed_list": seeds, "design_sha256": digest, "selected": record["selected"]})
+        if record["selected"] is None:
+            out.update({"verdict": cell_verdict(None, protocol, all_capped=True), "max_norm_error": 0.0})
+        else:
+            setting = [(record["selected"]["omega_over_2pi_hz"], record["selected"]["area"])]
+            conditions = budget(protocol, record["budget"])
+            entry = run_settings(protocol, record["design"], grid[record["distance_index"]], conditions, setting, seeds)[0]
+            interval = bootstrap(entry["arrival"], entry["middle"], entry["survival"], protocol)
+            out.update({
+                "F": entry["F"],
+                "M": entry["M"],
+                "interval": interval,
+                "verdict": cell_verdict(interval, protocol),
+                "max_norm_error": entry["norm_error"],
+            })
+        put(out_dir / rel, out)
+    result = analyze(protocol, dev_dir, out_dir)
+    put(out_dir / "analysis.json", result)
+    return result
 
 
 def smoke(protocol, out_dir, cells):
-    """Controls on G0 and a set of dev cells; every record carries the protocol hash."""
-    digest = protocol_hash()
-    grid = distances(protocol)
-    records = []
-    g0 = dev_cell(protocol, "G0", grid[0], "reference", chosen=[(1000.0, float(a)) for a in protocol["search"]["pulse_areas"]])
-    g0["check"] = "V3 preview on dev seeds"
-    records.append(("G0-control-reference", g0))
-    for design, k, name in cells:
-        records.append((f"{design}-d{k:02d}-{name}", dev_cell(protocol, design, grid[k], name)))
-    summary = {"protocol_sha256": digest, "status": protocol["status"], "seeds": "dev only", "cells": {}}
-    for label, record in records:
-        record["protocol_sha256"] = digest
-        put(out_dir / f"{label}.json", record)
-        summary["cells"][label] = {
-            "dev_verdict": record["dev_verdict"],
-            "selected": record["selected"],
-            "dev_interval": record.get("dev_interval"),
-            "V2_window": record.get("V2_window"),
-            "V8_steps": record.get("V8_steps"),
-            "V4_reversed_fail_on_M": record.get("V4_reversed", {}).get("fail_on_M"),
-            "max_norm_error": record["max_norm_error"],
-            "cpu_s": record["cpu_s"],
-        }
-        print(label, record["dev_verdict"], flush=True)
-    put(out_dir / "summary.json", summary)
-    return summary
+    """The G0 control and a set of dev cells, written as a search would write them."""
+    out_dir = Path(out_dir)
+    jobs = [(_control_job, None)] + [(_cell_job, cell) for cell in cells]
+    for fn, job in jobs:
+        rel, record = fn(job)
+        put(out_dir / rel, record)
+        print(rel, record["dev_verdict"], flush=True)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
+    se = sub.add_parser("search")
+    se.add_argument("out", type=Path)
+    se.add_argument("--workers", type=int, default=1)
+    an = sub.add_parser("analyze")
+    an.add_argument("out", type=Path)
     s = sub.add_parser("smoke")
     s.add_argument("out", type=Path)
     c = sub.add_parser("cell")
     c.add_argument("out", type=Path)
     c.add_argument("--design", required=True, choices=("G0",) + DESIGNS)
     c.add_argument("--distance", type=int, required=True)
-    c.add_argument("--budget", required=True, choices=("harsh", "reference", "generous"))
+    c.add_argument("--budget", required=True, choices=BUDGETS)
     n = sub.add_parser("noiseless")
     n.add_argument("out", type=Path)
     n.add_argument("--design", required=True, choices=DESIGNS)
     n.add_argument("--distance", type=int, required=True)
     h = sub.add_parser("heldout")
+    h.add_argument("dev", type=Path)
     h.add_argument("out", type=Path)
     args = parser.parse_args(argv)
     protocol = load_protocol()
     if args.command == "heldout":
-        heldout_seeds()  # raises unless the protocol is frozen and matches its record
-        sys.exit("the held-out runner is written at the freeze, not before it")
-    if args.command == "smoke":
-        cells = [(d, 0, b) for d in DESIGNS for b in ("reference", "generous")]
-        cells += [(d, 8, "reference") for d in DESIGNS]
-        smoke(protocol, args.out, cells)
+        heldout(PROTOCOL, args.dev, args.out)  # raises unless the protocol is frozen and matches its record
+    elif args.command == "search":
+        result = search(protocol, args.out, args.workers)
+        print(json.dumps({k: result[k] for k in ("complete", "checks", "H1", "H2", "H3")}, indent=2))
+    elif args.command == "analyze":
+        result = analyze(protocol, args.out)
+        put(args.out / "analysis.json", result)
+        print(json.dumps({k: result[k] for k in ("complete", "checks", "H1", "H2", "H3")}, indent=2))
+    elif args.command == "smoke":
+        smoke(protocol, args.out, [(d, 0, b) for d in DESIGNS for b in ("reference", "generous")] + [(d, 8, "reference") for d in DESIGNS])
     elif args.command == "cell":
         record = dev_cell(protocol, args.design, distances(protocol)[args.distance], args.budget)
-        record["protocol_sha256"] = protocol_hash()
+        record["distance_index"] = args.distance
+        record["design_sha256"] = design_hash(protocol)
         put(args.out, record)
         print(record["dev_verdict"])
     elif args.command == "noiseless":
-        d = distances(protocol)[args.distance]
-        treq, tried, how = noiseless_treq(protocol, args.design, d)
-        put(args.out, {"design": args.design, "distance_um": d / model.MICRON, "T_req_s": treq, "outcome": how, "tried": tried, "protocol_sha256": protocol_hash()})
-        print(treq, how)
+        _, record = _noiseless_job((args.design, args.distance))
+        put(args.out, record)
+        print(record["T_req_s"], record["outcome"])
 
 
 if __name__ == "__main__":
