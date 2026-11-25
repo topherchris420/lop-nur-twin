@@ -46,7 +46,7 @@ The noiseless series has no seeds, so H2 and H3 come out the same before and aft
 
 ## Development search
 
-See [`record/dev/`](record/dev/) and its [`analysis.json`](record/dev/analysis.json). These are development seeds only and say nothing confirmatory. The search ran on 25 November 2026 under design hash `e084145d…5beb`, took 7.6 CPU hours, and is complete: all 225 cells, the control and the 51 noiseless records.
+See [`record/dev/`](record/dev/) and its [`analysis.json`](record/dev/analysis.json). These are development seeds only and say nothing confirmatory. The search ran on 25 November 2026 under design hash `e883d9b7…b8c4`, after the ninth change, took 6.9 CPU hours, and is complete: all 225 cells, the control and the 51 noiseless records. Apart from the hash and timings, all 277 records are identical to those of the first search under hash `e084145d…5beb`; only the verdicts of checks V2 and V8 changed.
 
 Limits on the eight dev seeds:
 
@@ -56,10 +56,11 @@ Limits on the eight dev seeds:
 | reference | none   | 5.6 um | none   | 5.6 um |
 | generous  | 2.4 um | 100 um | 32 um  | 100 um |
 
-- **H1 preview, INVALID.** Two convergence checks fail, both on G1 cells far from passing. V2 at 75 um, generous: doubling the window moves M by 0.013 against an allowance of 0.0076, while the cell fails on arrival (F at most 0.0003). V8 at 7.5 um, generous: doubling the steps moves F by 1.82e-4 against an allowance of 1.78e-4, while the cell fails on middle occupation (M at least 0.054). Neither change could move either verdict, but the checks as written judge F and M separately. Without them every design has a FAIL before 1 mm, which would read MICROSCALE ONLY, the expectation registered before any run.
+- **H1 preview, MICROSCALE ONLY**, the expectation registered before any run. At the generous budget every design has a FAIL before 1 mm: G1 from 4.2 um, G3 from 56 um and G2 from 237 um. The anchors hold: the control G0 passes at the reference budget, and at 1 um G1, G2 and G3 all pass.
+- **Checks V1 to V8 all pass.** The two that failed the first search now pass under the ninth change. At 75 um (G1, generous) doubling the window still moves M by 0.013, but the cell fails on arrival with F at most 0.0003 and F moved by 0.0004, inside its allowance. At 7.5 um doubling the steps still moves F by 1.82e-4, but the cell fails on middle occupation with M at least 0.054 and M moved by 5.1e-4, inside its allowance.
 - **H2.** G2's slope is 1.00 and G3's 0.95, both CONFIRMED against a prediction of 1. G1 is INCONCLUSIVE: from 237 um on no setting reaches the thresholds within the 10^6 s duration limit.
 - **H3, CONTRADICTED.** Without noise the lattice chain G3 reaches arrival of at least 0.90 with middle occupation below 0.01 at all 17 distances from 10 um to 1 mm, with T_req from 8 s to 604 s. The noiseless series has no seeds, so H2 and H3 will read the same after the freeze.
-- **Checks V1 and V3 to V7 pass.** Of the 114,975 settings, 23,109 ran; 77,400 hit the loss cap, 12,173 the mode cap and 2,293 the elimination cap, all of those G1.
+- **Settings.** Of the 114,975, 23,109 ran; 77,400 hit the loss cap, 12,173 the mode cap and 2,293 the elimination cap, the last all G1.
 
 ## Reproduce
 

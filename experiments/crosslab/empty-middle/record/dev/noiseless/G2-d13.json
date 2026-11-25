@@ -1,8 +1,8 @@
 {
   "T_req_s": 4.528351332899743,
-  "cpu_s": 40.334189599999945,
+  "cpu_s": 34.58067130299992,
   "design": "G2",
-  "design_sha256": "e084145d17091a50d5fad1161b45a461c976619c2f3c550d8b1e0282a22a5beb",
+  "design_sha256": "e883d9b7e2a6c282232f77a75e973a9bf1b3d1a9347578bdaf37cc0d6d4db8c4",
   "distance_index": 13,
   "distance_um": 42.169650342858226,
   "max_norm_error": 1.7287948850253088e-11,

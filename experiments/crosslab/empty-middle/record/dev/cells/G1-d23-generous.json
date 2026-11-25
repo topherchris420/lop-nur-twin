@@ -1,8 +1,8 @@
 {
   "budget": "generous",
-  "cpu_s": 0.43373083699952986,
+  "cpu_s": 0.35449106299984123,
   "design": "G1",
-  "design_sha256": "e084145d17091a50d5fad1161b45a461c976619c2f3c550d8b1e0282a22a5beb",
+  "design_sha256": "e883d9b7e2a6c282232f77a75e973a9bf1b3d1a9347578bdaf37cc0d6d4db8c4",
   "dev_verdict": "FAIL",
   "distance_index": 23,
   "distance_um": 749.8942093324558,
