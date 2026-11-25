@@ -546,6 +546,10 @@ async function offline() {
                   bound: true,
                   id: m.targetId,
                   error: m.errorDeg,
+                  // Whether the crosshair has reached the region since this
+                  // binding began — the motor's own test before it reports a
+                  // tracking sample to the metrics layer.
+                  acquired: this.binding?.acquired === true,
                   gate: m.gate,
                   alive: target.alive,
                   team: target.team !== game.player.team,
@@ -599,10 +603,16 @@ async function offline() {
       }
       samples.push(sample);
       unbound = sample.bound ? 0 : unbound + 1;
-      if (sample.bound && sample.error !== null) measuredSoFar += 1;
+      if (sample.bound && sample.error !== null && sample.acquired) measuredSoFar += 1;
     }
     const bound = samples.filter((x) => x.bound);
-    const measured = bound.filter((x) => x.error !== null);
+    // "Holds" is judged from acquisition on, as the metrics layer judges it
+    // (`onTrackingSample` fires only once a binding has acquired). A sample
+    // taken while the controller is still slewing onto a freshly staged
+    // enemy measures the slew, not the hold: on a slow runner more 0.25 s
+    // samples land in that slew, and counting them failed CI on main with
+    // exactly 10/20 under 0.5°. Acquisition itself is the binding check's.
+    const measured = bound.filter((x) => x.error !== null && x.acquired);
     check(
       "the tracking controller binds the enemy Jev named",
       bound.length > 5,
