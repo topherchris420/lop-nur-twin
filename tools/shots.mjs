@@ -81,6 +81,47 @@ async function waitForSiteOnline(page) {
   await sleep(10000);
 }
 
+/**
+ * Wait for rendered frames of the combat scene, not milliseconds — the same
+ * counter `tools/frames.mjs` reads. `game.frame` only advances inside R3F's
+ * frame loop, and the loop stays paused while the shader warmup links the top
+ * tier's programs; under software WebGL that takes over half a minute and a
+ * frame then takes several seconds. Fixed sleeps here photographed the canvas
+ * before the world had been drawn once: the weapon on a black screen.
+ */
+async function waitFrames(page, n) {
+  const read = () =>
+    page.evaluate(() => globalThis.__combat?.game.frame ?? -1).catch(() => -1);
+  const start = await read();
+  const limit = Date.now() + 60000 + n * 45000;
+  while (Date.now() < limit) {
+    if ((await read()) >= start + n) return;
+    await sleep(250);
+  }
+  throw new Error(`blacksite: ${n} frames were not rendered in time`);
+}
+
+/** Poll for the state that says the combat scene is genuinely rendering. */
+async function waitForCombatScene(page) {
+  const limit = Date.now() + 180000;
+  while (Date.now() < limit) {
+    const ready = await page
+      .evaluate(() => {
+        const handle = globalThis.__combat;
+        if (!handle || globalThis.__combatSim == null) return false;
+        const { game, r3f } = handle;
+        return !!(game.world && r3f.scene.environment && game.stats.drawCalls > 5);
+      })
+      .catch(() => false);
+    if (ready) {
+      await waitFrames(page, 3);
+      return;
+    }
+    await sleep(500);
+  }
+  throw new Error("blacksite: the combat scene never started rendering");
+}
+
 /* ------------------------------------------------------------------ */
 /* The twin                                                            */
 /* ------------------------------------------------------------------ */
@@ -168,8 +209,7 @@ async function captureBlacksite() {
     waitUntil: "domcontentloaded",
     timeout: 60000,
   });
-  await page.waitForFunction(() => globalThis.__combatSim != null, { timeout: 90000 });
-  await sleep(6000);
+  await waitForCombatScene(page);
 
   // Run the match forward, then park the player where the fighting is — the
   // frame worth publishing is a firefight, not a spawn.
@@ -278,9 +318,9 @@ async function captureBlacksite() {
     });
 
   // The page's own frame loop keeps advancing the match while the browser
-  // catches up on rendering, so aiming happens in a *second* pass, right
-  // before the shutter. Aiming inside the step above points the camera at
-  // where everybody used to be several seconds ago.
+  // renders from the new viewpoint, so aiming happens in a *second* pass,
+  // right before the shutter. Aiming inside the step above points the camera
+  // at where everybody used to be by the time a frame is drawn.
   const frame = () =>
     page.evaluate(() => {
       const { game } = globalThis.__combat;
@@ -349,7 +389,9 @@ async function captureBlacksite() {
   for (let attempt = 1; attempt <= 4 && framed === null; attempt += 1) {
     const placed = await place();
     if (!placed) console.log("  no clear viewpoint found this attempt");
-    await sleep(3500);
+    // Render from the new viewpoint before aiming, so the shadow cascades and
+    // everything else that follows the camera has caught up.
+    await waitFrames(page, 2);
     framed = await frame();
     if (framed === null) console.log(`  attempt ${attempt}: no enemy in sight to frame`);
   }
@@ -358,8 +400,10 @@ async function captureBlacksite() {
       `  framed a ${framed.standoff} m engagement, ${framed.contacts} within 80 m`,
     );
   }
-  // Brief 50ms tick to let viewmodel matrices update
-  await sleep(50);
+  // Two rendered frames before the shutter: the first after the aim carries
+  // the whole turn as camera velocity and is smeared by the motion blur; the
+  // second has none, and the viewmodel has followed the new aim.
+  await waitFrames(page, 2);
   await page.evaluate(() => {
     const { game } = globalThis.__combat;
     game.player.alive = true;
