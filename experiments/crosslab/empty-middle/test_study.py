@@ -256,6 +256,22 @@ class NumericsRuleTest(unittest.TestCase):
         self.assertTrue(study.numerics_ok(large, far, self.protocol))
         self.assertFalse(study.numerics_ok({"evaluable": False}, far, self.protocol))
 
+    def test_a_fail_needs_only_one_criterion_it_fails_held(self):
+        # The two G1 cells of the first full dev search, generous budget.
+        window = {"dev_interval": {"F": [0.000116, 0.000303], "M": [0.0860, 0.0959]}}
+        steps = {"dev_interval": {"F": [0.8858, 0.8982], "M": [0.0541, 0.0965]}}
+        self.assertTrue(study.numerics_ok({"evaluable": True, "F": 3.9e-4, "M": 0.0129}, window, self.protocol))
+        self.assertTrue(study.numerics_ok({"evaluable": True, "F": 1.82e-4, "M": 5.1e-4}, steps, self.protocol))
+        # Neither failing criterion held: the check fails.
+        self.assertFalse(study.numerics_ok({"evaluable": True, "F": 0.1, "M": 0.0129}, window, self.protocol))
+        # A FAIL on M alone, with F straddling its threshold: holding F is not enough.
+        on_M = {"dev_interval": {"F": [0.85, 0.95], "M": [0.02, 0.03]}}
+        self.assertFalse(study.numerics_ok({"evaluable": True, "F": 5e-5, "M": 0.005}, on_M, self.protocol))
+        self.assertTrue(study.numerics_ok({"evaluable": True, "F": 0.02, "M": 5e-4}, on_M, self.protocol))
+        # INCONCLUSIVE still needs both held.
+        unsure = {"dev_interval": {"F": [0.88, 0.95], "M": [0.002, 0.008]}}
+        self.assertFalse(study.numerics_ok({"evaluable": True, "F": 5e-5, "M": 5e-4}, unsure, self.protocol))
+
     def test_window_scales_with_each_modes_coupling(self):
         spec = model.free_guide_lowest(1e-3)
         omega = 10 * model.guide_ground(1e-3 + model.GUIDE_MARGIN)

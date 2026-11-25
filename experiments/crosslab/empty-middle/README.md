@@ -21,7 +21,7 @@ Each cell searches 511 settings of coupling and pulse area on eight dev seeds, s
 
 ## Changes from the written draft
 
-The draft preregistration fixed a mode window of +-100 Omega with at least eight modes per side, and a solver tolerance. Building the model and reviewing it changed eight things, all listed under `amendments_before_freeze` in the protocol and all waiting for confirmation before the freeze:
+The draft preregistration fixed a mode window of +-100 Omega with at least eight modes per side, and a solver tolerance. Building the model, reviewing it and the first full development search changed nine things, all listed under `amendments_before_freeze` in the protocol and all waiting for confirmation before the freeze:
 
 1. A mode is explicit when it lies within +-100 Omega max(1, r / 10) of resonance, r being its coupling relative to the resonant mode's. Every other mode enters by adiabatic elimination, a second-order shift and exchange on the traps plus its population in the middle, so every eliminated mode's coupling is under a tenth of its detuning. Eight explicit modes per side forced modes thousands of Omega away into the integrator. A plain +-100 Omega window broke down for G1 beyond a few tens of micrometres: its traps sit where the lowest mode is small, they couple to higher modes up to 640 times harder, and the eliminated middle occupation came out above 1. Below about 16 um the scaling changes nothing.
 2. The integrator is a Strang split with exact exponentials on a fixed grid, steps a multiple of 4,000 with max |E| dt <= 0.5. New check V8 doubles the steps at each selected setting.
@@ -31,6 +31,7 @@ The draft preregistration fixed a mode window of +-100 Omega with at least eight
 6. Records carry the SHA-256 of the protocol without `status` and `registered` (check V5), so a development search run on the draft stays bound to the frozen protocol. The freeze record still hashes the whole file.
 7. A run whose eliminated modes hold more than a tenth of the trap population, at any sample on any seed, is an elimination-cap fail. The rule in 1 bounds each eliminated mode but not their sum: G1 at 100 um (generous, 42.17 Hz, area 10) reported a middle occupation of 1.29, which fell to 0.59 with the window doubled. Past the cap the middle holds over a tenth of the population on that seed, so the run could not have passed, and every kept run reports a middle occupation of at most 1.
 8. H2 and H3 read only noiseless records made under this protocol, and come out INCOMPLETE when any is missing. The held-out run checks that all 225 cells, the control and the 51 noiseless records are present and current before it makes a held-out seed or writes a file, so a partial or stale search cannot use up the held-out split.
+9. V2 and V8 ask whether a change could move the cell's verdict. A PASS or INCONCLUSIVE cell still needs F and M both held; a FAIL cell needs only one criterion it fails held, since that criterion alone keeps it FAIL. The first full development search failed both checks on G1 cells, generous budget, that fail by a wide margin: at 75 um doubling the window moved M by 0.013 against an allowance of 0.0076 while F stayed at most 0.0003, and at 7.5 um doubling the steps moved F by 1.82e-4 against 1.78e-4 while M stayed at least 0.054. This change came after seeing that search, before any held-out seed exists.
 
 ## Running it
 
@@ -73,7 +74,7 @@ python "$study/study.py" analyze /tmp/em-dev
 
 ## Before the held-out run
 
-1. Confirm the remaining choices in the preregistration and the eight changes above.
+1. Confirm the remaining choices in the preregistration and the nine changes above.
 2. Run the full development search and the noiseless series, and publish them.
 3. Freeze: set `status` to `frozen`, write `freeze.json` with the protocol's SHA-256, commit, and record the date.
 4. Run `study.py heldout record/dev record/heldout` once from that commit. It generates the held-out seeds and scores each dev-selected setting on them.
