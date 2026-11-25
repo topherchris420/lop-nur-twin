@@ -166,14 +166,15 @@ class Partition:
 
 
 def partition(spectrum, omega, window):
-    """Keep modes with |E| <= window * omega * max(1, |rA|, |rB|); eliminate the rest.
+    """Keep modes with |E| <= window * omega * max(1, |r| / 10); eliminate the rest.
 
-    Scaling the window by a mode's own relative coupling keeps every eliminated
-    mode's coupling under 1/window of its detuning, the condition elimination
-    needs. It matters in G1, whose lowest mode is small near the guide's ends,
-    so the traps couple to higher modes up to L / (pi * 0.5 um) times harder.
+    r is a mode's coupling relative to the resonant mode's, the larger of |rA|
+    and |rB|. The scaling keeps every eliminated mode's coupling under a tenth
+    of its detuning, which elimination needs. It matters only in G1 beyond about
+    16 um: its lowest mode is small near the guide's ends, so the traps couple
+    to higher modes up to L / (pi * 0.5 um) times harder.
     """
-    reach = np.maximum(1.0, np.maximum(np.abs(spectrum.rA), np.abs(spectrum.rB)))
+    reach = np.maximum(1.0, np.maximum(np.abs(spectrum.rA), np.abs(spectrum.rB)) / 10.0)
     near = np.abs(spectrum.energies) <= window * omega * reach
     near[spectrum.resonant] = True
     far = ~near

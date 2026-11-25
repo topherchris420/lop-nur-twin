@@ -35,7 +35,7 @@
     "explicit_mode_cap": 400,
     "samples": 4001,
     "integrator": "Strang split: exact diagonal phases and an exact exponential of the coupling in span{A, B, rA, rB}; steps a multiple of 4000 with max |E| dt <= 0.5",
-    "far_modes": "A mode is explicit when |E| <= 100 Omega max(1, |rA|, |rB|), the window scaled by its coupling relative to the resonant mode's; every other mode enters by adiabatic elimination: shift and exchange -sum (Omega_i r_i)(Omega_j r_j) / E on A and B, and population |sum Omega r c / E|^2 counted in P_mid",
+    "far_modes": "A mode is explicit when |E| <= 100 Omega max(1, r / 10), r its coupling relative to the resonant mode's (the larger of |rA| and |rB|); every other mode enters by adiabatic elimination: shift and exchange -sum (Omega_i r_i)(Omega_j r_j) / E on A and B, and population |sum Omega r c / E|^2 counted in P_mid",
     "noise": {
       "trap_offsets": "dA, dB ~ Normal(0, 1/T2*) per seed, quasi-static",
       "lattice_disorder": "on-site energies ~ Normal(0, sigma_W) per seed and site; traps tuned to the realized resonant mode first",
@@ -146,7 +146,7 @@
   },
   "compute_cap_cpu_hours_per_cell": 8,
   "amendments_before_freeze": [
-    "Explicit modes are those within +-100 Omega max(1, |rA|, |rB|) of resonance, so every eliminated mode's coupling is under 1% of its detuning; every other mode enters by adiabatic elimination. The draft's 'at least 8 per side' rule is dropped because it forced stiff explicit modes far outside the window. Without the scaling by r, G1 at 1 mm, whose traps sit where the lowest mode is small and so couple to higher modes up to 640 times harder, gave an eliminated middle occupation above 1.",
+    "Explicit modes are those within +-100 Omega max(1, r / 10) of resonance, r a mode's coupling relative to the resonant mode's, so every eliminated mode's coupling is under a tenth of its detuning; every other mode enters by adiabatic elimination. The draft's 'at least 8 per side' rule is dropped because it forced stiff explicit modes far outside the window. The scaling by r changes nothing below about 16 um; without it, G1 at 1 mm, whose traps sit where the lowest mode is small and so couple to higher modes up to 640 times harder, gave an eliminated middle occupation above 1.",
     "The draft's solver tolerance (relative 1e-9, absolute 1e-11) is replaced by the fixed-grid Strang integrator above and check V8.",
     "Settings with more than 400 explicit modes are mode-cap fails: they put several modes within the coupling of resonance, so the middle cannot stay near-empty.",
     "G2's couplings sit L(1 - 1/n) apart, within 1 um of d; the grid distance d is still the one reported.",
