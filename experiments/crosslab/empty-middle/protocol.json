@@ -1,0 +1,156 @@
+{
+  "schema": "rain-c1-empty-middle/v1",
+  "study_id": "rain-c1-empty-middle-v1",
+  "status": "draft",
+  "registered": null,
+  "source": {
+    "paper": "What Teleportation Would Require: A Falsifiable Specification, condition C1, roadmap step 2",
+    "preregistration": "Preregistration: The Empty-Middle Limit of Atom Transfer (Claude Doc, draft of 2026-11-25)"
+  },
+  "question": "Can a physical guide between two traps act as the distance-independent mediator mode that C1 asks for, and if not, where does it stop working?",
+  "thresholds": {
+    "middle_max": 0.01,
+    "arrival_min": 0.9,
+    "source": "paper"
+  },
+  "hypotheses": {
+    "H1": "For at least one of G1 to G3, every grid distance up to 1 mm is PASS at the generous budget.",
+    "H2": "Without noise, T_req grows as d^2 for G1 and as d for G2 and G3.",
+    "H3": "The paper's sentence that a chain cannot give an empty middle, tested with G3 without noise."
+  },
+  "expectation_before_any_run": "D* of a few micrometres at the reference budget and some tens of micrometres at the generous one, so MICROSCALE ONLY, with transfers about a hundred times slower than ordinary transport at the guide's own speed.",
+  "model": {
+    "species": "potassium-40",
+    "mass_dalton": 39.964,
+    "units": "hbar = 1; energies in rad/s, times in s",
+    "pulses": {
+      "order": "B side first",
+      "shape": "Gaussian exp(-(t - c)^2 / s^2)",
+      "centre_B": "7T/16",
+      "centre_A": "9T/16",
+      "width_s": "T/8"
+    },
+    "middle_occupation": "Population in every mediator mode, explicit or eliminated",
+    "explicit_window": 100,
+    "explicit_mode_cap": 400,
+    "samples": 4001,
+    "integrator": "Strang split: exact diagonal phases and an exact exponential of the coupling in span{A, B, rA, rB}; steps a multiple of 4000 with max |E| dt <= 0.5",
+    "far_modes": "A mode is explicit when |E| <= 100 Omega max(1, r / 10), r its coupling relative to the resonant mode's (the larger of |rA| and |rB|); every other mode enters by adiabatic elimination: shift and exchange -sum (Omega_i r_i)(Omega_j r_j) / E on A and B, and population |sum Omega r c / E|^2 counted in P_mid",
+    "noise": {
+      "trap_offsets": "dA, dB ~ Normal(0, 1/T2*) per seed, quasi-static",
+      "lattice_disorder": "on-site energies ~ Normal(0, sigma_W) per seed and site; traps tuned to the realized resonant mode first",
+      "loss": "arrival multiplied by exp(-Gamma T)"
+    },
+    "check_tolerance": 0.0001
+  },
+  "designs": {
+    "G0": "Control: one mode at resonance, coupling independent of d",
+    "G1": "Free 1D hard-wall guide of length d + 1 um, lowest mode, couplings 0.5 um inside each end",
+    "G2": "The same guide, mode with energy nearest E_kin, couplings at that mode's antinode nearest each end",
+    "G3": "Lattice chain, spacing 0.532 um, smallest odd site count N with (N - 1) a >= d, A on the first site, B on the last, band-centre mode"
+  },
+  "predicted_slopes": {
+    "G0": 0,
+    "G1": 2,
+    "G2": 1,
+    "G3": 1
+  },
+  "budgets": {
+    "harsh": {
+      "T2_star_s": 0.01,
+      "loss_per_s": 1.0,
+      "kinetic_hz": 2000,
+      "tunnelling_hz": 100,
+      "disorder_per_J": 0.05
+    },
+    "reference": {
+      "T2_star_s": 0.1,
+      "loss_per_s": 0.1,
+      "kinetic_hz": 10000,
+      "tunnelling_hz": 300,
+      "disorder_per_J": 0.01
+    },
+    "generous": {
+      "T2_star_s": 1.0,
+      "loss_per_s": 0.01,
+      "kinetic_hz": 30000,
+      "tunnelling_hz": 1000,
+      "disorder_per_J": 0.002
+    }
+  },
+  "verdict_budget": "generous",
+  "macroscopic_line_um": 1000,
+  "distances": {
+    "rule": "d = 10^(k/8) um",
+    "k_min": 0,
+    "k_max": 24
+  },
+  "search": {
+    "omega_over_2pi_hz": {
+      "min": 1e-5,
+      "max": 10000.0,
+      "per_decade": 8
+    },
+    "pulse_areas": [10, 20, 40, 80, 160, 320, 640],
+    "settings_per_cell": 511,
+    "loss_cap": "a setting with exp(-Gamma T) < 0.90 is a loss-cap fail and is not run",
+    "mode_cap": "a setting with more than 400 explicit modes is a mode-cap fail and is not run",
+    "selection": "largest dev margin min[(F - 0.90)/0.10, (0.01 - M)/0.01], ties to shorter T; if none passes, the largest-margin setting goes forward"
+  },
+  "seeds": {
+    "unit": "seed: one draw of trap offsets and, for G3, lattice disorder; settings and time steps are never units",
+    "draws": "numpy SeedSequence(seed).spawn(2): first child gives (zA, zB), second gives one standard normal per lattice site",
+    "dev": [25101, 25102, 25103, 25104, 25105, 25106, 25107, 25108],
+    "heldout": {
+      "salt": "rain-c1-empty-middle-v1-heldout",
+      "count": 40,
+      "rule": "int(sha256(salt + ':' + str(i)).hexdigest()[:8], 16) for i in 0..count-1, generated only at the held-out run"
+    },
+    "reserved": {
+      "salt": "rain-c1-empty-middle-v1-replication",
+      "count": 40
+    },
+    "bootstrap": {
+      "seed": 20261125,
+      "resamples": 10000,
+      "interval": "95% percentile over seeds"
+    }
+  },
+  "noiseless": {
+    "budget_for_kinetic_and_tunnelling": "reference",
+    "max_duration_s": 1000000.0,
+    "order": "settings tried by increasing T; stop at the first with P_B(T) >= 0.90 and M < 0.01",
+    "fit": "least-squares slope of log T_req on log d over the 17 grid distances from 10 um to 1 mm",
+    "tolerance": 0.2
+  },
+  "rules": {
+    "cell": {
+      "PASS": "lower bound of F >= 0.90 and upper bound of M < 0.01",
+      "FAIL": "upper bound of F < 0.90, or lower bound of M >= 0.01, or every setting hit the loss or mode cap",
+      "INCONCLUSIVE": "anything else"
+    },
+    "limit": "d* is the largest grid distance that is PASS with every shorter one; u is the shortest FAIL; D* is the largest d* across G1 to G3",
+    "H1": ["INVALID", "INCOMPLETE", "OPEN AT SCALE", "MICROSCALE ONLY", "INCONCLUSIVE"],
+    "H2": ["CONFIRMED", "NOT CONFIRMED", "INCONCLUSIVE"],
+    "H3": ["CONTRADICTED", "UPHELD", "INCONCLUSIVE"]
+  },
+  "checks": {
+    "V1": "every run conserves norm to 1e-8",
+    "V2": "on the first dev seed, doubling the explicit window and its mode cap at each selected setting changes F and M by less than 1e-4, or by less than a tenth of the distance from the nearer bound of that cell's dev interval to the threshold",
+    "V3": "G0 at 1 kHz with its dev-selected pulse area is PASS at the reference budget",
+    "V4": "every selected setting re-run with the A side first is FAIL on M",
+    "V5": "every result record carries the SHA-256 of this protocol's content without its status and registration date, and it matches",
+    "V6": "no held-out seed appears in any development log before the held-out run",
+    "V7": "at 1 um, at least one of G1 to G3 is PASS at the generous budget",
+    "V8": "on the first dev seed, doubling the step count at each selected setting changes F and M by less than 1e-4, or by less than a tenth of the distance from the nearer bound of that cell's dev interval to the threshold"
+  },
+  "compute_cap_cpu_hours_per_cell": 8,
+  "amendments_before_freeze": [
+    "Explicit modes are those within +-100 Omega max(1, r / 10) of resonance, r a mode's coupling relative to the resonant mode's, so every eliminated mode's coupling is under a tenth of its detuning; every other mode enters by adiabatic elimination. The draft's 'at least 8 per side' rule is dropped because it forced stiff explicit modes far outside the window. The scaling by r changes nothing below about 16 um; without it, G1 at 1 mm, whose traps sit where the lowest mode is small and so couple to higher modes up to 640 times harder, gave an eliminated middle occupation above 1.",
+    "The draft's solver tolerance (relative 1e-9, absolute 1e-11) is replaced by the fixed-grid Strang integrator above and check V8.",
+    "Settings with more than 400 explicit modes are mode-cap fails: they put several modes within the coupling of resonance, so the middle cannot stay near-empty.",
+    "G2's couplings sit L(1 - 1/n) apart, within 1 um of d; the grid distance d is still the one reported.",
+    "V2 and V8 also pass a change smaller than a tenth of the distance from the cell's nearer dev-interval bound to its threshold, since such a change cannot move a verdict. In development, G1 at 10 um (reference) selected a fast, failed transfer with F = 0.003 and M = 0.25, where doubling the steps or the window changed M by 1.3e-4 on the first dev seed; under the draft rule that alone would make H1 INVALID. V2 also doubles the mode cap with the window.",
+    "V5 hashes the protocol's content without status and registered, so a development search run before the freeze stays bound to the frozen protocol, and the held-out runner refuses any selected setting whose record carries another hash."
+  ]
+}
