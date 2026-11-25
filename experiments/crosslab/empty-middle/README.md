@@ -45,7 +45,20 @@ The noiseless series has no seeds, so H2 and H3 come out the same before and aft
 
 ## Development search
 
-See [`record/dev/`](record/dev/) and its [`analysis.json`](record/dev/analysis.json). These are development seeds only and say nothing confirmatory.
+See [`record/dev/`](record/dev/) and its [`analysis.json`](record/dev/analysis.json). These are development seeds only and say nothing confirmatory. The search ran on 25 November 2026 under design hash `e084145d…5beb`, took 7.6 CPU hours, and is complete: all 225 cells, the control and the 51 noiseless records.
+
+Limits on the eight dev seeds:
+
+| Budget    | G1 d\* | G2 d\* | G3 d\* | D\*    |
+| --------- | ------ | ------ | ------ | ------ |
+| harsh     | none   | none   | none   | none   |
+| reference | none   | 5.6 um | none   | 5.6 um |
+| generous  | 2.4 um | 100 um | 32 um  | 100 um |
+
+- **H1 preview, INVALID.** Two convergence checks fail, both on G1 cells far from passing. V2 at 75 um, generous: doubling the window moves M by 0.013 against an allowance of 0.0076, while the cell fails on arrival (F at most 0.0003). V8 at 7.5 um, generous: doubling the steps moves F by 1.82e-4 against an allowance of 1.78e-4, while the cell fails on middle occupation (M at least 0.054). Neither change could move either verdict, but the checks as written judge F and M separately. Without them every design has a FAIL before 1 mm, which would read MICROSCALE ONLY, the expectation registered before any run.
+- **H2.** G2's slope is 1.00 and G3's 0.95, both CONFIRMED against a prediction of 1. G1 is INCONCLUSIVE: from 237 um on no setting reaches the thresholds within the 10^6 s duration limit.
+- **H3, CONTRADICTED.** Without noise the lattice chain G3 reaches arrival of at least 0.90 with middle occupation below 0.01 at all 17 distances from 10 um to 1 mm, with T_req from 8 s to 604 s. The noiseless series has no seeds, so H2 and H3 will read the same after the freeze.
+- **Checks V1 and V3 to V7 pass.** Of the 114,975 settings, 23,109 ran; 77,400 hit the loss cap, 12,173 the mode cap and 2,293 the elimination cap, all of those G1.
 
 ## Reproduce
 

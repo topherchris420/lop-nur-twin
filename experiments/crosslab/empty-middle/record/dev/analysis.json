@@ -1,0 +1,172 @@
+{
+  "H1": "INVALID",
+  "H2": {
+    "G1": {
+      "predicted": 2,
+      "slope": null,
+      "verdict": "INCONCLUSIVE"
+    },
+    "G2": {
+      "predicted": 1,
+      "slope": 1.0000000000000002,
+      "verdict": "CONFIRMED"
+    },
+    "G3": {
+      "predicted": 1,
+      "slope": 0.9509803921568628,
+      "verdict": "CONFIRMED"
+    }
+  },
+  "H3": "CONTRADICTED",
+  "check_failures": {
+    "V2": ["G1-d15-generous"],
+    "V4": [],
+    "V8": ["G1-d07-generous"]
+  },
+  "checks": {
+    "V1": true,
+    "V2": false,
+    "V3": true,
+    "V4": true,
+    "V5": true,
+    "V6": true,
+    "V7": true,
+    "V8": false
+  },
+  "complete": true,
+  "compute_cap_exceeded": [],
+  "cpu_hours": 7.550506616266664,
+  "design_sha256": "e084145d17091a50d5fad1161b45a461c976619c2f3c550d8b1e0282a22a5beb",
+  "limits": {
+    "generous": {
+      "D_star_um": 100.0,
+      "designs": {
+        "G1": {
+          "d_star_um": 2.371373705661655,
+          "u_um": 4.216965034285822,
+          "verdicts": ["PASS", "PASS", "PASS", "PASS", "INCONCLUSIVE", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        },
+        "G2": {
+          "d_star_um": 100.0,
+          "u_um": 237.13737056616552,
+          "verdicts": ["PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "INCONCLUSIVE", "INCONCLUSIVE", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        },
+        "G3": {
+          "d_star_um": 31.62277660168379,
+          "u_um": 56.23413251903491,
+          "verdicts": ["PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "INCONCLUSIVE", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        }
+      }
+    },
+    "harsh": {
+      "D_star_um": null,
+      "designs": {
+        "G1": {
+          "d_star_um": null,
+          "u_um": 1.0,
+          "verdicts": ["FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        },
+        "G2": {
+          "d_star_um": null,
+          "u_um": 1.0,
+          "verdicts": ["FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        },
+        "G3": {
+          "d_star_um": null,
+          "u_um": 1.0,
+          "verdicts": ["FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        }
+      }
+    },
+    "reference": {
+      "D_star_um": 5.623413251903491,
+      "designs": {
+        "G1": {
+          "d_star_um": null,
+          "u_um": 1.333521432163324,
+          "verdicts": ["INCONCLUSIVE", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        },
+        "G2": {
+          "d_star_um": 5.623413251903491,
+          "u_um": 10.0,
+          "verdicts": ["PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "PASS", "INCONCLUSIVE", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        },
+        "G3": {
+          "d_star_um": null,
+          "u_um": 1.0,
+          "verdicts": ["FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL", "FAIL"]
+        }
+      }
+    }
+  },
+  "noiseless_T_req_s": {
+    "G1": {
+      "10": 107.3841328083636,
+      "100": 80526.73936717925,
+      "1000": null,
+      "13.34": 254.64790894703253,
+      "133.4": 190958.9923379982,
+      "17.78": 603.8653554787164,
+      "177.8": 452835.1332899744,
+      "23.71": 1431.990425742256,
+      "237.1": null,
+      "31.62": 2546.479089470325,
+      "316.2": null,
+      "42.17": 6038.653554787164,
+      "421.7": null,
+      "56.23": 14319.904257422564,
+      "562.3": null,
+      "74.99": 33957.84442364426,
+      "749.9": null
+    },
+    "G2": {
+      "10": 1.0738413280836363,
+      "100": 10.738413280836362,
+      "1000": 107.3841328083636,
+      "13.34": 1.4319904257422564,
+      "133.4": 14.319904257422563,
+      "17.78": 1.9095899233799818,
+      "177.8": 19.09589923379982,
+      "23.71": 2.5464790894703255,
+      "237.1": 25.464790894703256,
+      "31.62": 3.395784442364426,
+      "316.2": 33.957844423644254,
+      "42.17": 4.528351332899743,
+      "421.7": 45.28351332899744,
+      "56.23": 6.038653554787164,
+      "562.3": 60.38653554787164,
+      "74.99": 8.052673936717925,
+      "749.9": 80.52673936717926
+    },
+    "G3": {
+      "10": 8.052673936717925,
+      "100": 60.38653554787164,
+      "1000": 603.8653554787164,
+      "13.34": 10.738413280836362,
+      "133.4": 80.52673936717926,
+      "17.78": 10.738413280836362,
+      "177.8": 107.3841328083636,
+      "23.71": 19.09589923379982,
+      "237.1": 143.19904257422564,
+      "31.62": 19.09589923379982,
+      "316.2": 190.95899233799818,
+      "42.17": 25.464790894703256,
+      "421.7": 254.64790894703253,
+      "56.23": 33.957844423644254,
+      "562.3": 339.5784442364426,
+      "74.99": 45.28351332899744,
+      "749.9": 452.83513328997435
+    }
+  },
+  "noiseless_missing": {
+    "G1": [],
+    "G2": [],
+    "G3": []
+  },
+  "stage": "development preview, not confirmatory",
+  "thresholds": {
+    "arrival_min": 0.9,
+    "middle_max": 0.01,
+    "source": "paper"
+  }
+}
