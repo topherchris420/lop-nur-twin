@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { sha256 } from "../sha256";
 import bundled from "./data/openai-math.json" with { type: "json" };
 import { FIXTURE_COMMIT, REAL_FAMILIES, fixtureFile, fixtureIndex } from "./fixture";
-import { markdownLink, parseManuscriptReadme, texGroups } from "./indexer";
+import { markdownLink, parseContents, parseManuscriptReadme, texGroups } from "./indexer";
 import { contentSha256, indexErrors, type SubstrateIndex } from "./substrateIndex";
 
 const pinned = bundled as unknown as SubstrateIndex;
@@ -13,6 +13,44 @@ const family = (ix: SubstrateIndex, id: string) => {
   return f;
 };
 const clone = <T>(v: T): T => structuredClone(v);
+
+describe("catalogue family anchors", () => {
+  it("starts a new family at a named anchor rather than attaching papers to the preceding family", () => {
+    const catalogue = [
+      "**378. Prior family.** Old summary.",
+      "&emsp;[Earlier paper](preprints/earlier/paper.pdf)",
+      "Earlier abstract.",
+      '<a name="family-379"></a>**379. New family.** New summary. ([Lean](lean/docs/379.md))',
+      "&emsp;[New paper](preprints/new/paper.pdf)",
+      "New abstract.",
+    ].join("\n");
+    const result = parseContents(catalogue);
+    expect(result.rejected).toEqual([]);
+    expect(result.families.map((f) => [f.id, f.manuscripts.map((m) => m.title)])).toEqual(
+      [
+        ["378", ["Earlier paper"]],
+        ["379", ["New paper"]],
+      ],
+    );
+    expect(result.families[0]?.manuscripts[0]?.abstract).toBe("Earlier abstract.");
+    expect(result.families[1]?.lean).toBe("lean/docs/379.md");
+  });
+
+  it("refuses an anchor that disagrees with its family number", () => {
+    const result = parseContents(
+      [
+        "**378. Prior family.**",
+        '<a name="family-380"></a>**379. Mismatched family.**',
+        "&emsp;[New paper](preprints/new/paper.pdf)",
+      ].join("\n"),
+    );
+    expect(result.families).toHaveLength(1);
+    expect(result.families[0]?.manuscripts).toEqual([]);
+    expect(result.rejected.map((entry) => entry.reason)).toContain(
+      "family anchor and title number disagree",
+    );
+  });
+});
 
 describe("index integrity", () => {
   it("is deterministic: the same files give the same index, and the content hash ignores when it was made", () => {

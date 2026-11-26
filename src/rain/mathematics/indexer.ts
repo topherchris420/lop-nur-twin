@@ -269,6 +269,10 @@ interface ContentsFamily {
 const FAMILY_LINE = /^\*\*([0-9]+)\. (.*?)\.\*\*(?:\s+(.*))?$/;
 /** A line that sets out to be a family entry — a bold number and a period — well-formed or not. */
 const FAMILY_CANDIDATE = /^\*\*[0-9]+\.\s/;
+// Recent catalogue rows put a named anchor immediately before the bold title.
+const FAMILY_ANCHOR = /^<a name="family-([0-9]+)"><\/a>/;
+const familyCandidate = (line: string) =>
+  FAMILY_CANDIDATE.test(line) || FAMILY_ANCHOR.test(line);
 const LEAN_SUFFIX = /\s*\(\[Lean\]\(([^)\s]+)\)\)\s*$/;
 const BLOCK_END = /^<\/?(?:td|tr|tbody|thead|table)\b/;
 
@@ -286,7 +290,7 @@ export function parseContents(text: string): {
     let i = from;
     for (; i < ls.length; i++) {
       const l = ls[i]!;
-      if (BLOCK_END.test(l.trim()) || l.startsWith("&emsp;[") || FAMILY_CANDIDATE.test(l))
+      if (BLOCK_END.test(l.trim()) || l.startsWith("&emsp;[") || familyCandidate(l))
         break;
       out.push(l);
     }
@@ -302,12 +306,21 @@ export function parseContents(text: string): {
   };
   for (let i = 0; i < ls.length; i++) {
     const l = ls[i]!;
-    if (FAMILY_CANDIDATE.test(l)) {
-      const m = FAMILY_LINE.exec(l);
+    if (familyCandidate(l)) {
+      const anchor = FAMILY_ANCHOR.exec(l);
+      const m = FAMILY_LINE.exec(anchor ? l.slice(anchor[0].length) : l);
       if (!m || !RULES.family.test(m[1]!)) {
         rejected.push({
           where: `CONTENTS.md:${i + 1}`,
           reason: "a family entry must read **NNN. Title.** with a three-digit number",
+        });
+        current = null;
+        continue;
+      }
+      if (anchor && anchor[1] !== m[1]) {
+        rejected.push({
+          where: `CONTENTS.md:${i + 1}`,
+          reason: "family anchor and title number disagree",
         });
         current = null;
         continue;
