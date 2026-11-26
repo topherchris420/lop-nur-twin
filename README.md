@@ -1,8 +1,12 @@
 # Lop Nur Twin
 
-**One landscape. Several worlds. A clear boundary between evidence and imagination.**
+**One landscape. Many scales of existence. A computational research multiverse.**
 
-Begin over the desert airfield at Lop Nur. Inspect the evidence behind a modeled structure, rewind the historical record, then follow a different door: walk Bethesda, witness R.A.I.N. Lab's research, explore Noeterra's changing civilizations, enter Blacksite's fictional first-person simulation, or observe Eva and ECHO in their persistent environments. These are connected experiences, but they do not all make the same claims about reality.
+Lop Nur Twin is an open-source simulation and research platform by Vers3Dynamics. Beginning with an evidence-marked reconstruction of 46.24 km² of desert around the Lop Nur airfield, it opens into a collection of environments for investigating geography, civilization, decision-making, artificial life, and intelligence.
+
+The connecting idea is simple: a simulated world can be more than a place to explore. It can become an instrument for asking questions, testing hypotheses, and examining the consequences of decisions.
+
+Walk a city, govern a civilization, enter a fictional game, observe persistent digital organisms, or follow a scientific experiment from question to recorded result. Each experience has its own rules and evidentiary limits; together they share a commitment to inspectable records, explicit uncertainty, and reproducibility where supported.
 
 **[Explore the 3D twin](https://lop-nur-twin.vercel.app/)** · **[Walk Bethesda](#bethesda)** · **[Visit R.A.I.N. Lab](#rain-lab)** · **[Play Blacksite](https://lop-nur-twin.vercel.app/play)** · **[Explore Noeterra](https://lop-nur-twin.vercel.app/noeterra)** · **[Observe ECHO live](https://lop-nur-twin.vercel.app/live)** · [Run locally](#07-reproduce-the-work)
 
@@ -34,6 +38,19 @@ _Actual application captures, not concept art. The airfield has an evidence ledg
 </table>
 
 [Airfield evidence](docs/media/readme/gallery/twin.jpg) · [Bethesda streets](docs/media/readme/gallery/bethesda.jpg) · [Noeterra's map](docs/media/readme/gallery/noeterra.jpg) · [Game screenshot](docs/screenshot-blacksite.png) · [Live fly](docs/media/readme/gallery/live-fly.jpg)
+
+## From landscapes to living systems
+
+| Scale                 | Experience                                        | What it lets you investigate                                                                  |
+| --------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Geographic            | [Lop Nur](#01-lop-nur-and-the-evidence-behind-it) | Spatial evidence, uncertainty, and historical revisions                                       |
+| Urban                 | [Bethesda](#bethesda)                             | Simulated mobility, disruption, and collective behavior                                       |
+| Civilizational        | [Noeterra](#noeterra)                             | Diplomacy, memory, economics, and counterfactual history                                      |
+| Decision-making       | [Blacksite](#blacksite)                           | Human, scripted, and model-controlled decisions in a fictional environment                    |
+| Biological and neural | [Eva and ECHO](#eva-and-echo)                     | Persistent artificial life, individual histories, and separate connectome-derived experiments |
+| Scientific            | [R.A.I.N. Lab](#rain-lab)                         | Hypotheses, registered protocols, replay, criticism, and negative results                     |
+
+These worlds form a shared research ecosystem, not a single physically coupled simulation. A historical source, a simulated outcome, a fictional event, and a biological hypothesis are different kinds of claims. The platform keeps those distinctions visible. Its digital organisms are research simulations, not validated biological equivalents or evidence of consciousness.
 
 ## Explore. Influence. Discover.
 
