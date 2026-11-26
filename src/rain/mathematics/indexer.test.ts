@@ -52,6 +52,43 @@ describe("catalogue family anchors", () => {
   });
 });
 
+describe("Lean scope manuscript destinations", () => {
+  const scope = fixtureFile("lean/docs/017.md")!;
+  const relative =
+    "../../preprints/The-irrationality-exponent-of-pi-is-2-September-24-2026/paper.pdf";
+  const upstream = "https://github.com/openai/math/blob/main/";
+  const local = relative.slice(6);
+
+  it("links a recognized upstream URL to the pinned family's manuscript", () => {
+    expect(scope).toContain(relative);
+    const result = family(
+      fixtureIndex({
+        overrides: { "lean/docs/017.md": scope.replace(relative, upstream + local) },
+      }),
+      "017",
+    );
+    expect(result.formalization?.papers).toEqual([local]);
+    expect(result.manuscripts[0]?.status).toBe("formalized");
+  });
+
+  it.each([
+    "https://example.com/openai/math/blob/main/",
+    "https://github.com/openai/other/blob/main/",
+    "https://github.com/openai/math/blob/other/",
+    "https://github.com/openai/math/blob/main/../",
+    "https://github.com/openai/math/blob/main/%2e%2e/",
+  ])("does not treat %s as provenance for the manuscript", (root) => {
+    const result = family(
+      fixtureIndex({
+        overrides: { "lean/docs/017.md": scope.replace(relative, root + local) },
+      }),
+      "017",
+    );
+    expect(result.formalization?.papers).toEqual([]);
+    expect(result.manuscripts[0]?.status).not.toBe("formalized");
+  });
+});
+
 describe("comparator destinations", () => {
   const scope = fixtureFile("lean/docs/017.md")!;
   const flat = "../ComparatorChallenges/PiExponent.lean";
@@ -400,6 +437,20 @@ describe("the pinned index", () => {
     const fenced = /```\n([\s\S]*?)```/.exec(license)?.[1] ?? "";
     expect(sha256(fenced)).toBe(pinned.license.sha256);
     expect(fenced).toMatch(/Apache License\s+Version 2\.0/);
+  });
+
+  it("attributes September's multiplication manuscript without moving November's from family 379", () => {
+    const september =
+      "preprints/Integer-multiplication-below-n-log-n-September-23-2026/paper.pdf";
+    const november =
+      "preprints/The-logarithmic-exponent-of-integer-multiplication-on-tapes-November-24-2026/paper.pdf";
+    const f = family(pinned, "109");
+    expect(f.formalization?.papers).toEqual([september]);
+    expect(f.manuscripts).toMatchObject([{ path: september, status: "formalized" }]);
+    expect(f.issues).toContain(
+      "its Lean scope page names a manuscript the family does not hold",
+    );
+    expect(family(pinned, "379").formalization?.papers).toContain(november);
   });
 
   it("keeps the Hodge family's narrower CM scope and excludes withdrawn October 7 papers", () => {

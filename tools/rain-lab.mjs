@@ -1281,6 +1281,59 @@ try {
         );
       }
       await c.axe("Experiment Bay with a mathematical basis");
+      await c.click("Research Panel");
+      for (const [id, query] of [
+        ["380", "strongly polynomial-time linear programming"],
+        ["032", "rational Hodge conjecture for CM abelian varieties"],
+      ]) {
+        await c.type(
+          await c.control(
+            "MATHEMATICAL SUBSTRATE",
+            "Question for the substrate",
+            "input",
+          ),
+          query,
+        );
+        await c.click("Search the substrate");
+        await c.waitFor(
+          (family) =>
+            [...document.querySelectorAll("button")].some(
+              (b) => b.textContent.trim() === "Inspect family " + family,
+            ),
+          60000,
+          id,
+        );
+        await c.click("Inspect family " + id);
+      }
+      await c.waitFor(() =>
+        [...document.querySelectorAll("button[aria-pressed]")].some(
+          (b) => b.textContent.trim() === "Family 032",
+        ),
+      );
+      await c.click("Family 380");
+      await c.waitFor(
+        () =>
+          document.querySelectorAll('[aria-label="Comparator statements"] > li')
+            .length === 9,
+      );
+      await c.click("Family 032");
+      await c.waitFor(() =>
+        [...document.querySelectorAll('button[aria-pressed="true"]')].some(
+          (b) => b.textContent.trim() === "Family 032",
+        ),
+      );
+      check(
+        "LIVE: switching families removes repeated comparator rows from the previous record",
+        await c.page.evaluate(() => {
+          const rows = [
+            ...document.querySelectorAll('[aria-label="Comparator statements"] > li'),
+          ];
+          return (
+            rows.length === 1 &&
+            rows[0].textContent.includes("Rational Hodge classes on CM abelian varieties")
+          );
+        }),
+      );
       await c.click("Evidence Library");
       check(
         "LIVE: the evidence library says mathematics is not evidence, and lists none",

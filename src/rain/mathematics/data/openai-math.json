@@ -8964,7 +8964,9 @@
         "name": "Theoretical computer science"
       },
       "formalization": {
-        "papers": [],
+        "papers": [
+          "preprints/Integer-multiplication-below-n-log-n-September-23-2026/paper.pdf"
+        ],
         "path": "lean/docs/109.md",
         "scope": "One fixed deterministic multitape Turing machine writes the full $2n$-bit product of two $n$-bit integers for every $n\\ge1$. Its worst-case time is at most $n(\\log n)^{1/2+o(1)}$, and it visits $O(n)$ tape cells.\n\nUnder Weak ETH, even the low $n$ product bits require $\\Omega(n\\sqrt{\\log_2 n})$ worst-case time. Thus $1/2$ is the infimum of exponents $r$ permitting exact deterministic multiplication in $O(n(\\log n)^r)$ time. The theorem leaves attainment at $r=1/2$ open. Weak ETH rules out deterministic 3-SAT in time $2^{O(v^{1-\\eta})}L^{O(1)}$ for fixed $0<\\eta<1$, with $v$ variables and input length $L$.\n\nThe same lower bound applies to a randomized machine's deadline if its success probability is at least $2^{-n/100}$ over uniform inputs and private randomness. Success means halting and accepting by the deadline with at most $n/100$ wrong low bits. For nondeterministic machines, it suffices that this fraction of inputs admit a timely accepting run and every accepting output is exact.",
         "sha256": "7cc2acf75b770f059dab289f69058de5fb5500ceb32e2ccf7dbf692b02607c1d",
@@ -9064,7 +9066,7 @@
           "notes": [],
           "path": "preprints/Integer-multiplication-below-n-log-n-September-23-2026/paper.pdf",
           "readme_sha256": "8d1ceff898a4e0e681679f91c4def485820be9e99f04e4861f2ce601a364723e",
-          "status": "manuscript",
+          "status": "formalized",
           "title": "Integer multiplication below n log n"
         }
       ],
@@ -32140,7 +32142,7 @@
   "repository": "openai/math",
   "repository_url": "https://github.com/openai/math",
   "schema": "rain-math-substrate-index/v1",
-  "generated_at": "2026-11-26T08:28:54.843Z",
+  "generated_at": "2026-11-26T16:29:45.038Z",
   "generator": "scripts/math-substrate.ts index",
-  "content_sha256": "25322b175b325f7d008f02112970ff606b2356e4bece1335c4c0a649dca13369"
+  "content_sha256": "19dff915bbc68824fbeeb7272bbc6bd65b18c5dd25dc2916b1026c77b439cc98"
 }

@@ -532,6 +532,18 @@ export function parseManuscriptReadme(text: string): {
   };
 }
 
+// Upstream sometimes uses its own GitHub main URL rather than a relative
+// link. Use it only as a path into the pinned family, never as a network read.
+function scopeManuscript(target: string): string | null {
+  const upstream = "https://github.com/openai/math/blob/main/";
+  const path = target.startsWith("../../")
+    ? target.slice(6)
+    : target.startsWith(upstream)
+      ? target.slice(upstream.length)
+      : "";
+  return RULES.manuscriptPath.test(path) ? path : null;
+}
+
 /** A Lean scope page: its title, the manuscripts it accompanies, its scope and its statements. */
 export function parseScopePage(text: string): {
   title: string;
@@ -550,7 +562,8 @@ export function parseScopePage(text: string): {
   for (const l of ls.slice(1, scopeAt)) {
     const m = /^-\s+(\[.*)$/.exec(l.trim());
     const link = m ? markdownLink(m[1]!) : null;
-    if (link && link.target.startsWith("../../")) papers.push(link.target.slice(6));
+    const path = link && scopeManuscript(link.target);
+    if (path && !papers.includes(path)) papers.push(path);
   }
   const statements: { result: string; statement: string }[] = [];
   for (const l of ls.slice(linksAt + 1)) {
