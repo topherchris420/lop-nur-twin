@@ -8,6 +8,7 @@ import {
   parseBasisEntry,
   type MathematicalBasisEntry,
 } from "./contracts";
+import pinnedMath from "./data/openai-math.json" with { type: "json" };
 import { FIXTURE_COMMIT, fixtureIndex } from "./fixture";
 import {
   MathematicalSubstrate,
@@ -51,8 +52,8 @@ describe("loading fails closed", () => {
   });
   it("loads the pinned index", () => {
     const s = MathematicalSubstrate.load(bundledIndex(), () => NOW);
-    expect(s.status().substrate.commit).toMatch(/^[0-9a-f]{40}$/);
-    expect(s.status().substrate.counts.families).toBe(372);
+    expect(s.status().substrate.commit).toBe(pinnedMath.commit);
+    expect(s.status().substrate.counts).toEqual(pinnedMath.counts);
   });
 });
 

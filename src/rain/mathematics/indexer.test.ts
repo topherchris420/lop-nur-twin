@@ -160,10 +160,17 @@ describe("index integrity", () => {
       family(a, "003").manuscripts.map((m) => m.id),
     );
   });
-  it("records exactly the families copied verbatim from the pinned commit as the pinned index does", () => {
+  it("preserves the four Oct 6 fixture families independently of the shipped snapshot", () => {
     const ix = fixtureIndex();
-    expect(ix.commit).toBe(pinned.commit);
-    for (const id of REAL_FAMILIES) expect(family(ix, id)).toEqual(family(pinned, id));
+    expect(ix.commit).toBe("adc7f1241b42e322a6451854ab7e4b4c146bf78a");
+    // SHA-256 of the four family records in the previous bundled index. The
+    // production snapshot can advance without silently changing this fixture.
+    expect(REAL_FAMILIES.map((id) => sha256(JSON.stringify(family(ix, id))))).toEqual([
+      "96295dd8b47720c33ea5cff0b08d311dd29850bb3cabdb24de269b38af97b748",
+      "92ade4ac81fc8cd9b197743bd03232c86f5737ad52e32823def0e0ebd7721a1f",
+      "447b44436f4eb29ce301b0b0ee09f69b167039c08266430b45c2943698e39764",
+      "9a18c76f6cad865d727bcde3f5fecf9c104c28b0cb97bf7a97b7f913b55cd432",
+    ]);
   });
   it("refuses duplicates and malformed entries, and records why", () => {
     const ix = fixtureIndex();
@@ -377,17 +384,33 @@ describe("the pinned index", () => {
   it("passes every check, and the licence beside it is the one it hashed", () => {
     expect(indexErrors(pinned)).toEqual([]);
     expect(pinned.repository).toBe("openai/math");
-    expect(pinned.counts).toMatchObject({
-      families: 372,
-      manuscripts: 722,
+    expect(pinned.commit).toBe("3344da59991ed94f9ba711217b29c1d760badfa6");
+    expect(pinned.counts).toEqual({
       disciplines: 17,
+      families: 375,
+      formalizations: 248,
+      manuscripts: 730,
+      reasoning_summaries: 10,
       rejected: 0,
-      unverified_families: 0,
-      unverified_manuscripts: 0,
+      statements: 464,
+      unverified_families: 6,
+      unverified_manuscripts: 9,
     });
     const license = readFileSync(new URL("./data/LICENSE.md", import.meta.url), "utf8");
     const fenced = /```\n([\s\S]*?)```/.exec(license)?.[1] ?? "";
     expect(sha256(fenced)).toBe(pinned.license.sha256);
     expect(fenced).toMatch(/Apache License\s+Version 2\.0/);
+  });
+
+  it("keeps the Hodge family's narrower CM scope and excludes withdrawn October 7 papers", () => {
+    const hodge = family(pinned, "032");
+    expect(hodge.title).toBe("The rational Hodge conjecture for CM abelian varieties");
+    expect(hodge.formalization?.path).toBe("lean/docs/032.md");
+    expect(hodge.formalization?.papers).toEqual([
+      "preprints/The-rational-Hodge-conjecture-for-CM-abelian-varieties-October-6-2026/paper.pdf",
+    ]);
+    expect(hodge.manuscripts.some(({ id }) => id.endsWith("-October-7-2026"))).toBe(
+      false,
+    );
   });
 });
