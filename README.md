@@ -41,14 +41,14 @@ _Actual application captures, not concept art. The airfield has an evidence ledg
 
 ## From landscapes to living systems
 
-| Scale | Experience | What it lets you investigate |
-| --- | --- | --- |
-| Geographic | [Lop Nur](#01-the-question) | Spatial evidence, uncertainty, and historical revisions |
-| Urban | [Bethesda](#bethesda) | Simulated mobility, disruption, and collective behavior |
-| Civilizational | [Noeterra](#noeterra) | Diplomacy, memory, economics, and counterfactual history |
-| Decision-making | [Blacksite](#blacksite) | Human, scripted, and model-controlled decisions in a fictional environment |
-| Biological and neural | [Eva and ECHO](#eva-and-echo) | Persistent artificial life, individual histories, and separate connectome-derived experiments |
-| Scientific | [R.A.I.N. Lab](#rain-lab) | Hypotheses, registered protocols, replay, criticism, and negative results |
+| Scale                 | Experience                                        | What it lets you investigate                                                                  |
+| --------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Geographic            | [Lop Nur](#01-lop-nur-and-the-evidence-behind-it) | Spatial evidence, uncertainty, and historical revisions                                       |
+| Urban                 | [Bethesda](#bethesda)                             | Simulated mobility, disruption, and collective behavior                                       |
+| Civilizational        | [Noeterra](#noeterra)                             | Diplomacy, memory, economics, and counterfactual history                                      |
+| Decision-making       | [Blacksite](#blacksite)                           | Human, scripted, and model-controlled decisions in a fictional environment                    |
+| Biological and neural | [Eva and ECHO](#eva-and-echo)                     | Persistent artificial life, individual histories, and separate connectome-derived experiments |
+| Scientific            | [R.A.I.N. Lab](#rain-lab)                         | Hypotheses, registered protocols, replay, criticism, and negative results                     |
 
 These worlds form a shared research ecosystem, not a single physically coupled simulation. A historical source, a simulated outcome, a fictional event, and a biological hypothesis are different kinds of claims. The platform keeps those distinctions visible. Its digital organisms are research simulations, not validated biological equivalents or evidence of consciousness.
 
