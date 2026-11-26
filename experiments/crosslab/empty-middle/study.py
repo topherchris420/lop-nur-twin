@@ -454,9 +454,12 @@ def _delta(a, b):
 def numerics_ok(delta, record, protocol):
     """Checks V2 and V8 for one cell's selected setting.
 
-    A change passes below the check tolerance, or below a tenth of the distance
-    from the nearer bound of the cell's dev interval to its threshold, where it
-    cannot move the verdict.
+    A change in F or M is held below the check tolerance, or below a tenth of
+    the distance from the nearer bound of the cell's dev interval to its
+    threshold. The check passes when the held changes cannot move the verdict:
+    a PASS or INCONCLUSIVE cell needs F and M both held, and a FAIL cell needs
+    at least one criterion it fails held, since that criterion alone keeps it
+    FAIL.
     """
     if not delta or not delta.get("evaluable"):
         return False
@@ -465,7 +468,13 @@ def numerics_ok(delta, record, protocol):
     interval = record["dev_interval"]
     room_F = min(abs(b - t["arrival_min"]) for b in interval["F"]) / 10
     room_M = min(abs(b - t["middle_max"]) for b in interval["M"]) / 10
-    return delta["F"] < max(tolerance, room_F) and delta["M"] < max(tolerance, room_M)
+    held_F = delta["F"] < max(tolerance, room_F)
+    held_M = delta["M"] < max(tolerance, room_M)
+    fails_F = interval["F"][1] < t["arrival_min"]
+    fails_M = interval["M"][0] >= t["middle_max"]
+    if fails_F or fails_M:
+        return (fails_F and held_F) or (fails_M and held_M)
+    return held_F and held_M
 
 
 def _dumps(value, level=0):

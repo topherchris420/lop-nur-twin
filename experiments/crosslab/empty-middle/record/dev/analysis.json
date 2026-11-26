@@ -1,5 +1,5 @@
 {
-  "H1": "INVALID",
+  "H1": "MICROSCALE ONLY",
   "H2": {
     "G1": {
       "predicted": 2,
@@ -19,24 +19,24 @@
   },
   "H3": "CONTRADICTED",
   "check_failures": {
-    "V2": ["G1-d15-generous"],
+    "V2": [],
     "V4": [],
-    "V8": ["G1-d07-generous"]
+    "V8": []
   },
   "checks": {
     "V1": true,
-    "V2": false,
+    "V2": true,
     "V3": true,
     "V4": true,
     "V5": true,
     "V6": true,
     "V7": true,
-    "V8": false
+    "V8": true
   },
   "complete": true,
   "compute_cap_exceeded": [],
-  "cpu_hours": 7.550506616266664,
-  "design_sha256": "e084145d17091a50d5fad1161b45a461c976619c2f3c550d8b1e0282a22a5beb",
+  "cpu_hours": 6.925528872875,
+  "design_sha256": "e883d9b7e2a6c282232f77a75e973a9bf1b3d1a9347578bdaf37cc0d6d4db8c4",
   "limits": {
     "generous": {
       "D_star_um": 100.0,

@@ -139,13 +139,13 @@
   },
   "checks": {
     "V1": "every run conserves norm to 1e-8",
-    "V2": "on the first dev seed, doubling the explicit window and its mode cap at each selected setting changes F and M by less than 1e-4, or by less than a tenth of the distance from the nearer bound of that cell's dev interval to the threshold",
+    "V2": "on the first dev seed, doubling the explicit window and its mode cap at each selected setting cannot move that cell's verdict: a change is held when it is under 1e-4 or under a tenth of the distance from the nearer bound of that cell's dev interval to its threshold; a PASS or INCONCLUSIVE cell needs F and M both held, and a FAIL cell needs at least one criterion it fails held",
     "V3": "G0 at 1 kHz with its dev-selected pulse area is PASS at the reference budget",
     "V4": "every selected setting re-run with the A side first is FAIL on M; a re-run past the elimination cap counts as FAIL on M, since the middle then holds more than a tenth of the atom on some seed",
     "V5": "every result record carries the SHA-256 of this protocol's content without its status and registration date, and it matches",
     "V6": "no held-out seed appears in any development log before the held-out run",
     "V7": "at 1 um, at least one of G1 to G3 is PASS at the generous budget",
-    "V8": "on the first dev seed, doubling the step count at each selected setting changes F and M by less than 1e-4, or by less than a tenth of the distance from the nearer bound of that cell's dev interval to the threshold"
+    "V8": "on the first dev seed, doubling the step count at each selected setting cannot move that cell's verdict: a change is held when it is under 1e-4 or under a tenth of the distance from the nearer bound of that cell's dev interval to its threshold; a PASS or INCONCLUSIVE cell needs F and M both held, and a FAIL cell needs at least one criterion it fails held"
   },
   "compute_cap_cpu_hours_per_cell": 8,
   "amendments_before_freeze": [
@@ -156,6 +156,7 @@
     "V2 and V8 also pass a change smaller than a tenth of the distance from the cell's nearer dev-interval bound to its threshold, since such a change cannot move a verdict. In development, G1 at 10 um (reference) selected a fast, failed transfer with F = 0.003 and M = 0.25, where doubling the steps or the window changed M by 1.3e-4 on the first dev seed; under the draft rule that alone would make H1 INVALID. V2 also doubles the mode cap with the window.",
     "V5 hashes the protocol's content without status and registered, so a development search run before the freeze stays bound to the frozen protocol, and the held-out runner refuses any selected setting whose record carries another hash.",
     "Elimination cap. The per-mode rule bounds each eliminated mode but not their sum, and in development G1 at 100 um (generous, 42.17 Hz, area 10) reported a middle occupation of 1.29 with its reduced state still normalized; on the first dev seed, doubling the window lowered it to 0.59. A setting whose eliminated population exceeds 0.1 of the trap population at any sample is now an elimination-cap fail. Such a setting cannot pass on dev seeds or without noise, so no verdict changes, and every kept run reports a middle occupation of at most 1. V4 counts a reversed re-run past the cap as FAIL on M.",
-    "Inputs are checked. H2 and H3 read only noiseless records made under this protocol and are INCOMPLETE, a new verdict for them, when any is missing, so a partial or stale search no longer reads as a finished one. The held-out run checks the whole development search before it makes a held-out seed or writes a file, so a missing or stale record cannot use up the held-out split."
+    "Inputs are checked. H2 and H3 read only noiseless records made under this protocol and are INCOMPLETE, a new verdict for them, when any is missing, so a partial or stale search no longer reads as a finished one. The held-out run checks the whole development search before it makes a held-out seed or writes a file, so a missing or stale record cannot use up the held-out split.",
+    "Convergence checks follow the verdict. V2 and V8 judged F and M separately, so a large change in a quantity that did not decide the verdict failed them. The first full development search read H1 as INVALID on two G1 cells, generous budget, that fail by a wide margin: at 75 um doubling the window moved M by 0.013 against an allowance of 0.0076 while F stayed at most 0.0003, and at 7.5 um doubling the steps moved F by 1.82e-4 against 1.78e-4 while M stayed at least 0.054. A FAIL cell now passes these checks when any one criterion it fails is held, since that criterion alone keeps it FAIL; PASS and INCONCLUSIVE cells still need both held. This change was made after seeing that development search, before any held-out seed exists."
   ]
 }

@@ -17,9 +17,9 @@
     "evaluable": true
   },
   "budget": "reference",
-  "cpu_s": 18.36964404599985,
+  "cpu_s": 18.505409912000687,
   "design": "G2",
-  "design_sha256": "e084145d17091a50d5fad1161b45a461c976619c2f3c550d8b1e0282a22a5beb",
+  "design_sha256": "e883d9b7e2a6c282232f77a75e973a9bf1b3d1a9347578bdaf37cc0d6d4db8c4",
   "dev_interval": {
     "F": [0.7847067836533898, 0.8874020773857034],
     "M": [0.29233386260679, 0.37026642166125057]
