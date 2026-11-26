@@ -52,6 +52,83 @@ describe("catalogue family anchors", () => {
   });
 });
 
+describe("comparator destinations", () => {
+  const scope = fixtureFile("lean/docs/017.md")!;
+  const flat = "../ComparatorChallenges/PiExponent.lean";
+
+  it.each(["#L1", "#L1-L3"])(
+    "looks up the plain file for a %s scope link",
+    (fragment) => {
+      const index = fixtureIndex({
+        overrides: { "lean/docs/017.md": scope.replace(flat, flat + fragment) },
+      });
+      const result = family(index, "017");
+      expect(result.status).toBe("formalized");
+      expect(result.formalization?.statements[0]?.statement_path).toBe(
+        "lean/ComparatorChallenges/PiExponent.lean",
+      );
+      expect(result.formalization?.statements[0]?.config_path).toBe(
+        "lean/ComparatorChallenges/PiExponent.json",
+      );
+    },
+  );
+
+  it("does not treat arbitrary fragments as file metadata", () => {
+    const index = fixtureIndex({
+      overrides: { "lean/docs/017.md": scope.replace(flat, flat + "#not-a-line") },
+    });
+    expect(family(index, "017").status).toBe("unverified");
+    expect(family(index, "017").formalization?.statements).toEqual([]);
+  });
+
+  it("uses a unique explicitly catalogued nested config naming the requested challenge", () => {
+    const config = (challenge_module: string) =>
+      JSON.stringify({
+        ...JSON.parse(fixtureFile("lean/ComparatorChallenges/PiExponent.json")!),
+        challenge_module,
+      });
+    const challenge = "ComparatorChallenges.Nested.Challenge";
+    const yaml = fixtureFile("lean/formalization.yaml")!;
+    const overrides = {
+      "lean/docs/017.md": scope.replace(
+        flat,
+        "../ComparatorChallenges/Nested/Challenge.lean",
+      ),
+      "lean/ComparatorChallenges/Nested/Challenge.lean": null,
+      "lean/ComparatorChallenges/Nested/main.json": config(challenge),
+      "lean/formalization.yaml": yaml.replace(
+        "  main_results:",
+        "  main_results:\n    - comparator_config: ComparatorChallenges/Nested/main.json",
+      ),
+    };
+    const resolved = family(fixtureIndex({ overrides }), "017");
+    expect(resolved.status).toBe("formalized");
+    expect(resolved.formalization?.statements[0]?.config_path).toBe(
+      "lean/ComparatorChallenges/Nested/main.json",
+    );
+    const wrong = fixtureIndex({
+      overrides: {
+        ...overrides,
+        "lean/ComparatorChallenges/Nested/main.json": config(
+          "ComparatorChallenges.Other",
+        ),
+      },
+    });
+    expect(family(wrong, "017").status).toBe("unverified");
+    const ambiguous = fixtureIndex({
+      overrides: {
+        ...overrides,
+        "lean/ComparatorChallenges/Nested/second.json": config(challenge),
+        "lean/formalization.yaml": overrides["lean/formalization.yaml"].replace(
+          "  main_results:",
+          "  main_results:\n    - comparator_config: ComparatorChallenges/Nested/second.json",
+        ),
+      },
+    });
+    expect(family(ambiguous, "017").status).toBe("unverified");
+  });
+});
+
 describe("index integrity", () => {
   it("is deterministic: the same files give the same index, and the content hash ignores when it was made", () => {
     const a = fixtureIndex();

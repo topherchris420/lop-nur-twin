@@ -582,6 +582,54 @@ export function parseScopePage(text: string): {
 const stringList = (v: unknown) =>
   Array.isArray(v) && v.every((s) => typeof s === "string") ? v : null;
 
+/** File metadata does not include GitHub URL line ranges; the scope page keeps them. */
+function comparatorFile(target: string): string | null {
+  const statement = target.replace(/#L[1-9][0-9]*(?:-L[1-9][0-9]*)?$/, "");
+  return statement.startsWith("lean/ComparatorChallenges/") &&
+    statement.endsWith(".lean") &&
+    RULES.leanPath.test(statement) &&
+    SAFE_RELATIVE_PATH.test(statement)
+    ? statement
+    : null;
+}
+
+function comparatorConfig(
+  statement: string,
+  tree: SourceTree,
+  catalogue: Catalogue,
+  read: SourceTree["read"],
+) {
+  const conventional = statement.replace(/\.lean$/, ".json");
+  const parse = (path: string) => {
+    const source = read(path);
+    if (source === null) return null;
+    try {
+      const json: unknown = JSON.parse(source);
+      return json && typeof json === "object" && !Array.isArray(json)
+        ? { path, source, json: json as Record<string, unknown> }
+        : null;
+    } catch {
+      return null;
+    }
+  };
+  if (tree.exists(conventional)) return parse(conventional);
+  const directory = statement.slice(0, statement.lastIndexOf("/") + 1);
+  if (directory === "lean/ComparatorChallenges/") return null;
+  const module = statement.slice("lean/".length, -".lean".length).replaceAll("/", ".");
+  const candidates = [...catalogue.mainResults]
+    .filter(
+      (path) =>
+        path.startsWith(directory) &&
+        !path.slice(directory.length).includes("/") &&
+        path.endsWith(".json") &&
+        RULES.leanPath.test(path) &&
+        SAFE_RELATIVE_PATH.test(path),
+    )
+    .map(parse)
+    .filter((meta) => meta?.json.challenge_module === module);
+  return candidates.length === 1 ? (candidates[0] ?? null) : null;
+}
+
 // ---------------------------------------------------------------------------
 // The index.
 // ---------------------------------------------------------------------------
@@ -648,23 +696,18 @@ export function buildIndex(input: IndexInput): SubstrateIndex {
             "its Lean scope page lists more comparator statements than the index keeps",
           );
         for (const s of parsed.statements) {
-          const config = s.statement.replace(/\.lean$/, ".json");
-          const configText = RULES.leanPath.test(config) ? read(config) : null;
-          let json: Record<string, unknown> | null = null;
-          try {
-            json =
-              configText === null
-                ? null
-                : (JSON.parse(configText) as Record<string, unknown>);
-          } catch {
-            json = null;
-          }
+          const statement = comparatorFile(s.statement);
+          const metadata =
+            statement && tree.exists(statement)
+              ? comparatorConfig(statement, tree, catalogue, read)
+              : null;
+          const json = metadata?.json;
           const theorems = stringList(json?.theorem_names);
           const module =
             typeof json?.solution_module === "string" ? json.solution_module : null;
           if (
-            !RULES.leanPath.test(s.statement) ||
-            !tree.exists(s.statement) ||
+            !statement ||
+            !metadata ||
             !json ||
             !theorems ||
             !module ||
@@ -688,9 +731,9 @@ export function buildIndex(input: IndexInput): SubstrateIndex {
           const solutionPath = `lean/${module.replace(/\./g, "/")}.lean`;
           statements.push({
             result: s.result,
-            statement_path: s.statement,
-            config_path: config,
-            config_sha256: sha256(configText!),
+            statement_path: statement,
+            config_path: metadata.path,
+            config_sha256: sha256(metadata.source),
             theorems: theorems.slice(0, 16).map((t) => t.slice(0, 160)),
             definitions: definitions.slice(0, 16).map((t) => t.slice(0, 160)),
             solution_module: module,
@@ -698,7 +741,7 @@ export function buildIndex(input: IndexInput): SubstrateIndex {
             solution_present:
               RULES.leanPath.test(solutionPath) && tree.exists(solutionPath),
             permitted_axioms: axioms.slice(0, 16).map((t) => t.slice(0, 160)),
-            catalogued_main_result: catalogue.mainResults.has(config),
+            catalogued_main_result: catalogue.mainResults.has(metadata.path),
           });
         }
         const holds = new Set(cf.manuscripts.map((m) => m.target));
