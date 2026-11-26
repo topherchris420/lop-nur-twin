@@ -269,6 +269,10 @@ interface ContentsFamily {
 const FAMILY_LINE = /^\*\*([0-9]+)\. (.*?)\.\*\*(?:\s+(.*))?$/;
 /** A line that sets out to be a family entry — a bold number and a period — well-formed or not. */
 const FAMILY_CANDIDATE = /^\*\*[0-9]+\.\s/;
+// Recent catalogue rows put a named anchor immediately before the bold title.
+const FAMILY_ANCHOR = /^<a name="family-([0-9]+)"><\/a>/;
+const familyCandidate = (line: string) =>
+  FAMILY_CANDIDATE.test(line) || FAMILY_ANCHOR.test(line);
 const LEAN_SUFFIX = /\s*\(\[Lean\]\(([^)\s]+)\)\)\s*$/;
 const BLOCK_END = /^<\/?(?:td|tr|tbody|thead|table)\b/;
 
@@ -286,7 +290,7 @@ export function parseContents(text: string): {
     let i = from;
     for (; i < ls.length; i++) {
       const l = ls[i]!;
-      if (BLOCK_END.test(l.trim()) || l.startsWith("&emsp;[") || FAMILY_CANDIDATE.test(l))
+      if (BLOCK_END.test(l.trim()) || l.startsWith("&emsp;[") || familyCandidate(l))
         break;
       out.push(l);
     }
@@ -302,12 +306,21 @@ export function parseContents(text: string): {
   };
   for (let i = 0; i < ls.length; i++) {
     const l = ls[i]!;
-    if (FAMILY_CANDIDATE.test(l)) {
-      const m = FAMILY_LINE.exec(l);
+    if (familyCandidate(l)) {
+      const anchor = FAMILY_ANCHOR.exec(l);
+      const m = FAMILY_LINE.exec(anchor ? l.slice(anchor[0].length) : l);
       if (!m || !RULES.family.test(m[1]!)) {
         rejected.push({
           where: `CONTENTS.md:${i + 1}`,
           reason: "a family entry must read **NNN. Title.** with a three-digit number",
+        });
+        current = null;
+        continue;
+      }
+      if (anchor && anchor[1] !== m[1]) {
+        rejected.push({
+          where: `CONTENTS.md:${i + 1}`,
+          reason: "family anchor and title number disagree",
         });
         current = null;
         continue;
@@ -519,6 +532,18 @@ export function parseManuscriptReadme(text: string): {
   };
 }
 
+// Upstream sometimes uses its own GitHub main URL rather than a relative
+// link. Use it only as a path into the pinned family, never as a network read.
+function scopeManuscript(target: string): string | null {
+  const upstream = "https://github.com/openai/math/blob/main/";
+  const path = target.startsWith("../../")
+    ? target.slice(6)
+    : target.startsWith(upstream)
+      ? target.slice(upstream.length)
+      : "";
+  return RULES.manuscriptPath.test(path) ? path : null;
+}
+
 /** A Lean scope page: its title, the manuscripts it accompanies, its scope and its statements. */
 export function parseScopePage(text: string): {
   title: string;
@@ -537,7 +562,8 @@ export function parseScopePage(text: string): {
   for (const l of ls.slice(1, scopeAt)) {
     const m = /^-\s+(\[.*)$/.exec(l.trim());
     const link = m ? markdownLink(m[1]!) : null;
-    if (link && link.target.startsWith("../../")) papers.push(link.target.slice(6));
+    const path = link && scopeManuscript(link.target);
+    if (path && !papers.includes(path)) papers.push(path);
   }
   const statements: { result: string; statement: string }[] = [];
   for (const l of ls.slice(linksAt + 1)) {
@@ -568,6 +594,54 @@ export function parseScopePage(text: string): {
 
 const stringList = (v: unknown) =>
   Array.isArray(v) && v.every((s) => typeof s === "string") ? v : null;
+
+/** File metadata does not include GitHub URL line ranges; the scope page keeps them. */
+function comparatorFile(target: string): string | null {
+  const statement = target.replace(/#L[1-9][0-9]*(?:-L[1-9][0-9]*)?$/, "");
+  return statement.startsWith("lean/ComparatorChallenges/") &&
+    statement.endsWith(".lean") &&
+    RULES.leanPath.test(statement) &&
+    SAFE_RELATIVE_PATH.test(statement)
+    ? statement
+    : null;
+}
+
+function comparatorConfig(
+  statement: string,
+  tree: SourceTree,
+  catalogue: Catalogue,
+  read: SourceTree["read"],
+) {
+  const conventional = statement.replace(/\.lean$/, ".json");
+  const parse = (path: string) => {
+    const source = read(path);
+    if (source === null) return null;
+    try {
+      const json: unknown = JSON.parse(source);
+      return json && typeof json === "object" && !Array.isArray(json)
+        ? { path, source, json: json as Record<string, unknown> }
+        : null;
+    } catch {
+      return null;
+    }
+  };
+  if (tree.exists(conventional)) return parse(conventional);
+  const directory = statement.slice(0, statement.lastIndexOf("/") + 1);
+  if (directory === "lean/ComparatorChallenges/") return null;
+  const module = statement.slice("lean/".length, -".lean".length).replaceAll("/", ".");
+  const candidates = [...catalogue.mainResults]
+    .filter(
+      (path) =>
+        path.startsWith(directory) &&
+        !path.slice(directory.length).includes("/") &&
+        path.endsWith(".json") &&
+        RULES.leanPath.test(path) &&
+        SAFE_RELATIVE_PATH.test(path),
+    )
+    .map(parse)
+    .filter((meta) => meta?.json.challenge_module === module);
+  return candidates.length === 1 ? (candidates[0] ?? null) : null;
+}
 
 // ---------------------------------------------------------------------------
 // The index.
@@ -635,23 +709,18 @@ export function buildIndex(input: IndexInput): SubstrateIndex {
             "its Lean scope page lists more comparator statements than the index keeps",
           );
         for (const s of parsed.statements) {
-          const config = s.statement.replace(/\.lean$/, ".json");
-          const configText = RULES.leanPath.test(config) ? read(config) : null;
-          let json: Record<string, unknown> | null = null;
-          try {
-            json =
-              configText === null
-                ? null
-                : (JSON.parse(configText) as Record<string, unknown>);
-          } catch {
-            json = null;
-          }
+          const statement = comparatorFile(s.statement);
+          const metadata =
+            statement && tree.exists(statement)
+              ? comparatorConfig(statement, tree, catalogue, read)
+              : null;
+          const json = metadata?.json;
           const theorems = stringList(json?.theorem_names);
           const module =
             typeof json?.solution_module === "string" ? json.solution_module : null;
           if (
-            !RULES.leanPath.test(s.statement) ||
-            !tree.exists(s.statement) ||
+            !statement ||
+            !metadata ||
             !json ||
             !theorems ||
             !module ||
@@ -675,9 +744,9 @@ export function buildIndex(input: IndexInput): SubstrateIndex {
           const solutionPath = `lean/${module.replace(/\./g, "/")}.lean`;
           statements.push({
             result: s.result,
-            statement_path: s.statement,
-            config_path: config,
-            config_sha256: sha256(configText!),
+            statement_path: statement,
+            config_path: metadata.path,
+            config_sha256: sha256(metadata.source),
             theorems: theorems.slice(0, 16).map((t) => t.slice(0, 160)),
             definitions: definitions.slice(0, 16).map((t) => t.slice(0, 160)),
             solution_module: module,
@@ -685,7 +754,7 @@ export function buildIndex(input: IndexInput): SubstrateIndex {
             solution_present:
               RULES.leanPath.test(solutionPath) && tree.exists(solutionPath),
             permitted_axioms: axioms.slice(0, 16).map((t) => t.slice(0, 160)),
-            catalogued_main_result: catalogue.mainResults.has(config),
+            catalogued_main_result: catalogue.mainResults.has(metadata.path),
           });
         }
         const holds = new Set(cf.manuscripts.map((m) => m.target));

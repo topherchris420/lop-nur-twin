@@ -605,9 +605,9 @@ function InspectedRecord({ store, record }: { store: LabStore; record: MathRecor
               {f.formalization.scope.truncated ? " […]" : ""}
             </p>
           </details>
-          <ul className="mt-1 list-disc pl-4">
-            {f.formalization.statements.map((st) => (
-              <li key={st.statement_path}>
+          <ul aria-label="Comparator statements" className="mt-1 list-disc pl-4">
+            {f.formalization.statements.map((st, row) => (
+              <li key={JSON.stringify([f.id, st.statement_path, st.result, row])}>
                 {readable(st.result)}: <code>{st.theorems.join(", ")}</code>{" "}
                 <span className={quiet}>
                   ({st.statement_path}; solution {st.solution_module}

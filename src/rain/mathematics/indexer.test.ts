@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { sha256 } from "../sha256";
 import bundled from "./data/openai-math.json" with { type: "json" };
 import { FIXTURE_COMMIT, REAL_FAMILIES, fixtureFile, fixtureIndex } from "./fixture";
-import { markdownLink, parseManuscriptReadme, texGroups } from "./indexer";
+import { markdownLink, parseContents, parseManuscriptReadme, texGroups } from "./indexer";
 import { contentSha256, indexErrors, type SubstrateIndex } from "./substrateIndex";
 
 const pinned = bundled as unknown as SubstrateIndex;
@@ -13,6 +13,158 @@ const family = (ix: SubstrateIndex, id: string) => {
   return f;
 };
 const clone = <T>(v: T): T => structuredClone(v);
+
+describe("catalogue family anchors", () => {
+  it("starts a new family at a named anchor rather than attaching papers to the preceding family", () => {
+    const catalogue = [
+      "**378. Prior family.** Old summary.",
+      "&emsp;[Earlier paper](preprints/earlier/paper.pdf)",
+      "Earlier abstract.",
+      '<a name="family-379"></a>**379. New family.** New summary. ([Lean](lean/docs/379.md))',
+      "&emsp;[New paper](preprints/new/paper.pdf)",
+      "New abstract.",
+    ].join("\n");
+    const result = parseContents(catalogue);
+    expect(result.rejected).toEqual([]);
+    expect(result.families.map((f) => [f.id, f.manuscripts.map((m) => m.title)])).toEqual(
+      [
+        ["378", ["Earlier paper"]],
+        ["379", ["New paper"]],
+      ],
+    );
+    expect(result.families[0]?.manuscripts[0]?.abstract).toBe("Earlier abstract.");
+    expect(result.families[1]?.lean).toBe("lean/docs/379.md");
+  });
+
+  it("refuses an anchor that disagrees with its family number", () => {
+    const result = parseContents(
+      [
+        "**378. Prior family.**",
+        '<a name="family-380"></a>**379. Mismatched family.**',
+        "&emsp;[New paper](preprints/new/paper.pdf)",
+      ].join("\n"),
+    );
+    expect(result.families).toHaveLength(1);
+    expect(result.families[0]?.manuscripts).toEqual([]);
+    expect(result.rejected.map((entry) => entry.reason)).toContain(
+      "family anchor and title number disagree",
+    );
+  });
+});
+
+describe("Lean scope manuscript destinations", () => {
+  const scope = fixtureFile("lean/docs/017.md")!;
+  const relative =
+    "../../preprints/The-irrationality-exponent-of-pi-is-2-September-24-2026/paper.pdf";
+  const upstream = "https://github.com/openai/math/blob/main/";
+  const local = relative.slice(6);
+
+  it("links a recognized upstream URL to the pinned family's manuscript", () => {
+    expect(scope).toContain(relative);
+    const result = family(
+      fixtureIndex({
+        overrides: { "lean/docs/017.md": scope.replace(relative, upstream + local) },
+      }),
+      "017",
+    );
+    expect(result.formalization?.papers).toEqual([local]);
+    expect(result.manuscripts[0]?.status).toBe("formalized");
+  });
+
+  it.each([
+    "https://example.com/openai/math/blob/main/",
+    "https://github.com/openai/other/blob/main/",
+    "https://github.com/openai/math/blob/other/",
+    "https://github.com/openai/math/blob/main/../",
+    "https://github.com/openai/math/blob/main/%2e%2e/",
+  ])("does not treat %s as provenance for the manuscript", (root) => {
+    const result = family(
+      fixtureIndex({
+        overrides: { "lean/docs/017.md": scope.replace(relative, root + local) },
+      }),
+      "017",
+    );
+    expect(result.formalization?.papers).toEqual([]);
+    expect(result.manuscripts[0]?.status).not.toBe("formalized");
+  });
+});
+
+describe("comparator destinations", () => {
+  const scope = fixtureFile("lean/docs/017.md")!;
+  const flat = "../ComparatorChallenges/PiExponent.lean";
+
+  it.each(["#L1", "#L1-L3"])(
+    "looks up the plain file for a %s scope link",
+    (fragment) => {
+      const index = fixtureIndex({
+        overrides: { "lean/docs/017.md": scope.replace(flat, flat + fragment) },
+      });
+      const result = family(index, "017");
+      expect(result.status).toBe("formalized");
+      expect(result.formalization?.statements[0]?.statement_path).toBe(
+        "lean/ComparatorChallenges/PiExponent.lean",
+      );
+      expect(result.formalization?.statements[0]?.config_path).toBe(
+        "lean/ComparatorChallenges/PiExponent.json",
+      );
+    },
+  );
+
+  it("does not treat arbitrary fragments as file metadata", () => {
+    const index = fixtureIndex({
+      overrides: { "lean/docs/017.md": scope.replace(flat, flat + "#not-a-line") },
+    });
+    expect(family(index, "017").status).toBe("unverified");
+    expect(family(index, "017").formalization?.statements).toEqual([]);
+  });
+
+  it("uses a unique explicitly catalogued nested config naming the requested challenge", () => {
+    const config = (challenge_module: string) =>
+      JSON.stringify({
+        ...JSON.parse(fixtureFile("lean/ComparatorChallenges/PiExponent.json")!),
+        challenge_module,
+      });
+    const challenge = "ComparatorChallenges.Nested.Challenge";
+    const yaml = fixtureFile("lean/formalization.yaml")!;
+    const overrides = {
+      "lean/docs/017.md": scope.replace(
+        flat,
+        "../ComparatorChallenges/Nested/Challenge.lean",
+      ),
+      "lean/ComparatorChallenges/Nested/Challenge.lean": null,
+      "lean/ComparatorChallenges/Nested/main.json": config(challenge),
+      "lean/formalization.yaml": yaml.replace(
+        "  main_results:",
+        "  main_results:\n    - comparator_config: ComparatorChallenges/Nested/main.json",
+      ),
+    };
+    const resolved = family(fixtureIndex({ overrides }), "017");
+    expect(resolved.status).toBe("formalized");
+    expect(resolved.formalization?.statements[0]?.config_path).toBe(
+      "lean/ComparatorChallenges/Nested/main.json",
+    );
+    const wrong = fixtureIndex({
+      overrides: {
+        ...overrides,
+        "lean/ComparatorChallenges/Nested/main.json": config(
+          "ComparatorChallenges.Other",
+        ),
+      },
+    });
+    expect(family(wrong, "017").status).toBe("unverified");
+    const ambiguous = fixtureIndex({
+      overrides: {
+        ...overrides,
+        "lean/ComparatorChallenges/Nested/second.json": config(challenge),
+        "lean/formalization.yaml": overrides["lean/formalization.yaml"].replace(
+          "  main_results:",
+          "  main_results:\n    - comparator_config: ComparatorChallenges/Nested/second.json",
+        ),
+      },
+    });
+    expect(family(ambiguous, "017").status).toBe("unverified");
+  });
+});
 
 describe("index integrity", () => {
   it("is deterministic: the same files give the same index, and the content hash ignores when it was made", () => {
@@ -45,10 +197,17 @@ describe("index integrity", () => {
       family(a, "003").manuscripts.map((m) => m.id),
     );
   });
-  it("records exactly the families copied verbatim from the pinned commit as the pinned index does", () => {
+  it("preserves the four Oct 6 fixture families independently of the shipped snapshot", () => {
     const ix = fixtureIndex();
-    expect(ix.commit).toBe(pinned.commit);
-    for (const id of REAL_FAMILIES) expect(family(ix, id)).toEqual(family(pinned, id));
+    expect(ix.commit).toBe("adc7f1241b42e322a6451854ab7e4b4c146bf78a");
+    // SHA-256 of the four family records in the previous bundled index. The
+    // production snapshot can advance without silently changing this fixture.
+    expect(REAL_FAMILIES.map((id) => sha256(JSON.stringify(family(ix, id))))).toEqual([
+      "96295dd8b47720c33ea5cff0b08d311dd29850bb3cabdb24de269b38af97b748",
+      "92ade4ac81fc8cd9b197743bd03232c86f5737ad52e32823def0e0ebd7721a1f",
+      "447b44436f4eb29ce301b0b0ee09f69b167039c08266430b45c2943698e39764",
+      "9a18c76f6cad865d727bcde3f5fecf9c104c28b0cb97bf7a97b7f913b55cd432",
+    ]);
   });
   it("refuses duplicates and malformed entries, and records why", () => {
     const ix = fixtureIndex();
@@ -262,17 +421,47 @@ describe("the pinned index", () => {
   it("passes every check, and the licence beside it is the one it hashed", () => {
     expect(indexErrors(pinned)).toEqual([]);
     expect(pinned.repository).toBe("openai/math");
-    expect(pinned.counts).toMatchObject({
-      families: 372,
-      manuscripts: 722,
+    expect(pinned.commit).toBe("3344da59991ed94f9ba711217b29c1d760badfa6");
+    expect(pinned.counts).toEqual({
       disciplines: 17,
+      families: 375,
+      formalizations: 248,
+      manuscripts: 730,
+      reasoning_summaries: 10,
       rejected: 0,
-      unverified_families: 0,
-      unverified_manuscripts: 0,
+      statements: 464,
+      unverified_families: 6,
+      unverified_manuscripts: 9,
     });
     const license = readFileSync(new URL("./data/LICENSE.md", import.meta.url), "utf8");
     const fenced = /```\n([\s\S]*?)```/.exec(license)?.[1] ?? "";
     expect(sha256(fenced)).toBe(pinned.license.sha256);
     expect(fenced).toMatch(/Apache License\s+Version 2\.0/);
+  });
+
+  it("attributes September's multiplication manuscript without moving November's from family 379", () => {
+    const september =
+      "preprints/Integer-multiplication-below-n-log-n-September-23-2026/paper.pdf";
+    const november =
+      "preprints/The-logarithmic-exponent-of-integer-multiplication-on-tapes-November-24-2026/paper.pdf";
+    const f = family(pinned, "109");
+    expect(f.formalization?.papers).toEqual([september]);
+    expect(f.manuscripts).toMatchObject([{ path: september, status: "formalized" }]);
+    expect(f.issues).toContain(
+      "its Lean scope page names a manuscript the family does not hold",
+    );
+    expect(family(pinned, "379").formalization?.papers).toContain(november);
+  });
+
+  it("keeps the Hodge family's narrower CM scope and excludes withdrawn October 7 papers", () => {
+    const hodge = family(pinned, "032");
+    expect(hodge.title).toBe("The rational Hodge conjecture for CM abelian varieties");
+    expect(hodge.formalization?.path).toBe("lean/docs/032.md");
+    expect(hodge.formalization?.papers).toEqual([
+      "preprints/The-rational-Hodge-conjecture-for-CM-abelian-varieties-October-6-2026/paper.pdf",
+    ]);
+    expect(hodge.manuscripts.some(({ id }) => id.endsWith("-October-7-2026"))).toBe(
+      false,
+    );
   });
 });

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import source from "./data/source.json" with { type: "json" };
 import { Refused } from "./errors.js";
+import pinnedMath from "./mathematics/data/openai-math.json" with { type: "json" };
 import { MODEL_ENGINE, OFFLINE_ENGINE, RAIN_BETHESDA_SCHEMA } from "./protocol.js";
 import {
   DRAFT_FIELDS,
@@ -619,11 +620,16 @@ describe("the mathematical substrate in the runtime", () => {
     const rt = await RainRuntime.create(options({}));
     const status = rt.mathStatus() as {
       available: boolean;
-      substrate: { repository: string; counts: { families: number } } | null;
+      substrate: {
+        repository: string;
+        commit: string;
+        counts: typeof pinnedMath.counts;
+      } | null;
     };
     expect(status.available).toBe(true);
     expect(status.substrate?.repository).toBe("openai/math");
-    expect(status.substrate?.counts.families).toBe(372);
+    expect(status.substrate?.commit).toBe(pinnedMath.commit);
+    expect(status.substrate?.counts).toEqual(pinnedMath.counts);
     expect(Object.keys(rt.identity()).sort()).toEqual(
       [
         "bounded_decision",

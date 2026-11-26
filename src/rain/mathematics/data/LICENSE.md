@@ -1,7 +1,7 @@
 # License of the mathematical substrate index
 
 `openai-math.json` is derived from the catalogue of `openai/math`
-(https://github.com/openai/math) at commit adc7f1241b42e322a6451854ab7e4b4c146bf78a (2026-10-06T14:58:50-07:00): titles, summaries,
+(https://github.com/openai/math) at commit 3344da59991ed94f9ba711217b29c1d760badfa6 (2026-11-24T16:18:47-08:00): titles, summaries,
 abstracts, citations and attribution notes as the repository's own files give them, the
 Lean scope pages' text and the comparator configs' declaration names, reformatted into
 JSON. No manuscript, LaTeX source, Lean source or reasoning-summary PDF is copied. The
