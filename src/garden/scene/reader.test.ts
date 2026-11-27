@@ -7,6 +7,74 @@ const data = (value: string) => Uint8Array.from(atob(value), (c) => c.charCodeAt
 const original = new Int16Array(data(pose.position).buffer);
 const faces = new Uint16Array(data(pose.index).buffer);
 
+type Face = { ids: number[]; triangle: THREE.Triangle; bounds: THREE.Box3 };
+
+function properCrossing(a: Face, b: Face): boolean {
+  if (!a.bounds.intersectsBox(b.bounds) || a.ids.some((id) => b.ids.includes(id))) {
+    return false;
+  }
+  const ray = new THREE.Ray();
+  const hit = new THREE.Vector3();
+  const bary = new THREE.Vector3();
+  const eps = 1e-5;
+  for (const [first, second] of [
+    [a.triangle, b.triangle],
+    [b.triangle, a.triangle],
+  ] as const) {
+    for (const [p, q] of [
+      [first.a, first.b],
+      [first.b, first.c],
+      [first.c, first.a],
+    ] as const) {
+      ray.origin.copy(p);
+      ray.direction.subVectors(q, p);
+      const length = ray.direction.length();
+      if (length < eps) continue;
+      ray.direction.multiplyScalar(1 / length);
+      if (!ray.intersectTriangle(second.a, second.b, second.c, false, hit)) continue;
+      const t = hit.distanceTo(p) / length;
+      if (t <= eps || t >= 1 - eps) continue;
+      if (second.getBarycoord(hit, bary) && Math.min(bary.x, bary.y, bary.z) > eps) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function cuffFaces(position: ArrayLike<number>, scale: number): Map<number, Face> {
+  const result = new Map<number, Face>();
+  const get = (id: number) =>
+    new THREE.Vector3(
+      position[id * 3]! * scale,
+      position[id * 3 + 1]! * scale,
+      position[id * 3 + 2]! * scale,
+    );
+  for (let f = 0; f < faces.length; f += 3) {
+    const ids = Array.from(faces.subarray(f, f + 3));
+    if (
+      !ids.some((id) => {
+        const i = id * 3;
+        return (
+          Math.abs(original[i]!) > 105 &&
+          original[i + 1]! >= 270 &&
+          original[i + 1]! <= 380 &&
+          original[i + 2]! >= 265 &&
+          original[i + 2]! <= 335
+        );
+      })
+    )
+      continue;
+    const corners = ids.map(get);
+    result.set(f, {
+      ids,
+      triangle: new THREE.Triangle(corners[0], corners[1], corners[2]),
+      bounds: new THREE.Box3().setFromPoints(corners),
+    });
+  }
+  return result;
+}
+
 describe("Christopher's book grip", () => {
   it("moves the hands and cuffs without moving the head or anything below the elbows", () => {
     const result = readerGripPositions(original);
@@ -21,10 +89,30 @@ describe("Christopher's book grip", () => {
         result[i + 2]! - z,
       );
       expect(Number.isFinite(displacement)).toBe(true);
-      if (y < 0.25 || y > 0.52 || z < 0.275) expect(displacement).toBeLessThan(1e-6);
+      if (y <= 0.19 || y >= 0.62 || z <= 0.08) expect(displacement).toBeLessThan(1e-6);
       if (displacement > 0.01) moved[x < 0 ? 0 : 1]!++;
     }
     expect(moved.every((count) => count > 400)).toBe(true);
+  });
+
+  it("adds no crossings between nonadjacent faces around either cuff", () => {
+    const before = cuffFaces(original, 0.001);
+    const after = cuffFaces(readerGripPositions(original), 1);
+    const entries = Array.from(after);
+    const newCrossings: [number, number][] = [];
+    for (let i = 0; i < entries.length; i++) {
+      const [a, first] = entries[i]!;
+      for (let j = i + 1; j < entries.length; j++) {
+        const [b, second] = entries[j]!;
+        if (
+          properCrossing(first, second) &&
+          !properCrossing(before.get(a)!, before.get(b)!)
+        ) {
+          newCrossings.push([a / 3, b / 3]);
+        }
+      }
+    }
+    expect(newCrossings).toEqual([]);
   });
 
   it("keeps both hands outside the bulk of the book panels", () => {

@@ -17,56 +17,26 @@ const BOOK_OPEN = 0.32;
 const COVER_EDGE = 0.19;
 const LEAVES_THICKNESS = 0.018;
 const LEAVES_CENTER_Z = -0.013;
-const PAGE_FACE = LEAVES_CENTER_Z - LEAVES_THICKNESS / 2;
-
 function gripWeight(x: number, y: number, z: number): number {
   return (
-    THREE.MathUtils.smoothstep(Math.abs(x), 0.077, 0.11) *
-    THREE.MathUtils.smoothstep(z, 0.275, 0.326) *
-    THREE.MathUtils.smoothstep(y, 0.25, 0.32) *
-    (1 - THREE.MathUtils.smoothstep(y, 0.454, 0.52))
+    THREE.MathUtils.smoothstep(Math.abs(x), 0.045, 0.115) *
+    THREE.MathUtils.smoothstep(z, 0.08, 0.255) *
+    THREE.MathUtils.smoothstep(y, 0.19, 0.275) *
+    (1 - THREE.MathUtils.smoothstep(y, 0.46, 0.62))
   );
 }
 
-// Repose the baked hands in each cover's coordinates. The wrist blend keeps the
-// sleeve and cuff continuous; the fingertips turn back in toward the page.
+// Seat both hands at the fore edges. Palms and cuffs move rigidly together;
+// only the forearm transition is blended, away from the overlapping cuff faces.
 export function readerGripPositions(mm: Int16Array): Float32Array {
   const positions = Float32Array.from(mm, (v) => v / 1000);
-  const point = new THREE.Vector3();
-  const axisX = new THREE.Vector3(1, 0, 0);
-  const axisY = new THREE.Vector3(0, 1, 0);
   for (let i = 0; i < positions.length; i += 3) {
     const x = positions[i]!;
     const y = positions[i + 1]!;
     const z = positions[i + 2]!;
     const weight = gripWeight(x, y, z);
-    if (weight === 0) continue;
-    const side = x < 0 ? -1 : 1;
-    point
-      .set(x, y - BOOK_Y, z - BOOK_Z)
-      .applyAxisAngle(axisX, -BOOK_TILT)
-      .applyAxisAngle(axisY, side * BOOK_OPEN);
-    const curl = THREE.MathUtils.smoothstep(point.y, -0.015, 0.058);
-    const nearCover = THREE.MathUtils.smoothstep(point.z, -0.079, -0.026);
-    point.x += side * (0.061 - 0.037 * curl);
-    point.y -= 0.034 * curl;
-    // Keep knuckles near the fore edge, not inside the cardboard. Farther up,
-    // the curved fingers end on the reader-facing side of the paper.
-    const fingerDepth = point.z + 0.024 * curl;
-    const gap = fingerDepth - (PAGE_FACE - 0.001);
-    // Soft minimum keeps the fingertips rounded instead of flattening them
-    // onto a plane. The small gap also clears the drifting book during breathing.
-    const depth = fingerDepth - (gap + Math.hypot(gap, 0.009)) / 2;
-    point.z = THREE.MathUtils.lerp(
-      point.z,
-      depth,
-      nearCover *
-        (1 - THREE.MathUtils.smoothstep(side * point.x, COVER_EDGE, COVER_EDGE + 0.02)),
-    );
-    point.applyAxisAngle(axisY, -side * BOOK_OPEN).applyAxisAngle(axisX, BOOK_TILT);
-    positions[i] = THREE.MathUtils.lerp(x, point.x, weight);
-    positions[i + 1] = THREE.MathUtils.lerp(y, point.y + BOOK_Y, weight);
-    positions[i + 2] = THREE.MathUtils.lerp(z, point.z + BOOK_Z, weight);
+    positions[i] = x + Math.sign(x) * 0.027 * weight;
+    positions[i + 2] = z - 0.029 * weight;
   }
   return positions;
 }
