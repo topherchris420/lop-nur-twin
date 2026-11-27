@@ -245,6 +245,7 @@ async function start3D(): Promise<boolean> {
     scene = new GardenScene(canvas, QUALITY[saved.quality], sceneSettings());
     resize();
     await scene.prepare();
+    $("find-reader").hidden = false;
     return true;
   } catch (e) {
     console.warn("garden: the 3D picture could not start; showing the plain garden", e);
@@ -256,6 +257,8 @@ async function start3D(): Promise<boolean> {
 
 /** Swaps in a fresh canvas for the 2D painting (a canvas keeps the first kind of context it gave). */
 function startFlat() {
+  exhibit.removeAttribute("data-bookmark");
+  $("find-reader").hidden = true;
   const next = document.createElement("canvas");
   next.id = "garden";
   next.setAttribute("role", "img");
@@ -371,6 +374,7 @@ function placeFlat(at: [number, number] | null) {
 // ---------------------------------------------------------------- controls
 
 function setCamera(mode: CameraMode) {
+  exhibit.removeAttribute("data-bookmark");
   saved.camera = mode;
   save();
   exhibit.dataset.camera = mode;
@@ -412,6 +416,16 @@ document.querySelectorAll<HTMLButtonElement>(".lenses button").forEach((b) =>
   }),
 );
 
+$("find-reader").addEventListener("click", () => {
+  if (!scene || scene.lost) return;
+  setCamera("free");
+  exhibit.setAttribute("data-bookmark", "");
+  $("hint").hidden = true;
+  scene.camera.frameReader();
+  scene.invalidate();
+  setPanel(false);
+  document.querySelector<HTMLButtonElement>('.lenses [data-camera="free"]')?.focus();
+});
 locator.addEventListener("click", () => setCamera("tracking"));
 
 $("pause").addEventListener("click", () => {

@@ -702,6 +702,41 @@ a:hover {
   }
 }
 
+/* Give the book its own space between the header and the actual control rows.
+   The controls can wrap on a phone or grow with the visitor's text size. */
+@media (max-width: 760px), (max-height: 500px) {
+  .exhibit[data-bookmark][data-panel="closed"] {
+    display: grid;
+    grid-template-areas: "header" "picture" "controls" "panel";
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+  }
+  .exhibit[data-bookmark][data-panel="closed"] > .masthead {
+    grid-area: header;
+    position: relative;
+  }
+  .exhibit[data-bookmark][data-panel="closed"] > .stage {
+    grid-area: picture;
+    position: relative;
+    min-height: 0;
+  }
+  .exhibit[data-bookmark][data-panel="closed"] > .controls {
+    grid-area: controls;
+    position: relative;
+    inset: auto;
+    max-width: none;
+    padding: 4px var(--gutter);
+  }
+  .exhibit[data-bookmark][data-panel="closed"] > .panel {
+    grid-area: panel;
+    position: relative;
+    inset: auto;
+    width: 100%;
+  }
+  .exhibit[data-bookmark][data-panel="closed"] > .placard {
+    display: none;
+  }
+}
+
 @media (max-width: 420px) {
   .lenses button {
     padding: 8px 7px;

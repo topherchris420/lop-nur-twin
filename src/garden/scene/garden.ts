@@ -38,6 +38,7 @@ import { GardenLights } from "./light.js";
 import { buildMaple, type MapleSet } from "./maple.js";
 import { FAR_LAYER, PostChain } from "./post.js";
 import { buildProps, type PropSet } from "./props.js";
+import { buildReader } from "./reader.js";
 import { Rain } from "./rain.js";
 import { clayDetail, decalAtlas, type DecalAtlas } from "./textures.js";
 
@@ -114,6 +115,7 @@ class World {
   readonly fly: ClayFly;
   readonly midge: Midge;
   readonly rain: Rain;
+  readonly reader: ReturnType<typeof buildReader>;
   readonly post: PostChain;
 
   constructor(
@@ -127,6 +129,7 @@ class World {
     // First: Three lists shadow-casting lights in scene order, and the cascade patch expects the sun's two maps first.
     this.lights = new GardenLights(renderer, this.scene, q);
     this.ground = buildGround(this.lib, this.atlas, q);
+    this.reader = buildReader(this.lib);
     this.props = buildProps(this.lib, this.atlas, q);
     this.maple = buildMaple(this.lib, this.atlas, q);
     this.backdrop = buildBackdrop(this.lib, q.textureSize);
@@ -143,6 +146,7 @@ class World {
     this.scene.add(
       this.ground.group,
       this.props.group,
+      this.reader.group,
       this.maple.group,
       this.backdrop.group,
     );
@@ -156,6 +160,7 @@ class World {
     this.midge.dispose();
     this.rain.dispose();
     this.ground.dispose();
+    this.reader.dispose();
     this.props.dispose();
     this.maple.dispose();
     this.backdrop.dispose();
@@ -403,6 +408,7 @@ export class GardenScene {
     time: number,
     light: Light,
   ) {
+    w.reader.update(time, this.settings.reducedMotion);
     const wind = iv.next.weather.windKmh;
     const leaf = swayFrame("leaf", time, wind);
     w.maple.shelter.quaternion.setFromAxisAngle(vec(leaf.axis), leaf.angle);

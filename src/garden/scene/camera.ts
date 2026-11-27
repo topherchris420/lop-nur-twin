@@ -18,7 +18,7 @@
  */
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { LAYOUT, OBSERVATION, standingHeight } from "../core/layout.js";
+import { LAYOUT, OBSERVATION, READER_SEAT, standingHeight } from "../core/layout.js";
 import type { FlyPose } from "../core/performance.js";
 import {
   add,
@@ -277,6 +277,15 @@ export class GardenCamera {
       aperture: LENS[m].aperture,
     };
     this.shadowFocus = { point: pose.position, radius: m === "macro" ? 0.018 : 0.045 };
+  }
+
+  /** A close look at the book. Orbit, pan and zoom remain available. */
+  frameReader() {
+    const seat = new THREE.Vector3(...READER_SEAT.position);
+    this.controls.target.copy(seat).add(new THREE.Vector3(0, 0.52, 0.16));
+    this.camera.position.copy(seat).add(new THREE.Vector3(-0.34, 0.72, 1.58));
+    this.controls.update();
+    this.frame();
   }
 
   /** Every display frame: the free camera's damping and limits. Returns true if it moved. */
