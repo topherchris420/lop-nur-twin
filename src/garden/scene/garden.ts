@@ -408,7 +408,7 @@ export class GardenScene {
     time: number,
     light: Light,
   ) {
-    w.reader.update(time, this.settings.reducedMotion);
+    w.reader.update(time, this.settings.reducedMotion, light);
     const wind = iv.next.weather.windKmh;
     const leaf = swayFrame("leaf", time, wind);
     w.maple.shelter.quaternion.setFromAxisAngle(vec(leaf.axis), leaf.angle);

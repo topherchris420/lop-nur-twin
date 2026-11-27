@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { READER_SEAT } from "../core/layout.js";
+import type { Light } from "../core/sky.js";
 import type { ClayLibrary } from "./clay.js";
 import pose from "./data/chrisw-reader.json";
 
@@ -129,6 +130,12 @@ export function buildReader(lib: ClayLibrary) {
   book.position.set(0, 0.4, 0.379);
   book.rotation.x = 0.42;
   group.add(book);
+  // The cream paper reflects daylight toward the reader's brow and cheeks.
+  const pageBounce = new THREE.SpotLight(0xffdfb6, 0, 0.63, Math.PI / 6, 1);
+  pageBounce.position.set(0.025, 0.095, -0.035);
+  book.add(pageBounce);
+  pageBounce.target.position.set(0, 0.78, 0.24);
+  group.add(pageBounce.target);
   const cloth = lib.get("reader-cloth", { color: 0x17473e });
   const paper = lib.get("reader-paper", { color: 0xe8d9ab });
   const gilt = lib.get("reader-title", { color: 0xffffff, map: jacket });
@@ -160,7 +167,9 @@ export function buildReader(lib: ClayLibrary) {
   });
   return {
     group,
-    update(time: number, reducedMotion: boolean) {
+    update(time: number, reducedMotion: boolean, light: Light) {
+      pageBounce.intensity =
+        light.daylight * (0.055 * light.fill + 0.015 * light.sun.intensity);
       const breath = reducedMotion ? 0 : Math.sin(time * 1.41);
       figure.morphTargetInfluences![0] = breath;
       figure.morphTargetInfluences![1] = reducedMotion
@@ -176,6 +185,7 @@ export function buildReader(lib: ClayLibrary) {
       group.traverse((part) => {
         if (part instanceof THREE.Mesh) part.geometry.dispose();
       });
+      pageBounce.dispose();
       jacket.dispose();
     },
   };
