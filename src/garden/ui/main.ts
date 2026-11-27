@@ -257,6 +257,7 @@ async function start3D(): Promise<boolean> {
 
 /** Swaps in a fresh canvas for the 2D painting (a canvas keeps the first kind of context it gave). */
 function startFlat() {
+  exhibit.removeAttribute("data-bookmark");
   $("find-reader").hidden = true;
   const next = document.createElement("canvas");
   next.id = "garden";
@@ -373,6 +374,7 @@ function placeFlat(at: [number, number] | null) {
 // ---------------------------------------------------------------- controls
 
 function setCamera(mode: CameraMode) {
+  exhibit.removeAttribute("data-bookmark");
   saved.camera = mode;
   save();
   exhibit.dataset.camera = mode;
@@ -417,6 +419,8 @@ document.querySelectorAll<HTMLButtonElement>(".lenses button").forEach((b) =>
 $("find-reader").addEventListener("click", () => {
   if (!scene || scene.lost) return;
   setCamera("free");
+  exhibit.setAttribute("data-bookmark", "");
+  $("hint").hidden = true;
   scene.camera.frameReader();
   scene.invalidate();
   setPanel(false);
