@@ -175,6 +175,17 @@ export const LAYOUT = {
   beyond: { z: -7.5 },
 } as const;
 
+/** A miniature at the far end of the sill, clear of the fly's window perch. */
+export const READER_SEAT = {
+  position: [
+    LAYOUT.window.sill.x1 - 0.095,
+    LAYOUT.window.sill.top,
+    LAYOUT.wall.front + LAYOUT.window.sill.depth - 0.018,
+  ] as V3,
+  scale: 0.13,
+  yaw: -0.21,
+};
+
 /** The server's 2D anchor of every place (`PLACES` in server.py). */
 export const PLAN = {
   leaf: [0.29, 0.38],
