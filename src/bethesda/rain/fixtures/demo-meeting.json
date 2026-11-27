@@ -1,8 +1,8 @@
 {
   "schema": "rain-bethesda/v2",
   "kind": "meeting",
-  "request_id": "481af01125a58b75df6428b9afd1594c",
-  "meeting_id": "rain-offline-93ae4b5195a5761ea843",
+  "request_id": "e7ce8de1ce5964a9dc7a0c51e2916c31",
+  "meeting_id": "rain-offline-181233e31d4835780967",
   "generation": "scripted",
   "engine": "rain.meeting.offline.buildOfflineMeeting",
   "model": null,
@@ -23,7 +23,7 @@
       "speaker": "James",
       "role": "Lead Scientist",
       "move": "frame",
-      "lead": "I pulled 7 passages from 3 papers that speak to 'coordinated', 'behavior', 'local' and 'responses'. Nothing in the library touches 'evidence', 'distinguish' and 'crowd', so I'm scoping to what it covers. The most concrete line is in Dynamic Resonance Rooting:",
+      "lead": "I pulled 8 passages from 4 papers that speak to 'coordinated', 'behavior', 'local' and 'responses'. Nothing in the library touches 'evidence', 'distinguish' and 'crowd', so I'm scoping to what it covers. The most concrete line is in Dynamic Resonance Rooting:",
       "quotes": [
         {
           "source": "Dynamic Resonance Rooting.md",
@@ -54,7 +54,7 @@
       "speaker": "Luca",
       "role": "Field Topographer",
       "move": "connection",
-      "lead": "Look at the shape of this. Reality Built on a Finite Set of Geometric Instructions and Dynamic Resonance Rooting both reach for 'phase', from different directions:",
+      "lead": "Look at the shape of this. Reality Built on a Finite Set of Geometric Instructions and Recursive Resonance Stabilization both reach for 'phase', from different directions:",
       "quotes": [
         {
           "source": "Reality Built on a Finite Set of Geometric Instructions.md",
@@ -65,11 +65,11 @@
           "verified": true
         },
         {
-          "source": "Dynamic Resonance Rooting.md",
-          "line": 125,
-          "span_start": 7698,
-          "span_end": 7852,
-          "text": "Its value is that it exposes what is being rewarded: concentrated spectral power, persistence over windows, coherent phase behavior, and stable amplitude.",
+          "source": "Recursive Resonance Stabilization.md",
+          "line": 230,
+          "span_start": 9403,
+          "span_end": 9537,
+          "text": "To characterize the geometry of the attractor in phase space, we employ box-counting dimension on the trajectory in delay coordinates.",
           "verified": true
         }
       ],
@@ -93,7 +93,7 @@
           "verified": true
         }
       ],
-      "coda": "And 57% of what James retrieved comes from a single paper, Dynamic Resonance Rooting. Until something outside this library reproduces James's anchor, this is a well-instrumented hypothesis, not a result.",
+      "coda": "And 50% of what James retrieved comes from a single paper, Dynamic Resonance Rooting. Until something outside this library reproduces James's anchor, this is a well-instrumented hypothesis, not a result.",
       "unverified": 0,
       "generation": "scripted"
     },
@@ -132,8 +132,8 @@
     }
   ],
   "verdict": {
-    "agreed": "The library speaks to this directly: 3 papers cover 'coordinated', 'behavior', 'local' and 'responses', led by Dynamic Resonance Rooting. It is silent on 'evidence', 'distinguish' and 'crowd'.",
-    "contested": "Luca reads the shared 'phase' in Reality Built on a Finite Set of Geometric Instructions and Dynamic Resonance Rooting as real structure; Elena reads it as unreplicated until an outside source reproduces it.",
+    "agreed": "The library speaks to this directly: 4 papers cover 'coordinated', 'behavior', 'local' and 'responses', led by Dynamic Resonance Rooting. It is silent on 'evidence', 'distinguish' and 'crowd'.",
+    "contested": "Luca reads the shared 'phase' in Reality Built on a Finite Set of Geometric Instructions and Recursive Resonance Stabilization as real structure; Elena reads it as unreplicated until an outside source reproduces it.",
     "next_move": "Write one falsifiable prediction for this question and the measurement that would refute it.",
     "read_next": [
       "Dynamic Resonance Rooting.md:230",
@@ -145,14 +145,14 @@
     "checked": 4,
     "verified": 4,
     "corpus_files": 17,
-    "corpus_sha256": "9b2ea4210d127b9aa19de5d33a27caec79449ee7d157ae8c0989399dc0b71177"
+    "corpus_sha256": "054dbede81142484221121055c5fb9dfd2a5a5d23591d7a3d95f63c5a293417a"
   },
   "suggestions": [],
   "rain": {
     "repository": "topherchris420/lop-nur-twin",
-    "commit": "8c06ac3840098572a4b997c19d19cff78c96c25f",
+    "commit": "8cbb172def9f865c4dd626dd9a89bdfadfaddd85",
     "dirty": false
   },
-  "produced_at": "2026-10-06T01:51:14.826Z",
+  "produced_at": "2026-11-27T20:11:22.727Z",
   "source_artifact": null
 }
