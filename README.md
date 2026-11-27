@@ -8,7 +8,7 @@ The connecting idea is simple: a simulated world can be more than a place to exp
 
 Walk a city, govern a civilization, enter a fictional game, observe persistent digital organisms, or follow a scientific experiment from question to recorded result. Each experience has its own rules and evidentiary limits; together they share a commitment to inspectable records, explicit uncertainty, and reproducibility where supported.
 
-**[Explore the 3D twin](https://lop-nur-twin.vercel.app/)** · **[Walk Bethesda](#bethesda)** · **[Visit R.A.I.N. Lab](#rain-lab)** · **[Play Blacksite](https://lop-nur-twin.vercel.app/play)** · **[Explore Noeterra](https://lop-nur-twin.vercel.app/noeterra)** · **[Observe ECHO live](https://lop-nur-twin.vercel.app/live)** · [Run locally](#07-reproduce-the-work)
+**[Explore the 3D twin](https://lop-nur-twin.vercel.app/)** · **[Walk Bethesda](#bethesda)** · **[Visit Eva’s live garden](https://bethesda-garden-viewer.ciao-chris.chatgpt.site/)** · **[Visit R.A.I.N. Lab](#rain-lab)** · **[Play Blacksite](https://lop-nur-twin.vercel.app/play)** · **[Explore Noeterra](https://lop-nur-twin.vercel.app/noeterra)** · **[Observe ECHO live](https://lop-nur-twin.vercel.app/live)** · [Run locally](#07-reproduce-the-work)
 
 <picture>
   <source media="(max-width: 600px)" srcset="docs/media/readme/gallery/worlds-mobile.webp">
@@ -32,7 +32,7 @@ _Actual application captures, not concept art. The airfield has an evidence ledg
     <td width="33%">
       <a href="docs/media/readme/gallery/garden.jpg"><img src="docs/media/readme/gallery/garden.jpg" alt="Eva in a live garden macro observation with on-screen status and activity."></a>
       <strong>OBSERVE / EVA &amp; ECHO</strong><br>
-      <sub>Witness the persistent worlds without resetting their histories. <a href="https://lop-nur-twin.vercel.app/live">Visit the observer</a>.</sub>
+      <sub>Witness the persistent worlds without resetting their histories. <a href="https://bethesda-garden-viewer.ciao-chris.chatgpt.site/">Visit Eva’s garden</a> · <a href="https://lop-nur-twin.vercel.app/live">Observe ECHO</a>.</sub>
     </td>
   </tr>
 </table>
@@ -109,7 +109,9 @@ Blacksite uses the airfield geometry as the setting for a **fictional first-pers
 | :------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [![Eva in the garden's real-time macro view.](docs/media/readme/gallery/garden.jpg)](docs/media/readme/gallery/garden.jpg) | [![ECHO near a Bethesda building with its current state and recent action.](docs/media/readme/gallery/live-fly.jpg)](docs/media/readme/gallery/live-fly.jpg) |
 
-Eva’s garden and ECHO’s Bethesda are separate, persistent simulations. Open either viewer and you join a fly partway through its day. Eva’s garden keeps her clock and memories. ECHO’s observer shows the decision behind a change in behaviour and links each saved checkpoint to the one before it. [Visit Eva’s garden](https://150-136-49-49.sslip.io/) · [Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Browse ECHO’s ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger).
+Eva’s garden and ECHO’s Bethesda are separate, persistent simulations. Open either viewer and you join a fly partway through its day. Eva’s garden keeps her clock and memories. ECHO’s observer shows the decision behind a change in behaviour and links each saved checkpoint to the one before it. [Visit Eva’s live garden](https://bethesda-garden-viewer.ciao-chris.chatgpt.site/) · [Observe ECHO](https://lop-nur-twin.vercel.app/live) · [Browse ECHO’s ledger](https://github.com/topherchris420/lop-nur-twin/tree/live-fly-ledger).
+
+No sign-in is required for the garden. To find Chrisw reading, open **Observation**, expand **A bookmark by the cedar fence**, and choose **Look at the book**.
 
 <details>
 <summary>Two field observations from Bethesda on 18 November 2026</summary>
