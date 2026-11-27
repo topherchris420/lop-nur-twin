@@ -10,16 +10,42 @@ function bytes(encoded: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
 }
 
+const BOOK_Y = 0.4;
+const BOOK_Z = 0.379;
+const BOOK_TILT = 0.42;
+const BOOK_OPEN = 0.32;
+const COVER_EDGE = 0.19;
+const LEAVES_THICKNESS = 0.018;
+const LEAVES_CENTER_Z = -0.013;
+function gripWeight(x: number, y: number, z: number): number {
+  return (
+    THREE.MathUtils.smoothstep(Math.abs(x), 0.045, 0.115) *
+    THREE.MathUtils.smoothstep(z, 0.08, 0.255) *
+    THREE.MathUtils.smoothstep(y, 0.19, 0.275) *
+    (1 - THREE.MathUtils.smoothstep(y, 0.46, 0.62))
+  );
+}
+
+// Seat both hands at the fore edges. Palms and cuffs move rigidly together;
+// only the forearm transition is blended, away from the overlapping cuff faces.
+export function readerGripPositions(mm: Int16Array): Float32Array {
+  const positions = Float32Array.from(mm, (v) => v / 1000);
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i]!;
+    const y = positions[i + 1]!;
+    const z = positions[i + 2]!;
+    const weight = gripWeight(x, y, z);
+    positions[i] = x + Math.sign(x) * 0.027 * weight;
+    positions[i + 2] = z - 0.029 * weight;
+  }
+  return positions;
+}
+
 function figureGeometry() {
   const g = new THREE.BufferGeometry();
   const mm = new Int16Array(bytes(pose.position).buffer);
-  g.setAttribute(
-    "position",
-    new THREE.BufferAttribute(
-      Float32Array.from(mm, (v) => v / 1000),
-      3,
-    ),
-  );
+  const positions = readerGripPositions(mm);
+  g.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   g.setAttribute(
     "normal",
     new THREE.BufferAttribute(new Int8Array(bytes(pose.normal).buffer), 3, true),
@@ -35,7 +61,10 @@ function figureGeometry() {
   const gaze = new Float32Array(mm.length);
   for (let i = 0; i < mm.length; i += 3) {
     const [x, y, z] = [mm[i]! / 1000, mm[i + 1]! / 1000, mm[i + 2]! / 1000];
-    const chest = THREE.MathUtils.smoothstep(y, 0.12, 0.38);
+    const chest = Math.max(
+      THREE.MathUtils.smoothstep(y, 0.12, 0.38),
+      gripWeight(x, y, z),
+    );
     breath[i + 1] = chest * 0.004;
     breath[i + 2] = chest * 0.002;
     const neck = THREE.MathUtils.smoothstep(y, 0.67, 0.79);
@@ -127,8 +156,8 @@ export function buildReader(lib: ClayLibrary) {
   const book = new THREE.Group();
   book.name = "Beelzebub’s Tales to His Grandson — G. I. Gurdjieff";
   // Local +Z faces the garden; the cream pages face the reader.
-  book.position.set(0, 0.4, 0.379);
-  book.rotation.x = 0.42;
+  book.position.set(0, BOOK_Y, BOOK_Z);
+  book.rotation.x = BOOK_TILT;
   group.add(book);
   // The cream paper reflects daylight toward the reader's brow and cheeks.
   const pageBounce = new THREE.SpotLight(0xffdfb6, 0, 0.63, Math.PI / 6, 1);
@@ -141,13 +170,16 @@ export function buildReader(lib: ClayLibrary) {
   const gilt = lib.get("reader-title", { color: 0xffffff, map: jacket });
   for (const side of [-1, 1]) {
     const half = new THREE.Group();
-    half.rotation.y = -side * 0.32;
+    half.rotation.y = -side * BOOK_OPEN;
     book.add(half);
-    const leaves = new THREE.Mesh(new THREE.BoxGeometry(0.184, 0.267, 0.018), paper);
-    leaves.position.set(side * 0.092, 0, -0.013);
+    const leaves = new THREE.Mesh(
+      new THREE.BoxGeometry(0.184, 0.267, LEAVES_THICKNESS),
+      paper,
+    );
+    leaves.position.set(side * 0.092, 0, LEAVES_CENTER_Z);
     half.add(leaves);
-    const cover = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.279, 0.008), cloth);
-    cover.position.x = side * 0.095;
+    const cover = new THREE.Mesh(new THREE.BoxGeometry(COVER_EDGE, 0.279, 0.008), cloth);
+    cover.position.x = (side * COVER_EDGE) / 2;
     half.add(cover);
     if (side === 1) {
       const title = new THREE.Mesh(new THREE.PlaneGeometry(0.188, 0.277), gilt);
@@ -175,8 +207,8 @@ export function buildReader(lib: ClayLibrary) {
       figure.morphTargetInfluences![1] = reducedMotion
         ? 0
         : Math.sin(time * 0.83) * 0.35 + Math.sin(time * 0.22) * 0.65;
-      book.position.y = 0.4 + breath * 0.004;
-      book.position.z = 0.379 + breath * 0.002;
+      book.position.y = BOOK_Y + breath * 0.004;
+      book.position.z = BOOK_Z + breath * 0.002;
       const page = THREE.MathUtils.smoothstep(time % 37, 34.4, 36.2);
       leafPivot.visible = !reducedMotion && page > 0 && page < 1;
       leafPivot.rotation.y = -0.32 + page * (Math.PI + 0.64);
