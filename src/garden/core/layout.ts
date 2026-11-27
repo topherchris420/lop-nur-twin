@@ -175,17 +175,6 @@ export const LAYOUT = {
   beyond: { z: -7.5 },
 } as const;
 
-/** A miniature at the far end of the sill, clear of the fly's window perch. */
-export const READER_SEAT = {
-  position: [
-    LAYOUT.window.sill.x1 - 0.095,
-    LAYOUT.window.sill.top,
-    LAYOUT.wall.front + LAYOUT.window.sill.depth - 0.018,
-  ] as V3,
-  scale: 0.13,
-  yaw: -0.21,
-};
-
 /** The server's 2D anchor of every place (`PLACES` in server.py). */
 export const PLAN = {
   leaf: [0.29, 0.38],
@@ -298,6 +287,16 @@ export function groundHeight(x: number, z: number): number {
   }
   return h;
 }
+
+/** Metres. The source mesh spans 1.9171886 from shoe sole to crown in bind pose. */
+export const READER_STANDING_HEIGHT = 73 * 0.0254;
+const readerScale = READER_STANDING_HEIGHT / 1.9171886;
+export const READER_SEAT = {
+  // In the baked pose the low sole is 447 mm below its local origin.
+  position: [-2.12, groundHeight(-2.05, -0.35) + 0.447 * readerScale, -0.81] as V3,
+  scale: readerScale,
+  yaw: 0.15,
+};
 
 /** A stepping stone's top height at its centre. */
 export function stoneTop(i: number): number {

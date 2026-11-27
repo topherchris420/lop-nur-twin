@@ -282,8 +282,8 @@ export class GardenCamera {
   /** A close look at the book. Orbit, pan and zoom remain available. */
   frameReader() {
     const seat = new THREE.Vector3(...READER_SEAT.position);
-    this.controls.target.copy(seat).add(new THREE.Vector3(0, 0.077, 0.03));
-    this.camera.position.copy(seat).add(new THREE.Vector3(-0.055, 0.086, 0.187));
+    this.controls.target.copy(seat).add(new THREE.Vector3(0, 0.52, 0.16));
+    this.camera.position.copy(seat).add(new THREE.Vector3(-0.34, 0.72, 1.58));
     this.controls.update();
     this.frame();
   }
