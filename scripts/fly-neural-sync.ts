@@ -112,10 +112,20 @@ export class SyncBrain {
     obs: unknown,
     windowMs = 10,
   ): { readouts: R; computeMs: number } {
-    if (this.closed) throw new Error("the brain was closed");
-    this.worker.postMessage(JSON.stringify({ t, obs, window_ms: windowMs }));
-    const msg = this.wait();
+    const msg = this.request({ t, obs, window_ms: windowMs });
     return { readouts: msg.readouts as R, computeMs: Number(msg.compute_ms ?? 0) };
+  }
+
+  request(message: Record<string, unknown>): Record<string, unknown> {
+    if (this.closed) throw new Error("the brain was closed");
+    this.worker.postMessage(JSON.stringify(message));
+    try {
+      return this.wait();
+    } catch (err) {
+      this.closed = true;
+      void this.worker.terminate();
+      throw err;
+    }
   }
 
   close(): void {
