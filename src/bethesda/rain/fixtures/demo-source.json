@@ -1,21 +1,21 @@
 {
   "schema": "rain-bethesda-demo-source/v1",
-  "recordedAt": "2026-10-06T01:51:14.826Z",
+  "recordedAt": "2026-11-27T20:11:22.727Z",
   "recorder": "scripts/export-rain-demo.ts (src/rain/meeting/offline.ts buildOfflineMeeting; src/rain/meeting/record.ts offlineMeetingRecord)",
   "engine": "rain.meeting.offline.buildOfflineMeeting",
   "generation": "scripted",
   "rain": {
     "repository": "topherchris420/lop-nur-twin",
-    "commit": "8c06ac3840098572a4b997c19d19cff78c96c25f",
+    "commit": "8cbb172def9f865c4dd626dd9a89bdfadfaddd85",
     "dirty": false
   },
   "corpus": {
     "files": 17,
-    "sha256": "9b2ea4210d127b9aa19de5d33a27caec79449ee7d157ae8c0989399dc0b71177"
+    "sha256": "054dbede81142484221121055c5fb9dfd2a5a5d23591d7a3d95f63c5a293417a"
   },
   "question": "What evidence would distinguish coordinated crowd behavior from coincidental local responses after a Metro closure?",
-  "meetingId": "rain-offline-93ae4b5195a5761ea843",
-  "snapshotSha256": "cd01967826cb6121e06d76ec9a2aaadcc60e93b6d9c5a04b719d354e8a82f6db",
+  "meetingId": "rain-offline-181233e31d4835780967",
+  "snapshotSha256": "454c21ffd91034ae788b76582c22569e597847df29df6d5f0f0922c75de6705c",
   "license": "The corpus is MIT-licensed james_library material bundled in src/rain/data (see its LICENSE.md and source.json). Quotes are verbatim spans of its papers, kept with their source path, line and character offsets.",
   "lineage": {
     "note": "First recorded from R.A.I.N.'s own offline engine in james_library through the reference bridge, before the research runtime was consolidated into this repository. The meeting id is a hash of the meeting's content, so the unchanged id is the evidence that this repository's engine reproduces that meeting word for word.",
@@ -30,7 +30,7 @@
       },
       "meetingId": "rain-offline-93ae4b5195a5761ea843"
     },
-    "sameMeetingAsFirstRecording": true
+    "sameMeetingAsFirstRecording": false
   },
   "notes": [
     "Prerecorded: DEMO replays this one meeting and runs no process.",

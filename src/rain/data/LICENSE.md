@@ -1,7 +1,7 @@
 # License of the R.A.I.N. corpus and perspectives
 
 `corpus.json` and `perspectives.json` are derived from `topherchris420/james_library`
-at commit 9c8811e343d21b8c143055f9cf549abdefa862f1 (2026-09-29T00:01:54-04:00), which is published under the MIT License
+at commit 7f8fa02ba7797f37fe1f40fe42722006dbea2560 (2026-11-27T20:07:50+00:00), which is published under the MIT License
 reproduced below. The papers are quoted verbatim; the SOUL files are reproduced in
 full. See `source.json` for the per-file hashes and the import time.
 
