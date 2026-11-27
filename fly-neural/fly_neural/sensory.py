@@ -296,7 +296,7 @@ def small_object_rate(obj: dict | None) -> float:
 class Mapper:
     """Resolves the populations once, then turns observations into Poisson inputs."""
 
-    def __init__(self, c: Connectome, mapping: str = "v1"):
+    def __init__(self, c: Connectome, mapping: str = "v1", *, resolver=resolve):
         from .banc import dataset_of
 
         self.mapping = check_mapping(mapping)
@@ -311,7 +311,7 @@ class Mapper:
         self.idx = {}
         self.report = {}
         for k in sorted(keys):
-            self.idx[k], self.report[k] = resolve(k, c)
+            self.idx[k], self.report[k] = resolver(k, c)
 
     def rates(self, obs: dict) -> dict[str, float]:
         if self.mapping == "v1" and obs.get("smallObject") is not None:

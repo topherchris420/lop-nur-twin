@@ -88,17 +88,24 @@ export class SyncBrain {
     });
     this.worker.unref();
     // `serve` loads the whole connectome before it answers, so the first wait is the long one.
-    this.ready = this.wait();
-    if (this.ready.ready !== true)
-      throw new Error(
-        `the brain did not start: ${JSON.stringify(this.ready).slice(0, 300)}`,
-      );
+    try {
+      this.ready = this.wait();
+      if (this.ready.ready !== true)
+        throw new Error(
+          `the brain did not start: ${JSON.stringify(this.ready).slice(0, 300)}`,
+        );
+    } catch (err) {
+      this.close();
+      throw err;
+    }
   }
 
   private wait(): Record<string, unknown> {
     const r = Atomics.wait(this.ctl, 0, 0, this.timeoutMs);
-    if (r === "timed-out")
+    if (r === "timed-out") {
+      this.close(); // Never let a late response satisfy a different request.
       throw new Error(`the brain did not answer within ${this.timeoutMs} ms`);
+    }
     const text = new TextDecoder().decode(this.data.slice(0, Atomics.load(this.ctl, 1)));
     Atomics.store(this.ctl, 0, 0);
     const msg = JSON.parse(text) as Record<string, unknown>;
@@ -112,10 +119,14 @@ export class SyncBrain {
     obs: unknown,
     windowMs = 10,
   ): { readouts: R; computeMs: number } {
-    if (this.closed) throw new Error("the brain was closed");
-    this.worker.postMessage(JSON.stringify({ t, obs, window_ms: windowMs }));
-    const msg = this.wait();
+    const msg = this.request({ t, obs, window_ms: windowMs });
     return { readouts: msg.readouts as R, computeMs: Number(msg.compute_ms ?? 0) };
+  }
+
+  request(message: Record<string, unknown>): Record<string, unknown> {
+    if (this.closed) throw new Error("the brain was closed");
+    this.worker.postMessage(JSON.stringify(message));
+    return this.wait();
   }
 
   close(): void {

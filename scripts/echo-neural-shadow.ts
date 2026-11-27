@@ -147,7 +147,13 @@ export const SAME_OBJECT_RAD = 0.5;
  * sees where a thing is, not which thing it is.
  */
 export class SmallObjectEye {
-  private last: { t: number; bearing: number; speed: number } | null = null;
+  constructor(privateState: { t: number; bearing: number; speed: number } | null = null) {
+    this.last = privateState;
+  }
+  private last: { t: number; bearing: number; speed: number } | null;
+  snapshot() {
+    return this.last ? { ...this.last } : null;
+  }
   see(frame: SenseFrame): SmallObject | null {
     const l = frame.looming;
     if (!l) {
